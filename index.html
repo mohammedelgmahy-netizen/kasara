@@ -34,6 +34,51 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc;}
 .home-tile{display:flex;flex-direction:column;align-items:center;gap:10px;background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:18px 8px 14px;font-weight:700;font-size:14px;color:#1e293b;text-align:center;box-shadow:0 1px 3px rgba(15,23,42,.06);transition:transform .12s}
 .home-tile:active{transform:scale(.96)}
 .home-tile .nav-ic{width:58px;height:58px;flex:0 0 58px;font-size:24px}
+/* ===== التقرير الإداري ===== */
+.mgr-hero{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:linear-gradient(135deg,#0f172a,#1e3a5f 60%,#0f766e);color:#fff;border-radius:20px;padding:18px 22px;box-shadow:0 8px 24px rgba(15,23,42,.18)}
+.mgr-hero h2{font-size:20px;font-weight:800;margin:0}
+.mgr-hero .mh-sub{font-size:12.5px;color:#cbd5e1;font-weight:600;margin-top:4px}
+.mgr-hero .mh-big{display:flex;gap:10px;flex-wrap:wrap}
+.mgr-hero .mh-big div{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:10px 16px;min-width:150px}
+.mgr-hero .mh-big b{display:block;font-size:22px;font-variant-numeric:tabular-nums;line-height:1.2}
+.mgr-hero .mh-big span{font-size:11.5px;color:#cbd5e1;font-weight:700}
+.mgr-filters{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.mgr-seg{display:inline-flex;background:#f1f5f9;border-radius:12px;padding:3px;gap:2px}
+.mgr-seg button{border:none;background:transparent;border-radius:9px;padding:7px 14px;font:800 12.5px Cairo,sans-serif;color:#475569;cursor:pointer}
+.mgr-seg button.on{background:#0f172a;color:#fff;box-shadow:0 2px 6px rgba(15,23,42,.25)}
+.mgr-kpi{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 1px 3px rgba(15,23,42,.06);transition:transform .12s,box-shadow .12s;cursor:pointer;min-width:0}
+.mgr-kpi:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(15,23,42,.1)}
+.mgr-kpi .k-label{font-size:12px;font-weight:700;color:#64748b}
+.mgr-kpi .k-val{font-size:22px;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums;line-height:1.2;color:#0f172a}
+.mgr-kpi .k-sub{font-size:11px;color:#64748b;font-weight:600;margin-top:4px}
+.mgr-kpi .nav-ic{width:46px;height:46px;flex:0 0 46px;font-size:19px}
+.mgr-card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+.mgr-card .mc-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid #f1f5f9}
+.mgr-card .mc-head h3{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:800;color:#0f172a;margin:0}
+.mgr-card .mc-head .nav-ic{width:32px;height:32px;flex:0 0 32px;font-size:14px}
+.mgr-card .mc-note{font-size:11px;color:#64748b;font-weight:600}
+.mgr-card table{width:100%;font-size:13.5px;text-align:right;border-collapse:collapse}
+.mgr-card thead th{background:#f8fafc;color:#475569;font-size:12px;font-weight:800;padding:10px 12px;white-space:nowrap;border-bottom:1px solid #e2e8f0}
+.mgr-card tbody td{padding:10px 12px;border-bottom:1px solid #f1f5f9;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mgr-card tbody tr:hover td{background:#f8fafc}
+.mgr-card tbody tr.tot td{background:#f1f5f9;font-weight:800;border-top:2px solid #cbd5e1}
+.mgr-card tbody tr.grp td{background:#fff7ed;font-weight:800;font-size:12px;color:#9a3412}
+.mgr-card tbody tr.grp.g-trans td{background:#fff7ed;color:#c2410c}.mgr-card tbody tr.grp.g-admin td{background:#f1f5f9;color:#334155}.mgr-card tbody tr.grp.g-skip td{background:#f8fafc;color:#94a3b8}
+.mgr-stat{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px}
+.mgr-stat p{margin:0}.mgr-stat .s-l{font-size:11px;font-weight:700;color:#64748b}.mgr-stat .s-v{font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;font-variant-numeric:tabular-nums}
+.mgr-pl{padding:6px 10px 10px}
+.mgr-pl .pl-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border-bottom:1px dashed #e2e8f0;font-size:13.5px}
+.mgr-pl .pl-row .v{font-weight:800;font-variant-numeric:tabular-nums;direction:ltr;white-space:nowrap}
+.mgr-pl .pl-row.sub{font-size:11.5px;color:#64748b;border-bottom:none;padding:2px 10px 8px}
+.mgr-pl .pl-row.minus{color:#475569}.mgr-pl .pl-row.minus .v{color:#be123c}
+.mgr-pl .pl-row.plus .v{color:#047857}
+.mgr-pl .pl-tot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-radius:12px;margin:8px 0;font-weight:800;font-size:14px}
+.mgr-pl .pl-tot .v{font-size:18px;font-variant-numeric:tabular-nums;direction:ltr}
+.mgr-pl .pl-tot.good{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}.mgr-pl .pl-tot.bad{background:#fff1f2;color:#9f1239;border:1px solid #fecdd3}
+.mgr-pl .pl-tot.final.good{background:linear-gradient(135deg,#047857,#0f766e);color:#fff;border:none}.mgr-pl .pl-tot.final.bad{background:linear-gradient(135deg,#be123c,#9f1239);color:#fff;border:none}
+.mgr-alert{border-radius:12px;padding:9px 12px;font-size:12px;font-weight:700;display:flex;gap:8px;align-items:flex-start}
+@media (max-width:640px){.mgr-hero{padding:14px 16px}.mgr-hero h2{font-size:17px}.mgr-hero .mh-big div{min-width:0;flex:1 1 30%;padding:8px 10px}.mgr-hero .mh-big b{font-size:16px}.mgr-kpi .k-val{font-size:18px}.mgr-kpi .nav-ic{width:40px;height:40px;flex-basis:40px;font-size:16px}}
+@media print{.mgr-kpi,.mgr-card{break-inside:avoid;box-shadow:none}.mgr-hero{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 #tab-home .tab-brand{display:none}
 .home-wrap{width:100%;max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
 .home-hero{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff;border-radius:20px;padding:18px 22px;box-shadow:0 8px 24px rgba(15,23,42,.18)}
@@ -1384,106 +1429,95 @@ input:focus,select:focus{outline:none;box-shadow:0 0 0 3px rgba(37,99,235,.15);b
         </div>
 
         <!-- MANAGEMENT REPORT (التقرير الإداري للأداء والتكلفة والربحية) -->
-        <div id="tab-mgr" class="tab-content flex-col gap-6">
-            <div class="flex flex-wrap justify-between items-center gap-2 pl-no-print-hide">
-                <div class="flex flex-wrap items-center gap-2">
-                    <div class="flex rounded-lg overflow-hidden border border-slate-300 bg-white">
-                        <button type="button" onclick="mgrPreset('day')" data-preset="day" class="mgr-preset px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100">اليوم</button>
-                        <button type="button" onclick="mgrPreset('week')" data-preset="week" class="mgr-preset px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 border-r border-slate-200">الأسبوع</button>
-                        <button type="button" onclick="mgrPreset('month')" data-preset="month" class="mgr-preset px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 border-r border-slate-200">الشهر</button>
-                        <button type="button" onclick="mgrPreset('all')" data-preset="all" class="mgr-preset px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 border-r border-slate-200">كل الفترات</button>
+        <div id="tab-mgr" class="tab-content flex-col gap-5">
+            <div class="mgr-filters pl-no-print-hide">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="mgr-seg">
+                            <button type="button" onclick="mgrPreset('day')" data-preset="day" class="mgr-preset">اليوم</button>
+                            <button type="button" onclick="mgrPreset('week')" data-preset="week" class="mgr-preset">الأسبوع</button>
+                            <button type="button" onclick="mgrPreset('month')" data-preset="month" class="mgr-preset">الشهر</button>
+                            <button type="button" onclick="mgrPreset('all')" data-preset="all" class="mgr-preset">كل الفترات</button>
+                        </div>
+                        <span class="text-xs font-bold text-slate-500">من</span>
+                        <input id="mgr-from" type="date" onchange="renderMgr()" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold">
+                        <span class="text-xs font-bold text-slate-500">إلى</span>
+                        <input id="mgr-to" type="date" onchange="renderMgr()" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold">
                     </div>
-                    <span class="text-xs font-bold text-slate-500">من</span>
-                    <input id="mgr-from" type="date" onchange="renderMgr()" class="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm">
-                    <span class="text-xs font-bold text-slate-500">إلى</span>
-                    <input id="mgr-to" type="date" onchange="renderMgr()" class="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                    <div class="flex gap-2">
+                        <button onclick="exportMgrExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
+                        <button onclick="printCurrentTab()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2"><i class="fa-solid fa-print"></i><span>طباعة / PDF</span></button>
+                    </div>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="exportMgrExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2"><i class="fa-solid fa-file-excel"></i><span>تصدير إكسيل</span></button>
-                    <button onclick="printCurrentTab()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2"><i class="fa-solid fa-print"></i><span>طباعة / PDF</span></button>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div><label class="block text-[11px] font-bold text-slate-500 mb-1">المنتج / نوع السن</label><select id="mgr-product" onchange="renderMgr()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold"></select></div>
+                    <div><label class="block text-[11px] font-bold text-slate-500 mb-1">العميل</label><select id="mgr-client" onchange="renderMgr()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold"></select></div>
+                    <div><label class="block text-[11px] font-bold text-slate-500 mb-1">الجرار / وسيلة النقل</label><select id="mgr-vehicle" onchange="renderMgr()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold"></select></div>
+                    <div><label class="block text-[11px] font-bold text-slate-500 mb-1">الشغل تبع (مستلم العهدة)</label><select id="mgr-worker" onchange="renderMgr()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold"></select></div>
                 </div>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pl-no-print-hide">
-                <div><label class="block text-xs font-bold text-slate-600 mb-1">المنتج / نوع السن</label><select id="mgr-product" onchange="renderMgr()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm"></select></div>
-                <div><label class="block text-xs font-bold text-slate-600 mb-1">العميل</label><select id="mgr-client" onchange="renderMgr()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm"></select></div>
-                <div><label class="block text-xs font-bold text-slate-600 mb-1">الجرار / وسيلة النقل</label><select id="mgr-vehicle" onchange="renderMgr()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm"></select></div>
-                <div><label class="block text-xs font-bold text-slate-600 mb-1">الشغل تبع (مستلم العهدة)</label><select id="mgr-worker" onchange="renderMgr()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm"></select></div>
             </div>
 
-            <div id="mgr-print-area" class="flex flex-col gap-6">
-                <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-                    <div><span class="font-bold text-slate-900 text-base">تقرير الأداء التشغيلي والمالي للكسارة</span><span id="mgr-period-label" class="mr-3 font-bold"></span></div>
-                    <div id="mgr-stamp"></div>
+            <div id="mgr-print-area" class="flex flex-col gap-5">
+                <div class="mgr-hero">
+                    <div>
+                        <h2>تقرير الأداء التشغيلي والمالي</h2>
+                        <div class="mh-sub"><span id="mgr-period-label"></span><br><span id="mgr-stamp"></span></div>
+                    </div>
+                    <div class="mh-big" id="mgr-hero-nums"></div>
                 </div>
                 <div id="mgr-alerts" class="flex flex-col gap-2"></div>
 
                 <!-- القسم الأول: مؤشرات الأداء -->
-                <div id="mgr-kpis" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+                <div id="mgr-kpis" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
 
                 <!-- القسم الثاني: تحليل الإنتاج والتكلفة -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="p-4 bg-amber-50 border-b border-amber-100 flex flex-wrap justify-between items-center gap-2">
-                        <h3 class="font-bold text-slate-900 text-sm"><i class="fa-solid fa-industry text-amber-600"></i> تحليل الإنتاج والتكلفة والربحية حسب المنتج</h3>
-                        <span class="text-[11px] text-slate-500">تكلفة الإنتاج موزعة على المنتجات بنسبة الكمية المنتجة (تكلفة متر واحدة لكل الأصناف)</span>
-                    </div>
-                    <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100"><tr>
-                        <th class="p-3">المنتج</th><th class="p-3">الإنتاج (م)</th><th class="p-3">تكلفة الإنتاج</th><th class="p-3">تكلفة المتر</th>
-                        <th class="p-3">المباع (م)</th><th class="p-3">متوسط سعر البيع</th><th class="p-3">المبيعات</th><th class="p-3">هامش المتر</th><th class="p-3">هامش %</th><th class="p-3">المخزون آخر المدة (م)</th>
+                <div class="mgr-card">
+                    <div class="mc-head"><h3><i class="fa-solid fa-industry nav-ic" style="--c:#f59e0b"></i> تحليل الإنتاج والتكلفة والربحية حسب المنتج</h3><span class="mc-note">تكلفة الإنتاج موزعة على المنتجات بنسبة الكمية المنتجة (تكلفة متر واحدة لكل الأصناف)</span></div>
+                    <div class="overflow-x-auto"><table><thead><tr>
+                        <th>المنتج</th><th>الإنتاج (م)</th><th>تكلفة الإنتاج</th><th>تكلفة المتر</th>
+                        <th>المباع (م)</th><th>متوسط سعر البيع</th><th>المبيعات</th><th>هامش المتر</th><th>هامش %</th><th>المخزون آخر المدة (م)</th>
                     </tr></thead><tbody id="mgr-tbody-products"></tbody></table></div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- تكاليف الإنتاج حسب البند -->
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                        <div class="p-4 bg-rose-50 border-b border-rose-100">
-                            <h3 class="font-bold text-slate-900 text-sm"><i class="fa-solid fa-coins text-rose-600"></i> التكاليف حسب البند ومصدرها</h3>
-                            <p class="text-[11px] text-slate-500 mt-1">كل بند جاي من حركات مسجلة في البرنامج. غيّر تصنيف أي بند (إنتاج / نقل / إداري) من القائمة، والتقرير يتحسب تاني.</p>
-                        </div>
-                        <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100"><tr>
-                            <th class="p-3">البند</th><th class="p-3">المبلغ</th><th class="p-3">التصنيف</th>
-                        </tr></thead><tbody id="mgr-tbody-costs"></tbody></table></div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    <div class="mgr-card">
+                        <div class="mc-head"><h3><i class="fa-solid fa-coins nav-ic" style="--c:#e11d48"></i> التكاليف حسب البند ومصدرها</h3><span class="mc-note">غيّر تصنيف أي بند (إنتاج / نقل / إداري) والتقرير يتحسب تاني</span></div>
+                        <div class="overflow-x-auto"><table><thead><tr><th>البند</th><th>المبلغ</th><th>التصنيف</th></tr></thead><tbody id="mgr-tbody-costs"></tbody></table></div>
                     </div>
-                    <!-- المبيعات حسب العميل -->
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                        <div class="p-4 bg-blue-50 border-b border-blue-100"><h3 class="font-bold text-slate-900 text-sm"><i class="fa-solid fa-users text-blue-600"></i> المبيعات حسب العميل</h3></div>
-                        <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100"><tr>
-                            <th class="p-3">العميل</th><th class="p-3">النقلات</th><th class="p-3">الكمية (م)</th><th class="p-3">المبيعات</th><th class="p-3">متوسط السعر</th>
-                        </tr></thead><tbody id="mgr-tbody-clients"></tbody></table></div>
+                    <div class="mgr-card">
+                        <div class="mc-head"><h3><i class="fa-solid fa-users nav-ic" style="--c:#3b82f6"></i> المبيعات حسب العميل</h3></div>
+                        <div class="overflow-x-auto"><table><thead><tr><th>العميل</th><th>النقلات</th><th>الكمية (م)</th><th>المبيعات</th><th>متوسط السعر</th></tr></thead><tbody id="mgr-tbody-clients"></tbody></table></div>
                     </div>
                 </div>
 
                 <!-- القسم الثالث: تحليل النقلات -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="p-4 bg-orange-50 border-b border-orange-100 flex flex-wrap justify-between items-center gap-2">
-                        <h3 class="font-bold text-slate-900 text-sm"><i class="fa-solid fa-truck text-orange-600"></i> تحليل النقلات</h3>
-                        <span class="text-[11px] text-slate-500">كل بون تحميل = نقلة واحدة. تكلفة النقل = البنود المصنّفة «تكلفة نقل»</span>
-                    </div>
-                    <div id="mgr-trips-summary" class="p-4 grid grid-cols-2 md:grid-cols-6 gap-3 border-b border-slate-100"></div>
-                    <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100"><tr>
-                        <th class="p-3">الجرار</th><th class="p-3">المقطورة</th><th class="p-3">النقلات</th><th class="p-3">الكمية (م)</th><th class="p-3">متوسط الحمولة</th><th class="p-3">قيمة المبيعات</th><th class="p-3">العملاء</th>
+                <div class="mgr-card">
+                    <div class="mc-head"><h3><i class="fa-solid fa-truck nav-ic" style="--c:#f97316"></i> تحليل النقلات</h3><span class="mc-note">كل بون تحميل = نقلة واحدة · تكلفة النقل = البنود المصنّفة «تكلفة نقل»</span></div>
+                    <div id="mgr-trips-summary" class="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 border-b border-slate-100"></div>
+                    <div class="overflow-x-auto"><table><thead><tr>
+                        <th>الجرار</th><th>المقطورة</th><th>النقلات</th><th>الكمية (م)</th><th>متوسط الحمولة</th><th>قيمة المبيعات</th><th>العملاء</th>
                     </tr></thead><tbody id="mgr-tbody-trips"></tbody></table></div>
                 </div>
 
                 <!-- القسم الرابع: قائمة الدخل المختصرة -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="p-4 bg-emerald-50 border-b border-emerald-100"><h3 class="font-bold text-slate-900 text-sm"><i class="fa-solid fa-chart-pie text-emerald-600"></i> قائمة الدخل المختصرة للفترة</h3></div>
-                    <div class="overflow-x-auto"><table class="w-full text-sm text-right"><tbody id="mgr-tbody-pl"></tbody></table></div>
+                <div class="mgr-card">
+                    <div class="mc-head"><h3><i class="fa-solid fa-chart-pie nav-ic" style="--c:#22c55e"></i> قائمة الدخل المختصرة للفترة</h3><span class="mc-note">إيرادات − تكلفة البضاعة المباعة − النقل − الإداري = صافي الربح</span></div>
+                    <div class="mgr-pl" id="mgr-pl"></div>
                 </div>
             </div>
 
             <!-- تسجيل الإنتاج اليومي -->
-            <div class="bg-white p-5 rounded-xl border border-amber-100 shadow-sm pl-no-print-hide">
-                <h3 class="font-bold text-slate-900 mb-1"><i class="fa-solid fa-clipboard-list text-amber-600"></i> تسجيل الإنتاج اليومي</h3>
-                <p class="text-xs text-slate-500 mb-3">اكتب كمية السن اللي طلعت من الكسارة كل يوم (بالمتر، لكل صنف). تكلفة المتر وتكلفة الكمية المباعة بتتحسب من الأرقام دي.</p>
-                <form onsubmit="addProdLog(event)" class="flex flex-col gap-3">
+            <div class="mgr-card pl-no-print-hide">
+                <div class="mc-head"><h3><i class="fa-solid fa-clipboard-list nav-ic" style="--c:#d97706"></i> تسجيل الإنتاج اليومي</h3><span class="mc-note">اكتب كمية السن اللي طلعت من الكسارة كل يوم (بالمتر لكل صنف)</span></div>
+                <form onsubmit="addProdLog(event)" class="p-4 flex flex-col gap-3">
                     <div class="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="pl-prod-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div id="pl-prod-sizes" class="contents"></div>
                         <div class="col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">ملاحظات</label><input id="pl-prod-notes" type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
-                        <div><button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-sm font-bold">حفظ الإنتاج</button></div>
+                        <div><button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl text-sm font-bold">حفظ الإنتاج</button></div>
                     </div>
                 </form>
-                <div class="overflow-x-auto mt-4"><table class="w-full text-sm text-right"><thead class="bg-slate-100"><tr id="pl-prod-thead"></tr></thead><tbody id="tbody-prodlog"></tbody></table></div>
+                <div class="overflow-x-auto"><table><thead><tr id="pl-prod-thead"></tr></thead><tbody id="tbody-prodlog"></tbody></table></div>
             </div>
         </div>
 
@@ -9720,7 +9754,7 @@ function renderMgr(){
     if(!tab.dataset.init){ tab.dataset.init='1'; const t=todayISO(); g('mgr-from').value=t.slice(0,8)+'01'; g('mgr-to').value=t; g('pl-prod-date').value=t; }
     mgrFillFilters();
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
-    document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('bg-slate-800',on); b.classList.toggle('text-white',on); b.classList.toggle('text-slate-700',!on); });
+    document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
     g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName();
 
@@ -9731,32 +9765,36 @@ function renderMgr(){
     if(R.unpriced) alerts.push(['rose',`⚠️ فيه ${nfmt(R.unpriced)} بون من غير سعر في الفترة — قيمتهم مش داخلة في المبيعات. حط السعر من تاب المبيعات.`]);
     if(R.noRate.length) alerts.push(['rose',`⚠️ مقاولين ليهم شغل في الفترة من غير سعر متر (مش محسوبين في التكلفة): ${esc(R.noRate.join('، '))}. حدد السعر من دليل الأكواد.`]);
     if(Math.abs(R.revenueGap)>=1) alerts.push(['slate',`ℹ️ إيرادات قائمة الدخل ${mfmt(R.revenue)} بتفرق عن مجموع سطور الفواتير ${mfmt(R.salesValueAll)} بـ ${mfmt(R.revenueGap)} (قيود إيراد قديمة أو يدوية). التقرير بيعتمد رقم قائمة الدخل.`]);
-    g('mgr-alerts').innerHTML = alerts.map(([c,t])=>`<div class="rounded-lg border px-3 py-2 text-xs font-bold bg-${c}-50 border-${c}-200 text-${c}-800">${t}</div>`).join('');
+    const AC={sky:['#f0f9ff','#bae6fd','#075985'],amber:['#fffbeb','#fde68a','#92400e'],rose:['#fff1f2','#fecdd3','#9f1239'],slate:['#f8fafc','#e2e8f0','#334155']};
+    g('mgr-alerts').innerHTML = alerts.map(([c,t])=>{ const [bg,bd,fg]=AC[c]; return `<div class="mgr-alert" style="background:${bg};border:1px solid ${bd};color:${fg}">${t}</div>`; }).join('');
+    const r2=n=>nfmt(Math.round(n*100)/100);
+    g('mgr-hero-nums').innerHTML = `<div><span>تكلفة إنتاج المتر</span><b>${r2(R.unitCost)} ج.م</b></div><div><span>تكلفة نقل المتر</span><b>${r2(R.transPerUnit)} ج.م</b></div><div><span>صافي الربح بعد كل المصروفات</span><b style="color:${R.profitBeforeTax>=0?'#6ee7b7':'#fda4af'}">${mfmt(R.profitBeforeTax)} ج.م</b></div>`;
 
     /* مؤشرات */
     const unitLabel = R.hasProd ? 'تكلفة إنتاج المتر' : 'تكلفة المتر (على المباع)';
-    const kpi=(label,val,sub,color,drill)=>`<div ${drill?`onclick="mgrDrill('${drill}')" title="اضغط لعرض الحركات" class="cursor-pointer hover:ring-2 hover:ring-slate-300"`:'class=""'} style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(15,23,42,.05)">
-        <p class="text-xs font-bold text-slate-500">${label}</p><h3 class="text-xl font-extrabold mt-1 ${color||'text-slate-900'}" style="font-variant-numeric:tabular-nums">${val}</h3>${sub?`<p class="text-[11px] text-slate-500 mt-1">${sub}</p>`:''}</div>`;
-    const m=n=>nfmt(Math.round(n))+' ج.م';
+    const kpi=(label,val,sub,color,drill,icon)=>`<div class="mgr-kpi" onclick="mgrDrill('${drill}')" title="اضغط لعرض الحركات">
+        <div style="min-width:0"><p class="k-label">${label}</p><h3 class="k-val" style="color:${color}">${val}</h3>${sub?`<p class="k-sub">${sub}</p>`:''}</div>
+        <i class="fa-solid ${icon} nav-ic" style="--c:${color}"></i></div>`;
+    const m=n=>mfmt(n)+' ج.م';
     g('mgr-kpis').innerHTML = [
-        kpi('إجمالي الإنتاج', nfmt(R.producedQty)+' م', R.hasProd?`${nfmt(R.prodRecs.length)} يوم إنتاج`:'مش مسجل', 'text-amber-700', 'prod'),
-        kpi('إجمالي المبيعات', m(R.revenue), R.entityFilter?`المفلتر: ${m(R.salesValue)}`:`${nfmt(R.sales.length)} سطر فاتورة`, 'text-blue-700', 'rev'),
-        kpi('الكمية المباعة', nfmt(R.entityFilter?R.soldQty:R.soldQtyAll)+' م', R.hasProd?`المتبقي للمخزون: ${nfmt(R.producedQty-R.soldQtyAll)} م`:'', 'text-blue-700', 'sales'),
-        kpi('عدد النقلات', nfmt(R.tripsCount), `متوسط الحمولة ${nfmt(Math.round(R.avgLoad*100)/100)} م`, 'text-orange-700', 'bons'),
-        kpi(unitLabel, nfmt(Math.round(R.unitCost*100)/100)+' ج.م', `+ نقل ${nfmt(Math.round(R.transPerUnit*100)/100)} = ${nfmt(Math.round((R.unitCost+R.transPerUnit)*100)/100)} ج.م للمتر بالنقل`, 'text-rose-700', 'prodcost'),
-        kpi('تكلفة النقلة', m(R.tripCost), `تكلفة النقل للمتر ${nfmt(Math.round(R.transPerUnit*100)/100)} ج.م`, 'text-rose-700', 'trans'),
-        kpi('إجمالي التكاليف', m(R.cogs+R.transCost+R.adminCost), `إنتاج مباع ${mfmt(R.cogs)} + نقل ${mfmt(R.transCost)} + إداري ${mfmt(R.adminCost)}`, 'text-rose-700', 'allcost'),
-        kpi('صافي الربح قبل الضريبة', m(R.profitBeforeTax), `هامش ${nfmt(Math.round(R.margin*100)/100)}% — بعد الضريبة ${m(R.netProfit)}`, R.profitBeforeTax>=0?'text-emerald-700':'text-rose-700', 'pl')
+        kpi('إجمالي الإنتاج', nfmt(R.producedQty)+' م', R.hasProd?`${nfmt(R.prodRecs.length)} يوم إنتاج`:'مش مسجل', '#d97706', 'prod', 'fa-industry'),
+        kpi('إجمالي المبيعات', m(R.revenue), R.entityFilter?`المفلتر: ${m(R.salesValue)}`:`${nfmt(R.sales.length)} سطر فاتورة`, '#2563eb', 'rev', 'fa-sack-dollar'),
+        kpi('الكمية المباعة', nfmt(R.entityFilter?R.soldQty:R.soldQtyAll)+' م', R.hasProd?`المتبقي للمخزون ${nfmt(R.producedQty-R.soldQtyAll)} م`:'', '#0284c7', 'sales', 'fa-weight-scale'),
+        kpi('عدد النقلات', nfmt(R.tripsCount), `متوسط الحمولة ${r2(R.avgLoad)} م`, '#f97316', 'bons', 'fa-truck'),
+        kpi(unitLabel, r2(R.unitCost)+' ج.م', `بالنقل: ${r2(R.unitCost+R.transPerUnit)} ج.م للمتر`, '#e11d48', 'prodcost', 'fa-tag'),
+        kpi('تكلفة النقلة', m(R.tripCost), `تكلفة النقل للمتر ${r2(R.transPerUnit)} ج.م`, '#c026d3', 'trans', 'fa-route'),
+        kpi('إجمالي التكاليف', m(R.cogs+R.transCost+R.adminCost), `إنتاج مباع ${mfmt(R.cogs)} + نقل ${mfmt(R.transCost)} + إداري ${mfmt(R.adminCost)}`, '#64748b', 'allcost', 'fa-receipt'),
+        kpi('صافي الربح قبل الضريبة', m(R.profitBeforeTax), `هامش ${r2(R.margin)}% · بعد الضريبة ${m(R.netProfit)}`, R.profitBeforeTax>=0?'#059669':'#e11d48', 'pl', R.profitBeforeTax>=0?'fa-arrow-trend-up':'fa-arrow-trend-down')
     ].join('');
 
     /* المنتجات */
     const tp=g('mgr-tbody-products');
     const PT={produced:0, prodCost:0, sold:0, value:0, stock:0};
     tp.innerHTML = R.products.length ? R.products.map(p=>{ PT.produced+=p.produced; PT.prodCost+=p.prodCost; PT.sold+=p.sold; PT.value+=p.value; PT.stock+=p.stock;
-        return `<tr class="border-b border-slate-50 hover:bg-slate-50"><td class="p-3 font-bold">${esc(p.label)}</td><td class="p-3">${p.other?'—':nfmt(p.produced)}</td><td class="p-3">${p.other?'—':mfmt(p.prodCost)}</td><td class="p-3 font-bold text-rose-700">${p.other||!p.unitCost?'—':nfmt(Math.round(p.unitCost*100)/100)}</td>
-            <td class="p-3">${p.other?'—':nfmt(p.sold)}</td><td class="p-3">${p.price?nfmt(Math.round(p.price*100)/100):'—'}</td><td class="p-3 font-bold text-blue-700">${mfmt(p.value)}</td>
-            <td class="p-3 font-bold ${p.marginUnit<0?'text-rose-700':'text-emerald-700'}">${p.price&&p.unitCost?nfmt(Math.round(p.marginUnit*100)/100):'—'}</td><td class="p-3 ${p.marginPct<0?'text-rose-700':'text-emerald-700'}">${p.price&&p.unitCost?nfmt(Math.round(p.marginPct*10)/10)+'%':'—'}</td><td class="p-3 ${p.stock<0?'text-rose-700':''}">${p.other?'—':nfmt(p.stock)}</td></tr>`; }).join('')
-        + `<tr class="bg-slate-100 font-bold"><td class="p-3">الإجمالي</td><td class="p-3">${nfmt(PT.produced)}</td><td class="p-3">${mfmt(PT.prodCost)}</td><td class="p-3 text-rose-700">${R.unitCost?nfmt(Math.round(R.unitCost*100)/100):'—'}</td><td class="p-3">${nfmt(PT.sold)}</td><td class="p-3">${PT.sold?nfmt(Math.round((PT.value-R.otherSales)/PT.sold*100)/100):'—'}</td><td class="p-3 text-blue-700">${mfmt(PT.value)}</td><td colspan="2"></td><td class="p-3">${nfmt(PT.stock)}</td></tr>`
+        return `<tr><td class="font-bold">${esc(p.label)}</td><td>${p.other?'—':nfmt(p.produced)}</td><td>${p.other?'—':mfmt(p.prodCost)}</td><td class="font-bold text-rose-700">${p.other||!p.unitCost?'—':r2(p.unitCost)}</td>
+            <td>${p.other?'—':nfmt(p.sold)}</td><td>${p.price?r2(p.price):'—'}</td><td class="font-bold text-blue-700">${mfmt(p.value)}</td>
+            <td class="font-bold ${p.marginUnit<0?'text-rose-700':'text-emerald-700'}">${p.price&&p.unitCost?r2(p.marginUnit):'—'}</td><td class="${p.marginPct<0?'text-rose-700':'text-emerald-700'}">${p.price&&p.unitCost?nfmt(Math.round(p.marginPct*10)/10)+'%':'—'}</td><td class="${p.stock<0?'text-rose-700':''}">${p.other?'—':nfmt(p.stock)}</td></tr>`; }).join('')
+        + `<tr class="tot"><td>الإجمالي</td><td>${nfmt(PT.produced)}</td><td>${mfmt(PT.prodCost)}</td><td class="text-rose-700">${R.unitCost?r2(R.unitCost):'—'}</td><td>${nfmt(PT.sold)}</td><td>${PT.sold?r2((PT.value-R.otherSales)/PT.sold):'—'}</td><td class="text-blue-700">${mfmt(PT.value)}</td><td colspan="2"></td><td>${nfmt(PT.stock)}</td></tr>`
         : '<tr><td colspan="10" class="p-4 text-center text-slate-400">مفيش إنتاج ولا مبيعات في الفترة دي</td></tr>';
     if(R.products.some(p=>p.stock<0)) tp.insertAdjacentHTML('beforeend', '<tr><td colspan="10" class="p-2 text-[11px] text-rose-700">المخزون بالسالب معناه إن المبيعات أكبر من الإنتاج المسجل — راجع تسجيل الإنتاج.</td></tr>');
 
@@ -9765,38 +9803,38 @@ function renderMgr(){
     const tc=g('mgr-tbody-costs');
     const bucketSel=(s)=> ro ? `<span class="text-xs font-bold ${s.bucket==='skip'?'text-slate-400':'text-slate-700'}">${MGR_BUCKETS[s.bucket]}</span>`
         : `<select onchange="mgrSetBucket('${esc(s.key).replace(/'/g,'&#39;')}', this.value)" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs font-bold ${s.bucket==='skip'?'text-slate-400':''}">${Object.entries(MGR_BUCKETS).map(([k,l])=>`<option value="${k}" ${k===s.bucket?'selected':''}>${l}</option>`).join('')}</select>`;
-    const grp=(b,title,cls)=>{ const L=R.sources.filter(s=>s.bucket===b); if(!L.length) return ''; return `<tr><td colspan="3" class="px-3 py-2 ${cls} font-bold text-xs">${title} — ${mfmt(L.reduce((a,s)=>a+s.amount,0))}</td></tr>`
-        + L.map((s)=>`<tr class="border-b border-slate-50 hover:bg-slate-50"><td class="p-3"><button type="button" onclick="mgrDrill('src:${esc(s.key).replace(/'/g,'&#39;')}')" class="text-right font-bold text-slate-800 underline decoration-dotted">${esc(s.label)}</button></td><td class="p-3 font-bold ${s.amount<0?'text-emerald-700':''}" dir="ltr" style="text-align:right">${mfmt(s.amount)}</td><td class="p-3">${bucketSel(s)}</td></tr>`).join(''); };
-    tc.innerHTML = (grp('prod','تكاليف الإنتاج','bg-amber-50 text-amber-900') + grp('trans','تكاليف النقل','bg-orange-50 text-orange-900') + grp('admin','مصروفات إدارية وأخرى','bg-slate-100 text-slate-800') + grp('skip','خارج التقرير (مش محسوبة)','bg-slate-50 text-slate-400'))
+    const grp=(b,title)=>{ const L=R.sources.filter(s=>s.bucket===b); if(!L.length) return ''; return `<tr class="grp g-${b}"><td colspan="3">${title} — ${mfmt(L.reduce((a,s)=>a+s.amount,0))} ج.م</td></tr>`
+        + L.map((s)=>`<tr><td style="white-space:normal"><button type="button" onclick="mgrDrill('src:${esc(s.key).replace(/'/g,'&#39;')}')" class="text-right font-bold text-slate-800 underline decoration-dotted">${esc(s.label)}</button></td><td class="font-bold ${s.amount<0?'text-emerald-700':''}" dir="ltr" style="text-align:right">${mfmt(s.amount)}</td><td>${bucketSel(s)}</td></tr>`).join(''); };
+    tc.innerHTML = (grp('prod','تكاليف الإنتاج') + grp('trans','تكاليف النقل') + grp('admin','مصروفات إدارية وأخرى') + grp('skip','خارج التقرير (مش محسوبة)'))
         || '<tr><td colspan="3" class="p-4 text-center text-slate-400">مفيش تكاليف مسجلة في الفترة دي</td></tr>';
 
     /* العملاء */
-    g('mgr-tbody-clients').innerHTML = R.clients.length ? R.clients.map(c=>`<tr class="border-b border-slate-50 hover:bg-slate-50"><td class="p-3 font-bold">${esc(c.client)}</td><td class="p-3">${nfmt(c.trips)}</td><td class="p-3">${nfmt(c.qty)}</td><td class="p-3 font-bold text-blue-700">${mfmt(c.value)}</td><td class="p-3">${c.qty?nfmt(Math.round(c.value/c.qty*100)/100):'—'}</td></tr>`).join('')
-        + `<tr class="bg-slate-100 font-bold"><td class="p-3">الإجمالي</td><td class="p-3">${nfmt(R.clients.reduce((a,c)=>a+c.trips,0))}</td><td class="p-3">${nfmt(R.clients.reduce((a,c)=>a+c.qty,0))}</td><td class="p-3 text-blue-700">${mfmt(R.clients.reduce((a,c)=>a+c.value,0))}</td><td></td></tr>`
+    g('mgr-tbody-clients').innerHTML = R.clients.length ? R.clients.map(c=>`<tr><td class="font-bold">${esc(c.client)}</td><td>${nfmt(c.trips)}</td><td>${nfmt(c.qty)}</td><td class="font-bold text-blue-700">${mfmt(c.value)}</td><td>${c.qty?r2(c.value/c.qty):'—'}</td></tr>`).join('')
+        + `<tr class="tot"><td>الإجمالي</td><td>${nfmt(R.clients.reduce((a,c)=>a+c.trips,0))}</td><td>${nfmt(R.clients.reduce((a,c)=>a+c.qty,0))}</td><td class="text-blue-700">${mfmt(R.clients.reduce((a,c)=>a+c.value,0))}</td><td></td></tr>`
         : '<tr><td colspan="5" class="p-4 text-center text-slate-400">مفيش مبيعات في الفترة دي</td></tr>';
 
     /* النقلات */
-    const ts=(l,v)=>`<div class="bg-slate-50 rounded-lg p-3"><p class="text-[11px] font-bold text-slate-500">${l}</p><p class="font-extrabold text-slate-900 mt-1" style="font-variant-numeric:tabular-nums">${v}</p></div>`;
+    const ts=(l,v)=>`<div class="mgr-stat"><p class="s-l">${l}</p><p class="s-v">${v}</p></div>`;
     g('mgr-trips-summary').innerHTML = ts('عدد النقلات', nfmt(R.tripsCount)) + ts('إجمالي الكمية المنقولة', nfmt(R.tripsQty)+' م') + ts('إجمالي تكلفة النقل', m(R.transCost)) + ts('متوسط حمولة النقلة', nfmt(Math.round(R.avgLoad*100)/100)+' م') + ts('متوسط تكلفة النقلة', m(R.tripCost)) + ts('تكلفة النقل للمتر', nfmt(Math.round(R.transPerUnit*100)/100)+' ج.م');
-    g('mgr-tbody-trips').innerHTML = R.vehicles.length ? R.vehicles.map(v=>`<tr class="border-b border-slate-50 hover:bg-slate-50"><td class="p-3 font-bold">${esc(v.plate)}</td><td class="p-3">${esc(v.trailer||'—')}</td><td class="p-3">${nfmt(v.trips)}</td><td class="p-3">${nfmt(v.qty)}</td><td class="p-3">${nfmt(Math.round(v.avg*100)/100)}</td><td class="p-3 font-bold text-blue-700">${mfmt(v.value)}</td><td class="p-3 text-xs">${esc(v.clients)}</td></tr>`).join('')
+    g('mgr-tbody-trips').innerHTML = R.vehicles.length ? R.vehicles.map(v=>`<tr><td class="font-bold">${esc(v.plate)}</td><td>${esc(v.trailer||'—')}</td><td>${nfmt(v.trips)}</td><td>${nfmt(v.qty)}</td><td>${r2(v.avg)}</td><td class="font-bold text-blue-700">${mfmt(v.value)}</td><td class="text-xs" style="white-space:normal">${esc(v.clients)}</td></tr>`).join('')
         : '<tr><td colspan="7" class="p-4 text-center text-slate-400">مفيش نقلات (بونات) في الفترة دي</td></tr>';
 
     /* قائمة الدخل المختصرة */
-    const row=(label,val,cls,drill)=>`<tr class="border-b border-slate-100 ${cls||''}"><td class="px-3 py-2">${drill?`<button type="button" onclick="mgrDrill('${drill}')" class="underline decoration-dotted text-right">${label}</button>`:label}</td><td class="px-3 py-2 text-left font-bold" style="font-variant-numeric:tabular-nums">${mfmt(val)}</td></tr>`;
-    const tot=(label,val,cls)=>`<tr class="font-bold border-t-2 border-slate-300 ${cls}"><td class="px-3 py-2">${label}</td><td class="px-3 py-2 text-left" style="font-variant-numeric:tabular-nums">${mfmt(val)}</td></tr>`;
+    const row=(label,val,cls,drill)=>`<div class="pl-row ${cls||''}"><span>${drill?`<button type="button" onclick="mgrDrill('${drill}')" class="underline decoration-dotted text-right">${label}</button>`:label}</span><span class="v">${val<0?'− ':''}${mfmt(Math.abs(val))}</span></div>`;
+    const tot=(label,val,final)=>`<div class="pl-tot ${val>=0?'good':'bad'} ${final?'final':''}"><span>${label}</span><span class="v">${val<0?'− ':''}${mfmt(Math.abs(val))} ج.م</span></div>`;
     let pl='';
-    pl += row('إيرادات المبيعات', R.revenue, 'text-slate-700', 'rev');
-    pl += row(R.hasProd ? `(−) تكلفة إنتاج الكمية المباعة (${nfmt(R.soldQtyAll)} م × ${nfmt(Math.round(R.unitCost*100)/100)})` : '(−) تكلفة الإنتاج المحمّلة على الفترة', -R.cogs, 'text-slate-700', 'prodcost');
-    if(R.hasProd && R.toInventory) pl += `<tr class="text-[11px] text-slate-500"><td class="px-3 py-1" colspan="2">${R.toInventory>0?'مرحّل للمخزون (إنتاج لسه ما اتباعش)':'مسحوب من مخزون فترات سابقة بتكلفة الفترة الحالية'}: ${mfmt(Math.abs(R.toInventory))} — إجمالي تكلفة إنتاج الفترة ${mfmt(R.prodCost)}</td></tr>`;
-    pl += tot('مجمل الربح', R.grossProfit, R.grossProfit>=0?'bg-emerald-50 text-emerald-800':'bg-rose-50 text-rose-800');
-    pl += row('(−) مصروفات النقل', -R.transCost, 'text-slate-700', 'trans');
-    pl += row('(−) المصروفات الإدارية والأخرى', -R.adminCost, 'text-slate-700', 'admin');
-    if(R.tips) pl += row('(+) إيراد إكرامية الكسارة', R.tips, 'text-slate-700');
-    if(R.otherIncome) pl += row('(+) إيرادات أخرى (خردة/إيجار...)', R.otherIncome, 'text-slate-700', 'otherinc');
-    pl += tot(`صافي الربح قبل الضريبة (هامش ${nfmt(Math.round(R.margin*100)/100)}%)`, R.profitBeforeTax, R.profitBeforeTax>=0?'bg-emerald-600 text-white':'bg-rose-600 text-white');
-    R.taxLines.forEach(l=>{ pl += row('(−) '+l.label, -l.value, 'text-slate-600'); });
-    pl += tot('صافي الربح بعد الضريبة', R.netProfit, R.netProfit>=0?'bg-emerald-700 text-white':'bg-rose-700 text-white');
-    g('mgr-tbody-pl').innerHTML = pl;
+    pl += row('إيرادات المبيعات', R.revenue, 'plus', 'rev');
+    pl += row(R.hasProd ? `(−) تكلفة إنتاج الكمية المباعة (${nfmt(R.soldQtyAll)} م × ${r2(R.unitCost)})` : '(−) تكلفة الإنتاج المحمّلة على الفترة', -R.cogs, 'minus', 'prodcost');
+    if(R.hasProd && R.toInventory) pl += `<div class="pl-row sub"><span>${R.toInventory>0?'مرحّل للمخزون (إنتاج لسه ما اتباعش)':'مسحوب من مخزون فترات سابقة بتكلفة الفترة الحالية'}: ${mfmt(Math.abs(R.toInventory))} — إجمالي تكلفة إنتاج الفترة ${mfmt(R.prodCost)}</span></div>`;
+    pl += tot('مجمل الربح', R.grossProfit);
+    pl += row('(−) مصروفات النقل', -R.transCost, 'minus', 'trans');
+    pl += row('(−) المصروفات الإدارية والأخرى', -R.adminCost, 'minus', 'admin');
+    if(R.tips) pl += row('(+) إيراد إكرامية الكسارة', R.tips, 'plus');
+    if(R.otherIncome) pl += row('(+) إيرادات أخرى (خردة/إيجار...)', R.otherIncome, 'plus', 'otherinc');
+    pl += tot(`صافي الربح قبل الضريبة (هامش ${r2(R.margin)}%)`, R.profitBeforeTax);
+    R.taxLines.forEach(l=>{ pl += row('(−) '+l.label, -l.value, 'minus'); });
+    pl += tot('صافي الربح بعد الضريبة', R.netProfit, true);
+    g('mgr-pl').innerHTML = pl;
 
     renderProdLog();
 }
@@ -9850,10 +9888,10 @@ function renderProdLog(){
     const box=document.getElementById('pl-prod-sizes'); if(!box) return;
     const keep={}; box.querySelectorAll('input').forEach(i=>keep[i.id]=i.value);
     box.innerHTML = DL_SIZES.map(s=>`<div><label class="block text-xs font-bold text-slate-600 mb-1">${esc(s.label)} (م)</label><input id="pl-prod-q-${s.key}" type="number" step="any" min="0" value="${keep['pl-prod-q-'+s.key]||''}" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>`).join('');
-    document.getElementById('pl-prod-thead').innerHTML = `<th class="p-3">التاريخ</th>${DL_SIZES.map(s=>`<th class="p-3">${esc(s.label)}</th>`).join('')}<th class="p-3">الإجمالي</th><th class="p-3">ملاحظات</th><th class="p-3"></th>`;
+    document.getElementById('pl-prod-thead').innerHTML = `<th>التاريخ</th>${DL_SIZES.map(s=>`<th>${esc(s.label)}</th>`).join('')}<th>الإجمالي</th><th>ملاحظات</th><th></th>`;
     const F=mgrFilters(); const inP=d=>(!F.from||(d||'')>=F.from)&&(!F.to||(d||'')<=F.to);
     const L=(db.prodLog||[]).filter(p=>inP(p.date)).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||String(b.id).localeCompare(String(a.id)));
-    document.getElementById('tbody-prodlog').innerHTML = L.length ? L.map(p=>`<tr class="border-b border-slate-50 hover:bg-slate-50"><td class="p-3 text-slate-500">${dmy(p.date)}</td>${DL_SIZES.map(s=>`<td class="p-3">${(p.q||{})[s.key]?nfmt(p.q[s.key]):'—'}</td>`).join('')}<td class="p-3 font-bold">${nfmt(DL_SIZES.reduce((a,s)=>a+(Number((p.q||{})[s.key])||0),0))}</td><td class="p-3 text-xs">${esc(p.notes||'')}</td><td class="p-3">${isRO()?'':`<button onclick="deleteProdLog('${esc(p.id)}')" class="text-red-400 hover:text-red-600">🗑</button>`}</td></tr>`).join('')
+    document.getElementById('tbody-prodlog').innerHTML = L.length ? L.map(p=>`<tr><td class="text-slate-500">${dmy(p.date)}</td>${DL_SIZES.map(s=>`<td>${(p.q||{})[s.key]?nfmt(p.q[s.key]):'—'}</td>`).join('')}<td class="font-bold">${nfmt(DL_SIZES.reduce((a,s)=>a+(Number((p.q||{})[s.key])||0),0))}</td><td class="text-xs" style="white-space:normal">${esc(p.notes||'')}</td><td>${isRO()?'':`<button onclick="deleteProdLog('${esc(p.id)}')" class="text-red-400 hover:text-red-600">🗑</button>`}</td></tr>`).join('')
         : `<tr><td colspan="${DL_SIZES.length+4}" class="p-4 text-center text-slate-400">مفيش إنتاج مسجل في الفترة دي</td></tr>`;
 }
 /* ---- تصدير إكسيل ---- */
