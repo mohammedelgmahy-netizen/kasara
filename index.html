@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <style>html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation}body{overflow-x:hidden}</style>
 <script>(function(){var b=function(e){e.preventDefault();};document.addEventListener("gesturestart",b,{passive:false});document.addEventListener("gesturechange",b,{passive:false});document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});document.addEventListener("wheel",function(e){if(e.ctrlKey)e.preventDefault();},{passive:false});document.addEventListener("keydown",function(e){if((e.ctrlKey||e.metaKey)&&["+","-","=","_","0"].indexOf(e.key)>=0)e.preventDefault();});var lt=0;document.addEventListener("touchend",function(e){var n=Date.now();if(n-lt<300&&!(e.target.closest&&e.target.closest("input,textarea,select")))e.preventDefault();lt=n;},{passive:false});})();</script>
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1e293b">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -10000,13 +10000,13 @@ function printCardEl(card){
 </script>
 <script>
 if('serviceWorker' in navigator && /^https?:/.test(location.protocol)){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
-/* ===== تثبيت التطبيق على الجهاز (PWA) ===== */
+/* ===== تثبيت التطبيق على الجهاز (PWA) — نفس طريقة باقي البرامج ===== */
+document.body.insertAdjacentHTML('beforeend','<style>#installBtn{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9000;display:none;align-items:center;gap:8px;padding:12px 22px;border:none;border-radius:999px;background:#16a34a;color:#fff;font:800 15px Cairo,system-ui,sans-serif;box-shadow:0 8px 24px -8px rgba(0,0,0,.5);cursor:pointer}@media (min-width:900px){#installBtn{bottom:24px}}@media print{#installBtn{display:none!important}}</style><button id="installBtn" type="button" onclick="installApp()">⬇ تثبيت البرنامج</button>');
 window.__installPrompt = null;
 window.__isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-function showInstallBtns(on){ ['install-btn','gate-install'].forEach(id=>{ const b=document.getElementById(id); if(b) b.style.display = on ? 'flex' : 'none'; }); }
+function showInstallBtns(on){ ['install-btn','gate-install','installBtn'].forEach(id=>{ const b=document.getElementById(id); if(b) b.style.display = on ? 'flex' : 'none'; }); }
 window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); window.__installPrompt = e; if(!window.__isStandalone) showInstallBtns(true); });
 window.addEventListener('appinstalled', ()=>{ window.__installPrompt = null; window.__isStandalone = true; showInstallBtns(false); document.getElementById('install-modal')?.remove(); });
-if(!window.__isStandalone && /^https?:/.test(location.protocol)) showInstallBtns(true);
 async function installApp(){
     const p = window.__installPrompt;
     if(p){ try{ p.prompt(); const r = await p.userChoice; if(r && r.outcome==='accepted'){ showInstallBtns(false); return; } }catch(e){} }
