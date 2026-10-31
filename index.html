@@ -3247,7 +3247,13 @@ function renderHomeGrid(){
         + groups.filter(x=>x.items.length).map(x=>`<div class="home-sec">${x.title?`<h4>${esc(x.title)}</h4>`:''}<div class="hs-grid">${x.items.join('')}</div></div>`).join('') + `</div>`;
 }
 let __fromPop=false;
-window.addEventListener('popstate',()=>{ if(activeTab!=='home'){ __fromPop=true; switchTab('home'); __fromPop=false; } });
+/* Phone back button / edge swipe: close whatever is on top (a dialog, the edit banner) first and stay on the same screen; only when nothing is open go back to home. */
+window.addEventListener('popstate',()=>{
+    let closed=false; try{ closed=closeTopLayer(); }catch(e){}
+    if(closed){ try{ history.pushState({tab:activeTab,layer:1},''); }catch(e){} return; }
+    if(activeTab!=='home'){ __fromPop=true; switchTab('home'); __fromPop=false; }
+});
+try{ if(!history.state) history.replaceState({tab:'home',base:1},''); history.pushState({tab:'home',layer:1},''); }catch(e){}
 function switchTab(tabId){
     try{
         if(!__fromPop){
@@ -9943,16 +9949,17 @@ async function refreshApp(){
     try{ await fetch('./index.html',{cache:'reload'}); await fetch('./',{cache:'reload'}); }catch(e){}
     location.reload();
 }
-function escStepBack(){
-    const gate=document.getElementById('activation-gate'); if(gate && !gate.classList.contains('hidden')) return;
+function escStepBack(){ if(!closeTopLayer() && activeTab!=='home') switchTab('home'); }
+function closeTopLayer(){
+    const gate=document.getElementById('activation-gate'); if(gate && !gate.classList.contains('hidden')) return true;
     for(const id of ['wa-modal','more-menu','user-form','price-modal','cash-batch-modal','bon-import-modal','cloud-modal','daily-report-print']){
-        const el=document.getElementById(id); if(el && getComputedStyle(el).display!=='none'){ el.remove(); return; }
+        const el=document.getElementById(id); if(el && getComputedStyle(el).display!=='none'){ el.remove(); return true; }
     }
     const vis=id=>{ const el=document.getElementById(id); return el && !el.classList.contains('hidden') && getComputedStyle(el).display!=='none'; };
-    if(vis('add-master-modal')){ closeAddMasterModal(); return; }
-    if(vis('settle-modal')){ closeSettleModal(); return; }
-    const eb=document.getElementById('edit-banner'); if(eb && eb.style.display!=='none'){ cancelEdit(); return; }
-    if(activeTab!=='home') switchTab('home');
+    if(vis('add-master-modal')){ closeAddMasterModal(); return true; }
+    if(vis('settle-modal')){ closeSettleModal(); return true; }
+    const eb=document.getElementById('edit-banner'); if(eb && eb.style.display!=='none'){ cancelEdit(); return true; }
+    return false;
 }
 const BY_COL = {bon:['dailyLog','id'], exp:['expensesData','id'], stock:['stockIssues','id'], buy:['procurements','groupId']};
 function annotateBy(){
