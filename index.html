@@ -6,7 +6,7 @@
 <style>html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation}body{overflow-x:hidden}</style>
 <script>(function(){var b=function(e){e.preventDefault();};document.addEventListener("gesturestart",b,{passive:false});document.addEventListener("gesturechange",b,{passive:false});document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});document.addEventListener("wheel",function(e){if(e.ctrlKey)e.preventDefault();},{passive:false});document.addEventListener("keydown",function(e){if((e.ctrlKey||e.metaKey)&&["+","-","=","_","0"].indexOf(e.key)>=0)e.preventDefault();});var lt=0;document.addEventListener("touchend",function(e){var n=Date.now();if(n-lt<300&&!(e.target.closest&&e.target.closest("input,textarea,select")))e.preventDefault();lt=n;},{passive:false});})();</script>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1d4ed8">
+<meta name="theme-color" content="#1f4b73">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="icon-192.png">
 
@@ -175,7 +175,7 @@ input:focus,select:focus{outline:none;box-shadow:0 0 0 3px rgba(37,99,235,.15);b
 
 <style id="sanam-theme">
 /* ===== ثيم سنام: شريط علوي بنفسجي، قائمة جانبية فاتحة دايمًا ظاهرة، كروت بيضا بظل خفيف ===== */
-:root{--od:#1d4ed8;--od-2:#1e3a8a;--od-3:#3b82f6;--od-t:#e7effc;--gold:#f0b23e;--bg:#eef2f7;--card:#fff;--card-2:#f6f8fb;--line:#e3e8ef;--line-2:#d3dbe6;--fg:#0b1520;--fg-2:#1f2b38;--muted:#4a5767;--side:#f9fafb;--shadow:0 1px 2px rgba(15,39,66,.05),0 6px 20px rgba(15,39,66,.06)}
+:root{--od:#1f4b73;--od-2:#143553;--od-3:#2f6a9c;--od-t:#e6eff7;--gold:#e07a36;--bg:#eef2f7;--card:#fff;--card-2:#f6f8fb;--line:#e3e8ef;--line-2:#d3dbe6;--fg:#0b1520;--fg-2:#1f2b38;--muted:#4a5767;--side:#f9fafb;--shadow:0 1px 2px rgba(15,39,66,.05),0 6px 20px rgba(15,39,66,.06)}
 html{font-size:17px}
 @media (max-width:900px){html{font-size:16px}}
 body{background:var(--bg) !important;color:var(--fg);font-weight:500}
@@ -227,7 +227,7 @@ main h3.font-bold.text-slate-900,main h3.font-extrabold{display:flex;align-items
 main h3.font-bold.text-slate-900::before,main h3.font-extrabold::before{content:"";width:4px;height:16px;border-radius:4px;background:var(--gold);flex:none}
 main .mgr-card .mc-head h3::before,main .mgr-kpi h3::before{display:none}
 /* الأزرار الأساسية */
-main button.bg-slate-900,main button.bg-slate-800,main button.bg-blue-600,main button.bg-indigo-600,main .tab-brand .tb-print,.mgr-seg button.on,#activation-gate button.bg-blue-600{background:var(--od) !important;color:#fff !important;box-shadow:0 3px 10px rgba(29,78,216,.25)}
+main button.bg-slate-900,main button.bg-slate-800,main button.bg-blue-600,main button.bg-indigo-600,main .tab-brand .tb-print,.mgr-seg button.on,#activation-gate button.bg-blue-600{background:var(--od) !important;color:#fff !important;box-shadow:0 3px 10px rgba(31,75,115,.25)}
 main button.bg-slate-900:hover,main button.bg-slate-800:hover,main button.bg-blue-600:hover,main button.bg-indigo-600:hover,main .tab-brand .tb-print:hover{background:var(--od-2) !important;filter:none}
 main button,main label.cursor-pointer{border-radius:10px}
 /* الجداول */
@@ -3361,9 +3361,9 @@ function homeKpisHtml(){
     let sari=0, drawer=0, loans=0; try{ sari=accBalance(SARI_ACC); drawer=accBalance(DRAWER_ACC); loans=sariLoanRows().closing; }catch(e){}
     const K=[
         ['treasury','fa-wallet','#16a37b','#e2f5ee','خزينة ساري (المعلق)',fmt(sari),'درج المكتب: '+fmt(drawer)],
-        ['dailylog','fa-truck','#2f6fd6','#e7effc','مبيعات الشهر ده',fmt(salesVal),nfmt(bons.length)+' بون · '+nfmt(qty)+' م'],
+        ['dailylog','fa-truck','#1f4b73','#e6eff7','مبيعات الشهر ده',fmt(salesVal),nfmt(bons.length)+' بون · '+nfmt(qty)+' م'],
         ['incomes','fa-hand-holding-dollar','#7457d9','#efebfc','تحصيلات الشهر ده',fmt(collM),'فلوس دخلت الخزينة'],
-        ['expenses','fa-receipt','#e8962e','#fdf0dd','مصروفات الشهر ده',fmt(expM),'السلف المستحقة: '+fmt(loans)],
+        ['expenses','fa-receipt','#e07a36','#fdeee3','مصروفات الشهر ده',fmt(expM),'السلف المستحقة: '+fmt(loans)],
     ].filter(k=>can(k[0]));
     if(!K.length) return '';
     return `<div class="home-kpis">${K.map(([t,ic,c,bg,l,v,h])=>`<button type="button" class="home-kpi" onclick="switchTab('${t}')"><span class="hk-ic" style="background:${bg};color:${c}"><i class="fa-solid ${ic}"></i></span><span class="hk-l">${esc(l)}</span><b class="hk-v">${v}</b><small class="hk-h">${esc(h)}</small></button>`).join('')}</div>`;
@@ -3376,7 +3376,7 @@ function homeQuickHtml(){
         ['incomes','fa-hand-holding-dollar','#16a37b','تحصيل / إيراد','فلوس من عميل'],
         ['purchases','fa-cart-shopping','#9b59d0','شراء','فاتورة مورد'],
         ['mgr','fa-chart-line','#0f766e','التقرير الإداري','الأداء والتكلفة والربح'],
-        ['ledger','fa-file-invoice','#1d4ed8','كشف حساب','عميل أو مقاول أو فرد'],
+        ['ledger','fa-file-invoice','#1f4b73','كشف حساب','عميل أو مقاول أو فرد'],
     ].filter(q=>can(q[0]));
     if(!Q.length) return '';
     return `<div class="home-sec"><h4>تسجيل سريع</h4><div class="home-quick">${Q.map(([t,ic,c,l,h])=>`<button type="button" onclick="switchTab('${t}')"><span class="hq-ic" style="background:${c}1a;color:${c}"><i class="fa-solid ${ic}"></i></span><span><b>${esc(l)}</b><small>${esc(h)}</small></span></button>`).join('')}</div></div>`;
