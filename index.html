@@ -6,7 +6,7 @@
 <style>html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation}body{overflow-x:hidden}</style>
 <script>(function(){var b=function(e){e.preventDefault();};document.addEventListener("gesturestart",b,{passive:false});document.addEventListener("gesturechange",b,{passive:false});document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});document.addEventListener("wheel",function(e){if(e.ctrlKey)e.preventDefault();},{passive:false});document.addEventListener("keydown",function(e){if((e.ctrlKey||e.metaKey)&&["+","-","=","_","0"].indexOf(e.key)>=0)e.preventDefault();});var lt=0;document.addEventListener("touchend",function(e){var n=Date.now();if(n-lt<300&&!(e.target.closest&&e.target.closest("input,textarea,select")))e.preventDefault();lt=n;},{passive:false});})();</script>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1e293b">
+<meta name="theme-color" content="#714b67">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="icon-192.png">
 
@@ -171,6 +171,91 @@ input:focus,select:focus{outline:none;box-shadow:0 0 0 3px rgba(37,99,235,.15);b
     .print-target .overflow-x-auto{overflow:visible !important;max-height:none !important;}
     html,body{height:auto !important;overflow:visible !important;}
 }
+</style>
+
+<style id="sanam-theme">
+/* ===== ثيم سنام: شريط علوي بنفسجي، قائمة جانبية فاتحة دايمًا ظاهرة، كروت بيضا بظل خفيف ===== */
+:root{--od:#714b67;--od-2:#5e3d56;--od-3:#8c5f80;--od-t:#f3ecf1;--gold:#f0b23e;--bg:#eef2f7;--card:#fff;--card-2:#f6f8fb;--line:#e3e8ef;--line-2:#d3dbe6;--fg:#0b1520;--fg-2:#1f2b38;--muted:#4a5767;--side:#f9fafb;--shadow:0 1px 2px rgba(15,39,66,.05),0 6px 20px rgba(15,39,66,.06)}
+html{font-size:17px}
+@media (max-width:900px){html{font-size:16px}}
+body{background:var(--bg) !important;color:var(--fg);font-weight:500}
+body label,body th,body .tab-btn,body button{font-weight:700}
+/* الشريط العلوي */
+body > header{background:var(--od) !important;border-bottom:0 !important;box-shadow:0 2px 8px rgba(0,0,0,.14);height:auto !important;min-height:4rem;padding-top:6px;padding-bottom:6px}
+body > header .text-slate-400{color:rgba(255,255,255,.78) !important}
+body > header #back-btn,body > header #menu-toggle,body > header #refresh-btn,body > header #users-btn,body > header #more-btn,body > header .hdr-actions > button:not(#install-btn),body > header .hdr-actions > label{background:rgba(255,255,255,.14) !important;border:1px solid rgba(255,255,255,.2) !important;color:#fff !important;border-radius:10px !important}
+body > header .hdr-actions > button:hover,body > header .hdr-actions > label:hover{background:rgba(255,255,255,.26) !important}
+body > header #save-indicator{background:rgba(255,255,255,.14) !important;border-color:rgba(255,255,255,.2) !important;color:#fff}
+body > header #install-btn{background:var(--gold) !important;color:#1b1206 !important}
+body > header .w-10.h-10{border-radius:12px;background:#fff}
+/* القائمة الجانبية الفاتحة (ظاهرة دايمًا زي سنام) */
+aside#sidebar,#side-backdrop{display:flex !important}
+#side-backdrop{display:none !important}
+aside#sidebar{background:var(--side) !important;border-left:1px solid var(--line) !important;width:15.5rem !important;color:var(--fg-2)}
+aside#sidebar p.tracking-wider{color:var(--muted) !important;font-size:11.5px !important;letter-spacing:.04em}
+aside#sidebar .tab-btn{color:var(--fg-2) !important;border-radius:10px;padding:8px 10px !important;position:relative;font-size:14px !important}
+aside#sidebar .tab-btn:hover{background:#f1f3f6 !important;color:var(--fg) !important}
+aside#sidebar .tab-btn .nav-ic{width:30px;height:30px;flex-basis:30px;font-size:15px;background:transparent !important;box-shadow:none !important;color:var(--muted) !important}
+aside#sidebar .tab-btn.active{background:var(--od-t) !important;color:var(--od) !important;outline:none !important}
+aside#sidebar .tab-btn.active .nav-ic{color:var(--od) !important}
+aside#sidebar .tab-btn.active::before{content:"";position:absolute;right:-12px;top:8px;bottom:8px;width:4px;border-radius:4px 0 0 4px;background:var(--od)}
+aside#sidebar > div:last-child{border-top:1px solid var(--line) !important}
+aside#sidebar > div:last-child .text-slate-200{color:var(--fg) !important}
+aside#sidebar > div:last-child .bg-slate-800{background:var(--od-t) !important;color:var(--od) !important}
+aside#sidebar .cnt-badge{background:#e11d48}
+@media (max-width:900px){
+  aside#sidebar{position:static !important;transform:none !important;width:84px !important;height:auto !important;box-shadow:none !important;z-index:1 !important}
+  aside#sidebar > div:first-child{padding:8px 5px !important;gap:3px !important}
+  aside#sidebar p.tracking-wider,aside#sidebar > div:last-child{display:none !important}
+  aside#sidebar .tab-btn{flex-direction:column;gap:3px !important;padding:8px 2px !important;text-align:center;font-size:10.5px !important;line-height:1.25;justify-content:center}
+  aside#sidebar .tab-btn .nav-ic{width:26px;height:26px;flex-basis:26px;font-size:18px}
+  aside#sidebar .tab-btn.active::before{right:-5px}
+  aside#sidebar .tab-btn span{white-space:normal;word-break:break-word}
+  body > header{padding:4px 6px !important;gap:4px;min-height:3.4rem}
+  body > header .flex.items-center.gap-3{gap:5px !important}
+  body > header #back-btn,body > header #menu-toggle,body > header #refresh-btn,body > header #more-btn{width:36px !important;height:36px !important;font-size:16px !important}
+  body > header #site-select{max-width:7.5rem !important;font-size:.95rem !important}
+  body > header .w-10.h-10{width:34px !important;height:34px !important}
+  body > header #save-indicator{padding:6px 8px !important}
+  aside#sidebar .tab-btn{font-size:10px !important}
+  main{padding:12px 10px !important}
+}
+/* الكروت */
+main .bg-white.rounded-xl,main .bg-white.rounded-2xl,main .bg-white.p-5,main .mgr-card,main .mgr-kpi,main .mgr-filters,main .home-tile,main .tab-brand{border-color:var(--line) !important;border-radius:14px !important;box-shadow:var(--shadow) !important}
+main .bg-slate-50{background:var(--card-2) !important}
+main h3.font-bold.text-slate-900,main h3.font-extrabold{display:flex;align-items:center;gap:8px}
+main h3.font-bold.text-slate-900::before,main h3.font-extrabold::before{content:"";width:4px;height:16px;border-radius:4px;background:var(--gold);flex:none}
+main .mgr-card .mc-head h3::before,main .mgr-kpi h3::before{display:none}
+/* الأزرار الأساسية */
+main button.bg-slate-900,main button.bg-slate-800,main button.bg-blue-600,main button.bg-indigo-600,main .tab-brand .tb-print,.mgr-seg button.on,#activation-gate button.bg-blue-600{background:var(--od) !important;color:#fff !important;box-shadow:0 3px 10px rgba(113,75,103,.25)}
+main button.bg-slate-900:hover,main button.bg-slate-800:hover,main button.bg-blue-600:hover,main button.bg-indigo-600:hover,main .tab-brand .tb-print:hover{background:var(--od-2) !important;filter:none}
+main button,main label.cursor-pointer{border-radius:10px}
+/* الجداول */
+main table thead th{background:var(--card-2) !important;color:var(--muted) !important;font-size:12.5px;font-weight:700}
+main table tbody tr:nth-child(even) td{background:rgba(246,248,251,.6)}
+main table tbody tr:hover td{background:var(--od-t) !important}
+main .mgr-card tbody tr.tot td,main .mgr-card tbody tr.grp td{background-color:revert-layer}
+/* الحقول */
+main input:not([type=checkbox]):not([type=radio]),main select,main textarea{border-radius:10px !important;border-color:var(--line-2) !important}
+main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !important;box-shadow:0 0 0 3px var(--od-t) !important}
+/* الرئيسية والتقرير */
+.home-hero,.mgr-hero{background:linear-gradient(120deg,var(--od-2) 0%,var(--od) 60%,var(--od-3) 100%) !important;border-radius:18px !important;position:relative;overflow:hidden}
+.home-hero::after,.mgr-hero::after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(270deg,transparent 30%,#000);pointer-events:none}
+.home-hero > *,.mgr-hero > *{position:relative;z-index:1}
+.home-hero .hh-date,.mgr-hero .mh-sub,.mgr-hero .mh-big span{color:#e9dde6 !important}
+.mgr-hero .mh-big b{color:var(--gold)}
+.home-sec h4{color:var(--fg-2);font-size:15px}
+.home-sec h4::after{background:var(--line-2)}
+.home-tile{border-radius:22px !important}
+.home-tile .nav-ic{box-shadow:0 10px 22px -6px var(--c)}
+.mgr-pl .pl-tot.final.good{background:linear-gradient(135deg,var(--od-2),var(--od)) !important}
+/* شاشة الدخول */
+#activation-gate{background:linear-gradient(135deg,#5e3d56,#714b67 55%,#8c5f80) !important}
+#activation-gate .bg-slate-100{background:var(--od-t) !important;color:var(--od) !important}
+/* زر التثبيت العائم */
+#installBtn{background:var(--gold) !important;color:#1b1206 !important}
+/* الطباعة: نرجع الألوان العادية */
+@media print{aside#sidebar{display:none !important}html{font-size:16px}}
 </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col">
