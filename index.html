@@ -249,6 +249,22 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
 .home-tile{border-radius:22px !important}
 .home-tile .nav-ic{box-shadow:0 10px 22px -6px var(--c)}
 .mgr-pl .pl-tot.final.good{background:linear-gradient(135deg,var(--od-2),var(--od)) !important}
+/* الرئيسية: كروت أرقام وتسجيل سريع زي سنام */
+.home-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.home-kpi{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:right;cursor:pointer;transition:transform .12s,box-shadow .12s}
+.home-kpi:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(15,39,66,.1)}
+.home-kpi .hk-ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:19px;margin-bottom:4px}
+.home-kpi .hk-l{font-size:13px;font-weight:700;color:var(--fg-2)}
+.home-kpi .hk-v{font-size:24px;font-weight:800;color:var(--fg);line-height:1.2;font-variant-numeric:tabular-nums}
+.home-kpi .hk-h{font-size:12px;color:var(--muted);font-weight:600}
+.home-quick{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.home-quick button{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;text-align:right;cursor:pointer;display:flex;gap:12px;align-items:center;box-shadow:var(--shadow);transition:transform .12s,border-color .12s}
+.home-quick button:hover{border-color:var(--od);transform:translateY(-2px)}
+.home-quick .hq-ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:18px;flex:none}
+.home-quick b{display:block;font-size:14px;font-weight:800;line-height:1.35;color:var(--fg)}
+.home-quick small{display:block;color:var(--muted);font-size:12px;font-weight:600}
+@media (max-width:900px){.home-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.home-kpi{padding:12px}.home-kpi .hk-v{font-size:19px}.home-kpi .hk-ic{width:36px;height:36px;font-size:16px}.home-quick{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.home-quick button{padding:10px;gap:8px}.home-quick small{display:none}.home-quick .hq-ic{width:34px;height:34px;font-size:15px}}
+@media (max-width:360px){.home-kpis{grid-template-columns:minmax(0,1fr)}}
 /* شاشة الدخول */
 #activation-gate{background:linear-gradient(135deg,#5e3d56,#714b67 55%,#8c5f80) !important}
 #activation-gate .bg-slate-100{background:var(--od-t) !important;color:var(--od) !important}
@@ -3329,7 +3345,41 @@ function renderHomeGrid(){
     g.innerHTML=`<div class="home-wrap"><div class="home-hero"><div style="display:flex;align-items:center;gap:12px">${logo?`<img src="${logo}" alt="">`:''}<div><div class="hh-name">${esc(siteName())}</div><div class="hh-date">${date}</div></div></div>
         <div style="flex:1 1 260px;max-width:420px;position:relative"><input id="qs-input" type="search" placeholder="🔍 عميل، بون، عربية، مقاول..." value="${esc(qsv)}" oninput="quickSearch()" autocomplete="off" style="width:100%;border-radius:12px;padding:10px 14px;color:#0f172a;font-weight:700;border:none;outline:none"><div id="qs-results" style="position:absolute;top:110%;right:0;left:0;z-index:40"></div></div></div>`
         + homeAlertsHtml()
-        + groups.filter(x=>x.items.length).map(x=>`<div class="home-sec">${x.title?`<h4>${esc(x.title)}</h4>`:''}<div class="hs-grid">${x.items.join('')}</div></div>`).join('') + `</div>`;
+        + homeKpisHtml() + homeQuickHtml() + `</div>`;
+    void groups;
+}
+/* الرئيسية زي سنام: كروت أرقام + تسجيل سريع (القائمة الجانبية فيها كل التابات) */
+function homeKpisHtml(){
+    const can=t=>tabPerm(t)!=='none';
+    const m=todayISO().slice(0,7);
+    const bons=(db.dailyLog||[]).filter(r=>(r.date||'').startsWith(m));
+    const salesVal=bons.reduce((a,r)=>{ try{ return a+(Number(bonValue(r))||0); }catch(e){ return a; } },0);
+    const qty=bons.reduce((a,r)=>a+bonQtyTotal(r),0);
+    const ctrCats=(db.expenses||[]).filter(c=>c.nameType==='contractors').map(c=>c.name);
+    const expM=(db.expensesData||[]).filter(x=>(x.date||'').startsWith(m) && x.category!=='إيراد' && !ctrCats.includes(x.category)).reduce((a,x)=>a+(Number(x.paid)||0),0);
+    const collM=(db.expensesData||[]).filter(x=>(x.date||'').startsWith(m) && x.category==='إيراد').reduce((a,x)=>a+(Number(x.paid)||0),0);
+    let sari=0, drawer=0, loans=0; try{ sari=accBalance(SARI_ACC); drawer=accBalance(DRAWER_ACC); loans=sariLoanRows().closing; }catch(e){}
+    const K=[
+        ['treasury','fa-wallet','#16a37b','#e2f5ee','خزينة ساري (المعلق)',fmt(sari),'درج المكتب: '+fmt(drawer)],
+        ['dailylog','fa-truck','#2f6fd6','#e7effc','مبيعات الشهر ده',fmt(salesVal),nfmt(bons.length)+' بون · '+nfmt(qty)+' م'],
+        ['incomes','fa-hand-holding-dollar','#714b67','#f3ecf1','تحصيلات الشهر ده',fmt(collM),'فلوس دخلت الخزينة'],
+        ['expenses','fa-receipt','#e8962e','#fdf0dd','مصروفات الشهر ده',fmt(expM),'السلف المستحقة: '+fmt(loans)],
+    ].filter(k=>can(k[0]));
+    if(!K.length) return '';
+    return `<div class="home-kpis">${K.map(([t,ic,c,bg,l,v,h])=>`<button type="button" class="home-kpi" onclick="switchTab('${t}')"><span class="hk-ic" style="background:${bg};color:${c}"><i class="fa-solid ${ic}"></i></span><span class="hk-l">${esc(l)}</span><b class="hk-v">${v}</b><small class="hk-h">${esc(h)}</small></button>`).join('')}</div>`;
+}
+function homeQuickHtml(){
+    const can=t=>tabPerm(t)!=='none';
+    const Q=[
+        ['dailylog','fa-truck-ramp-box','#2f6fd6','تسجيل بون','بون تحميل جديد'],
+        ['expenses','fa-money-bill-wave','#e8962e','مصروف','سولار، أجور، صيانة…'],
+        ['incomes','fa-hand-holding-dollar','#16a37b','تحصيل / إيراد','فلوس من عميل'],
+        ['purchases','fa-cart-shopping','#9b59d0','شراء','فاتورة مورد'],
+        ['mgr','fa-chart-line','#0f766e','التقرير الإداري','الأداء والتكلفة والربح'],
+        ['ledger','fa-file-invoice','#714b67','كشف حساب','عميل أو مقاول أو فرد'],
+    ].filter(q=>can(q[0]));
+    if(!Q.length) return '';
+    return `<div class="home-sec"><h4>تسجيل سريع</h4><div class="home-quick">${Q.map(([t,ic,c,l,h])=>`<button type="button" onclick="switchTab('${t}')"><span class="hq-ic" style="background:${c}1a;color:${c}"><i class="fa-solid ${ic}"></i></span><span><b>${esc(l)}</b><small>${esc(h)}</small></span></button>`).join('')}</div></div>`;
 }
 let __fromPop=false;
 /* Phone back button / edge swipe: close whatever is on top (a dialog, the edit banner) first and stay on the same screen; only when nothing is open go back to home. */
