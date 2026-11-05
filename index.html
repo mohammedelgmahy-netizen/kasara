@@ -395,8 +395,8 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
             <button onclick="switchTab('pl')" id="btn-pl" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
                 <i class="fa-solid fa-chart-pie nav-ic" style="--c:#22c55e"></i><span>قائمة الدخل</span>
             </button>
-            <button onclick="switchTab('mgr')" id="btn-mgr" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
-                <i class="fa-solid fa-chart-line nav-ic" style="--c:#0d9488"></i><span>التقرير الإداري</span>
+            <button onclick="switchTab('bs')" id="btn-bs" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
+                <i class="fa-solid fa-scale-balanced nav-ic" style="--c:#6366f1"></i><span>المركز المالي</span>
             </button>
             <button onclick="switchTab('ledger')" id="btn-ledger" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
                 <i class="fa-solid fa-file-invoice nav-ic" style="--c:#6366f1"></i><span>كشف الحساب</span>
@@ -1473,18 +1473,7 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
                 </div>
             </div>
 
-            <div id="bs-card" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm w-full">
-                <div class="flex flex-wrap justify-between items-center border-b-2 border-slate-900 pb-4 mb-4 gap-2">
-                    <h2 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-scale-balanced text-indigo-600"></i> الميزانية العمومية</h2>
-                    <div class="pl-no-print-hide flex flex-wrap items-center gap-2">
-                        <span class="text-xs text-slate-500">في تاريخ</span>
-                        <input id="bs-date" type="date" onchange="renderFinPosition()" class="bg-slate-100 border border-slate-300 rounded px-2 py-1 text-xs">
-                        <button type="button" onclick="printSection('bs-card')" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة</span></button>
-                        <button type="button" onclick="exportBalanceSheetExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
-                    </div>
-                </div>
-                <div id="bs-content"></div>
-            </div>
+
 
             <!-- جدول إدارة الضرائب -->
             <div class="bg-white rounded-xl border border-red-100 shadow-sm overflow-hidden pl-no-print-hide">
@@ -1518,91 +1507,18 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
         </div>
 
         <!-- MANAGEMENT REPORT (التقرير الإداري للأداء والتكلفة والربحية) -->
-        <div id="tab-mgr" class="tab-content flex-col gap-5">
-            <div class="mgr-filters pl-no-print-hide">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <div class="mgr-seg">
-                            <button type="button" onclick="mgrPreset('day')" data-preset="day" class="mgr-preset">اليوم</button>
-                            <button type="button" onclick="mgrPreset('week')" data-preset="week" class="mgr-preset">الأسبوع</button>
-                            <button type="button" onclick="mgrPreset('month')" data-preset="month" class="mgr-preset">الشهر</button>
-                            <button type="button" onclick="mgrPreset('all')" data-preset="all" class="mgr-preset">كل الفترات</button>
-                        </div>
-                        <span class="text-xs font-bold text-slate-500">من</span>
-                        <input id="mgr-from" type="date" onchange="renderMgr()" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold">
-                        <span class="text-xs font-bold text-slate-500">إلى</span>
-                        <input id="mgr-to" type="date" onchange="renderMgr()" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold">
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="exportMgrExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
-                        <button onclick="printCurrentTab()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2"><i class="fa-solid fa-print"></i><span>طباعة / PDF</span></button>
+        <div id="tab-bs" class="tab-content flex-col gap-6">
+            <div id="bs-card" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm w-full">
+                <div class="flex flex-wrap justify-between items-center border-b-2 border-slate-900 pb-4 mb-4 gap-2">
+                    <h2 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-scale-balanced text-indigo-600"></i> الميزانية العمومية</h2>
+                    <div class="pl-no-print-hide flex flex-wrap items-center gap-2">
+                        <span class="text-xs text-slate-500">في تاريخ</span>
+                        <input id="bs-date" type="date" onchange="renderFinPosition()" class="bg-slate-100 border border-slate-300 rounded px-2 py-1 text-xs">
+                        <button type="button" onclick="printSection('bs-card')" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة</span></button>
+                        <button type="button" onclick="exportBalanceSheetExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div><label class="block text-[11px] font-bold text-slate-500 mb-1">المنتج / نوع السن</label><select id="mgr-product" onchange="renderMgr()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold"></select></div>
-                    <div><label class="block text-[11px] font-bold text-slate-500 mb-1">العميل</label><select id="mgr-client" onchange="renderMgr()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold"></select></div>
-                    <div><label class="block text-[11px] font-bold text-slate-500 mb-1">الجرار / وسيلة النقل</label><select id="mgr-vehicle" onchange="renderMgr()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold"></select></div>
-                    <div><label class="block text-[11px] font-bold text-slate-500 mb-1">الشغل تبع (مستلم العهدة)</label><select id="mgr-worker" onchange="renderMgr()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold"></select></div>
-                </div>
-            </div>
-
-            <div id="mgr-print-area" class="flex flex-col gap-5">
-                <div class="mgr-hero">
-                    <div>
-                        <h2>تقرير الأداء التشغيلي والمالي</h2>
-                        <div class="mh-sub"><span id="mgr-period-label"></span><br><span id="mgr-stamp"></span></div>
-                    </div>
-                    <div class="mh-big" id="mgr-hero-nums"></div>
-                </div>
-                <div id="mgr-alerts" class="flex flex-col gap-2"></div>
-
-                <!-- القسم الأول: مؤشرات الأداء -->
-                <div id="mgr-kpis" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
-
-                <!-- القسم الثاني: تحليل الإنتاج والتكلفة -->
-                <div class="mgr-card">
-                    <div class="mc-head"><h3><i class="fa-solid fa-industry nav-ic" style="--c:#f59e0b"></i> تحليل الإنتاج والتكلفة والربحية حسب المنتج</h3><span class="mc-note">تكلفة الإنتاج موزعة على المنتجات بنسبة الكمية المنتجة (تكلفة متر واحدة لكل الأصناف)</span></div>
-                    <div class="overflow-x-auto"><table><thead><tr>
-                        <th>المنتج</th><th>الإنتاج (م)</th><th>تكلفة الإنتاج</th><th>تكلفة المتر</th>
-                        <th>المباع (م)</th><th>متوسط سعر البيع</th><th>المبيعات</th><th>هامش المتر</th><th>هامش %</th><th>المخزون آخر المدة (م)</th>
-                    </tr></thead><tbody id="mgr-tbody-products"></tbody></table></div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                    <div class="mgr-card">
-                        <div class="mc-head"><h3><i class="fa-solid fa-coins nav-ic" style="--c:#e11d48"></i> التكاليف حسب البند ومصدرها</h3><span class="mc-note">غيّر تصنيف أي بند (إنتاج / نقل / إداري) والتقرير يتحسب تاني</span></div>
-                        <div class="overflow-x-auto"><table><thead><tr><th>البند</th><th>المبلغ</th><th>التصنيف</th></tr></thead><tbody id="mgr-tbody-costs"></tbody></table></div>
-                    </div>
-                    <div class="mgr-card">
-                        <div class="mc-head"><h3><i class="fa-solid fa-users nav-ic" style="--c:#3b82f6"></i> المبيعات حسب العميل</h3></div>
-                        <div class="overflow-x-auto"><table><thead><tr><th>العميل</th><th>النقلات</th><th>الكمية (م)</th><th>المبيعات</th><th>متوسط السعر</th></tr></thead><tbody id="mgr-tbody-clients"></tbody></table></div>
-                    </div>
-                </div>
-
-                <!-- القسم الثالث: تحليل النقلات -->
-                <div class="mgr-card">
-                    <div class="mc-head"><h3><i class="fa-solid fa-truck nav-ic" style="--c:#f97316"></i> تحليل النقلات</h3><span class="mc-note">كل بون تحميل = نقلة واحدة · تكلفة النقل = البنود المصنّفة «تكلفة نقل»</span></div>
-                    <div id="mgr-trips-summary" class="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 border-b border-slate-100"></div>
-                    <div class="overflow-x-auto"><table><thead><tr>
-                        <th>الجرار</th><th>المقطورة</th><th>النقلات</th><th>الكمية (م)</th><th>متوسط الحمولة</th><th>قيمة المبيعات</th><th>العملاء</th>
-                    </tr></thead><tbody id="mgr-tbody-trips"></tbody></table></div>
-                </div>
-
-
-            </div>
-
-            <!-- تسجيل الإنتاج اليومي -->
-            <div class="mgr-card pl-no-print-hide">
-                <div class="mc-head"><h3><i class="fa-solid fa-clipboard-list nav-ic" style="--c:#d97706"></i> تسجيل الإنتاج اليومي</h3><span class="mc-note">اكتب كمية السن اللي طلعت من الكسارة كل يوم (بالمتر لكل صنف)</span></div>
-                <form onsubmit="addProdLog(event)" class="p-4 flex flex-col gap-3">
-                    <div class="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="pl-prod-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
-                        <div id="pl-prod-sizes" class="contents"></div>
-                        <div class="col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">ملاحظات</label><input id="pl-prod-notes" type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
-                        <div><button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl text-sm font-bold">حفظ الإنتاج</button></div>
-                    </div>
-                </form>
-                <div class="overflow-x-auto"><table><thead><tr id="pl-prod-thead"></tr></thead><tbody id="tbody-prodlog"></tbody></table></div>
+                <div id="bs-content"></div>
             </div>
         </div>
 
@@ -2803,7 +2719,7 @@ const ROLES = {
 let currentRole = 'admin';
 let currentUser = null;      // الزميل اللي داخل (لو مش المدير)
 let activeTab = 'home';
-const PERM_TABS = [['dashboard','مؤشر الكسارة'],['masterdata','دليل الأكواد'],['purchases','المشتريات'],['dailylog','المبيعات'],['extracts','المستخلصات'],['collections','التحصيلات'],['inventory','المخزون'],['equipment','المعدات'],['incomes','الإيرادات'],['payroll','الرواتب والحضور'],['expenses','المصروفات'],['treasury','الخزينة'],['pl','قائمة الدخل'],['mgr','التقرير الإداري'],['ledger','كشف الحساب'],['investors','الشركاء والتمويل']];
+const PERM_TABS = [['dashboard','مؤشر الكسارة'],['masterdata','دليل الأكواد'],['purchases','المشتريات'],['dailylog','المبيعات'],['extracts','المستخلصات'],['collections','التحصيلات'],['inventory','المخزون'],['equipment','المعدات'],['incomes','الإيرادات'],['payroll','الرواتب والحضور'],['expenses','المصروفات'],['treasury','الخزينة'],['pl','قائمة الدخل'],['bs','المركز المالي'],['ledger','كشف الحساب'],['investors','الشركاء والتمويل']];
 function tabPerm(tab){
     if(tab==='users') return currentRole==='admin' ? 'edit' : 'none';
     if(currentRole==='viewer' && SUPABASE_URL) return 'none';
@@ -2813,7 +2729,8 @@ function tabPerm(tab){
     return p.e ? 'edit' : p.v ? 'view' : 'none';
 }
 function permObj(u, tab){
-    const x = u && u.perms ? u.perms[tab] : null;
+    let x = u && u.perms ? u.perms[tab] : null;
+    if(x==null && tab==='bs' && u && u.perms) x = u.perms.pl; // المركز المالي ياخد نفس صلاحية قائمة الدخل
     if(x==='edit') return {v:true,e:true,d:!(u&&u.noDelete)};
     if(x==='view') return {v:true,e:false,d:false};
     if(x && typeof x==='object') return {v:!!(x.v||x.e||x.d), e:!!x.e, d:!!x.d};
@@ -2893,7 +2810,7 @@ let __users = [];
 const PERM_GROUPS = [
     ['المتابعة', ['dashboard','masterdata']],
     ['تسجيل يومي', ['purchases','dailylog','extracts','collections','inventory','equipment','incomes','payroll','expenses']],
-    ['الدفاتر والتقارير', ['treasury','pl','mgr','ledger','investors']]
+    ['الدفاتر والتقارير', ['treasury','pl','bs','ledger','investors']]
 ];
 const permLabel = t => (PERM_TABS.find(x=>x[0]===t)||[t,t])[1];
 async function loadUsers(){
@@ -3294,7 +3211,7 @@ function renderAll(){
     try{ renderSupplierAccounts(); }catch(e){ console.warn(e); }
     try{ renderTreasury(); }catch(e){ console.warn(e); }
     try{ renderPL(); }catch(e){ console.warn(e); }
-    try{ if(activeTab==='mgr') renderMgr(); }catch(e){ console.warn(e); }
+    try{ if(activeTab==='bs') renderFinPosition(); }catch(e){ console.warn(e); }
     try{ renderTaxTable(); }catch(e){ console.warn(e); }
     try{ renderAccounts(); }catch(e){ console.warn(e); }
     try{ renderInvestorFunding(); }catch(e){ console.warn(e); }
@@ -3365,7 +3282,6 @@ function homeQuickHtml(){
         ['expenses','fa-money-bill-wave','#e8962e','مصروف','سولار، أجور، صيانة…'],
         ['incomes','fa-hand-holding-dollar','#16a37b','تحصيل / إيراد','فلوس من عميل'],
         ['purchases','fa-cart-shopping','#9b59d0','شراء','فاتورة مورد'],
-        ['mgr','fa-chart-line','#0f766e','التقرير الإداري','الأداء والتكلفة والربح'],
         ['ledger','fa-file-invoice','#1f4b73','كشف حساب','عميل أو مقاول أو فرد'],
     ].filter(q=>can(q[0]));
     if(!Q.length) return '';
@@ -3396,7 +3312,7 @@ function switchTab(tabId){
     document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
     document.getElementById('btn-'+tabId)?.classList.add('active');
     if(tabId==='pl'){ renderTaxTable(); renderPL(); }
-    if(tabId==='mgr'){ try{ renderMgr(); }catch(e){ console.warn(e); } }
+    if(tabId==='bs'){ try{ renderFinPosition(); }catch(e){ console.warn(e); } }
     if(tabId==='treasury'||tabId==='incomes'){ try{ renderCashCount(); }catch(e){ console.warn(e); } }
     if(tabId==='incomes'){ try{ renderIncomes(); renderSari(); }catch(e){ console.warn(e); } }
     if(tabId==='dashboard'){ try{ renderDashChart(); }catch(e){ console.warn(e); } }
@@ -4779,7 +4695,7 @@ function deleteTaxRow(idx){
     renderPL();
 }
 
-function renderPL(){ try{ setTimeout(renderFinPosition,0); }catch(e){}
+function renderPL(){
     return renderPLInner();
 }
 function renderPLInner(){
@@ -5090,9 +5006,9 @@ function balanceSheetData(D){
     // حقوق الملكية
     const fund=(db.investorFunding||[]).filter(x=>le(x.date)).reduce((a,x)=>a+(Number(x.amount)||0),0);
     const tA=A.reduce((a,x)=>a+x.v,0), tL=L.reduce((a,x)=>a+x.v,0);
-    let profit=0; try{ profit=mgrCompute({to:D||''}).profitBeforeTax||0; }catch(e){ try{ profit=computePL('ALL','',D||'').profitBeforeTax||0; }catch(x){} }
+    let profit=0; try{ profit=computePL('ALL','',D||'').profitBeforeTax||0; }catch(x){}
     if(Math.round(fund)) E.push({name:'تمويل المستثمرين', v:fund});
-    E.push({name:'صافي الربح لحد التاريخ ده (من التقرير الإداري)', v:profit});
+    E.push({name:'صافي الربح لحد التاريخ ده (من قائمة الدخل)', v:profit});
     E.push({name:'رأس المال وأرصدة أول المدة', v:tA-tL-fund-profit, note:true});
     const tE=E.reduce((a,x)=>a+x.v,0);
     return {A,L,E,tA,tL,tE};
