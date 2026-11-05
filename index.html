@@ -3250,11 +3250,11 @@ function restoreBon3737(){
     if(!(near(3736) && near(3738))) return; // البيانات الحقيقية لسه ما اتحملتش
     const has=L.some(r=>String(r.bon)==='3737'), canc=cancelledList().some(x=>x.n===3737);
     if(!has && !canc){
-        const r={"id":1791729420374060,"date":"2026-10-11","bon":"3737","client":"بلال الصريحي","tractor":"9721","trailer":"9826","project":"كسارة البداية","q":{"s1":0,"s15":0,"s3":0,"mudarrag":0,"tabaqa":56.5},"tip":50,"price":0,"paidCash":false,"notes":"","worker":"عبد الشافي","tabaqaPct":70,"place":"كسارة البداية"};
+        const r={"id":1791729420374060,"date":"2026-10-11","bon":"3737","client":"بلال الصريحي","tractor":"9721","trailer":"9826","project":"كسارة ديار","q":{"s1":0,"s15":0,"s3":0,"mudarrag":0,"tabaqa":56.5},"tip":50,"price":0,"paidCash":false,"notes":"","worker":"عبد الشافي","tabaqaPct":70,"place":"كسارة ديار"};
         db.dailyLog.push(r);
         if(!(db.expensesData||[]).some(x=>x.tipDeposit && x.tipBonId===r.id)){
             if(!db.nextId) db.nextId={}; const id=db.nextId.exp=(Number(db.nextId.exp)||Math.max(0,...(db.expensesData||[]).map(x=>Number(x.id)||0))+1); db.nextId.exp=id+1;
-            db.expensesData.push({id, category:'إيراد', activity:'إيراد/تحصيل', name:'إكرامية', project:'كسارة البداية', total:50, paid:50, remaining:0, executedValue:0, date:'2026-10-11', account:DRAWER_ACC, notes:'إكرامية بون 3737', desc:'إكرامية الكسارة — بون 3737 (9721)', tipDeposit:true, tipBonId:r.id});
+            db.expensesData.push({id, category:'إيراد', activity:'إيراد/تحصيل', name:'إكرامية', project:'كسارة ديار', total:50, paid:50, remaining:0, executedValue:0, date:'2026-10-11', account:DRAWER_ACC, notes:'إكرامية بون 3737', desc:'إكرامية الكسارة — بون 3737 (9721)', tipDeposit:true, tipBonId:r.id});
         }
         logAudit('create','استرجاع بون 3737','من النسخة الاحتياطية',null,r);
     }
