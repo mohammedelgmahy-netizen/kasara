@@ -1588,11 +1588,7 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
                     </tr></thead><tbody id="mgr-tbody-trips"></tbody></table></div>
                 </div>
 
-                <!-- القسم الرابع: قائمة الدخل المختصرة -->
-                <div class="mgr-card">
-                    <div class="mc-head"><h3><i class="fa-solid fa-chart-pie nav-ic" style="--c:#22c55e"></i> قائمة الدخل المختصرة للفترة</h3><span class="mc-note">إيرادات − تكلفة البضاعة المباعة − النقل − الإداري = صافي الربح</span></div>
-                    <div class="mgr-pl" id="mgr-pl"></div>
-                </div>
+
             </div>
 
             <!-- تسجيل الإنتاج اليومي -->
@@ -8828,6 +8824,7 @@ function renderDayPage(){
 /* ---------- لوحة التحكم: سجل حركات الخزينة بفلتر ---------- */
 function setDashMoveFilter(f){ window.__dmf = f; renderDashMoves(); }
 function openDashMoves(f){
+    switchTab('treasury'); return; // حركات الخزينة مكانها تاب الخزينة بس
     const c = document.getElementById('dash-moves-card');
     if(c.style.display!=='none' && window.__dmf===f){ c.style.display='none'; return; }
     c.style.display = '';
@@ -10194,7 +10191,7 @@ function renderMgr(){
     pl += tot(`صافي الربح قبل الضريبة (هامش ${r2(R.margin)}%)`, R.profitBeforeTax);
     R.taxLines.forEach(l=>{ pl += row('(−) '+l.label, -l.value, 'minus'); });
     pl += tot('صافي الربح بعد الضريبة', R.netProfit, true);
-    g('mgr-pl').innerHTML = pl;
+    if(g('mgr-pl')) g('mgr-pl').innerHTML = pl;
 
     renderProdLog();
 }
