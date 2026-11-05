@@ -612,7 +612,8 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">سن 3</label><input id="dl-q-s3" type="number" step="any" min="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">سن مدرج</label><input id="dl-q-mudarrag" type="number" step="any" min="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div id="dl-extra-sizes" class="contents"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">طبقة</label><input id="dl-q-tabaqa" type="number" step="any" min="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">طبقة عادية</label><input id="dl-q-tabaqa" type="number" step="any" min="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <div id="dl-extra-sizes2" class="contents"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">نسبة السن في الطبقة</label><select id="dl-tabaqa-pct" onchange="document.getElementById('dl-tabaqa-pct-custom').style.display=this.value==='custom'?'':'none'" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="">بدون نسبة</option><option value="10">10%</option><option value="20">20%</option><option value="30">30%</option><option value="40">40%</option><option value="50">50%</option><option value="custom">نسبة تانية...</option></select>
                             <input id="dl-tabaqa-pct-custom" type="number" step="any" min="0" max="100" placeholder="اكتب النسبة %" style="display:none" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm mt-1"></div>
                         <div class="flex items-end"><button type="button" onclick="addSizeType()" class="w-full bg-white border-2 border-dashed border-amber-400 text-amber-700 font-bold rounded-lg p-2 text-xs">+ صنف جديد</button></div>
@@ -4921,7 +4922,7 @@ function clientSheetData(name){
     const otherDebit = allRows.filter(r=>!r.bon && r.debit>0 && inRange(r.date) && (!to || r.date<=to)).reduce((a,r)=>a+r.debit,0);
     const credits = allRows.filter(r=>r.credit>0 && inRange(r.date)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
     const pFrom = from || (bons[0]&&bons[0].date) || '', pTo = to || (bons.length?bons[bons.length-1].date:'') || '';
-    const used = sizes.filter(sz=>tot[sz.key] || DL_BASE_SIZES.some(b=>b.key===sz.key));
+    const used = sizes.filter(sz=>tot[sz.key] || DL_BASE_SIZES.some(b=>b.key===sz.key) || DL_BUILTIN_EXTRA.some(b=>b.key===sz.key));
     return {from:pFrom, to:pTo, cars:Object.values(cars), sizes:used, tot, amt, priceOf, n:bons.length, prev, bonsTotal, otherDebit, credits};
 }
 function getClientAccountRowsAll(name){
@@ -7649,22 +7650,27 @@ async function shareViaWhatsApp(day){
 /* ================= كسارة ديار — الدفاتر الورقية (سجل يومي / يومية / دفاتر أطراف) ================= */
 const DL_BASE_SIZES = [
     {key:'s1', label:'سن 1'}, {key:'s15', label:'سن 1.5'}, {key:'s3', label:'سن 3'},
-    {key:'mudarrag', label:'سن مدرج'}, {key:'tabaqa', label:'طبقة'}
+    {key:'mudarrag', label:'سن مدرج'}, {key:'tabaqa', label:'طبقة عادية'}
 ];
+/* أصناف ثابتة زيادة (زي ورقة الكشف): سن 2، طبقة مخلوط، سمسم */
+const DL_BUILTIN_EXTRA = [{key:'s2', label:'سن 2'}, {key:'tmix', label:'طبقة مخلوط'}, {key:'simsim', label:'سمسم'}];
 let DL_SIZES = DL_BASE_SIZES.slice();
 /* أصناف سن إضافية (سن 2، سن 6...) بتتضاف من زرار "+ صنف جديد" وبتتحفظ في db.meta.extraSizes */
 function refreshSizes(){
-    const extra = (db && db.meta && db.meta.extraSizes) || [];
-    DL_SIZES = DL_BASE_SIZES.filter(s=>s.key!=='tabaqa').concat(extra, DL_BASE_SIZES.filter(s=>s.key==='tabaqa'));
-    const box = document.getElementById('dl-extra-sizes');
-    if(box){
-        const keep = {}; box.querySelectorAll('input').forEach(i=>keep[i.id]=i.value);
-        box.innerHTML = extra.map(s=>`<div><label class="block text-xs font-bold text-slate-600 mb-1">${esc(s.label)}</label><input id="dl-q-${s.key}" type="number" step="any" min="0" value="${keep['dl-q-'+s.key]||''}" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>`).join('');
-    }
+    const userExtra = (db && db.meta && db.meta.extraSizes) || [];
+    const B = DL_BUILTIN_EXTRA.filter(b=>!userExtra.some(u=>u.label===b.label)), bk = k => B.filter(b=>b.key===k);
+    const base = k => DL_BASE_SIZES.filter(s=>s.key===k);
+    DL_SIZES = [...base('s1'), ...base('s15'), ...bk('s2'), ...base('s3'), ...base('mudarrag'), ...userExtra, ...base('tabaqa'), ...bk('tmix'), ...bk('simsim')];
+    const extra = [...bk('s2'), ...userExtra, ...bk('tmix'), ...bk('simsim')];
+    const inp = s=>`<div><label class="block text-xs font-bold text-slate-600 mb-1">${esc(s.label)}</label><input id="dl-q-${s.key}" type="number" step="any" min="0" value="${KEEP['dl-q-'+s.key]||''}" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>`;
+    const KEEP = {}; document.querySelectorAll('#dl-extra-sizes input, #dl-extra-sizes2 input').forEach(i=>KEEP[i.id]=i.value);
+    const box = document.getElementById('dl-extra-sizes'), box2 = document.getElementById('dl-extra-sizes2');
+    if(box) box.innerHTML = [...bk('s2'), ...userExtra].map(inp).join('');
+    if(box2) box2.innerHTML = [...bk('tmix'), ...bk('simsim')].map(inp).join('');
     const tr = document.getElementById('dl-thead-row');
     if(tr){
         if(!tr.dataset.lead){
-            const ths = [...tr.children]; const i0 = ths.findIndex(t=>t.textContent.trim()==='سن 1'), i1 = ths.findIndex(t=>t.textContent.trim()==='طبقة');
+            const ths = [...tr.children]; const i0 = ths.findIndex(t=>t.textContent.trim()==='سن 1'), i1 = ths.findIndex(t=>['طبقة','طبقة عادية'].includes(t.textContent.trim()));
             tr.dataset.lead = ths.slice(0,i0).map(t=>t.outerHTML).join(''); tr.dataset.trail = ths.slice(i1+1).map(t=>t.outerHTML).join('');
         }
         tr.innerHTML = tr.dataset.lead + DL_SIZES.map(s=>`<th class="p-2">${esc(s.label)}</th>`).join('') + tr.dataset.trail;
