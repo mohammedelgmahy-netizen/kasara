@@ -3416,7 +3416,7 @@ function switchTab(tabId){
     if(tabId==='fleet'){ renderVehicles(); renderTrips(); }
     if(tabId==='masterdata'){ try{ renderMasterData(); }catch(e){} try{ renderVehicles(); }catch(e){} try{ renderSitesCard(); }catch(e){} }
     if(tabId==='audit'){ renderAuditLog(); }
-    if(tabId==='ledger'){ renderAccounts(); }
+    if(tabId==='ledger'){ renderAccounts(); try{ renderSupplierStmt(); }catch(e){} try{ renderContractorStmt(); }catch(e){} try{ fillEquipSelects(); renderEqStatement(); }catch(e){} }
     if(tabId==='balance'){ renderTrialBalance(); }
     if(tabId==='investors'){ renderAllProjectProfits(); }
     try{ applyRolePermissions(); }catch(e){}
@@ -6140,7 +6140,7 @@ function renderEquipmentTab(){
     if(window.__eqSel) showEquipDetail(window.__eqSel[0], window.__eqSel[1]); else g('eq-detail').innerHTML='';
 }
 function showEquipDetail(owner, equip){
-    window.__eqs={owner, equip, item:'ALL'}; renderEqStatement(); const c=document.getElementById('eqs-card'); if(c) c.scrollIntoView({behavior:'smooth'}); window.__eqSel=null; return;
+    window.__eqs={owner, equip, item:'ALL'}; switchTab('ledger'); renderEqStatement(); const c=document.getElementById('eqs-card'); if(c) c.scrollIntoView({behavior:'smooth'}); window.__eqSel=null; return;
     window.__eqSel=[owner, equip];
     const g=id=>document.getElementById(id);
     const L=equipRecords(g('eq-from').value, g('eq-to').value).filter(r=>r.owner===owner&&r.equip===equip).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
@@ -8205,15 +8205,19 @@ function quickSearch(){
     const R=[]; const has=v=>normName(String(v||'')).includes(q);
     (db.clients||[]).filter(c=>has(c.name)).slice(0,6).forEach(c=>R.push(['عميل',c.name,`qsGo('client',${JSON.stringify(c.name)})`]));
     (db.contractors||[]).filter(c=>has(c.name)).slice(0,4).forEach(c=>R.push(['مقاول',c.name,`qsGo('ctr',${JSON.stringify(c.name)})`]));
-    (db.suppliers||[]).filter(c=>has(c.name)).slice(0,4).forEach(c=>R.push(['مورد',c.name,`switchTab('purchases')`]));
+    (db.suppliers||[]).filter(c=>has(c.name)).slice(0,4).forEach(c=>R.push(['مورد',c.name,`switchTab('ledger');setTimeout(()=>{try{document.getElementById('ss-supplier').value=${JSON.stringify(c.name)};renderSupplierStmt();document.getElementById('supplier-stmt-card').scrollIntoView({behavior:'smooth'})}catch(e){}},50)`]));
     (db.names||[]).filter(c=>has(c.name)).slice(0,4).forEach(c=>R.push(['فرد',c.name,`switchTab('ledger')`]));
     (db.dailyLog||[]).filter(r=>String(r.bon||'')===q.replace(/[^\d]/g,'')&&q.replace(/[^\d]/g,'') || has(r.tractor) || has(r.trailer)).slice(-8).reverse().forEach(r=>R.push(['بون',`${r.bon||'-'} — ${r.client} — ${dmy(r.date)}${r.tractor?' — '+r.tractor:''}`,`qsGo('bon',${JSON.stringify(r.date)})`]));
     box.innerHTML = `<div style="background:#fff;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.25);overflow:hidden;max-height:340px;overflow-y:auto">${R.length?R.map(([t,l,on])=>`<button type="button" onclick="${esc(on)}" style="display:flex;gap:8px;align-items:center;width:100%;text-align:right;padding:10px 12px;border-bottom:1px solid #f1f5f9;color:#0f172a"><span style="font-size:11px;font-weight:800;background:#e0f2fe;color:#0369a1;border-radius:999px;padding:1px 8px">${t}</span><span style="font-weight:700">${esc(l)}</span></button>`).join(''):'<div style="padding:10px 12px;color:#94a3b8">—</div>'}</div>`;
 }
+
+/* كل كشوفات الحساب في تاب كشف الحساب بس (مورد / مقاول / معدة) */
+document.addEventListener('DOMContentLoaded',()=>{ const L=document.getElementById('tab-ledger'); if(!L) return;
+    ['supplier-stmt-card','ctr-stmt-card','eqs-card'].forEach(id=>{ const c=document.getElementById(id); if(c) L.appendChild(c); }); });
 function qsGo(kind, v){
     const g=id=>document.getElementById(id);
     if(kind==='client'){ switchTab('ledger'); setTimeout(()=>{ try{ g('acct-type').value='client'; onAcctTypeChange(); g('acct-name').value=v; renderAccountStatement(); }catch(e){} },50); }
-    else if(kind==='ctr'){ switchTab('extracts'); setTimeout(()=>{ try{ renderContractorStmt(); g('cs2-name').value=v; renderContractorStmt(); g('ctr-stmt-card').scrollIntoView({behavior:'smooth'}); }catch(e){} },50); }
+    else if(kind==='ctr'){ switchTab('ledger'); setTimeout(()=>{ try{ renderContractorStmt(); g('cs2-name').value=v; renderContractorStmt(); g('ctr-stmt-card').scrollIntoView({behavior:'smooth'}); }catch(e){} },50); }
     else if(kind==='bon'){ switchTab('dailylog'); setTimeout(()=>{ try{ g('dl-view-mode').value='DAY'; g('dl-view-date').value=v; dlModeChanged(); }catch(e){} },50); }
 }
 
