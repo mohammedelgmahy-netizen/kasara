@@ -1498,6 +1498,19 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
                 </div>
             </div>
 
+            <div id="bs-card" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm w-full">
+                <div class="flex flex-wrap justify-between items-center border-b-2 border-slate-900 pb-4 mb-4 gap-2">
+                    <h2 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-scale-balanced text-indigo-600"></i> الميزانية العمومية</h2>
+                    <div class="pl-no-print-hide flex flex-wrap items-center gap-2">
+                        <span class="text-xs text-slate-500">في تاريخ</span>
+                        <input id="bs-date" type="date" onchange="renderFinPosition()" class="bg-slate-100 border border-slate-300 rounded px-2 py-1 text-xs">
+                        <button type="button" onclick="printSection('bs-card')" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة</span></button>
+                        <button type="button" onclick="exportBalanceSheetExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
+                    </div>
+                </div>
+                <div id="bs-content"></div>
+            </div>
+
             <!-- جدول إدارة الضرائب -->
             <div class="bg-white rounded-xl border border-red-100 shadow-sm overflow-hidden pl-no-print-hide">
                 <div class="p-4 bg-red-50 border-b border-red-100 flex justify-between items-center">
@@ -4775,7 +4788,10 @@ function deleteTaxRow(idx){
     renderPL();
 }
 
-function renderPL(){
+function renderPL(){ try{ setTimeout(renderFinPosition,0); }catch(e){}
+    return renderPLInner();
+}
+function renderPLInner(){
     const fp = 'ALL';
     const dateFrom = document.getElementById('pl-date-from')?.value || '';
     const dateTo   = document.getElementById('pl-date-to')?.value || '';
@@ -5049,6 +5065,71 @@ function clientSheetHtml(name){
       <table style="width:100%;border-collapse:collapse">${head}${rows.join('')}${totRow}${priceRow}${amtRow}</table>
       <div style="height:14px"></div>
       <table style="width:100%;border-collapse:collapse">${sum}</table></div>`;
+}
+
+/* ================= الميزانية العمومية (قائمة المركز المالي) =================
+   مبنية من الحركات المسجلة: الأصول − الخصوم = حقوق الملكية (تمويل المستثمرين + رأس المال والأرباح المحتجزة). */
+function balanceSheetData(D){
+    const le = d => !D || !d || d<=D;
+    const A=[], L=[], E=[];
+    // النقدية: كل خزينة
+    (db.accounts||[]).forEach(a=>{ try{ const v=buildCashStatement('', D, a.name).closing; if(Math.round(v)) A.push({g:'النقدية', name:a.name, v}); }catch(e){} });
+    // العملاء
+    let rec=0, adv=0;
+    (db.clients||[]).forEach(c=>{ let b=0; try{ getClientAccountRowsAll(c.name).forEach(r=>{ if(le(r.date)) b+=(r.debit||0)-(r.credit||0); }); }catch(e){} if(b>0) rec+=b; else adv-=b; });
+    if(Math.round(rec)) A.push({g:'العملاء', name:'مستحقات على العملاء', v:rec});
+    // المخزون (بمتوسط سعر الشراء)
+    let inv=0; (db.supplies||[]).forEach(x=>{ try{ const q=itemStockBalance(x.name).balance; if(q<=0) return; const P=(db.procurements||[]).filter(p=>p.item===x.name); const qq=P.reduce((a,p)=>a+(Number(p.qty)||0),0); const avg=qq?P.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0)/qq:0; inv+=q*avg; }catch(e){} });
+    if(Math.round(inv)) A.push({g:'المخزون', name:'مخزون الأصناف (سولار وغيره)', v:inv});
+    // مستحقات على أصحاب المعدات
+    try{ let eq=0; Object.values(equipmentDebtBalances()).forEach(t=>{ const b=(t.supplied||0)-(t.repaid||0); if(b>0) eq+=b; }); if(Math.round(eq)) A.push({g:'مستحقات أخرى', name:'مستحقات على أصحاب المعدات', v:eq}); }catch(e){}
+    // المقاولين
+    let ctrOwe=0, ctrAdv=0;
+    (db.contractors||[]).forEach(c=>{ try{ let b=0; contractorStmtRows(c.name).rows.forEach(r=>{ if(le(r.date)) b+=(r.credit||0)-(r.debit||0); }); if(b>0) ctrOwe+=b; else ctrAdv-=b; }catch(e){} });
+    if(Math.round(ctrAdv)) A.push({g:'مستحقات أخرى', name:'عهد ومقدمات عند المقاولين', v:ctrAdv});
+    // الأصول الثابتة
+    let fa=0; (db.assets||[]).filter(a=>a.status!=='sold' && le(a.date)).forEach(a=>{ fa+=assetBookValue(a); });
+    if(Math.round(fa)) A.push({g:'الأصول الثابتة', name:'المعدات والأصول (بعد الإهلاك)', v:fa});
+    // الخصوم
+    let sup=0; (db.suppliers||[]).forEach(x=>{ const i=(db.procurements||[]).filter(p=>p.supplier===x.name && le(p.date)).reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0); const pd=(db.payments||[]).filter(p=>p.supplier===x.name && le(p.date)).reduce((a,p)=>a+(Number(p.amount)||0),0); if(i-pd>0) sup+=i-pd; });
+    if(Math.round(sup)) L.push({name:'الموردين', v:sup});
+    if(Math.round(ctrOwe)) L.push({name:'مستحقات المقاولين', v:ctrOwe});
+    if(Math.round(adv)) L.push({name:'دفعات مقدمة من العملاء', v:adv});
+    try{ const s0=db.sariSettings||{}; const bals={'ساري':Number(s0.loanOpening)||0}; (db.ownerLoans||[]).filter(l=>le(l.date)).forEach(l=>{ const w=loanLender(l); bals[w]=(bals[w]||0)+(l.type==='in'?1:-1)*(Number(l.amount)||0); }); Object.entries(bals).forEach(([w,v])=>{ if(Math.round(v)) L.push({name:'قروض / جاري '+w, v}); }); }catch(e){}
+    // حقوق الملكية
+    const fund=(db.investorFunding||[]).filter(x=>le(x.date)).reduce((a,x)=>a+(Number(x.amount)||0),0);
+    const tA=A.reduce((a,x)=>a+x.v,0), tL=L.reduce((a,x)=>a+x.v,0);
+    if(Math.round(fund)) E.push({name:'تمويل المستثمرين', v:fund});
+    E.push({name:'رأس المال والأرباح المحتجزة', v:tA-tL-fund, note:true});
+    const tE=E.reduce((a,x)=>a+x.v,0);
+    return {A,L,E,tA,tL,tE};
+}
+function renderFinPosition(){
+    const el=document.getElementById('bs-content'); if(!el) return;
+    const dI=document.getElementById('bs-date'); if(dI && !dI.value) dI.value=todayISO();
+    const D=dI?dI.value:'';
+    const S=balanceSheetData(D);
+    const row=(n,v,cls)=>`<tr class="border-b border-slate-100 ${cls||''}"><td class="p-2">${esc(n)}</td><td class="p-2 text-left font-bold" dir="ltr">${nfmt(Math.round(v))}</td></tr>`;
+    const head=t=>`<tr class="bg-slate-800 text-white"><td class="p-2 font-bold" colspan="2">${t}</td></tr>`;
+    const total=(t,v)=>`<tr class="bg-indigo-50 font-extrabold border-t-2 border-slate-400"><td class="p-2">${t}</td><td class="p-2 text-left" dir="ltr">${nfmt(Math.round(v))}</td></tr>`;
+    const groups=[...new Set(S.A.map(x=>x.g))];
+    const assets=head('الأصول')+(groups.map(g=>`<tr class="bg-slate-100"><td class="p-2 font-bold text-slate-600" colspan="2">${esc(g)}</td></tr>`+S.A.filter(x=>x.g===g).map(x=>row(x.name,x.v)).join('')).join('')||row('مفيش أرصدة',0))+total('إجمالي الأصول',S.tA);
+    const liab=head('الخصوم (الالتزامات)')+(S.L.map(x=>row(x.name,x.v)).join('')||row('مفيش التزامات',0))+total('إجمالي الخصوم',S.tL);
+    const eq=head('حقوق الملكية')+S.E.map(x=>row(x.name+(x.note?' *':''),x.v)).join('')+total('إجمالي حقوق الملكية',S.tE)+total('إجمالي الخصوم وحقوق الملكية',S.tL+S.tE);
+    el.innerHTML=`<div class="text-sm text-slate-500 mb-3">كسارة ديار — المركز المالي في ${dmy(D)}</div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <table class="w-full text-sm text-right border border-slate-200">${assets}</table>
+        <table class="w-full text-sm text-right border border-slate-200">${liab}${eq}</table>
+      </div>
+      <div class="text-[11px] text-slate-500 mt-3">* رأس المال والأرباح المحتجزة = الأصول − الخصوم − تمويل المستثمرين، يعني صافي حق المالك في الكسارة (اللي حطّه + اللي كسبته). المخزون محسوب بمتوسط سعر الشراء.</div>`;
+}
+function exportBalanceSheetExcel(){
+    const D=document.getElementById('bs-date')?.value||todayISO(), S=balanceSheetData(D), r=v=>Math.round(v);
+    const aoa=[['الميزانية العمومية — كسارة ديار'],['في تاريخ', dmy(D)],[],['الأصول']];
+    S.A.forEach(x=>aoa.push([x.g+' — '+x.name, r(x.v)])); aoa.push(['إجمالي الأصول', r(S.tA)],[],['الخصوم']);
+    S.L.forEach(x=>aoa.push([x.name, r(x.v)])); aoa.push(['إجمالي الخصوم', r(S.tL)],[],['حقوق الملكية']);
+    S.E.forEach(x=>aoa.push([x.name, r(x.v)])); aoa.push(['إجمالي حقوق الملكية', r(S.tE)],['إجمالي الخصوم وحقوق الملكية', r(S.tL+S.tE)]);
+    xlsxSave(aoa, 'الميزانية', `الميزانية-العمومية-${D}.xlsx`);
 }
 function renderAccountsOverview(){
     const term = document.getElementById('acct-search')?.value || '';
