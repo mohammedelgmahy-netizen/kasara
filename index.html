@@ -8043,13 +8043,13 @@ function deleteDailyLog(id){
 async function elementToFile(el, name){
     await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
     const box=document.createElement('div'); box.style.cssText='position:fixed;left:-10000px;top:0;width:900px;background:#fff;padding:18px;direction:rtl;color:#000;font-family:inherit';
-    box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #1e293b;padding-bottom:8px;margin-bottom:10px"><b style="font-size:20px">${esc(siteName())}</b><span style="font-size:13px;color:#475569">${new Date().toLocaleDateString('ar-EG')}</span></div>`;
+    box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #1e293b;padding-bottom:8px;margin-bottom:10px"><div style="display:flex;align-items:center;gap:10px">${brandLogoSrc()?`<img src="${brandLogoSrc()}" alt="" style="width:56px;height:56px;border-radius:10px;object-fit:cover">`:''}<b style="font-size:20px">${esc(siteName())}</b></div><span style="font-size:13px;color:#475569">${new Date().toLocaleDateString('ar-EG')}</span></div>`;
     const c=el.cloneNode(true);
     const oF=[...el.querySelectorAll('select,input')], cF=[...c.querySelectorAll('select,input')];
     cF.forEach((x,i)=>{ const o=oF[i]; let t=''; if(o.tagName==='SELECT') t=(o.selectedOptions[0]&&o.value&&o.value!=='ALL')?o.selectedOptions[0].textContent:''; else if(o.type==='date') t=o.value?dmy(o.value):''; else if(o.type!=='checkbox'&&o.type!=='hidden') t=o.value||'';
         if(t){ const sp=document.createElement('b'); sp.textContent=t; sp.style.cssText='margin:0 4px;font-size:15px'; x.replaceWith(sp); } else x.remove(); });
     c.querySelectorAll('label').forEach(l=>{ if(!l.querySelector('b')) l.remove(); });
-    c.querySelectorAll('.pl-no-print-hide,button').forEach(x=>x.remove()); c.style.boxShadow='none'; c.style.maxWidth='none';
+    c.querySelectorAll('.pl-no-print-hide,button,.tab-brand').forEach(x=>x.remove()); c.style.boxShadow='none'; c.style.maxWidth='none';
     c.querySelectorAll('.overflow-x-auto,.overflow-y-auto').forEach(x=>{ x.style.overflow='visible'; x.style.maxHeight='none'; });
     box.appendChild(c); document.body.appendChild(box);
     try{ const canvas=await html2canvas(box,{backgroundColor:'#ffffff',scale:2}); const blob=await new Promise(r=>canvas.toBlob(r,'image/png')); return new File([blob], (name||'كشف').replace(/[\\/:*?"<>|]/g,'-')+'.png', {type:'image/png'}); }
@@ -8092,6 +8092,24 @@ function shareReportParts(names, title){
     const el=document.getElementById('sari-share-date'); const d=(el&&el.value)||todayISO();
     shareImagesModal(`${title} — ${dmy(d)}`, reportPartFiles(names, d));
 }
+/* زرار واتساب جنب كل زرار طباعة: بيبعت اللي بيتطبع كصورة عليها لوجو الكسارة */
+function shareActiveTab(btn){
+    const tab=document.querySelector('.tab-content.active'); if(!tab) return;
+    const el=(btn && btn.closest && btn.closest('[id$="-card"],[id$="print-area"]')) || tab.querySelector('[id$="print-area"]') || tab;
+    const title=(tab.querySelector('.tab-brand .tb-title')?.textContent || el.querySelector('h2,h3')?.textContent || 'تقرير').trim();
+    shareImagesModal(title, elementToFile(el, title));
+}
+function shareSectionBtn(id){ const el=document.getElementById(id); if(!el) return; const t=(el.querySelector('h2,h3')?.textContent||'تقرير').trim(); shareImagesModal(t, elementToFile(el, t)); }
+function addShareButtons(root){
+    const mk=(onclick, small)=>{ const b=document.createElement('button'); b.type='button'; b.className='wa-auto bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold flex items-center gap-1.5 '+(small?'px-2.5 py-1 text-xs':'px-3 py-1.5 text-xs'); b.setAttribute('onclick', onclick); b.innerHTML='<i class="fa-brands fa-whatsapp"></i><span>واتساب</span>'; return b; };
+    (root||document).querySelectorAll('button[onclick]').forEach(btn=>{
+        const oc=btn.getAttribute('onclick')||''; const par=btn.parentElement; if(!par || par.querySelector('.wa-auto')) return;
+        const m=oc.match(/^printSection\('([^']+)'\)/);
+        if(m){ if(par.innerHTML.includes("shareCard('"+m[1]+"'")) return; par.insertBefore(mk(`shareSectionBtn('${m[1]}')`), btn); return; }
+        if(/^printCurrentTab\(\)/.test(oc)){ par.insertBefore(mk('shareActiveTab(this)', btn.classList.contains('tb-print')), btn); }
+    });
+}
+document.addEventListener('DOMContentLoaded', ()=>{ try{ addShareButtons(); }catch(e){} });
 function shareCard(id, title){ const el=document.getElementById(id); if(!el) return; shareImagesModal(title, elementToFile(el, title)); }
 
 /* ---- قفل الفترات ---- */
@@ -10259,6 +10277,7 @@ function buildBrandBar(title){
     d.innerHTML = `<img src="${brandLogoSrc()}" alt="كسارة ديار">
         <div><div class="tb-name">${siteName()}</div><div class="tb-sub">${__sites.current==='main'?'DIYAR CRUSHING':''}</div></div>
         <div class="tb-title"></div>
+        <button type="button" class="tb-print wa-auto" onclick="shareActiveTab(this)" style="background:#16a34a;color:#fff"><i class="fa-brands fa-whatsapp"></i> واتساب</button>
         <button type="button" class="tb-print" onclick="printCurrentTab()">🖨️ طباعة</button>
         <div class="tb-date">${new Date().toLocaleDateString('ar-EG')}</div>`;
     d.querySelector('.tb-title').textContent = title || '';
