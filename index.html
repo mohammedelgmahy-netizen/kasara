@@ -5044,7 +5044,7 @@ function clientSheetHtml(name){
     return `<div style="direction:rtl;color:#111;font-size:14px;min-width:560px">
       <table style="width:100%;border-collapse:collapse;margin-bottom:-1px"><tr>
         <td style="${B};font-size:18px;font-weight:800;padding:14px">السيد/ ${esc(name)}</td>
-        <td style="${B};width:24%;font-weight:800">كسارة ديار</td></tr>
+        <td style="${B};width:24%;font-weight:800">${brandLogoSrc()?`<img src="${brandLogoSrc()}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;display:block;margin:0 auto 4px">`:''}كسارة ديار</td></tr>
         <tr><td colspan="2" style="${B};font-weight:700">الفترة من ${D.from?dmy(D.from):'-'} حتى ${D.to?dmy(D.to):'-'}</td></tr></table>
       <table style="width:100%;border-collapse:collapse">${head}${rows.join('')}${totRow}${priceRow}${amtRow}</table>
       <div style="height:14px"></div>
