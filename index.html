@@ -459,7 +459,7 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
                     <i class="fa-solid fa-print"></i><span>طباعة</span>
                 </button>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
                     <div><p class="text-xs font-bold text-slate-500">إجمالي الإيرادات المحصّلة</p><h3 id="kpi-inflows" class="text-2xl font-bold mt-1">-</h3></div>
                     <div class="bg-blue-50 p-3 rounded-lg text-blue-600"><i class="fa-solid fa-arrow-trend-up text-xl"></i></div>
@@ -468,23 +468,13 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
                     <div><p class="text-xs font-bold text-slate-500">إجمالي المدفوعات والمصروفات</p><h3 id="kpi-outflows" class="text-2xl font-bold mt-1">-</h3></div>
                     <div class="bg-rose-50 p-3 rounded-lg text-rose-600"><i class="fa-solid fa-receipt text-xl"></i></div>
                 </div>
-                <div onclick="openDashMoves('ALL')" title="اضغط لعرض الحركات" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:ring-2 hover:ring-slate-300 transition">
+                <div style="display:none" onclick="openDashMoves('ALL')" title="اضغط لعرض الحركات" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:ring-2 hover:ring-slate-300 transition">
                     <div><p class="text-xs font-bold text-slate-500">رصيد الخزينة الحالي</p><h3 id="kpi-balance" class="text-2xl font-bold mt-1">-</h3></div>
                     <div class="bg-emerald-50 p-3 rounded-lg text-emerald-600"><i class="fa-solid fa-sack-dollar text-xl"></i></div>
                 </div>
-                <div onclick="openDashMoves('sari')" title="اضغط لعرض الحركات" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:ring-2 hover:ring-slate-300 transition">
+                <div style="display:none" onclick="openDashMoves('sari')" title="اضغط لعرض الحركات" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:ring-2 hover:ring-slate-300 transition">
                     <div><p class="text-xs font-bold text-emerald-700">المعلقات (خزينة ساري)</p><h3 id="kpi-sari" class="text-2xl font-bold mt-1">-</h3></div>
                     <div class="bg-emerald-50 p-3 rounded-lg text-emerald-600"><i class="fa-solid fa-wallet text-xl"></i></div>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div onclick="openDashMoves('drawer')" title="اضغط لعرض الحركات" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:ring-2 hover:ring-slate-300 transition">
-                    <div><p class="text-xs font-bold text-sky-700">درج المكتب</p><h3 id="kpi-drawer" class="text-2xl font-bold mt-1">-</h3></div>
-                    <div class="bg-sky-50 p-3 rounded-lg text-sky-600"><i class="fa-solid fa-cash-register text-xl"></i></div>
-                </div>
-                <div onclick="openDashMoves('loans')" title="اضغط لعرض الحركات" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:ring-2 hover:ring-slate-300 transition">
-                    <div><p class="text-xs font-bold text-amber-700">السلف المستحقة</p><h3 id="kpi-loans" class="text-2xl font-bold mt-1">-</h3></div>
-                    <div class="bg-amber-50 p-3 rounded-lg text-amber-600"><i class="fa-solid fa-hand-holding-dollar text-xl"></i></div>
                 </div>
                 <div onclick="openDashMoves('custody')" title="اضغط لعرض العهد" class="bg-white p-5 rounded-xl border border-violet-200 shadow-sm flex items-center justify-between cursor-pointer hover:ring-2 hover:ring-violet-300 transition">
                     <div>
@@ -493,6 +483,17 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
                     </div>
                     <div class="bg-violet-50 p-3 rounded-lg text-violet-500"><i class="fa-solid fa-hand-holding text-xl"></i></div>
                 </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div style="display:none" onclick="openDashMoves('drawer')" title="اضغط لعرض الحركات" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:ring-2 hover:ring-slate-300 transition">
+                    <div><p class="text-xs font-bold text-sky-700">درج المكتب</p><h3 id="kpi-drawer" class="text-2xl font-bold mt-1">-</h3></div>
+                    <div class="bg-sky-50 p-3 rounded-lg text-sky-600"><i class="fa-solid fa-cash-register text-xl"></i></div>
+                </div>
+                <div style="display:none" onclick="openDashMoves('loans')" title="اضغط لعرض الحركات" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:ring-2 hover:ring-slate-300 transition">
+                    <div><p class="text-xs font-bold text-amber-700">السلف المستحقة</p><h3 id="kpi-loans" class="text-2xl font-bold mt-1">-</h3></div>
+                    <div class="bg-amber-50 p-3 rounded-lg text-amber-600"><i class="fa-solid fa-hand-holding-dollar text-xl"></i></div>
+                </div>
+                
             </div>
             <div id="dash-moves-card" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden" style="display:none">
                 <div class="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
@@ -4279,6 +4280,7 @@ function renderCollectionsLog(){
     if(!rows.length) tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">لا توجد حركات تحصيل</td></tr>`;
     // إجماليات: المبيعات، المحصّل، الرصيد (عليه / له)
     const box = document.getElementById('coll-totals'); if(!box) return;
+    box.style.display='none'; return; // أرصدة العملاء مكانها كشف الحساب بس
     const names = (fc && fc!=='ALL') ? [fc] : (db.clients||[]).map(c=>c.name);
     let sold=0, coll=0, on=0, fo=0;
     names.forEach(n=>{ const b = clientSalesBalance(n); sold+=b.totalSold; coll+=b.totalCollected; if(b.remaining>0) on+=b.remaining; else fo-=b.remaining; });
@@ -5420,11 +5422,9 @@ function updateSaleGrandTotal(){
 function balWord(r){ return r>0 ? 'متبقي عليه' : r<0 ? 'متبقي له (مقدم)' : 'خالص'; }
 function balHtml(r){ return `<span class="${r>0?'text-rose-700':r<0?'text-emerald-700':'text-slate-500'} font-bold">${fmt(Math.abs(r))} <span class="text-[11px]">${balWord(r)}</span></span>`; }
 function clientSalesBalance(name){
-    const recs = db.expensesData.filter(x=>x.category==='إيراد'&&x.name===name);
-    const totalSold = recs.reduce((a,x)=>a+(x.executedValue!==undefined ? x.executedValue : (x.paid||0)),0);
-    const totalCollected = recs.reduce((a,x)=>a+(x.paid||0),0);
-    const remaining = totalSold - totalCollected;   // موجب = متبقي عليه، سالب = متبقي له (دفع مقدم)
-    return { totalSold, totalCollected, remaining };
+    // مصدر واحد لرصيد العميل: نفس كشف الحساب (البونات + الفواتير − التحصيلات)
+    const t = acctTotals(getClientAccountRowsAll(name));
+    return { totalSold:t.debit, totalCollected:t.credit, remaining:t.debit-t.credit };   // موجب = متبقي عليه، سالب = متبقي له (دفع مقدم)
 }
 
 function addSale(e){
