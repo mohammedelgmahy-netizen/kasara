@@ -678,31 +678,6 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
                 <div id="dl-worker-summary" class="p-3 border-t border-slate-100"></div>
             </div>
 
-            <!-- كشف حساب العملاء -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="p-4 bg-cyan-50 border-b border-cyan-100 flex flex-wrap justify-between items-center gap-3">
-                    <h3 class="font-bold text-slate-900"><i class="fa-solid fa-user-tie text-cyan-600"></i> كشف حساب العملاء — مستحقاتي عندهم</h3>
-                    <div class="flex items-center gap-2">
-                        <select id="search-client-accounts" onchange="renderClientSalesAccounts()" class="bg-white border border-cyan-200 rounded px-2 py-1 text-xs w-36"></select>
-                        <select id="client-sales-status" onchange="renderClientSalesAccounts()" class="bg-white border border-cyan-200 rounded px-2 py-1 text-xs font-bold">
-                            <option value="ALL">الكل</option>
-                            <option value="CREDIT">آجل (ليا عنده فلوس)</option>
-                            <option value="CASH">محصّل بالكامل</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="overflow-x-auto max-h-72">
-                    <table class="w-full text-sm text-right">
-                        <thead class="bg-slate-800 text-white sticky top-0"><tr>
-                            <th class="p-3">العميل</th>
-                            <th class="p-3">إجمالي المبيعات</th>
-                            <th class="p-3">المحصّل منه</th>
-                            <th class="p-3 text-rose-300">الرصيد (عليه / له)</th>
-                        </tr></thead>
-                        <tbody id="tbody-client-sales-accounts"></tbody>
-                    </table>
-                </div>
-            </div>
         </div>
 
         <!-- (يومية الخزينة اتنقلت جوه تاب الخزينة) -->
