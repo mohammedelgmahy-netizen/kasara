@@ -4647,6 +4647,24 @@ function calculateKPIs(projectFilter){
 }
 
 /* ================= P&L ================= */
+/* إيراد المبيعات: قيمة كل البونات (البون المربوط بفاتورة بياخد قيمة الفاتورة) + فواتير بيع مش مربوطة ببون */
+function plBonsRevenue(projectFilter, from, to){
+    const inP = d => (!from || (d||'')>=from) && (!to || (d||'')<=to);
+    const pj = r => !projectFilter || projectFilter==='ALL' || !r.project || r.project===projectFilter;
+    const bons = (db.dailyLog||[]).filter(r=>inP(r.date) && pj(r));
+    const linked = new Set((db.dailyLog||[]).map(r=>r.saleGroupId).filter(Boolean));
+    const ids = new Set((db.dailyLog||[]).map(r=>r.id));
+    const U = (db.sales||[]).filter(x=>inP(x.date) && pj(x) && !linked.has(x.groupId||x.id) && !(x.dailyLogId!=null && ids.has(x.dailyLogId)));
+    const cash = bons.filter(r=>r.paidCash).reduce((a,r)=>a+(Number(bonValue(r))||0),0) + U.filter(x=>x.payMethod==='cash').reduce((a,x)=>a+(Number(x.total)||0),0);
+    const credit = bons.filter(r=>!r.paidCash).reduce((a,r)=>a+(Number(bonValue(r))||0),0) + U.filter(x=>x.payMethod!=='cash').reduce((a,x)=>a+(Number(x.total)||0),0);
+    return plBonsSplit.last = {cash, credit}, cash + credit;
+}
+var plBonsSplit = { last:{cash:0, credit:0} };
+function plRevenueTotal(projectFilter, from, to){
+    const inP = d => (!from || (d||'')>=from) && (!to || (d||'')<=to);
+    const other = (db.expensesData||[]).filter(x=>x.category==='إيراد' && !x.tipDeposit && !x.saleId && inP(x.date)).reduce((a,x)=>a+(Number(x.total)||0),0);
+    return plBonsRevenue(projectFilter, from, to) + other;
+}
 function computePL(projectFilter, dateFrom, dateTo){
     const matchProj = rec => projectFilter==='ALL'||!projectFilter||rec.project===projectFilter;
     const matchDate = rec => (!dateFrom||(rec.date||'')>=dateFrom) && (!dateTo||(rec.date||'')<=dateTo);
@@ -4662,15 +4680,17 @@ function computePL(projectFilter, dateFrom, dateTo){
         const catDef = db.expenses.find(c=>c.name===x.category);
         if(catDef && catDef.nameType==='contractors'){ contractorPayments += Number(x.paid)||0; return; }
         if(x.tipDeposit){ tipsIncome += Number(x.total)||0; return; }
+        if(x.category==='إيراد' && x.saleId) return; // قيمة الفاتورة محسوبة من البون/الفاتورة نفسها
         const plType = catDef ? catDef.plType : 'operating';
         const plBucket = catDef ? catDef.plBucket : 'other_operating';
         if(!catGroups[x.category]) catGroups[x.category] = { plType, plBucket, total:0 };
         catGroups[x.category].total += x.total;
     });
 
-    // أ. الإيرادات
-    const revenueLines = Object.entries(catGroups).filter(([,v])=>v.plType==='revenue')
-        .map(([k,v])=>({ num:num(), label: k==='إيراد' ? 'المبيعات' : k, value:v.total }));
+    // أ. الإيرادات — مبيعات البونات + فواتير البيع (عن طريق البونات المربوطة) + أي إيراد مسجل بمبلغ
+    plBonsRevenue(projectFilter, dateFrom, dateTo); const SP = plBonsSplit.last;
+    const revenueLines = [SP.cash ? { num:num(), label:'مبيعات نقدي', value:SP.cash } : null, SP.credit ? { num:num(), label:'مبيعات آجل', value:SP.credit } : null].filter(Boolean).concat(Object.entries(catGroups).filter(([,v])=>v.plType==='revenue' && v.total)
+        .map(([k,v])=>({ num:num(), label: k==='إيراد' ? 'إيرادات أخرى مسجلة' : k, value:v.total })));
     if(tipsIncome) revenueLines.push({ num:num(), label:'إيراد إكرامية الكسارة', value:tipsIncome });
     const revenueTotal = revenueLines.reduce((s,l)=>s+l.value,0);
 
@@ -5099,8 +5119,10 @@ function balanceSheetData(D){
     // حقوق الملكية
     const fund=(db.investorFunding||[]).filter(x=>le(x.date)).reduce((a,x)=>a+(Number(x.amount)||0),0);
     const tA=A.reduce((a,x)=>a+x.v,0), tL=L.reduce((a,x)=>a+x.v,0);
+    let profit=0; try{ profit=mgrCompute({to:D||''}).profitBeforeTax||0; }catch(e){ try{ profit=computePL('ALL','',D||'').profitBeforeTax||0; }catch(x){} }
     if(Math.round(fund)) E.push({name:'تمويل المستثمرين', v:fund});
-    E.push({name:'رأس المال والأرباح المحتجزة', v:tA-tL-fund, note:true});
+    E.push({name:'صافي الربح لحد التاريخ ده (من التقرير الإداري)', v:profit});
+    E.push({name:'رأس المال وأرصدة أول المدة', v:tA-tL-fund-profit, note:true});
     const tE=E.reduce((a,x)=>a+x.v,0);
     return {A,L,E,tA,tL,tE};
 }
@@ -5121,7 +5143,7 @@ function renderFinPosition(){
         <table class="w-full text-sm text-right border border-slate-200">${assets}</table>
         <table class="w-full text-sm text-right border border-slate-200">${liab}${eq}</table>
       </div>
-      <div class="text-[11px] text-slate-500 mt-3">* رأس المال والأرباح المحتجزة = الأصول − الخصوم − تمويل المستثمرين، يعني صافي حق المالك في الكسارة (اللي حطّه + اللي كسبته). المخزون محسوب بمتوسط سعر الشراء.</div>`;
+      <div class="text-[11px] text-slate-500 mt-3">* رأس المال وأرصدة أول المدة = الأصول − الخصوم − التمويل − صافي الربح، يعني اللي حطّه المالك في الكسارة (أو سحبه) من غير ما يتسجل كحركة. المخزون محسوب بمتوسط سعر الشراء.</div>`;
 }
 function exportBalanceSheetExcel(){
     const D=document.getElementById('bs-date')?.value||todayISO(), S=balanceSheetData(D), r=v=>Math.round(v);
@@ -9978,8 +10000,15 @@ function mgrCompute(F){
     salesAll.forEach(s=>{ const k=lineKey(s); const v=Number(s.total)||0; salesValueAll+=v; if(k){ soldQtyAll+=Number(s.qty)||0; } else otherSalesAll+=v; });
     let soldQty=0, salesValue=0, otherSales=0;
     sales.forEach(s=>{ const k=lineKey(s); const v=Number(s.total)||0; salesValue+=v; if(k){ soldBySize[k]+=Number(s.qty)||0; soldValBySize[k]+=v; soldQty+=Number(s.qty)||0; } else otherSales+=v; });
+    // البونات اللي مش مربوطة بفاتورة بيع = مبيعات (الكمية × السعر)
+    const bonSale = r => !r.saleGroupId;
+    bonsAll.filter(bonSale).forEach(r=>sizes.forEach(sz=>{ const q=Number((r.q||{})[sz.key])||0; soldQtyAll+=q; }));
+    bons.filter(bonSale).forEach(r=>sizes.forEach(sz=>{ const q=Number((r.q||{})[sz.key])||0; if(!q) return; soldBySize[sz.key]+=q; soldValBySize[sz.key]+=q*(Number(r.price)||0); soldQty+=q; }));
+    const bonsSalesAll = bonsAll.filter(bonSale).reduce((a,r)=>a+bonValue(r),0);
+    salesValueAll += bonsSalesAll; salesValue += bons.filter(bonSale).reduce((a,r)=>a+bonValue(r),0);
     const revRecs = (db.expensesData||[]).filter(x=>x.category==='إيراد' && !x.tipDeposit && inP(x.date));
-    const revenue = revRecs.reduce((a,x)=>a+(Number(x.total)||0),0); // نفس رقم قائمة الدخل
+    const revenue = plRevenueTotal('', F.from, F.to); // نفس رقم قائمة الدخل (البونات + الفواتير + الإيرادات المسجلة)
+    const revCash = plBonsSplit.last.cash, revCredit = plBonsSplit.last.credit, revOther = revenue - revCash - revCredit;
     const revenueGap = Math.round(revenue - salesValueAll);
     const tips = (db.expensesData||[]).filter(x=>x.tipDeposit && inP(x.date)).reduce((a,x)=>a+(Number(x.total)||0),0);
     const otherIncomeRecs = (db.incomes||[]).filter(x=>inP(x.date));
@@ -10076,7 +10105,7 @@ function mgrCompute(F){
     bons.forEach(r=>{ const k=normPlate(r.tractor)||'بدون جرار'; const o=byVeh[k]||(byVeh[k]={plate:r.tractor||'بدون جرار', trailer:r.trailer||'', trips:0, qty:0, value:0, clients:new Set()}); o.trips++; o.qty+=bonQtyTotal(r); o.value+=bonValue(r); if(r.client) o.clients.add(r.client); if(!o.trailer && r.trailer) o.trailer=r.trailer; });
     const vehicles = Object.values(byVeh).map(v=>Object.assign(v,{avg:v.trips?v.qty/v.trips:0, clients:[...v.clients].join('، ')})).sort((a,b)=>b.trips-a.trips);
 
-    return { F, entityFilter, sizes, bons, tripsCount, tripsQty, tripsValue, avgLoad, unpriced, sales, soldQty, soldQtyAll, salesValue, salesValueAll, otherSales, revenue, revenueGap, revRecs, tips, otherIncome, otherIncomeRecs,
+    return { revCash, revCredit, revOther, F, entityFilter, sizes, bons, tripsCount, tripsQty, tripsValue, avgLoad, unpriced, sales, soldQty, soldQtyAll, salesValue, salesValueAll, otherSales, revenue, revenueGap, revRecs, tips, otherIncome, otherIncomeRecs,
         prodRecs, producedQty, producedBySize, hasProd, sources, prodCost, transCost, adminCost, unitCost, cogs, toInventory, tripCost, transPerUnit, grossProfit, profitBeforeTax, taxLines, taxTotal, netProfit, margin, products, clients, vehicles, noRate, stockBySize };
 }
 function mgrPreset(p){
@@ -10129,7 +10158,7 @@ function renderMgr(){
     const m=n=>mfmt(n)+' ج.م';
     g('mgr-kpis').innerHTML = [
         kpi('إجمالي الإنتاج', nfmt(R.producedQty)+' م', R.hasProd?`${nfmt(R.prodRecs.length)} يوم إنتاج`:'مش مسجل', '#d97706', 'prod', 'fa-industry'),
-        kpi('إجمالي المبيعات', m(R.revenue), R.entityFilter?`المفلتر: ${m(R.salesValue)}`:`${nfmt(R.sales.length)} سطر فاتورة`, '#2563eb', 'rev', 'fa-sack-dollar'),
+        kpi('إجمالي المبيعات', m(R.revenue), R.entityFilter?`المفلتر: ${m(R.salesValue)}`:`نقدي ${m(R.revCash)} · آجل ${m(R.revCredit)}`, '#2563eb', 'rev', 'fa-sack-dollar'),
         kpi('الكمية المباعة', nfmt(R.entityFilter?R.soldQty:R.soldQtyAll)+' م', R.hasProd?`المتبقي للمخزون ${nfmt(R.producedQty-R.soldQtyAll)} م`:'', '#0284c7', 'sales', 'fa-weight-scale'),
         kpi('عدد النقلات', nfmt(R.tripsCount), `متوسط الحمولة ${r2(R.avgLoad)} م`, '#f97316', 'bons', 'fa-truck'),
         kpi(unitLabel, r2(R.unitCost)+' ج.م', `بالنقل: ${r2(R.unitCost+R.transPerUnit)} ج.م للمتر`, '#e11d48', 'prodcost', 'fa-tag'),
@@ -10175,6 +10204,7 @@ function renderMgr(){
     const tot=(label,val,final)=>`<div class="pl-tot ${val>=0?'good':'bad'} ${final?'final':''}"><span>${label}</span><span class="v">${val<0?'− ':''}${mfmt(Math.abs(val))} ج.م</span></div>`;
     let pl='';
     pl += row('إيرادات المبيعات', R.revenue, 'plus', 'rev');
+    pl += `<div class="pl-row sub"><span>منها نقدي: ${mfmt(R.revCash)} ج.م — آجل: ${mfmt(R.revCredit)} ج.م${Math.round(R.revOther)?` — إيرادات أخرى مسجلة: ${mfmt(R.revOther)} ج.م`:''}</span><span></span></div>`;
     pl += row(R.hasProd ? `(−) تكلفة إنتاج الكمية المباعة (${nfmt(R.soldQtyAll)} م × ${r2(R.unitCost)})` : '(−) تكلفة الإنتاج المحمّلة على الفترة', -R.cogs, 'minus', 'prodcost');
     if(R.hasProd && R.toInventory) pl += `<div class="pl-row sub"><span>${R.toInventory>0?'مرحّل للمخزون (إنتاج لسه ما اتباعش)':'مسحوب من مخزون فترات سابقة بتكلفة الفترة الحالية'}: ${mfmt(Math.abs(R.toInventory))} — إجمالي تكلفة إنتاج الفترة ${mfmt(R.prodCost)}</span></div>`;
     pl += tot('مجمل الربح', R.grossProfit);
@@ -10197,7 +10227,11 @@ function mgrDrill(kind){
     if(kind.startsWith('src:')){ const s=R.sources.find(x=>x.key===kind.slice(4)); if(!s) return; title=s.label; cols=['التاريخ','البيان','المبلغ']; rows=s.rows.map(r=>[dmy(r.date), r.desc, money(r.amount)]); rows.push(['','الإجمالي', money(s.amount)]); }
     else if(kind==='bons'){ title='النقلات (بونات التحميل)'; cols=['التاريخ','بون','العميل','الجرار','الأصناف','الكمية','القيمة']; rows=R.bons.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(r=>[dmy(r.date), r.bon||'-', r.client, [r.tractor,r.trailer].filter(Boolean).join(' / '), bonItemsText(r), nfmt(bonQtyTotal(r)), money(bonValue(r))]); rows.push(['','الإجمالي','','','',nfmt(R.tripsQty),money(R.tripsValue)]); }
     else if(kind==='sales'){ title='سطور فواتير المبيعات'; cols=['التاريخ','الفاتورة','العميل','الصنف','الكمية','السعر','القيمة']; rows=R.sales.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(s=>[dmy(s.date), s.invoiceNumber||'-', s.client, s.item, nfmt(s.qty), nfmt(s.price), money(s.total)]); rows.push(['','الإجمالي','','',nfmt(R.soldQty),'',money(R.salesValue)]); }
-    else if(kind==='rev'){ title='قيود الإيراد (نفس قائمة الدخل)'; cols=['التاريخ','العميل','البيان','نقدي/آجل','القيمة']; rows=R.revRecs.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(x=>[dmy(x.date), x.name||'', x.notes||'', x.payMethod==='cash'?'نقدي':'آجل', money(x.total)]); rows.push(['','','الإجمالي','',money(R.revenue)]); }
+    else if(kind==='rev'){ title='المبيعات (نفس قائمة الدخل)'; cols=['التاريخ','العميل','البيان','نقدي/آجل','القيمة'];
+        const inP=d=>(!R.F.from||(d||'')>=R.F.from)&&(!R.F.to||(d||'')<=R.F.to);
+        rows=(db.dailyLog||[]).filter(r=>inP(r.date)).sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(r=>[dmy(r.date), r.client||'', 'بون '+(r.bon||'-')+' — '+bonItemsText(r), r.paidCash?'نقدي':'آجل', money(bonValue(r))]);
+        R.revRecs.filter(x=>!x.saleId && Number(x.total)).forEach(x=>rows.push([dmy(x.date), x.name||'', x.notes||'إيراد مسجل', x.payMethod==='cash'?'نقدي':'آجل', money(x.total)]));
+        rows.push(['','','نقدي','',money(R.revCash)],['','','آجل','',money(R.revCredit)],['','','الإجمالي','',money(R.revenue)]); }
     else if(kind==='prod'){ title='الإنتاج اليومي المسجل'; cols=['التاريخ',...R.sizes.map(s=>s.label),'الإجمالي','ملاحظات']; rows=R.prodRecs.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(p=>[dmy(p.date), ...R.sizes.map(s=>nfmt((p.q||{})[s.key]||0)), nfmt(R.sizes.reduce((a,s)=>a+(Number((p.q||{})[s.key])||0),0)), p.notes||'']); rows.push(['الإجمالي',...R.sizes.map(s=>nfmt(R.producedBySize[s.key])), nfmt(R.producedQty), '']); }
     else if(kind==='otherinc'){ title='إيرادات أخرى'; cols=['التاريخ','النوع','ملاحظات','المبلغ']; rows=R.otherIncomeRecs.map(x=>[dmy(x.date), x.type||'', x.notes||'', money(x.amount)]); }
     else { const map={prodcost:['prod','تكاليف الإنتاج'], trans:['trans','تكاليف النقل'], admin:['admin','المصروفات الإدارية والأخرى'], allcost:[null,'كل التكاليف المحسوبة'], pl:[null,'كل التكاليف المحسوبة']}[kind]; if(!map) return;
@@ -10267,7 +10301,7 @@ function exportMgrExcel(){
     add('النقلات', [['عدد النقلات', R.tripsCount], ['إجمالي الكمية المنقولة', R.tripsQty], ['إجمالي تكلفة النقل', Math.round(R.transCost)], ['متوسط حمولة النقلة', r2(R.avgLoad)], ['متوسط تكلفة النقلة', r2(R.tripCost)], ['تكلفة النقل للمتر', r2(R.transPerUnit)], [],
         ['الجرار','المقطورة','النقلات','الكمية (م)','متوسط الحمولة','قيمة المبيعات','العملاء'], ...R.vehicles.map(v=>[v.plate, v.trailer, v.trips, v.qty, r2(v.avg), Math.round(v.value), v.clients]), [],
         ['التاريخ','بون','العميل','الجرار','المقطورة','الأصناف','الكمية','القيمة'], ...R.bons.map(r=>[r.date, r.bon||'', r.client, r.tractor||'', r.trailer||'', bonItemsText(r), bonQtyTotal(r), Math.round(bonValue(r))])], [{wch:16},{wch:12},{wch:14},{wch:14},{wch:14},{wch:24},{wch:12},{wch:12}]);
-    add('قائمة الدخل', [['البند','المبلغ'], ['إيرادات المبيعات', Math.round(R.revenue)], ['(−) تكلفة إنتاج الكمية المباعة', -Math.round(R.cogs)], ['مجمل الربح', Math.round(R.grossProfit)], ['(−) مصروفات النقل', -Math.round(R.transCost)], ['(−) المصروفات الإدارية والأخرى', -Math.round(R.adminCost)],
+    add('قائمة الدخل', [['البند','المبلغ'], ['إيرادات المبيعات', Math.round(R.revenue)], ['  منها نقدي', Math.round(R.revCash)], ['  منها آجل', Math.round(R.revCredit)], ['(−) تكلفة إنتاج الكمية المباعة', -Math.round(R.cogs)], ['مجمل الربح', Math.round(R.grossProfit)], ['(−) مصروفات النقل', -Math.round(R.transCost)], ['(−) المصروفات الإدارية والأخرى', -Math.round(R.adminCost)],
         ...(R.tips?[['(+) إيراد إكرامية', Math.round(R.tips)]]:[]), ...(R.otherIncome?[['(+) إيرادات أخرى', Math.round(R.otherIncome)]]:[]), ['صافي الربح قبل الضريبة', Math.round(R.profitBeforeTax)], ...R.taxLines.map(l=>['(−) '+l.label, -Math.round(l.value)]), ['صافي الربح بعد الضريبة', Math.round(R.netProfit)]], [{wch:40},{wch:16}]);
     XLSX.writeFile(wb, `التقرير-الإداري-${(R.F.from||'البداية')}-${(R.F.to||todayISO())}.xlsx`);
 }
