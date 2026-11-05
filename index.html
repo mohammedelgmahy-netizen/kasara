@@ -1253,9 +1253,10 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
                     <label class="text-xs font-bold text-slate-600">إلى <input id="cs2-to" type="date" onchange="renderContractorStmt()" class="bg-white border border-slate-200 rounded p-1 text-xs"></label>
                     <button type="button" onclick="shareCard('ctr-stmt-card','كشف حساب '+(document.getElementById('cs2-name').value||''))" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-bold"><i class="fa-brands fa-whatsapp"></i> واتساب</button>
                 </div>
-                <div id="cs2-summary" class="grid grid-cols-2 md:grid-cols-5 gap-2 p-3 text-center text-sm"></div>
-                <div id="cs2-equip" class="px-3 pb-3"></div>
-                <div class="overflow-x-auto max-h-[30rem]">
+                <div id="cs2-sheet" class="p-3 overflow-x-auto"></div>
+                <div id="cs2-summary" style="display:none" class="grid grid-cols-2 md:grid-cols-5 gap-2 p-3 text-center text-sm"></div>
+                <div id="cs2-equip" class="px-3 pb-3" style="display:none"></div>
+                <div class="overflow-x-auto max-h-[30rem]" style="display:none">
                     <table class="w-full text-sm text-right">
                         <thead class="bg-slate-800 text-white sticky top-0"><tr><th class="p-2">التاريخ</th><th class="p-2">البيان</th><th class="p-2">صافي السن</th><th class="p-2">ليه</th><th class="p-2">عليه</th><th class="p-2">الرصيد</th></tr></thead>
                         <tbody id="tbody-cs2"></tbody>
@@ -8823,13 +8824,13 @@ function contractorStmtRows(name){
     const c=ctrOf(name)||{}, rate=workerRate(name), ev=[];
     const {days, oldLeft}=ctrSinDays(name);
     if(ctrIsAuto(c)){
-        days.forEach(d=>ev.push({date:d.date, ord:0, desc:`شغل اليوم — ${d.n} بون${d.old?` (${nfmt(d.old)} متر سن قديم مش محسوب)`:''}`, sin:d.net, credit:Math.round(d.net*rate), debit:0}));
+        days.forEach(d=>ev.push({date:d.date, ord:0, day:true, desc:`شغل اليوم — ${d.n} بون${d.old?` (${nfmt(d.old)} متر سن قديم مش محسوب)`:''}`, sin:d.net, n:d.n, old:d.old, price:rate, credit:Math.round(d.net*rate), debit:0}));
     } else {
         (db.ctrExtracts||[]).filter(x=>normName(x.name)===normName(name)).forEach(x=>ev.push({date:x.date, ord:0, desc:`مستخلص${x.equip?' '+x.equip:''} ${x.from?dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} متر × ${nfmt(x.rate)}${x.notes?' — '+x.notes:''}`, sin:Number(x.qty)||0, credit:Number(x.amount)||0, debit:0}));
     }
     const ctrCats = (db.expenses||[]).filter(c=>c.nameType==='contractors').map(c=>c.name);
     (db.expensesData||[]).filter(x=>ctrCats.includes(x.category) && normName(x.name)===normName(name)).forEach(x=>ev.push({date:x.date, ord:1, desc:(x.payType==='settle'?'سداد — ':'عهدة — ')+(x.desc||x.notes||''), debit:Number(x.paid)||0, credit:0}));
-    (db.stockIssues||[]).filter(s=>normName(s.name)===normName(name)).forEach(s=>ev.push({date:s.date, ord:2, desc:`${s.item} ${nfmt(s.qty)} ${s.unit||''} × ${nfmt(s.price)}${s.equip?' — '+s.equip:''}${s.notes?' — '+s.notes:''}`, debit:Math.round((Number(s.qty)||0)*(Number(s.price)||0)), credit:0}));
+    (db.stockIssues||[]).filter(s=>normName(s.name)===normName(name)).forEach(s=>ev.push({date:s.date, ord:2, item:s.item, qtyTxt:`${nfmt(Number(s.qty)||0)} ${s.unit||''}`, price:Number(s.price)||0, desc:`${s.item} ${nfmt(s.qty)} ${s.unit||''} × ${nfmt(s.price)}${s.equip?' — '+s.equip:''}${s.notes?' — '+s.notes:''}`, debit:Math.round((Number(s.qty)||0)*(Number(s.price)||0)), credit:0}));
     (db.equipmentRepayments||[]).filter(r=>!r.deduct && normName(r.name)===normName(name)).forEach(r=>ev.push({date:r.date, ord:3, desc:'سداد سولار نقدي — '+(r.notes||''), debit:0, credit:Number(r.amount)||0}));
     ev.sort((a,b)=>(a.date||'').localeCompare(b.date||'')||a.ord-b.ord);
     let bal = 0; ev.forEach(e=>{ bal += e.credit - e.debit; e.bal = bal; });
@@ -9024,13 +9025,54 @@ function stockBreakdown(name, from, to){
     const by={}; L.forEach(s=>{ const k=(s.equip||'بدون معدة')+'||'+s.item+'||'+(s.unit||''); const o=by[k]||(by[k]={q:0,v:0}); o.q+=Number(s.qty)||0; o.v+=(Number(s.qty)||0)*(Number(s.price)||0); });
     return `<div class="text-[10.5px] font-semibold mt-1 leading-5 text-rose-800">` + Object.entries(by).map(([k,o])=>{ const [e,it,u]=k.split('||'); return `${esc(e)}: ${esc(it)} ${nfmt(o.q)} ${esc(u)} (${mfmt(o.v)})`; }).join('<br>') + `</div>`;
 }
+/* ---------- مستخلص المقاول بالتفصيل (نفس شكل كشف حساب العميل) ---------- */
+function contractorSheetHtml(name, from, to){
+    const {rows, rate} = contractorStmtRows(name);
+    const B='border:1px solid #111;padding:6px 8px;text-align:center;';
+    const before = rows.filter(r=>from && r.date<from), opening = before.length ? before[before.length-1].bal : 0;
+    const inP = rows.filter(r=>(!from || r.date>=from) && (!to || r.date<=to));
+    const bons = contractorBons(name);
+    const dayItems = d => { const t={}; bons.filter(r=>r.date===d).forEach(r=>DL_SIZES.forEach(z=>{ const q=Number((r.q||{})[z.key])||0; if(q) t[z.label]=(t[z.label]||0)+q; })); return Object.entries(t).map(([l,q])=>`${l} ${nfmt(q)}`).join(' + '); };
+    const m = v => v ? nfmt(Math.round(v)) : '';
+    let cr=0, dr=0; const byItem={}; let adv=0, settle=0;
+    const body = inP.map(r=>{
+        cr+=r.credit||0; dr+=r.debit||0;
+        let what, qty='', price='';
+        if(r.day){ const it=dayItems(r.date); what=`طلع له سن من الكسارة${it?' — '+it:''} (${nfmt(r.n)} بون)${r.old?` — منهم ${nfmt(r.old)} متر سن قديم`:''}`; qty=nfmt(Math.round(r.sin*100)/100)+' متر'; price=r.price?nfmt(r.price):''; }
+        else if(r.item){ what='خد '+r.item; qty=r.qtyTxt; price=nfmt(r.price); byItem[r.item]=(byItem[r.item]||0)+(r.debit||0); }
+        else { what=r.desc; if(r.sin) qty=nfmt(r.sin)+' متر'; if(/^سداد/.test(r.desc)) settle+=r.debit||0; else if(/^عهدة/.test(r.desc)) adv+=r.debit||0; }
+        return `<tr><td style="${B};white-space:nowrap">${dmy(r.date)}</td><td style="${B};text-align:right">${esc(what)}</td><td style="${B};white-space:nowrap">${qty}</td><td style="${B}">${price}</td><td style="${B}">${m(r.credit)}</td><td style="${B}">${m(r.debit)}</td><td style="${B}">${nfmt(Math.abs(Math.round(r.bal)))}${r.bal<-0.5?' عليه':''}</td></tr>`;
+    });
+    if(!body.length) body.push(`<tr><td style="${B};height:34px;color:#888" colspan="7">مفيش حركات في الفترة دي</td></tr>`);
+    const head=`<tr style="background:#f1f5f9"><th style="${B}">التاريخ</th><th style="${B}">البيان</th><th style="${B}">الكمية</th><th style="${B}">السعر</th><th style="${B}">ليه</th><th style="${B}">عليه</th><th style="${B}">الرصيد</th></tr>`;
+    const openRow = opening ? `<tr style="font-weight:700"><td style="${B}">${dmy(from)}</td><td style="${B};text-align:right">رصيد سابق</td><td style="${B}"></td><td style="${B}"></td><td style="${B}">${opening>0?m(opening):''}</td><td style="${B}">${opening<0?m(-opening):''}</td><td style="${B}">${nfmt(Math.abs(Math.round(opening)))}${opening<0?' عليه':''}</td></tr>` : '';
+    const totRow=`<tr style="font-weight:800;background:#f8fafc"><td style="${B}" colspan="4">الإجمالي</td><td style="${B}">${nfmt(Math.round(cr))}</td><td style="${B}">${nfmt(Math.round(dr))}</td><td style="${B}"></td></tr>`;
+    const closing = opening + cr - dr;
+    const sl=(l,v,bold)=>`<tr${bold?' style="font-weight:800"':''}><td style="${B};width:55%;text-align:right">${l}</td><td style="${B}">${nfmt(Math.round(v))}</td></tr>`;
+    let sum = sl(opening<0?'عليه حساب سابق':'ليه حساب سابق', Math.abs(opening));
+    sum += sl('ليه (شغل الفترة)', cr);
+    Object.entries(byItem).forEach(([k,v])=>{ sum += sl('عليه '+k, v); });
+    if(adv) sum += sl('عليه عهد', adv);
+    if(settle) sum += sl('اتصرف له (سداد)', settle);
+    const otherDr = dr - Object.values(byItem).reduce((a,v)=>a+v,0) - adv - settle; if(Math.round(otherDr)) sum += sl('خصومات تانية', otherDr);
+    sum += sl(closing<0?'الرصيد النهائي: عليه':'الرصيد النهائي: ليه', Math.abs(closing), true);
+    return `<div style="direction:rtl;color:#111;font-size:14px;min-width:600px">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:-1px"><tr>
+        <td style="${B};font-size:18px;font-weight:800;padding:14px">مستخلص المقاول/ ${esc(name)}</td>
+        <td style="${B};width:24%;font-weight:800">${brandLogoSrc()?`<img src="${brandLogoSrc()}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;display:block;margin:0 auto 4px">`:''}كسارة ديار</td></tr>
+        <tr><td colspan="2" style="${B};font-weight:700">الفترة من ${from?dmy(from):'البداية'} حتى ${to?dmy(to):dmy(todayISO())}${rate?` — سعر المتر ${nfmt(rate)}`:''}</td></tr></table>
+      <table style="width:100%;border-collapse:collapse">${head}${openRow}${body.join('')}${totRow}</table>
+      <div style="height:14px"></div>
+      <table style="width:100%;border-collapse:collapse">${sum}</table></div>`;
+}
 function renderContractorStmt(){
     const g = id=>document.getElementById(id), sel = g('cs2-name'); if(!sel) return;
     const pv = sel.value;
     sel.innerHTML = (db.contractors||[]).map(c=>`<option value="${esc(c.name)}">${esc(c.name)}${c.equip?' — '+esc(c.equip):''}</option>`).join('') || '<option value="">— ضيف مقاول في دليل الأكواد —</option>';
     if([...sel.options].some(o=>o.value===pv)) sel.value = pv;
     const name = sel.value, tb = g('tbody-cs2');
-    if(!name){ tb.innerHTML=''; g('cs2-summary').innerHTML=''; if(g('cs2-equip')) g('cs2-equip').innerHTML=''; return; }
+    if(!name){ tb.innerHTML=''; g('cs2-summary').innerHTML=''; if(g('cs2-equip')) g('cs2-equip').innerHTML=''; if(g('cs2-sheet')) g('cs2-sheet').innerHTML=''; return; }
+    if(g('cs2-sheet')) g('cs2-sheet').innerHTML = contractorSheetHtml(name, g('cs2-from').value, g('cs2-to').value);
     const from = g('cs2-from').value, to = g('cs2-to').value;
     if(g('cs2-equip')){ const c0=(db.contractors||[]).find(c=>c.name===name); g('cs2-equip').innerHTML = c0 ? equipAcctHtml(name, from, to, ctrIsAuto(c0)) : ''; }
     const {rows, rate, oldLeft, auto} = contractorStmtRows(name); const mb = ctrMeterBalance(name);
@@ -9190,7 +9232,7 @@ function printExtractFull(id){
             ${issues.map(s=>`<tr><td>${dmy(s.date)}</td><td>${esc(s.item)}</td><td>${nfmt(s.qty)} ${esc(s.unit||'')}</td><td>${nfmt(s.price)}</td><td>${mfmt((Number(s.qty)||0)*(Number(s.price)||0))}</td></tr>`).join('')}</tbody></table>`:''}
         ${(x.advItems||[]).length?`<div style="font-weight:800;margin-top:10px">العهد المخصومة</div><table class="rep-tbl"><thead><tr><th>التاريخ</th><th>البيان</th><th>المبلغ</th></tr></thead><tbody>
             ${x.advItems.map(a=>`<tr><td>${dmy(a.date)}</td><td>${esc(a.desc)}</td><td>${mfmt(a.paid)}</td></tr>`).join('')}</tbody></table>`:''}</div>`:''}`;
-    printHtml(html);
+    printHtml(`<div class="rep-sec">${contractorSheetHtml(x.name, x.from||'', x.to||x.date)}</div>`+html);
 }
 
 /* ---------- تقرير اليوم الكامل (بونات + خزنة اليوم + معلق ساري + الدرج + سلف ساري) ---------- */
