@@ -1478,7 +1478,7 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
 
 
             <!-- جدول إدارة الضرائب -->
-            <div class="bg-white rounded-xl border border-red-100 shadow-sm overflow-hidden pl-no-print-hide">
+            <div class="bg-white rounded-xl border border-red-100 shadow-sm overflow-hidden pl-no-print-hide" style="display:none">
                 <div class="p-4 bg-red-50 border-b border-red-100 flex justify-between items-center">
                     <h3 class="font-bold text-slate-900 text-sm"><i class="fa-solid fa-percent text-red-500"></i> إدارة الضرائب والرسوم</h3>
                     
@@ -4741,26 +4741,7 @@ function renderPLInner(){
         html += totalRow('إجمالي', r.otherTotal, 'bg-purple-50 text-purple-800');
     }
 
-    html += totalRow('الربح قبل الضريبة', r.profitBeforeTax, r.profitBeforeTax>=0?'bg-emerald-600 text-white':'bg-rose-600 text-white');
-
-    // الضرائب المفعّلة من دليل الأكواد
-    const activeTaxes = (db.taxes||[]).filter(t=>t.active && t.rate>0);
-    let remainingProfit = r.profitBeforeTax;
-    let totalTaxAmount = 0;
-    if(activeTaxes.length){
-        activeTaxes.forEach(t=>{
-            const tAmount = remainingProfit > 0 ? remainingProfit*(t.rate/100) : 0;
-            html += totalRow(`${t.name} (${t.rate}%)`, tAmount, 'bg-slate-100 text-slate-700');
-            totalTaxAmount += tAmount;
-        });
-        if(activeTaxes.length > 1) html += totalRow('إجمالي الضرائب', totalTaxAmount, 'bg-red-50 text-red-700');
-    } else {
-        const tAmount = r.profitBeforeTax > 0 ? r.profitBeforeTax * 0.01 : 0;
-        html += totalRow('الضريبة (1%)', tAmount, 'bg-slate-100 text-slate-700');
-        totalTaxAmount = tAmount;
-    }
-    const netProfitAfterTax = r.profitBeforeTax - totalTaxAmount;
-    html += totalRow('صافي الربح بعد الضريبة', netProfitAfterTax, netProfitAfterTax>=0?'bg-emerald-700 text-white':'bg-rose-700 text-white');
+    html += totalRow('صافي الربح', r.profitBeforeTax, r.profitBeforeTax>=0?'bg-emerald-700 text-white':'bg-rose-700 text-white'); // الكسارة مفيهاش ضريبة
     document.getElementById('pl-content').innerHTML = html;
 }
 function onTaxRateChange(){
@@ -5156,12 +5137,8 @@ function exportPLExcel(){
             ...r.otherLines.map(l=>[`(${l.num}) ${l.label}`, l.value]),
             ['إجمالي', r.otherTotal],
         ] : []),
-        ['الربح قبل الضريبة', r.profitBeforeTax]
+        ['صافي الربح', r.profitBeforeTax]
     ];
-    const taxRate = 1;
-    const taxAmount = r.profitBeforeTax > 0 ? r.profitBeforeTax * (taxRate/100) : 0;
-    rows.push([`الضريبة (${taxRate}%)`, taxAmount]);
-    rows.push(['صافي الربح بعد الضريبة', r.profitBeforeTax - taxAmount]);
     const ws = XLSX.utils.aoa_to_sheet(rows);
     ws['!cols'] = [{wch:40},{wch:20}];
     const wb = XLSX.utils.book_new();
