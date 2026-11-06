@@ -272,8 +272,6 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
 #installBtn{background:var(--gold) !important;color:#1b1206 !important}
 /* الطباعة: نرجع الألوان العادية */
 @media print{aside#sidebar{display:none !important}html{font-size:16px}}
-/* على التليفون بس: أي تاب يتفتح من الجنب يملا الشاشة — القائمة ترجع من زرار الرئيسية */
-@media (max-width:900px){body.tab-full aside#sidebar{display:none !important}}
 </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col">
@@ -3344,7 +3342,6 @@ function switchTab(tabId){
     else if(tabPerm(tabId)==='none') return;
     if(tabId==='users'){ setTimeout(renderUsersTab,0); renderPending(); renderJoins(); renderLockCard(); }
     activeTab = tabId;
-    document.body.classList.toggle('tab-full', tabId!=='home');
     document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
     const tabEl = document.getElementById('tab-'+tabId); if(!tabEl) return;
     tabEl.classList.add('active');
