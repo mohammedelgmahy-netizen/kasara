@@ -272,9 +272,8 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
 #installBtn{background:var(--gold) !important;color:#1b1206 !important}
 /* الطباعة: نرجع الألوان العادية */
 @media print{aside#sidebar{display:none !important}html{font-size:16px}}
-/* أي تاب يتفتح من الجنب يملا الشاشة — القائمة الجانبية ترجع من زرار الرئيسية */
-body.tab-full aside#sidebar{display:none !important}
-body.tab-full main > .tab-content{max-width:none !important}
+/* على التليفون بس: أي تاب يتفتح من الجنب يملا الشاشة — القائمة ترجع من زرار الرئيسية */
+@media (max-width:900px){body.tab-full aside#sidebar{display:none !important}}
 </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col">
