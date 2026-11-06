@@ -4855,6 +4855,7 @@ function getClientAccountRows(name){
     Object.values(groups).forEach(g=>rows.push({ date:g.date, desc:`فاتورة ${g.invoiceNumber||''} — ${g.items.join('، ')}`, debit:g.total, credit:0 }));
     (db.expensesData||[]).filter(x=>x.category==='إيراد' && normName(x.name)===normName(name)).forEach(x=>{
         if(!x.saleId && (Number(x.total)||0)>0) rows.push({ date:x.date, desc:x.notes||'إيراد مسجّل', debit:Number(x.total)||0, credit:0 });
+        if(!x.saleId && (Number(x.total)||0)<0) rows.push({ date:x.date, desc:'خصم — '+(x.desc||x.notes||''), debit:0, credit:-(Number(x.total)||0) }); // خصم/تسوية للعميل
         const paid = Number(x.paid)||0;
         if(paid>0) rows.push({ date:x.date, desc: x.saleId ? 'تحصيل نقدي مع البون' : ('تحصيل — '+(x.desc||x.notes||'')), debit:0, credit:paid });
         if(paid<0) rows.push({ date:x.date, desc:'رد للعميل — '+(x.desc||x.notes||''), debit:-paid, credit:0 });
