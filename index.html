@@ -6159,9 +6159,10 @@ function renderEqStatement(){
     g('eqs-owners').innerHTML=owners.map(o=>chip(o.owner===S.owner,(o.owner==='الكسارة'?'⚙️ ':'🚜 ')+esc(o.owner),`window.__eqs={owner:${q(o.owner)},equip:'ALL',item:'ALL'};renderEqStatement()`)).join('');
     const own=owners.find(o=>o.owner===S.owner)||{equips:[]};
     const all=equipRecords(g('eqs-from').value, g('eqs-to').value).filter(r=>r.owner===S.owner);
-    const eqs=[...new Set([...own.equips, ...all.map(r=>r.equip)])];
+    // المعدات اللي ليها حركات فعلًا بس (مش الأسامي الافتراضية)
+    const eqs=[...new Set(equipRecords('','').filter(r=>r.owner===S.owner).map(r=>r.equip).filter(e=>e && e!=='بدون معدة' && e!=='بدون تحديد'))];
     if(S.equip!=='ALL' && !eqs.includes(S.equip)) S.equip='ALL';
-    g('eqs-equips').innerHTML=chip(S.equip==='ALL','الكل',`window.__eqs.equip='ALL';window.__eqs.item='ALL';renderEqStatement()`)+eqs.map(e=>chip(S.equip===e,esc(e),`window.__eqs.equip=${q(e)};window.__eqs.item='ALL';renderEqStatement()`)).join('');
+    g('eqs-equips').innerHTML=!eqs.length?'':chip(S.equip==='ALL','الكل',`window.__eqs.equip='ALL';window.__eqs.item='ALL';renderEqStatement()`)+eqs.map(e=>chip(S.equip===e,esc(e),`window.__eqs.equip=${q(e)};window.__eqs.item='ALL';renderEqStatement()`)).join('');
     const L0=all.filter(r=>S.equip==='ALL'||r.equip===S.equip);
     const key=r=>r.kind==='stock'?r.item:r.base;
     const items=[...new Set(L0.map(key))];
