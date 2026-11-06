@@ -4994,17 +4994,17 @@ function balanceSheetData(D){
     let profit=0; try{ profit=computePL('ALL','',D||'').profitBeforeTax||0; }catch(x){}
     if(Math.round(fund)) E.push({name:'تمويل المستثمرين', v:fund});
     const dist=(db.profitDistributions||[]).filter(x=>le(x.date)).reduce((a,x)=>a+(Number(x.amount)||0),0);
-    // أرباح المساهمين: حصة المستثمرين من الربح (من تاب الشركاء) — المعتمد ولسه ماتصرفش بيبقى التزام
+    // أرباح المساهمين = التوزيعات (المصروفة + المعتمدة اللي لسه ماتصرفتش). المعتمد ولسه ماتصرفش بيبقى التزام
     const approved=(db.investorLiabilities||[]).filter(l=>l.status!=='paid' && le(l.date)).reduce((a,l)=>a+(Number(l.amount)||0),0);
-    let invShare=0; try{ (db.investorFunding||[]).filter(f=>le(f.date)).forEach(f=>{ invShare+=investorShareForProject(f)||0; }); }catch(e){}
     if(Math.round(approved)){ L.push({name:'أرباح مساهمين مستحقة الصرف (معتمدة)', v:approved}); }
     const tL2=L.reduce((a,x)=>a+x.v,0);
-    const shareholders = invShare - dist - approved;           // أرباح المساهمين اللي لسه في الكسارة
-    const retained = profit - invShare;                         // الأرباح المحتجزة (نصيب الكسارة/المالك)
-    E.push({name:'أرباح المساهمين'+(Math.round(invShare)?` (حصتهم ${nfmt(Math.round(invShare))} − المصروف ${nfmt(Math.round(dist))}${Math.round(approved)?` − المعتمد ${nfmt(Math.round(approved))}`:''})`:''), v:shareholders});
+    const dividends = dist + approved;
+    const retained = profit - dividends;   // الأرباح المحتجزة = صافي الربح − أرباح المساهمين
+    E.push({name:'صافي الربح (من قائمة الدخل)', v:profit, part:true});
+    E.push({name:'(−) أرباح المساهمين (توزيعات'+(Math.round(approved)?' مصروفة ومعتمدة':'')+')', v:-dividends, part:true});
     E.push({name:'الأرباح المحتجزة', v:retained});
-    E.push({name:'رأس المال وأرصدة أول المدة', v:tA-tL2-fund-shareholders-retained, note:true});
-    const tE=E.reduce((a,x)=>a+x.v,0);
+    E.push({name:'رأس المال وأرصدة أول المدة', v:tA-tL2-fund-retained, note:true});
+    const tE=E.filter(x=>!x.part).reduce((a,x)=>a+x.v,0);
     return {A,L,E,tA,tL:tL2,tE};
 }
 function renderFinPosition(){
@@ -5018,13 +5018,13 @@ function renderFinPosition(){
     const groups=[...new Set(S.A.map(x=>x.g))];
     const assets=head('الأصول')+(groups.map(g=>`<tr class="bg-slate-100"><td class="p-2 font-bold text-slate-600" colspan="2">${esc(g)}</td></tr>`+S.A.filter(x=>x.g===g).map(x=>row(x.name,x.v)).join('')).join('')||row('مفيش أرصدة',0))+total('إجمالي الأصول',S.tA);
     const liab=head('الخصوم (الالتزامات)')+(S.L.map(x=>row(x.name,x.v)).join('')||row('مفيش التزامات',0))+total('إجمالي الخصوم',S.tL);
-    const eq=head('حقوق الملكية')+S.E.map(x=>row(x.name+(x.note?' *':''),x.v)).join('')+total('إجمالي حقوق الملكية',S.tE)+total('إجمالي الخصوم وحقوق الملكية',S.tL+S.tE);
+    const eq=head('حقوق الملكية')+S.E.map(x=>x.part?`<tr class="text-slate-500"><td class="p-2 pr-6 text-xs">${esc(x.name)}</td><td class="p-2 text-xs">${x.v<0?'('+nfmt(Math.round(-x.v))+')':nfmt(Math.round(x.v))}</td></tr>`:row(x.name+(x.note?' *':''),x.v)).join('')+total('إجمالي حقوق الملكية',S.tE)+total('إجمالي الخصوم وحقوق الملكية',S.tL+S.tE);
     el.innerHTML=`<div class="text-sm text-slate-500 mb-3">كسارة ديار — المركز المالي في ${dmy(D)}</div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <table class="w-full text-sm text-right border border-slate-200">${assets}</table>
         <table class="w-full text-sm text-right border border-slate-200">${liab}${eq}</table>
       </div>
-      <div class="text-[11px] text-slate-500 mt-3">* أرباح المساهمين = حصة المستثمرين من الربح (تاب الشركاء) ناقص اللي اتصرف لهم والمعتمد. الأرباح المحتجزة = صافي الربح من قائمة الدخل ناقص حصة المساهمين. رأس المال وأرصدة أول المدة = الأصول − الخصوم − التمويل − الأرباح، يعني اللي حطّه المالك في الكسارة (أو سحبه) من غير ما يتسجل كحركة. المخزون محسوب بمتوسط سعر الشراء.</div>`;
+      <div class="text-[11px] text-slate-500 mt-3">* الأرباح المحتجزة = صافي الربح ناقص أرباح المساهمين (التوزيعات المصروفة والمعتمدة). المعتمد ولسه ماتصرفش بيظهر في الخصوم. رأس المال وأرصدة أول المدة = الأصول − الخصوم − التمويل − الأرباح، يعني اللي حطّه المالك في الكسارة (أو سحبه) من غير ما يتسجل كحركة. المخزون محسوب بمتوسط سعر الشراء.</div>`;
 }
 function exportBalanceSheetExcel(){
     const D=document.getElementById('bs-date')?.value||todayISO(), S=balanceSheetData(D), r=v=>Math.round(v);
