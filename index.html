@@ -176,8 +176,8 @@ input:focus,select:focus{outline:none;box-shadow:0 0 0 3px rgba(37,99,235,.15);b
 <style id="sanam-theme">
 /* ===== ثيم سنام: شريط علوي بنفسجي، قائمة جانبية فاتحة دايمًا ظاهرة، كروت بيضا بظل خفيف ===== */
 :root{--od:#1f4b73;--od-2:#143553;--od-3:#2f6a9c;--od-t:#e6eff7;--gold:#e07a36;--bg:#eef2f7;--card:#fff;--card-2:#f6f8fb;--line:#e3e8ef;--line-2:#d3dbe6;--fg:#0b1520;--fg-2:#1f2b38;--muted:#4a5767;--side:#f9fafb;--shadow:0 1px 2px rgba(15,39,66,.05),0 6px 20px rgba(15,39,66,.06)}
-html{font-size:17px}
-@media (max-width:900px){html{font-size:16px}}
+html{font-size:18.5px}
+@media (max-width:900px){html{font-size:17.5px}}
 body{background:var(--bg) !important;color:var(--fg);font-weight:500}
 body label,body th,body .tab-btn,body button{font-weight:700}
 /* الشريط العلوي */
@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 250.2</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 250.3</span></p></div>
         </div>
     </aside>
 
@@ -10173,7 +10173,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 250.2';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 250.3';
 
     /* تنبيهات */
     const alerts=[];
