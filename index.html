@@ -4993,8 +4993,10 @@ function balanceSheetData(D){
     const tA=A.reduce((a,x)=>a+x.v,0), tL=L.reduce((a,x)=>a+x.v,0);
     let profit=0; try{ profit=computePL('ALL','',D||'').profitBeforeTax||0; }catch(x){}
     if(Math.round(fund)) E.push({name:'تمويل المستثمرين', v:fund});
-    E.push({name:'صافي الربح لحد التاريخ ده (من قائمة الدخل)', v:profit});
-    E.push({name:'رأس المال وأرصدة أول المدة', v:tA-tL-fund-profit, note:true});
+    const dist=(db.profitDistributions||[]).filter(x=>le(x.date)).reduce((a,x)=>a+(Number(x.amount)||0),0);
+    const retained = profit - dist; // الأرباح المحتجزة = صافي الربح المتراكم (من قائمة الدخل) − الأرباح الموزعة
+    E.push({name:'الأرباح المحتجزة'+(Math.round(dist)?` (صافي الربح ${nfmt(Math.round(profit))} − توزيعات ${nfmt(Math.round(dist))})`:''), v:retained});
+    E.push({name:'رأس المال وأرصدة أول المدة', v:tA-tL-fund-retained, note:true});
     const tE=E.reduce((a,x)=>a+x.v,0);
     return {A,L,E,tA,tL,tE};
 }
@@ -5015,7 +5017,7 @@ function renderFinPosition(){
         <table class="w-full text-sm text-right border border-slate-200">${assets}</table>
         <table class="w-full text-sm text-right border border-slate-200">${liab}${eq}</table>
       </div>
-      <div class="text-[11px] text-slate-500 mt-3">* رأس المال وأرصدة أول المدة = الأصول − الخصوم − التمويل − صافي الربح، يعني اللي حطّه المالك في الكسارة (أو سحبه) من غير ما يتسجل كحركة. المخزون محسوب بمتوسط سعر الشراء.</div>`;
+      <div class="text-[11px] text-slate-500 mt-3">* الأرباح المحتجزة = صافي الربح المتراكم من قائمة الدخل ناقص الأرباح اللي اتوزعت. رأس المال وأرصدة أول المدة = الأصول − الخصوم − التمويل − الأرباح المحتجزة، يعني اللي حطّه المالك في الكسارة (أو سحبه) من غير ما يتسجل كحركة. المخزون محسوب بمتوسط سعر الشراء.</div>`;
 }
 function exportBalanceSheetExcel(){
     const D=document.getElementById('bs-date')?.value||todayISO(), S=balanceSheetData(D), r=v=>Math.round(v);
