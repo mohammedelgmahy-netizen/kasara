@@ -5068,12 +5068,14 @@ function balanceSheetData(D){
     if(Math.round(adv)) L.push({name:'دفعات مقدمة من العملاء', v:adv});
     // مصروفات مستحقة لسه ماتدفعتش (قيمة المصروف − المدفوع منه) — زي عمولة جلب العملاء
     try{ let acc=0; (db.expensesData||[]).filter(x=>le(x.date) && !x.tipDeposit).forEach(x=>{ const c=(db.expenses||[]).find(e=>e.name===x.category); if(!c || c.nameType==='contractors' || c.plType==='revenue' || x.category==='إيراد') return; acc+=(Number(x.total)||0)-(Number(x.paid)||0); }); if(Math.round(acc)>0) L.push({name:'مصروفات مستحقة (لم تُدفع)', v:acc}); else if(Math.round(acc)<0) A.push({g:'مستحقات أخرى', name:'مصروفات مدفوعة مقدماً', v:-acc}); }catch(e){}
-    try{ const s0=db.sariSettings||{}; const bals={'عماد ناجي':Number(s0.loanOpening)||0}; (db.ownerLoans||[]).filter(l=>le(l.date)).forEach(l=>{ const w=loanLender(l); bals[w]=(bals[w]||0)+(l.type==='in'?1:-1)*(Number(l.amount)||0); }); Object.entries(bals).forEach(([w,v])=>{ if(Math.round(v)) L.push({name:'قروض / جاري '+w, v}); }); }catch(e){}
+    const __capE=[]; // سلف شريك اتعتبرت رأس مال (مش دين على الكسارة)
+    try{ const s0=db.sariSettings||{}; const bals={'عماد ناجي':Number(s0.loanOpening)||0}; (db.ownerLoans||[]).filter(l=>le(l.date)).forEach(l=>{ const w=loanLender(l); bals[w]=(bals[w]||0)+(l.type==='in'?1:-1)*(Number(l.amount)||0); }); const capL=db.capitalLenders||[]; Object.entries(bals).forEach(([w,v])=>{ if(!Math.round(v)) return; if(capL.includes(w)) __capE.push({name:'رأس مال '+w+' (باقي حصته في شراء الكسارة)', v}); else L.push({name:'قروض / جاري '+w, v}); }); }catch(e){}
     // حقوق الملكية
     const fund=(db.investorFunding||[]).filter(x=>le(x.date)).reduce((a,x)=>a+(Number(x.amount)||0),0);
     const tA=A.reduce((a,x)=>a+x.v,0), tL=L.reduce((a,x)=>a+x.v,0);
     let profit=0; try{ profit=computePL('ALL','',D||'').profitBeforeTax||0; }catch(x){}
     if(Math.round(fund)) E.push({name:'تمويل المستثمرين', v:fund});
+    const capSum=__capE.reduce((a,x)=>a+x.v,0); __capE.forEach(x=>E.push(x));
     const dist=(db.profitDistributions||[]).filter(x=>le(x.date)).reduce((a,x)=>a+(Number(x.amount)||0),0);
     // أرباح المساهمين = التوزيعات (المصروفة + المعتمدة اللي لسه ماتصرفتش). المعتمد ولسه ماتصرفش بيبقى التزام
     const approved=(db.investorLiabilities||[]).filter(l=>l.status!=='paid' && le(l.date)).reduce((a,l)=>a+(Number(l.amount)||0),0);
@@ -5084,7 +5086,7 @@ function balanceSheetData(D){
     E.push({name:'صافي الربح (من قائمة الدخل)', v:profit, part:true});
     E.push({name:'(−) أرباح المساهمين (توزيعات'+(Math.round(approved)?' مصروفة ومعتمدة':'')+')', v:-dividends, part:true});
     E.push({name:'الأرباح المحتجزة', v:retained});
-    E.push({name:'رأس المال وأرصدة أول المدة', v:tA-tL2-fund-retained, note:true});
+    E.push({name:'رأس المال وأرصدة أول المدة', v:tA-tL2-fund-capSum-retained, note:true});
     const tE=E.filter(x=>!x.part).reduce((a,x)=>a+x.v,0);
     return {A,L,E,tA,tL:tL2,tE};
 }
