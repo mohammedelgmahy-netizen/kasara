@@ -6151,7 +6151,7 @@ function showEquipDetail(owner, equip){
 }
 function renderEqStatement(){
     const g=id=>document.getElementById(id); const body=g('eqs-body'); if(!body) return;
-    if(!g('eqs-from').value && !g('eqs-to').value){ g('eqs-from').value=todayISO().slice(0,8)+'01'; g('eqs-to').value=todayISO(); }
+    if(!g('eqs-from').value && !g('eqs-to').value){ const d0=equipRecords('','').map(r=>r.date).filter(Boolean).sort()[0]; g('eqs-from').value=d0||todayISO().slice(0,8)+'01'; g('eqs-to').value=todayISO(); } // من أول حركة لحد النهارده
     const owners=equipOwners(); const S=window.__eqs || (window.__eqs={owner:owners[0]&&owners[0].owner, equip:'ALL', item:'ALL'});
     if(!owners.some(o=>o.owner===S.owner)) S.owner=owners[0]&&owners[0].owner;
     const chip=(on,txt,js)=>`<button type="button" onclick="${js}" class="px-3 py-1.5 rounded-lg text-xs font-bold border ${on?'bg-amber-600 text-white border-amber-600':'bg-white text-slate-700 border-slate-200 hover:bg-amber-50'}">${txt}</button>`;
@@ -6169,7 +6169,7 @@ function renderEqStatement(){
     if(S.item!=='ALL' && !items.includes(S.item)) S.item='ALL';
     g('eqs-items').innerHTML=items.length>1?'<span class="text-xs font-bold text-slate-500 self-center">البند:</span>'+chip(S.item==='ALL','الكل',`window.__eqs.item='ALL';renderEqStatement()`)+items.map(it=>chip(S.item===it,esc(it),`window.__eqs.item=${q(it)};renderEqStatement()`)).join(''):'';
     const L=L0.filter(r=>S.item==='ALL'||key(r)===S.item).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||String(a.id).localeCompare(String(b.id)));
-    if(!L.length){ body.innerHTML='<p class="text-sm text-slate-400 text-center py-6">مفيش حركات في الفترة دي</p>'; return; }
+    if(!L.length){ body.innerHTML=`<p class="text-sm text-slate-400 text-center py-6">مفيش حركات لـ ${esc(S.owner||'')} من ${dmy(g('eqs-from').value)} لـ ${dmy(g('eqs-to').value)} — غيّر التاريخ</p>`; return; }
     let run=0; const T={};
     const rows=L.map(r=>{ const qq=r.kind==='stock'?r.qty:r.q, pp=r.kind==='stock'?r.price:r.pr, un=r.unit||''; run+=r.value; const k=key(r); const t=T[k]||(T[k]={q:0,v:0,u:un}); t.q+=qq||0; t.v+=r.value;
         return `<tr class="border-t border-slate-100"><td class="p-2 text-xs whitespace-nowrap">${dmy(r.date)}</td>${S.equip==='ALL'?`<td class="p-2 text-xs">${esc(r.equip)}</td>`:''}<td class="p-2 font-bold">${esc(k)}${r.notes?`<div class="text-[11px] text-slate-500 font-normal">${esc(r.notes)}</div>`:''}</td><td class="p-2">${qq?nfmt(qq)+' '+esc(un):'—'}</td><td class="p-2">${pp?nfmt(Math.round(pp*100)/100):'—'}</td><td class="p-2 font-bold text-rose-700">${mfmt(r.value)}</td><td class="p-2 text-slate-500 text-xs">${mfmt(run)}</td><td class="p-2 whitespace-nowrap">${r.kind==='other'&&!isRO()?`<button onclick="editEquipExpense('${r.id}')" class="text-blue-500 ml-2">✏️</button><button onclick="deleteEquipExpense('${r.id}')" class="text-red-400">🗑</button>`:''}</td></tr>`; }).join('');
