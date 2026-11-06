@@ -476,7 +476,7 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
                     <div class="bg-emerald-50 p-3 rounded-lg text-emerald-600"><i class="fa-solid fa-sack-dollar text-xl"></i></div>
                 </div>
                 <div style="display:none" onclick="openDashMoves('sari')" title="اضغط لعرض الحركات" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:ring-2 hover:ring-slate-300 transition">
-                    <div><p class="text-xs font-bold text-emerald-700">المعلقات (خزينة ساري)</p><h3 id="kpi-sari" class="text-2xl font-bold mt-1">-</h3></div>
+                    <div><p class="text-xs font-bold text-emerald-700">المعلقات (خزينة عماد ناجي)</p><h3 id="kpi-sari" class="text-2xl font-bold mt-1">-</h3></div>
                     <div class="bg-emerald-50 p-3 rounded-lg text-emerald-600"><i class="fa-solid fa-wallet text-xl"></i></div>
                 </div>
                 <div onclick="openDashMoves('custody')" title="اضغط لعرض العهد" class="bg-white p-5 rounded-xl border border-violet-200 shadow-sm flex items-center justify-between cursor-pointer hover:ring-2 hover:ring-violet-300 transition">
@@ -503,7 +503,7 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
                     <h3 class="font-bold text-slate-900">سجل حركات الخزينة <button onclick="document.getElementById('dash-moves-card').style.display='none'" class="pl-no-print-hide text-xs text-slate-400 hover:text-slate-700 mr-2">✕ إخفاء</button></h3>
                     <div class="flex flex-wrap gap-2 pl-no-print-hide">
                         <button data-dmf="ALL" onclick="setDashMoveFilter('ALL')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">الكل</button>
-                        <button data-dmf="sari" onclick="setDashMoveFilter('sari')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">المعلقات (ساري)</button>
+                        <button data-dmf="sari" onclick="setDashMoveFilter('sari')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">المعلقات (عماد ناجي)</button>
                         <button data-dmf="drawer" onclick="setDashMoveFilter('drawer')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">درج المكتب</button>
                         <span id="dmf-others" class="contents"></span>
                         <button data-dmf="loans" onclick="setDashMoveFilter('loans')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">السلف</button>
@@ -791,7 +791,7 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
             <div class="bg-white p-4 rounded-xl border border-amber-200 shadow-sm">
                 <div class="flex flex-wrap justify-between items-center gap-2 mb-3"><h3 class="font-bold text-slate-900">💼 السلف (سلفة / رد سلفة)</h3><button type="button" onclick="addTreasuryQuick()" class="pl-no-print-hide bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs">+ خزينة معلق جديدة</button></div>
                 <form onsubmit="addSariLoan(event)" class="grid grid-cols-2 md:grid-cols-7 gap-3 items-end mb-3">
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">صاحب السلفة</label><input id="loan-lender" type="text" list="loan-lender-list" value="ساري" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"><datalist id="loan-lender-list"></datalist></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">صاحب السلفة</label><input id="loan-lender" type="text" list="loan-lender-list" value="عماد ناجي" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"><datalist id="loan-lender-list"></datalist></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">الخزينة</label><select id="loan-account" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="sari-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">نوع الحركة</label><select id="sari-type" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"><option value="in">سلفة (داخلة الخزينة)</option><option value="out">رد سلفة (خارجة من الخزينة)</option></select></div>
@@ -821,9 +821,9 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
                 <h3 class="font-bold text-slate-900">⚙️ الأرصدة الافتتاحية وبداية الخزينة</h3>
                     <form onsubmit="saveSariSettings(event)" class="grid grid-cols-2 md:grid-cols-5 gap-3 items-end mt-3">
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">تاريخ بداية الخزينة</label><input id="sari-start" type="date" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">رصيد خزينة ساري الافتتاحي</label><input id="sari-cash-open" type="number" step="any" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">رصيد خزينة عماد ناجي الافتتاحي</label><input id="sari-cash-open" type="number" step="any" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">رصيد درج المكتب الافتتاحي</label><input id="drawer-cash-open" type="number" step="any" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">سلف ساري الافتتاحية</label><input id="sari-loan-open" type="number" step="any" min="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">سلف عماد ناجي الافتتاحية</label><input id="sari-loan-open" type="number" step="any" min="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div><button type="submit" class="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold p-2.5 rounded-lg text-sm">حفظ الإعدادات</button></div>
                     </form>
                     
@@ -926,7 +926,7 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
                     <div><label id="exp-paid-label" class="block text-xs font-bold text-slate-600 mb-1">المبلغ المدفوع</label><input id="exp-paid" type="number" step="any" required placeholder="المبلغ الفعلي" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="exp-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">الحساب</label><select id="exp-account" onchange="const s=document.getElementById('exp-src'); if(s){ s.value=this.value===SARI_ACC?'sari':'cash'; delete s.dataset.touched; }" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
-                    <div style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">الفلوس منين</label><select id="exp-src" onchange="this.dataset.touched=1" class="w-full bg-amber-50 border border-amber-200 rounded-lg p-2 text-sm font-bold"><option value="sari" selected>سلفة من ساري (وارد وصادر)</option><option value="cash">من الخزنة (صادر بس)</option></select></div>
+                    <div style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">الفلوس منين</label><select id="exp-src" onchange="this.dataset.touched=1" class="w-full bg-amber-50 border border-amber-200 rounded-lg p-2 text-sm font-bold"><option value="sari" selected>سلفة من عماد ناجي (وارد وصادر)</option><option value="cash">من الخزنة (صادر بس)</option></select></div>
                     <div class="md:col-span-3"><label class="block text-xs font-bold text-slate-600 mb-1">البيان</label><input id="exp-notes" type="text" required placeholder="اكتب البيان زي ما هيظهر في اليومية" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div><button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-lg text-sm">حفظ الحركة</button></div>
                 </form>
@@ -1050,7 +1050,7 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
                     <div class="hidden"><label class="block text-xs font-bold text-slate-600 mb-1">المشروع (اختياري)</label><select id="pay-project" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="pay-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">الحساب</label><select id="pay-account" onchange="const s=document.getElementById('pay-src'); if(s){ s.value=this.value===SARI_ACC?'sari':'cash'; delete s.dataset.touched; }" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
-                    <div style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">الفلوس منين</label><select id="pay-src" onchange="this.dataset.touched=1" class="w-full bg-amber-50 border border-amber-200 rounded-lg p-2 text-sm font-bold"><option value="sari" selected>سلفة من ساري (وارد وصادر)</option><option value="cash">من الخزنة (صادر بس)</option></select></div>
+                    <div style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">الفلوس منين</label><select id="pay-src" onchange="this.dataset.touched=1" class="w-full bg-amber-50 border border-amber-200 rounded-lg p-2 text-sm font-bold"><option value="sari" selected>سلفة من عماد ناجي (وارد وصادر)</option><option value="cash">من الخزنة (صادر بس)</option></select></div>
                     <div class="md:col-span-4" id="pay-supplier-balance-info" style="display:none">
                         <div class="bg-cyan-50 border border-cyan-200 rounded-lg px-4 py-2 text-sm flex flex-wrap gap-4">
                             <span>📋 إجمالي الفواتير: <b id="pay-info-invoices" class="text-slate-800"></b></span>
@@ -1372,16 +1372,16 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
             <div id="sari-card" class="bg-white p-5 rounded-xl border border-amber-200 shadow-sm">
                 <button id="cash-batch-btn" type="button" onclick="openCashBatch(this.dataset.id)" style="display:none" class="mb-3 w-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-3 py-2 rounded-lg"></button>
                 <div class="flex flex-wrap gap-2 mb-3 pl-no-print-hide">
-                    <button type="button" onclick="shareReportParts(['معلق-ساري'],'معلق ساري')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i><span>معلق ساري</span></button>
-                    <button type="button" onclick="shareReportParts(['سلف-ساري'],'سلف ساري')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i><span>سلف ساري</span></button>
-                    <button type="button" onclick="shareReportParts(['معلق-ساري','سلف-ساري'],'معلق ساري + سلف ساري')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i><span>الاتنين</span></button>
+                    <button type="button" onclick="shareReportParts(['معلق-عماد ناجي'],'معلق عماد ناجي')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i><span>معلق عماد ناجي</span></button>
+                    <button type="button" onclick="shareReportParts(['سلف-عماد ناجي'],'سلف عماد ناجي')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i><span>سلف عماد ناجي</span></button>
+                    <button type="button" onclick="shareReportParts(['معلق-عماد ناجي','سلف-عماد ناجي'],'معلق عماد ناجي + سلف عماد ناجي')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i><span>الاتنين</span></button>
                     <input id="sari-share-date" type="date" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs">
                 </div>
                 <div class="flex flex-wrap justify-between items-center gap-2 mb-1"><h3 class="font-bold text-slate-900">💼 الخزن والسلف</h3>
                     </div>
                 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3"><p class="text-xs font-bold text-emerald-700">خزينة ساري (المعلق)</p><p id="sari-cash" class="text-xl font-bold text-emerald-800">-</p></div>
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3"><p class="text-xs font-bold text-emerald-700">خزينة عماد ناجي (المعلق)</p><p id="sari-cash" class="text-xl font-bold text-emerald-800">-</p></div>
                     <div class="bg-sky-50 border border-sky-200 rounded-lg p-3"><p class="text-xs font-bold text-sky-700">درج المكتب</p><p id="drawer-cash" class="text-xl font-bold text-sky-800">-</p></div>
                     <div class="bg-amber-50 border border-amber-200 rounded-lg p-3"><p class="text-xs font-bold text-amber-700">السلف المستحقة (كل الأشخاص)</p><p id="sari-loan" class="text-xl font-bold text-amber-800">-</p></div>
                     <div class="bg-slate-50 border border-slate-200 rounded-lg p-3"><p class="text-xs font-bold text-slate-600">صافي النقدية (كل الخزن − السلف)</p><p id="sari-net" class="text-xl font-bold text-slate-800">-</p></div>
@@ -2047,7 +2047,7 @@ function seedDb(){
         cashTransfers: [],
         sales: [],
         accounts: [
-            {code:9501, name:'خزينة ساري (المعلق)', openingBalance:0},
+            {code:9501, name:'خزينة عماد ناجي (المعلق)', openingBalance:0},
             {code:9502, name:'درج المكتب', openingBalance:0}
         ],
         invoices: [],
@@ -3303,7 +3303,7 @@ function homeKpisHtml(){
     const collM=(db.expensesData||[]).filter(x=>(x.date||'').startsWith(m) && x.category==='إيراد').reduce((a,x)=>a+(Number(x.paid)||0),0);
     let sari=0, drawer=0, loans=0; try{ sari=accBalance(SARI_ACC); drawer=accBalance(DRAWER_ACC); loans=sariLoanRows().closing; }catch(e){}
     const K=[
-        ['treasury','fa-wallet','#16a37b','#e2f5ee','خزينة ساري (المعلق)',fmt(sari),'درج المكتب: '+fmt(drawer)],
+        ['treasury','fa-wallet','#16a37b','#e2f5ee','خزينة عماد ناجي (المعلق)',fmt(sari),'درج المكتب: '+fmt(drawer)],
         ['dailylog','fa-truck','#1f4b73','#e6eff7','مبيعات الشهر ده',fmt(salesVal),nfmt(bons.length)+' بون · '+nfmt(qty)+' م'],
         ['incomes','fa-hand-holding-dollar','#7457d9','#efebfc','تحصيلات الشهر ده',fmt(collM),'فلوس دخلت الخزينة'],
         ['expenses','fa-receipt','#e07a36','#fdeee3','مصروفات الشهر ده',fmt(expM),'السلف المستحقة: '+fmt(loans)],
@@ -4151,7 +4151,7 @@ function addPayment(e){
         notes: document.getElementById('pay-notes').value.trim()
     };
     db.payments.push(rec);
-    if(fromSari){ if(!db.ownerLoans) db.ownerLoans=[]; db.ownerLoans.push({id:newId(), date:rec.date, type:'in', amount, notes:`سداد ${rec.supplier}`, lender:'ساري', account:rec.account, payId:rec.id}); }
+    if(fromSari){ if(!db.ownerLoans) db.ownerLoans=[]; db.ownerLoans.push({id:newId(), date:rec.date, type:'in', amount, notes:`سداد ${rec.supplier}`, lender:'عماد ناجي', account:rec.account, payId:rec.id}); }
     logAudit('create', 'دفعة مورد', rec.supplier, null, rec);
     e.target.reset();
     document.getElementById('pay-date').value = todayISO();
@@ -4318,7 +4318,7 @@ function deleteExpense(id){
     scheduleSave();
     renderAll();
 }
-function addLinkedSariLoan(date, amount, notes, account, link){ if(!(Number(amount)>0)) return; if(!db.ownerLoans) db.ownerLoans=[]; db.ownerLoans.push(Object.assign({id:newId(), date:date||todayISO(), type:'in', amount:Number(amount), notes, lender:'ساري', account:account||SARI_ACC}, link||{})); }
+function addLinkedSariLoan(date, amount, notes, account, link){ if(!(Number(amount)>0)) return; if(!db.ownerLoans) db.ownerLoans=[]; db.ownerLoans.push(Object.assign({id:newId(), date:date||todayISO(), type:'in', amount:Number(amount), notes, lender:'عماد ناجي', account:account||SARI_ACC}, link||{})); }
 function renderCollectionsLog(){
     const fc = document.getElementById('filter-coll-client')?.value || 'ALL';
     const rows = db.expensesData.filter(x=>{
@@ -4462,10 +4462,10 @@ function treasuryEvents(){
         if(r.deduct) return; // خصم من مستخلص: مش فلوس داخلة
         events.push({date:r.date, desc:`سداد ${stockRecipientLabel(r.recipientType)}: ${r.name}`, project:'-', account:r.account||defaultAccount, inflow:r.amount, outflow:0, doc:docRef('س',r.id)});
     });
-    // سلف ساري: سلفة = داخل الخزينة، رد سلفة = خارج
+    // سلف عماد ناجي: سلفة = داخل الخزينة، رد سلفة = خارج
     (db.ownerLoans||[]).forEach(l=>{
         const a = Number(l.amount)||0, isIn = l.type==='in';
-        const who = (l.lender||'').trim()||'ساري';
+        const who = (l.lender||'').trim()||'عماد ناجي';
         events.push({ref:['loan',l.id], date:l.date, desc:(isIn?`سلفة من ${who}`:`رد سلفة لـ ${who}`)+(l.notes?` — ${l.notes}`:''), project:'-', account:l.account||defaultAccount, inflow:isIn?a:0, outflow:isIn?0:a});
     });
     // الإيرادات (تاب الإيرادات)
@@ -5057,7 +5057,7 @@ function balanceSheetData(D){
     if(Math.round(adv)) L.push({name:'دفعات مقدمة من العملاء', v:adv});
     // مصروفات مستحقة لسه ماتدفعتش (قيمة المصروف − المدفوع منه) — زي عمولة جلب العملاء
     try{ let acc=0; (db.expensesData||[]).filter(x=>le(x.date) && !x.tipDeposit).forEach(x=>{ const c=(db.expenses||[]).find(e=>e.name===x.category); if(!c || c.nameType==='contractors' || c.plType==='revenue' || x.category==='إيراد') return; acc+=(Number(x.total)||0)-(Number(x.paid)||0); }); if(Math.round(acc)>0) L.push({name:'مصروفات مستحقة (لم تُدفع)', v:acc}); else if(Math.round(acc)<0) A.push({g:'مستحقات أخرى', name:'مصروفات مدفوعة مقدماً', v:-acc}); }catch(e){}
-    try{ const s0=db.sariSettings||{}; const bals={'ساري':Number(s0.loanOpening)||0}; (db.ownerLoans||[]).filter(l=>le(l.date)).forEach(l=>{ const w=loanLender(l); bals[w]=(bals[w]||0)+(l.type==='in'?1:-1)*(Number(l.amount)||0); }); Object.entries(bals).forEach(([w,v])=>{ if(Math.round(v)) L.push({name:'قروض / جاري '+w, v}); }); }catch(e){}
+    try{ const s0=db.sariSettings||{}; const bals={'عماد ناجي':Number(s0.loanOpening)||0}; (db.ownerLoans||[]).filter(l=>le(l.date)).forEach(l=>{ const w=loanLender(l); bals[w]=(bals[w]||0)+(l.type==='in'?1:-1)*(Number(l.amount)||0); }); Object.entries(bals).forEach(([w,v])=>{ if(Math.round(v)) L.push({name:'قروض / جاري '+w, v}); }); }catch(e){}
     // حقوق الملكية
     const fund=(db.investorFunding||[]).filter(x=>le(x.date)).reduce((a,x)=>a+(Number(x.amount)||0),0);
     const tA=A.reduce((a,x)=>a+x.v,0), tL=L.reduce((a,x)=>a+x.v,0);
@@ -7692,7 +7692,7 @@ function dailySummaryText(d){
     const spent = ex.filter(x=>x.category!=='إيراد').reduce((a,x)=>a+(Number(x.paid!=null?x.paid:x.amount)||0),0);
     const journal = [];
     try{
-        [[SARI_ACC,'🏦 خزينة ساري'],[DRAWER_ACC,'🗄️ درج المكتب']].forEach(([acc,label])=>{
+        [[SARI_ACC,'🏦 خزينة عماد ناجي'],[DRAWER_ACC,'🗄️ درج المكتب']].forEach(([acc,label])=>{
             const st = buildCashStatement(d, d, acc);
             journal.push('', `${label}`, `رصيد أول اليوم: ${mfmt(st.opening)}`);
             st.rows.forEach(r=>{ if(r.inflow) journal.push(`➕ ${mfmt(r.inflow)} — ${r.desc}`); if(r.outflow) journal.push(`➖ ${mfmt(r.outflow)} — ${r.desc}`); });
@@ -7909,26 +7909,26 @@ function ensureCrusherPaperData(){
         db.dailyLog.push(entry);
     });
 
-    // 2) دفاتر ساري
+    // 2) دفاتر عماد ناجي
     const L = (name, rows) => ({id:newId(), name, entries: rows.map(([date,desc,amount,dir])=>({id:newId(), date, desc, amount, dir}))});
-    db.partyLedgers.push(L('سلف ساري', [
-        ['2026-09-18','سلفة من ساري',3400,'+'],
-        ['2026-09-18','سلفة من ساري إلى المعلق',25000,'+'],
+    db.partyLedgers.push(L('سلف عماد ناجي', [
+        ['2026-09-18','سلفة من عماد ناجي',3400,'+'],
+        ['2026-09-18','سلفة من عماد ناجي إلى المعلق',25000,'+'],
         ['2026-09-19','رد سلفة من المعلق',28400,'-'],
-        ['2026-09-21','سلفة من ساري',36400,'+'],
-        ['2026-09-21','سلفة من ساري — واصل صبري ميكانيكي',40000,'+']
+        ['2026-09-21','سلفة من عماد ناجي',36400,'+'],
+        ['2026-09-21','سلفة من عماد ناجي — واصل صبري ميكانيكي',40000,'+']
     ]));
-    db.partyLedgers.push(L('معلق ساري', [
+    db.partyLedgers.push(L('معلق عماد ناجي', [
         ['2026-09-18','رصيد المعلق',112000,'+'],
         ['2026-09-19','لصبري الميكانيكي',10000,'-'],
         ['2026-09-19','صلاح تغذية',10000,'-'],
-        ['2026-09-19','رد سلفة من ساري',28400,'-'],
-        ['2026-09-21','وارد سلفة من ساري (إضافة إلى المعلق)',36400,'+'],
+        ['2026-09-19','رد سلفة من عماد ناجي',28400,'-'],
+        ['2026-09-21','وارد سلفة من عماد ناجي (إضافة إلى المعلق)',36400,'+'],
         ['2026-09-21','واصل لـ أيمن عياد — سولار',100000,'-']
     ]));
 
     db.imports.paperSep2026 = true;
-    logAudit('create','استيراد دفاتر ورقية','متابعة أحمد خليل + دفاتر ساري',null,{bons:AK.length});
+    logAudit('create','استيراد دفاتر ورقية','متابعة أحمد خليل + دفاتر عماد ناجي',null,{bons:AK.length});
     scheduleSave();
 }
 
@@ -8678,8 +8678,8 @@ function exportCashJournalExcel(){
     xlsxSave(aoa, 'يومية الخزينة', `يومية-الخزينة-${todayISO()}.xlsx`);
 }
 
-/* ---------- الخزن: خزينة ساري + درج المكتب ---------- */
-const SARI_ACC = 'خزينة ساري (المعلق)', DRAWER_ACC = 'درج المكتب';
+/* ---------- الخزن: خزينة عماد ناجي + درج المكتب ---------- */
+const SARI_ACC = 'خزينة عماد ناجي (المعلق)', DRAWER_ACC = 'درج المكتب';
 function ensureTreasuries(){
     if(!db.accounts || !db.accounts.length) db.accounts = [{code:9501, name:'الخزينة النقدية', openingBalance:0}];
     if(!db.imports) db.imports = {};
@@ -8799,9 +8799,9 @@ function renderDayPage(){
         </table>
         <table class="dp-bal">
             <tr><td>رصيد مرحل</td><td>${nfmt(st.closing)}</td></tr>
-            ${Math.round(sari)?`<tr><td>معلق ساري</td><td>${nfmt(sari)}</td></tr>`:''}
+            ${Math.round(sari)?`<tr><td>معلق عماد ناجي</td><td>${nfmt(sari)}</td></tr>`:''}
             ${Math.round(drawer)?`<tr><td>الدرج</td><td>${nfmt(drawer)}</td></tr>`:''}
-            ${(()=>{ const L=(Number((db.sariSettings||{}).loanOpening)||0)+(db.ownerLoans||[]).filter(l=>loanLender(l)==='ساري' && (l.date||'')<=d).reduce((a,l)=>a+(l.type==='in'?1:-1)*(Number(l.amount)||0),0); return Math.round(L)?`<tr><td>سلف ساري</td><td>${nfmt(L)}</td></tr>`:''; })()}
+            ${(()=>{ const L=(Number((db.sariSettings||{}).loanOpening)||0)+(db.ownerLoans||[]).filter(l=>loanLender(l)==='عماد ناجي' && (l.date||'')<=d).reduce((a,l)=>a+(l.type==='in'?1:-1)*(Number(l.amount)||0),0); return Math.round(L)?`<tr><td>سلف عماد ناجي</td><td>${nfmt(L)}</td></tr>`:''; })()}
             ${(db.accounts||[]).filter(a=>a.name!==SARI_ACC && a.name!==DRAWER_ACC).map(a=>{ const v=buildCashStatement('', d, a.name).closing; return Math.round(v)?`<tr><td>${esc(a.name)}</td><td>${nfmt(v)}</td></tr>`:''; }).join('')}
             <tr><td>التاريخ</td><td>${dmy(d)}</td></tr>
         </table>
@@ -9305,7 +9305,7 @@ function printExtractFull(id){
     printHtml(`<div class="rep-sec">${contractorSheetHtml(x.name, x.from||'', x.to||x.date)}</div>`+html);
 }
 
-/* ---------- تقرير اليوم الكامل (بونات + خزنة اليوم + معلق ساري + الدرج + سلف ساري) ---------- */
+/* ---------- تقرير اليوم الكامل (بونات + خزنة اليوم + معلق عماد ناجي + الدرج + سلف عماد ناجي) ---------- */
 function repHead(title, d){
     return `<div class="rep-head"><div style="display:flex;align-items:center;gap:10px"><img src="${brandLogoSrc()}" alt=""><div><div style="font-weight:800;font-size:17px">${siteName()}</div><div style="font-size:11px;color:#555">${title}</div></div></div>
         <div style="font-weight:800">اليوم: ${dayNameAr(d)} — ${dmy(d)}</div></div>`;
@@ -9343,21 +9343,21 @@ function dailyReportSections(d){
     if(dpDate){ dpDate.value = d; renderDayPage(); }
     const secDay = `<div class="rep-sec">${document.getElementById('dp-sheet')?.innerHTML || ''}</div>`;
     if(dpDate){ dpDate.value = prevDate || d; }
-    // 3+4) معلق ساري والدرج
-    const secSari = repAccountSection('معلق ساري', SARI_ACC, d);
+    // 3+4) معلق عماد ناجي والدرج
+    const secSari = repAccountSection('معلق عماد ناجي', SARI_ACC, d);
     const secDrawer = repAccountSection('خزنة الدرج', DRAWER_ACC, d);
-    // 5) سلف ساري
-    const L = sariLoanRows('ساري');
+    // 5) سلف عماد ناجي
+    const L = sariLoanRows('عماد ناجي');
     const before = L.rows.filter(r=>r.date<d), today = L.rows.filter(r=>r.date===d);
     const opening = before.length ? before[before.length-1].balance : L.opening;
     const closing = today.length ? today[today.length-1].balance : opening;
-    const secLoans = `<div class="rep-sec">${repHead('سلف ساري', d)}
-        <div class="rep-sum"><div>المستحق لساري أول اليوم: ${fmt(opening)}</div><div>المستحق لساري آخر اليوم: ${fmt(closing)}</div></div>
+    const secLoans = `<div class="rep-sec">${repHead('سلف عماد ناجي', d)}
+        <div class="rep-sum"><div>المستحق لعماد ناجي أول اليوم: ${fmt(opening)}</div><div>المستحق لعماد ناجي آخر اليوم: ${fmt(closing)}</div></div>
         <table class="rep-tbl"><thead><tr><th>البيان</th><th>سلفة</th><th>رد</th><th>الرصيد</th></tr></thead><tbody>
-        ${today.map(r=>`<tr><td>${r.type==='in'?'سلفة من ساري':'رد سلفة لساري'}${r.notes?' — '+esc(r.notes):''}</td><td>${r.type==='in'?mfmt(r.amount):''}</td><td>${r.type==='in'?'':mfmt(r.amount)}</td><td>${mfmt(r.balance)}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center">مفيش حركات سلف النهارده</td></tr>'}
+        ${today.map(r=>`<tr><td>${r.type==='in'?'سلفة من عماد ناجي':'رد سلفة لعماد ناجي'}${r.notes?' — '+esc(r.notes):''}</td><td>${r.type==='in'?mfmt(r.amount):''}</td><td>${r.type==='in'?'':mfmt(r.amount)}</td><td>${mfmt(r.balance)}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center">مفيش حركات سلف النهارده</td></tr>'}
         </tbody></table></div>`;
     if(dpDate){ renderDayPage(); }
-    return [['بونات-اليوم',secBons],['صفحة-اليوم',secDay],['معلق-ساري',secSari],['خزنة-الدرج',secDrawer],['سلف-ساري',secLoans]];
+    return [['بونات-اليوم',secBons],['صفحة-اليوم',secDay],['معلق-عماد ناجي',secSari],['خزنة-الدرج',secDrawer],['سلف-عماد ناجي',secLoans]];
 }
 function printDailyReport(){
     const d = document.getElementById('dp-date')?.value || todayISO();
@@ -9442,7 +9442,7 @@ function startEdit(kind, id){
         const x = (db.ownerLoans||[]).find(l=>l.id===id); if(!x) return;
         silentDelete(()=>deleteSariLoan(id)); tab='incomes'; window.__incSec='loan'; formAnchor='sari-amount';
         setVal('sari-date', x.date); setVal('sari-type', x.type); setVal('sari-amount', x.amount); setVal('sari-notes', x.notes||'');
-        setVal('loan-lender', (x.lender||'').trim()||'ساري');
+        setVal('loan-lender', (x.lender||'').trim()||'عماد ناجي');
         const la = document.getElementById('loan-account'); if(la){ la.value = x.account||SARI_ACC; la.dataset.touched='1'; }
     } else return;
     __editSnap = snap; try{ localStorage.setItem('kasara-edit-pending::'+STORAGE_KEY, snap); localStorage.setItem('kasara-edit-pending-at::'+STORAGE_KEY, String(Date.now())); }catch(e){}
@@ -9552,14 +9552,14 @@ function openCashBatch(id){
         <h3 style="font-weight:800;font-size:18px;margin-bottom:8px">📥 ${esc(x.label)}</h3>
         <label style="display:flex;gap:8px;align-items:flex-start;background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:8px;font-size:13px;font-weight:700;margin-bottom:10px">
             <input id="cb-open" type="checkbox" ${db.sariSettings && db.sariSettings.startDate ? '' : 'checked'} style="margin-top:3px">
-            <span>رصيد أول يوم ${dmy(x.opening.startDate)}: معلق ساري ${fmt(x.opening.sari)} — الدرج ${fmt(x.opening.drawer)}
+            <span>رصيد أول يوم ${dmy(x.opening.startDate)}: معلق عماد ناجي ${fmt(x.opening.sari)} — الدرج ${fmt(x.opening.drawer)}
             ${hasData ? '<div style="font-weight:400;color:#b45309;font-size:11px">عندك حركات متسجلة قبل كده — لو علّمت هنا، أي حركة قبل 6/10 مش هتتحسب في الخزنة.</div>' : ''}</span>
         </label>
         <div style="overflow-x:auto;max-height:60vh"><table style="width:100%;font-size:12px;border-collapse:collapse">
             <thead><tr style="background:#f1f5f9;position:sticky;top:0"><th style="padding:5px"></th><th style="padding:5px;text-align:right">اليوم</th><th style="padding:5px;text-align:right">الخزنة</th><th style="padding:5px;text-align:right">النوع</th><th style="padding:5px;text-align:right">البيان</th><th style="padding:5px;text-align:right">المبلغ</th></tr></thead>
             <tbody>${x.lines.map((l,i)=>{ const amt = l.kind==='tips' ? Math.max(0, l.amount - autoTips) : l.amount;
                 return `<tr style="border-bottom:1px solid #e2e8f0;${/ممسوح/.test(l.desc)?'background:#fff1f2':''}"><td style="padding:5px"><input type="checkbox" data-ck="${i}" checked></td>
-                <td style="padding:5px">${dmy(l.date).slice(0,5)}</td><td style="padding:5px">${l.acc==='SARI'?'ساري':'الدرج'}</td>
+                <td style="padding:5px">${dmy(l.date).slice(0,5)}</td><td style="padding:5px">${l.acc==='SARI'?'عماد ناجي':'الدرج'}</td>
                 <td style="padding:5px;color:${['inc','tips'].includes(l.kind)?'#047857':'#be123c'}">${kindLbl[l.kind]}</td>
                 <td style="padding:5px"><input data-ds="${i}" value="${esc(l.kind==='tips' && autoTips ? `وارد إكرامية (${nfmt(l.amount)} في الدفتر — ${nfmt(autoTips)} اتسجلوا مع البونات)` : l.desc)}" style="width:100%;min-width:150px;border:1px solid #e2e8f0;border-radius:4px;padding:2px 4px"></td>
                 <td style="padding:5px"><input data-am="${i}" type="number" value="${amt}" style="width:90px;border:1px solid #e2e8f0;border-radius:4px;padding:2px 4px;font-weight:700"></td></tr>`; }).join('')}</tbody></table></div>
@@ -9574,7 +9574,7 @@ function openCashBatch(id){
         let s = box.querySelector('#cb-open').checked ? x.opening.sari + since(SARI_ACC) : accBalance(SARI_ACC), d = box.querySelector('#cb-open').checked ? x.opening.drawer + since(DRAWER_ACC) : accBalance(DRAWER_ACC);
         x.lines.forEach((l,i)=>{ if(!box.querySelector(`[data-ck="${i}"]`).checked) return; const a = Number(box.querySelector(`[data-am="${i}"]`).value)||0, sign = ['inc','tips'].includes(l.kind) ? 1 : -1;
             if(l.acc==='SARI') s += sign*a; else d += sign*a; });
-        box.querySelector('#cb-total').innerHTML = `بعد التسجيل: معلق ساري <span style="color:#047857">${fmt(s)}</span> — الدرج <span style="color:#047857">${fmt(d)}</span> <span style="color:#64748b;font-weight:400">(الدفتر: ساري 30,230 — الدرج 155)</span>`;
+        box.querySelector('#cb-total').innerHTML = `بعد التسجيل: معلق عماد ناجي <span style="color:#047857">${fmt(s)}</span> — الدرج <span style="color:#047857">${fmt(d)}</span> <span style="color:#64748b;font-weight:400">(الدفتر: عماد ناجي 30,230 — الدرج 155)</span>`;
     };
     box.addEventListener('input', calc); box.addEventListener('change', calc); calc();
 }
@@ -9619,7 +9619,7 @@ function applyCashBatch(id){
     if(!db.imports) db.imports = {}; if(!db.imports.batches) db.imports.batches = {}; db.imports.batches[id] = true;
     logAudit('create','تسجيل خزنة من الدفتر', `${x.label} — ${n} حركة`);
     box.remove(); scheduleSave(); try{ initDropdowns(); }catch(e){} renderAll();
-    alert(`✅ اتسجل ${n} حركة.\nمعلق ساري: ${fmt(accBalance(SARI_ACC))}\nالدرج: ${fmt(accBalance(DRAWER_ACC))}`);
+    alert(`✅ اتسجل ${n} حركة.\nمعلق عماد ناجي: ${fmt(accBalance(SARI_ACC))}\nالدرج: ${fmt(accBalance(DRAWER_ACC))}`);
 }
 function renderBatchBtn(){
     const b = document.getElementById('batch-bons-btn'); if(!b) return;
@@ -9728,20 +9728,20 @@ function runBonImport(){
     alert(`✅ اتسجل ${added} بون${skipped?` — واتساب ${skipped} متسجلين قبل كده`:''}.`);
 }
 
-/* ---------- خزينة ساري وسلفه ---------- */
-/* السلف لأكتر من شخص: كل حركة ليها صاحب (القديم من غير اسم = ساري) ورصيد جاري لكل شخص */
-const loanLender = l => (l.lender||'').trim() || 'ساري';
-function loanLenders(){ return [...new Set(['ساري', ...(db.ownerLoans||[]).map(loanLender)])]; }
+/* ---------- خزينة عماد ناجي وسلفه ---------- */
+/* السلف لأكتر من شخص: كل حركة ليها صاحب (القديم من غير اسم = عماد ناجي) ورصيد جاري لكل شخص */
+const loanLender = l => (l.lender||'').trim() || 'عماد ناجي';
+function loanLenders(){ return [...new Set(['عماد ناجي', ...(db.ownerLoans||[]).map(loanLender)])]; }
 function sariLoanRows(lender){
     const s = db.sariSettings||{};
-    const bals = {'ساري': Number(s.loanOpening)||0};
+    const bals = {'عماد ناجي': Number(s.loanOpening)||0};
     let total = Object.values(bals).reduce((a,b)=>a+b,0);
     const rows = (db.ownerLoans||[]).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.id-b.id)).map(l=>{
         const a = Number(l.amount)||0, who = loanLender(l), d = l.type==='in' ? a : -a;
         bals[who] = (bals[who]||0) + d; total += d;
         return {...l, lender:who, amount:a, balance:bals[who], totalBalance:total};
     }).filter(r=>!lender || r.lender===lender);
-    const opening = (!lender || lender==='ساري') ? (Number(s.loanOpening)||0) : 0;
+    const opening = (!lender || lender==='عماد ناجي') ? (Number(s.loanOpening)||0) : 0;
     return {opening, rows, closing: lender ? (bals[lender]||0) : total, byLender: bals};
 }
 function addTreasuryQuick(){
@@ -9777,7 +9777,7 @@ function renderSari(){
     const la = g('loan-account'); if(la){ fillSelect('loan-account', db.accounts||[]); if(!la.dataset.touched) la.value = SARI_ACC; la.onchange = ()=>la.dataset.touched='1'; }
     const ll = g('loan-lender-list'); if(ll) ll.innerHTML = loanLenders().map(n=>`<option value="${esc(n)}">`).join('');
     renderTransfers();
-    const openRow = L.opening ? `<tr class="bg-slate-50"><td class="p-2 text-xs">${s.startDate?dmy(s.startDate):''}</td><td class="p-2 font-bold">ساري</td><td class="p-2">رصيد افتتاحي</td><td></td><td></td><td class="p-2 font-bold">${nfmt(L.opening)}</td><td></td></tr>` : '';
+    const openRow = L.opening ? `<tr class="bg-slate-50"><td class="p-2 text-xs">${s.startDate?dmy(s.startDate):''}</td><td class="p-2 font-bold">عماد ناجي</td><td class="p-2">رصيد افتتاحي</td><td></td><td></td><td class="p-2 font-bold">${nfmt(L.opening)}</td><td></td></tr>` : '';
     body.innerHTML = (openRow + L.rows.map(l=>`<tr class="border-b border-slate-50 hover:bg-slate-50">
         <td class="p-2 text-xs text-slate-500">${dmy(l.date)}</td><td class="p-2 font-bold">${esc(l.lender)}</td><td class="p-2">${l.type==='in'?'سلفة':'رد سلفة'}${l.account&&l.account!==SARI_ACC?' — '+esc(l.account):''}${l.notes?' — '+esc(l.notes):''}</td>
         <td class="p-2 text-emerald-700">${l.type==='in'?mfmt(l.amount):''}</td><td class="p-2 text-rose-700">${l.type==='in'?'':mfmt(l.amount)}</td>
@@ -9790,7 +9790,7 @@ function addSariLoan(e){
     if(isRO()) return;
     const g = id=>document.getElementById(id);
     const l = {id:newId(), date:g('sari-date').value||todayISO(), type:g('sari-type').value, amount:Number(g('sari-amount').value)||0, notes:g('sari-notes').value.trim(),
-        lender:(g('loan-lender').value||'').trim()||'ساري', account:g('loan-account').value||SARI_ACC};
+        lender:(g('loan-lender').value||'').trim()||'عماد ناجي', account:g('loan-account').value||SARI_ACC};
     if(!l.amount){ alert('اكتب المبلغ'); return; }
     if(l.type==='out' && !checkCashAvailable(l.account, l.amount)) return;
     if(l.type==='out' && l.amount > sariLoanRows(l.lender).closing && !confirm(`المبلغ أكبر من السلف المستحقة لـ ${l.lender}. تكمل؟`)) return;
@@ -9804,7 +9804,7 @@ function deleteSariLoan(id){
     if(isRO()) return;
     const l = (db.ownerLoans||[]).find(x=>x.id===id); if(!l) return;
     if(!confirm('حذف الحركة دي؟')) return;
-    logAudit('delete','حركة سلف ساري',`${fmt(l.amount)}`,l,null);
+    logAudit('delete','حركة سلف عماد ناجي',`${fmt(l.amount)}`,l,null);
     db.ownerLoans = db.ownerLoans.filter(x=>x.id!==id);
     scheduleSave(); renderAll();
 }
@@ -9819,7 +9819,7 @@ function saveSariSettings(e){
     const sa = db.accounts.find(a=>a.name===SARI_ACC), dr = db.accounts.find(a=>a.name===DRAWER_ACC);
     if(sa) sa.openingBalance = db.sariSettings.cashOpening;
     if(dr) dr.openingBalance = Number(g('drawer-cash-open').value)||0;
-    logAudit('update','إعدادات خزينة ساري','',before,db.sariSettings);
+    logAudit('update','إعدادات خزينة عماد ناجي','',before,db.sariSettings);
     document.activeElement?.blur?.();
     scheduleSave(); renderAll();
 }
