@@ -568,7 +568,7 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
                 <div class="overflow-x-auto max-h-64">
                     <table class="w-full text-sm text-right">
                         <thead class="bg-slate-100 sticky top-0"><tr>
-                            <th class="p-3">رقم الجرار</th><th class="p-3">رقم المقطورة</th><th class="p-3">التكعيب</th><th class="p-3">إكرامية الكسارة</th><th class="p-3"></th>
+                            <th class="p-3">الكود</th><th class="p-3">رقم الجرار</th><th class="p-3">رقم المقطورة</th><th class="p-3">التكعيب</th><th class="p-3">إكرامية الكسارة</th><th class="p-3"></th>
                         </tr></thead>
                         <tbody id="tbody-vehicles"></tbody>
                     </table>
@@ -4590,12 +4590,14 @@ function computePL(projectFilter, dateFrom, dateTo){
     // السولار والأصناف اللي اتصرفت لمقاولين ومعدات بسعر = بتترد من مستخلصاتهم → مش تكلفة على الكسارة
     const recovered = (db.stockIssues||[]).filter(s=>matchDate(s) && s.name && s.name!=='-' && (Number(s.price)||0)>0)
         .reduce((a,s)=>a+(Number(s.qty)||0)*(Number(s.price)||0),0);
-    const extractsCost = (db.equipExtracts||[]).filter(x=>matchDate(x)).reduce((a,x)=>a+(Number(x.amount)||0),0);
+    const extractsCost = (db.equipExtracts||[]).filter(x=>matchDate(x)).reduce((a,x)=>a+(Number(x.amount)||0),0)
+        + (db.ctrExtracts||[]).filter(x=>matchDate(x)).reduce((a,x)=>a+(Number(x.amount)||0),0);
     // المخزون: اللي لسه في المخزن آخر المدة مش تكلفة — وأول المدة بيتضاف (بمتوسط سعر الشراء)
     const stockValueAt = (d) => {   // قيمة المخزون في آخر يوم d (أو قبل أي حاجة لو d فاضي = صفر)
         if(d==null) return 0;
         const items = {};
-        (db.procurements||[]).filter(p=>!d || (p.date||'')<=d).forEach(p=>{ const o = items[p.item] || (items[p.item]={q:0,v:0,bq:0}); o.q += Number(p.qty)||0; o.bq += Number(p.qty)||0; o.v += (Number(p.qty)||0)*(Number(p.price)||0); });
+        const stockItems = new Set((db.supplies||[]).map(x=>x.name));
+        (db.procurements||[]).filter(p=>(!d || (p.date||'')<=d) && stockItems.has(p.item)).forEach(p=>{ const o = items[p.item] || (items[p.item]={q:0,v:0,bq:0}); o.q += Number(p.qty)||0; o.bq += Number(p.qty)||0; o.v += (Number(p.qty)||0)*(Number(p.price)||0); });
         (db.stockIssues||[]).filter(s=>!d || (s.date||'')<=d).forEach(s=>{ const o = items[s.item]; if(o) o.q -= Number(s.qty)||0; });
         return Object.values(items).reduce((a,o)=>a + (o.q>0 && o.bq>0 ? o.q*(o.v/o.bq) : 0), 0);
     };
@@ -4974,7 +4976,7 @@ function balanceSheetData(D){
     let inv=0; (db.supplies||[]).forEach(x=>{ try{ const q=itemStockBalance(x.name).balance; if(q<=0) return; const P=(db.procurements||[]).filter(p=>p.item===x.name); const qq=P.reduce((a,p)=>a+(Number(p.qty)||0),0); const avg=qq?P.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0)/qq:0; inv+=q*avg; }catch(e){} });
     if(Math.round(inv)) A.push({g:'المخزون', name:'مخزون الأصناف (سولار وغيره)', v:inv});
     // مستحقات على أصحاب المعدات
-    try{ let eq=0; Object.values(equipmentDebtBalances()).forEach(t=>{ const b=(t.supplied||0)-(t.repaid||0); if(b>0) eq+=b; }); if(Math.round(eq)) A.push({g:'مستحقات أخرى', name:'مستحقات على أصحاب المعدات', v:eq}); }catch(e){}
+    try{ let eq=0; Object.entries(equipmentDebtBalances()).filter(([k])=>!k.startsWith('contractor::')).forEach(([,t])=>{ const b=(t.supplied||0)-(t.repaid||0); if(b>0) eq+=b; }); if(Math.round(eq)) A.push({g:'مستحقات أخرى', name:'مستحقات على أصحاب المعدات', v:eq}); }catch(e){}
     // المقاولين
     let ctrOwe=0, ctrAdv=0;
     (db.contractors||[]).forEach(c=>{ try{ let b=0; contractorStmtRows(c.name).rows.forEach(r=>{ if(le(r.date)) b+=(r.credit||0)-(r.debit||0); }); if(b>0) ctrOwe+=b; else ctrAdv-=b; }catch(e){} });
@@ -4983,7 +4985,8 @@ function balanceSheetData(D){
     let fa=0; (db.assets||[]).filter(a=>a.status!=='sold' && le(a.date)).forEach(a=>{ fa+=assetBookValue(a); });
     if(Math.round(fa)) A.push({g:'الأصول الثابتة', name:'المعدات والأصول (بعد الإهلاك)', v:fa});
     // الخصوم
-    let sup=0; (db.suppliers||[]).forEach(x=>{ const i=(db.procurements||[]).filter(p=>p.supplier===x.name && le(p.date)).reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0); const pd=(db.payments||[]).filter(p=>p.supplier===x.name && le(p.date)).reduce((a,p)=>a+(Number(p.amount)||0),0); if(i-pd>0) sup+=i-pd; });
+    let sup=0, supAdv=0; (db.suppliers||[]).forEach(x=>{ const i=(db.procurements||[]).filter(p=>p.supplier===x.name && le(p.date)).reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0); const pd=(db.payments||[]).filter(p=>p.supplier===x.name && le(p.date)).reduce((a,p)=>a+(Number(p.amount)||0),0); if(i-pd>0) sup+=i-pd; else supAdv+=pd-i; });
+    if(Math.round(supAdv)) A.push({g:'مستحقات أخرى', name:'دفعات مقدمة للموردين', v:supAdv});
     if(Math.round(sup)) L.push({name:'الموردين', v:sup});
     if(Math.round(ctrOwe)) L.push({name:'مستحقات المقاولين', v:ctrOwe});
     if(Math.round(adv)) L.push({name:'دفعات مقدمة من العملاء', v:adv});
@@ -6849,12 +6852,20 @@ function vehicleTripStats(plate){
     };
 }
 
+/* كود ثابت لكل عربية (11001، 11002، ...) */
+function ensureVehicleCodes(){
+    let max = (db.vehicles||[]).reduce((m,v)=>Math.max(m,Number(v.code)||0), 11000), changed=false;
+    (db.vehicles||[]).forEach(v=>{ if(!v.code){ v.code = ++max; changed=true; } });
+    if(changed) scheduleSave();
+}
 function renderVehicles(){
     const tbody = document.getElementById('tbody-vehicles');
     if(!tbody) return;
     if(!db.vehicles) db.vehicles = [];
+    ensureVehicleCodes();
     tbody.innerHTML = db.vehicles.length
-        ? db.vehicles.slice().sort((x,y)=>String(x.plate).localeCompare(String(y.plate),'ar')).map(v=>`<tr class="border-b border-slate-50 hover:bg-slate-50">
+        ? db.vehicles.slice().sort((x,y)=>(x.code||0)-(y.code||0)).map(v=>`<tr class="border-b border-slate-50 hover:bg-slate-50">
+                <td class="p-3 font-mono text-slate-500 font-bold">${v.code||''}</td>
                 <td class="p-3 font-bold text-base">${esc(v.plate)}</td>
                 <td class="p-3 font-bold text-base">${v.trailer?esc(v.trailer):'<span class="text-slate-300">—</span>'}</td>
                 <td class="p-3 ${v.cube?'':'text-rose-500 text-xs'}">${v.cube?esc(v.cube):'لسه ما اتكتبش'}</td>
