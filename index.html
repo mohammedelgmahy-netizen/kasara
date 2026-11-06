@@ -385,6 +385,9 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
             <button onclick="switchTab('expenses')" id="btn-expenses" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
                 <i class="fa-solid fa-money-bill-wave nav-ic" style="--c:#10b981"></i><span>المصروفات</span>
             </button>
+            <button onclick="switchTab('commission')" id="btn-commission" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
+                <i class="fa-solid fa-handshake nav-ic" style="--c:#f59e0b"></i><span>العمولة</span>
+            </button>
                                     <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-4 mb-1 px-3">الدفاتر والتقارير</p>
             <button onclick="switchTab('cashday')" id="btn-cashday" style="display:none" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
                 <i class="fa-solid fa-calendar-day nav-ic" style="--c:#f43f5e"></i><span>يومية الخزينة</span>
@@ -880,6 +883,34 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
         </div>
 
         <!-- EXPENSES -->
+        <!-- العمولة (عمولة جلب العملاء) -->
+        <div id="tab-commission" class="tab-content flex-col gap-6">
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm w-full">
+                <h2 class="text-lg font-bold text-slate-900 border-b-2 border-slate-900 pb-3 mb-4"><i class="fa-solid fa-handshake text-amber-500"></i> عمولة جلب العملاء — <span id="com-person-title"></span></h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <form onsubmit="addCommission(event)" class="border border-amber-200 bg-amber-50/40 rounded-lg p-4 grid grid-cols-2 gap-2 text-sm">
+                        <div class="col-span-2 font-bold text-amber-800">تسجيل عمولة (على متر السن)</div>
+                        <label class="text-xs text-slate-600">من<input id="com-from" type="date" class="w-full bg-white border border-slate-300 rounded p-1.5"></label>
+                        <label class="text-xs text-slate-600">إلى<input id="com-to" type="date" class="w-full bg-white border border-slate-300 rounded p-1.5" required></label>
+                        <label class="text-xs text-slate-600">الأمتار<input id="com-qty" type="number" step="any" oninput="comCalc()" class="w-full bg-white border border-slate-300 rounded p-1.5" required></label>
+                        <label class="text-xs text-slate-600">العمولة على المتر<input id="com-rate" type="number" step="any" value="4" oninput="comCalc()" class="w-full bg-white border border-slate-300 rounded p-1.5" required></label>
+                        <div class="col-span-2 text-xs text-slate-600">قيمة العمولة: <b id="com-amount" class="text-amber-700">0</b></div>
+                        <button class="col-span-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg py-2 font-bold">حفظ العمولة</button>
+                    </form>
+                    <form onsubmit="payCommission(event)" class="border border-emerald-200 bg-emerald-50/40 rounded-lg p-4 grid grid-cols-2 gap-2 text-sm">
+                        <div class="col-span-2 font-bold text-emerald-800">صرف عمولة (من الفلوس المحصلة)</div>
+                        <label class="text-xs text-slate-600">التاريخ<input id="com-pdate" type="date" class="w-full bg-white border border-slate-300 rounded p-1.5" required></label>
+                        <label class="text-xs text-slate-600">المبلغ<input id="com-pamount" type="number" step="any" class="w-full bg-white border border-slate-300 rounded p-1.5" required></label>
+                        <label class="text-xs text-slate-600">الخزينة<select id="com-paccount" class="w-full bg-white border border-slate-300 rounded p-1.5"></select></label>
+                        <label class="text-xs text-slate-600">ملاحظات<input id="com-pnotes" type="text" class="w-full bg-white border border-slate-300 rounded p-1.5"></label>
+                        <button class="col-span-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg py-2 font-bold">حفظ الصرف</button>
+                    </form>
+                </div>
+                <div id="com-summary" class="grid grid-cols-3 gap-3 my-4 text-center"></div>
+                <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100 text-slate-700"><tr><th class="p-2">التاريخ</th><th class="p-2">البيان</th><th class="p-2">الأمتار</th><th class="p-2">على المتر</th><th class="p-2">العمولة</th><th class="p-2">المصروف</th><th class="p-2">الرصيد المستحق</th><th class="p-2"></th></tr></thead><tbody id="com-body"></tbody></table></div>
+            </div>
+        </div>
+
         <div id="tab-expenses" class="tab-content flex-col gap-6">
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                 <h3 class="font-bold text-slate-900 mb-4"><i class="fa-solid fa-receipt text-emerald-500"></i> تسجيل مصروف</h3>
@@ -2722,7 +2753,7 @@ const ROLES = {
 let currentRole = 'admin';
 let currentUser = null;      // الزميل اللي داخل (لو مش المدير)
 let activeTab = 'home';
-const PERM_TABS = [['dashboard','مؤشر الكسارة'],['masterdata','دليل الأكواد'],['purchases','المشتريات'],['dailylog','المبيعات'],['extracts','المستخلصات'],['collections','التحصيلات'],['inventory','المخزون'],['equipment','المعدات'],['incomes','الإيرادات'],['payroll','الرواتب والحضور'],['expenses','المصروفات'],['treasury','الخزينة'],['pl','قائمة الدخل'],['bs','المركز المالي'],['ledger','كشف الحساب'],['investors','الشركاء والتمويل']];
+const PERM_TABS = [['dashboard','مؤشر الكسارة'],['masterdata','دليل الأكواد'],['purchases','المشتريات'],['dailylog','المبيعات'],['extracts','المستخلصات'],['collections','التحصيلات'],['inventory','المخزون'],['equipment','المعدات'],['incomes','الإيرادات'],['payroll','الرواتب والحضور'],['expenses','المصروفات'],['commission','العمولة'],['treasury','الخزينة'],['pl','قائمة الدخل'],['bs','المركز المالي'],['ledger','كشف الحساب'],['investors','الشركاء والتمويل']];
 function tabPerm(tab){
     if(tab==='users') return currentRole==='admin' ? 'edit' : 'none';
     if(currentRole==='viewer' && SUPABASE_URL) return 'none';
@@ -2733,7 +2764,8 @@ function tabPerm(tab){
 }
 function permObj(u, tab){
     let x = u && u.perms ? u.perms[tab] : null;
-    if(x==null && tab==='bs' && u && u.perms) x = u.perms.pl; // المركز المالي ياخد نفس صلاحية قائمة الدخل
+    if(x==null && tab==='bs' && u && u.perms) x = u.perms.pl;
+    if(x==null && tab==='commission' && u && u.perms) x = u.perms.expenses; // العمولة تاخد صلاحية المصروفات // المركز المالي ياخد نفس صلاحية قائمة الدخل
     if(x==='edit') return {v:true,e:true,d:!(u&&u.noDelete)};
     if(x==='view') return {v:true,e:false,d:false};
     if(x && typeof x==='object') return {v:!!(x.v||x.e||x.d), e:!!x.e, d:!!x.d};
@@ -2812,7 +2844,7 @@ const USERS_KEY = 'kasara-users';
 let __users = [];
 const PERM_GROUPS = [
     ['المتابعة', ['dashboard','masterdata']],
-    ['تسجيل يومي', ['purchases','dailylog','extracts','collections','inventory','equipment','incomes','payroll','expenses']],
+    ['تسجيل يومي', ['purchases','dailylog','extracts','collections','inventory','equipment','incomes','payroll','expenses','commission']],
     ['الدفاتر والتقارير', ['treasury','pl','bs','ledger','investors']]
 ];
 const permLabel = t => (PERM_TABS.find(x=>x[0]===t)||[t,t])[1];
@@ -3215,6 +3247,7 @@ function renderAll(){
     try{ renderTreasury(); }catch(e){ console.warn(e); }
     try{ renderPL(); }catch(e){ console.warn(e); }
     try{ if(activeTab==='bs') renderFinPosition(); }catch(e){ console.warn(e); }
+    try{ if(activeTab==='commission') renderCommission(); }catch(e){ console.warn(e); }
     try{ renderTaxTable(); }catch(e){ console.warn(e); }
     try{ renderAccounts(); }catch(e){ console.warn(e); }
     try{ renderInvestorFunding(); }catch(e){ console.warn(e); }
@@ -3316,6 +3349,7 @@ function switchTab(tabId){
     document.getElementById('btn-'+tabId)?.classList.add('active');
     if(tabId==='pl'){ renderTaxTable(); renderPL(); }
     if(tabId==='bs'){ try{ renderFinPosition(); }catch(e){ console.warn(e); } }
+    if(tabId==='commission'){ try{ renderCommission(); }catch(e){ console.warn(e); } }
     if(tabId==='treasury'||tabId==='incomes'){ try{ renderCashCount(); }catch(e){ console.warn(e); } }
     if(tabId==='incomes'){ try{ renderIncomes(); renderSari(); }catch(e){ console.warn(e); } }
     if(tabId==='dashboard'){ try{ renderDashChart(); }catch(e){ console.warn(e); } }
@@ -4212,6 +4246,36 @@ function renderSupplierAccounts(){
     showPaymentSupplierBalance();
 }
 
+/* ================= العمولة (عمولة جلب العملاء) =================
+   متسجلة في expensesData تحت بند "عمولة جلب عملاء" (مصروف تسويق وبيع):
+   commission:'accrual' = عمولة مستحقة (total=القيمة، paid=0) — commission:'pay' = صرف (total=0، paid=المبلغ)
+   فقائمة الدخل بتاخد العمولة، والخزينة بتاخد الصرف، والميزانية بتطلع الباقي "مصروفات مستحقة". */
+const COM_CAT='عمولة جلب عملاء', COM_PERSON='عماد ناجي';
+function ensureComCat(){ if(!(db.expenses||[]).some(c=>c.name===COM_CAT)) db.expenses.push({code:nextCode('expenses'), name:COM_CAT, plType:'operating', plBucket:'selling', nameType:'none'}); }
+function comCalc(){ const q=Number(document.getElementById('com-qty').value)||0, r=Number(document.getElementById('com-rate').value)||0; document.getElementById('com-amount').textContent=fmt(q*r); }
+function comRows(){ return (db.expensesData||[]).filter(x=>x.category===COM_CAT).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.commission==='pay')-(b.commission==='pay')); }
+function addCommission(e){ e.preventDefault(); ensureComCat();
+    const q=Number(document.getElementById('com-qty').value)||0, r=Number(document.getElementById('com-rate').value)||0, to=document.getElementById('com-to').value, from=document.getElementById('com-from').value||to;
+    const amt=Math.round(q*r*100)/100; if(!(amt>0)||!to){ alert('اكتب الأمتار والتاريخ'); return; }
+    db.expensesData.push({id:db.nextId.exp++, category:COM_CAT, name:COM_PERSON, project:'كسارة ديار', total:amt, paid:0, remaining:amt, account:'', date:to, from, to, qty:q, rate:r, commission:'accrual', desc:`عمولة ${COM_PERSON} على ${q} متر سن × ${r}`, notes:`من ${from} إلى ${to}`});
+    ['com-qty'].forEach(i=>document.getElementById(i).value=''); comCalc(); scheduleSave(); renderAll(); }
+function payCommission(e){ e.preventDefault(); ensureComCat();
+    const amt=Number(document.getElementById('com-pamount').value)||0, date=document.getElementById('com-pdate').value||todayISO(), account=document.getElementById('com-paccount').value, notes=document.getElementById('com-pnotes').value.trim();
+    if(!(amt>0)){ alert('اكتب المبلغ'); return; }
+    if(!checkCashAvailable(account, amt)) return;
+    db.expensesData.push({id:db.nextId.exp++, category:COM_CAT, name:COM_PERSON, project:'كسارة ديار', total:0, paid:amt, remaining:0, account, date, commission:'pay', desc:`صرف عمولة ${COM_PERSON}${notes?' — '+notes:''}`, notes});
+    ['com-pamount','com-pnotes'].forEach(i=>document.getElementById(i).value=''); scheduleSave(); renderAll(); }
+function renderCommission(){
+    const t=document.getElementById('com-person-title'); if(!t) return; t.textContent=COM_PERSON;
+    const sel=document.getElementById('com-paccount'); if(sel && !sel.options.length) sel.innerHTML=(db.accounts||[]).map(a=>`<option>${a.name}</option>`).join('');
+    ['com-to','com-pdate'].forEach(i=>{ const el=document.getElementById(i); if(el && !el.value) el.value=todayISO(); });
+    let bal=0, tc=0, tp=0;
+    const rows=comRows().map(x=>{ const c=Number(x.total)||0, p=Number(x.paid)||0; tc+=c; tp+=p; bal+=c-p;
+        return `<tr class="border-b border-slate-100"><td class="p-2 whitespace-nowrap">${x.date||''}</td><td class="p-2">${x.commission==='pay'?(x.desc||'صرف عمولة'):('عمولة'+(x.from?` من ${x.from} إلى ${x.to||x.date}`:''))}</td><td class="p-2">${x.qty!=null&&x.commission!=='pay'?Number(x.qty).toLocaleString('ar-EG'):''}</td><td class="p-2">${x.rate!=null&&x.commission!=='pay'?x.rate:''}</td><td class="p-2 text-amber-700">${c?fmt(c):''}</td><td class="p-2 text-emerald-700">${p?fmt(p):''}</td><td class="p-2 font-bold">${fmt(bal)}</td><td class="p-2"><button onclick="deleteExpense(${JSON.stringify(x.id)})" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash"></i></button></td></tr>`; });
+    document.getElementById('com-body').innerHTML = rows.join('') || '<tr><td colspan="8" class="p-4 text-center text-slate-400">لا توجد عمولات</td></tr>';
+    document.getElementById('com-summary').innerHTML = [['إجمالي العمولة',tc,'amber'],['المصروف منها',tp,'emerald'],['الباقي ليه',tc-tp,'rose']].map(([l,v,c])=>`<div class="bg-${c}-50 border border-${c}-200 rounded-lg p-3"><div class="text-xs text-slate-500">${l}</div><div class="text-lg font-bold text-${c}-700">${fmt(v)}</div></div>`).join('');
+}
+
 /* ================= EXPENSES ================= */
 function addExpense(e){
     e.preventDefault();
@@ -4358,6 +4422,7 @@ function treasuryEvents(){
             const grp = x.saleId ? 'sales' : (x.tipDeposit && x.tipBonId ? 'tips' : null);
             events.push({ref:x.tipDeposit?null:['exp',x.id], date:x.date, desc:x.desc || `تحصيل من ${x.name}`, project:x.project, account, inflow:Math.max(pd,0), outflow:Math.max(-pd,0), doc:docRef('ت',x.id), grp});
         }else{
+            if(x.commission==='accrual') return; // عمولة مستحقة لسه ماتصرفتش — مفيش فلوس خرجت
             // مصروفات تسوية العهدة مستثناة: الفلوس خرجت فعلياً وقت صرف العهدة نفسها (مسجلة تحت)
             if(x.custodyId){
                 const linkedCustody = (db.custodies||[]).find(c=>c.id===x.custodyId);
@@ -4990,6 +5055,8 @@ function balanceSheetData(D){
     if(Math.round(sup)) L.push({name:'الموردين', v:sup});
     if(Math.round(ctrOwe)) L.push({name:'مستحقات المقاولين', v:ctrOwe});
     if(Math.round(adv)) L.push({name:'دفعات مقدمة من العملاء', v:adv});
+    // مصروفات مستحقة لسه ماتدفعتش (قيمة المصروف − المدفوع منه) — زي عمولة جلب العملاء
+    try{ let acc=0; (db.expensesData||[]).filter(x=>le(x.date) && !x.tipDeposit).forEach(x=>{ const c=(db.expenses||[]).find(e=>e.name===x.category); if(!c || c.nameType==='contractors' || c.plType==='revenue' || x.category==='إيراد') return; acc+=(Number(x.total)||0)-(Number(x.paid)||0); }); if(Math.round(acc)>0) L.push({name:'مصروفات مستحقة (لم تُدفع)', v:acc}); else if(Math.round(acc)<0) A.push({g:'مستحقات أخرى', name:'مصروفات مدفوعة مقدماً', v:-acc}); }catch(e){}
     try{ const s0=db.sariSettings||{}; const bals={'ساري':Number(s0.loanOpening)||0}; (db.ownerLoans||[]).filter(l=>le(l.date)).forEach(l=>{ const w=loanLender(l); bals[w]=(bals[w]||0)+(l.type==='in'?1:-1)*(Number(l.amount)||0); }); Object.entries(bals).forEach(([w,v])=>{ if(Math.round(v)) L.push({name:'قروض / جاري '+w, v}); }); }catch(e){}
     // حقوق الملكية
     const fund=(db.investorFunding||[]).filter(x=>le(x.date)).reduce((a,x)=>a+(Number(x.amount)||0),0);
