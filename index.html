@@ -4564,7 +4564,7 @@ function renderTreasury(){
             <td class="p-3 font-bold">${nfmt(e.balance)}</td>
             <td class="p-3 text-xs text-slate-500">${esc(e.doc||'')}</td>
         </tr>`).join('') || '<tr><td colspan="7" class="p-4 text-center text-slate-400">لا توجد حركات في هذه الفترة</td></tr>';
-    body.innerHTML = openRow + rowsHtml;
+    body.innerHTML = (Math.round(st.opening)||fromD ? openRow : '') + rowsHtml; // الرصيد الافتتاحي الصفر مش بيظهر
     document.getElementById('tfoot-treasury').innerHTML =
         `<tr class="bg-slate-100 font-bold border-t-2 border-slate-300"><td class="p-3" colspan="3">الإجمالي</td><td class="p-3 text-emerald-700">${nfmt(st.debit)}</td><td class="p-3 text-rose-700">${nfmt(st.credit)}</td><td class="p-3">${nfmt(st.closing)}</td><td class="p-3"></td></tr>`;
     document.getElementById('treasury-total').textContent = fmt(st.closing);
@@ -4578,6 +4578,7 @@ function renderTreasury(){
         const allMoves = cashMovements();
         summaryEl.innerHTML = (db.accounts||[]).map(acc=>{
             const accBalance = (Number(acc.openingBalance)||0) + allMoves.filter(e=>e.account===acc.name).reduce((s,e)=>s+e.inflow-e.outflow,0);
+            if(!Math.round(accBalance)) return ''; // الحساب اللي رصيده صفر مش بيظهر
             return `<div class="bg-teal-50 border border-teal-200 rounded-lg p-3 text-center">
                 <p class="text-xs font-bold text-teal-700">${esc(acc.name)}</p>
                 <p class="text-lg font-bold text-teal-800 mt-1">${fmt(accBalance)}</p>
