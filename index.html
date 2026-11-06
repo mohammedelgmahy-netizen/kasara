@@ -5097,19 +5097,19 @@ function renderFinPosition(){
     const dI=document.getElementById('bs-date'); if(dI && !dI.value) dI.value=todayISO();
     const D=dI?dI.value:'';
     const S=balanceSheetData(D);
-    const row=(n,v,cls)=>`<tr class="border-b border-slate-100 ${cls||''}"><td class="p-2">${esc(n)}</td><td class="p-2 text-left font-bold" dir="ltr">${nfmt(Math.round(v))}</td></tr>`;
-    const head=t=>`<tr class="bg-slate-800 text-white"><td class="p-2 font-bold" colspan="2">${t}</td></tr>`;
-    const total=(t,v)=>`<tr class="bg-indigo-50 font-extrabold border-t-2 border-slate-400"><td class="p-2">${t}</td><td class="p-2 text-left" dir="ltr">${nfmt(Math.round(v))}</td></tr>`;
+    const row=(n,v,cls)=>`<tr class="border-b border-slate-100 ${cls||''}"><td class="p-2 font-bold text-slate-900">${esc(n)}</td><td class="p-2 text-left font-extrabold text-slate-950" dir="ltr">${nfmt(Math.round(v))}</td></tr>`;
+    const head=t=>`<tr class="bg-slate-800 text-white"><td class="p-2 font-extrabold text-lg" colspan="2">${t}</td></tr>`;
+    const total=(t,v)=>`<tr class="bg-indigo-50 font-extrabold text-slate-950 text-lg border-t-2 border-slate-400"><td class="p-2">${t}</td><td class="p-2 text-left" dir="ltr">${nfmt(Math.round(v))}</td></tr>`;
     const groups=[...new Set(S.A.map(x=>x.g))];
-    const assets=head('الأصول')+(groups.map(g=>`<tr class="bg-slate-100"><td class="p-2 font-bold text-slate-600" colspan="2">${esc(g)}</td></tr>`+S.A.filter(x=>x.g===g).map(x=>row(x.name,x.v)).join('')).join('')||row('مفيش أرصدة',0))+total('إجمالي الأصول',S.tA);
+    const assets=head('الأصول')+(groups.map(g=>`<tr class="bg-slate-100"><td class="p-2 font-extrabold text-slate-800" colspan="2">${esc(g)}</td></tr>`+S.A.filter(x=>x.g===g).map(x=>row(x.name,x.v)).join('')).join('')||row('مفيش أرصدة',0))+total('إجمالي الأصول',S.tA);
     const liab=head('الخصوم (الالتزامات)')+(S.L.map(x=>row(x.name,x.v)).join('')||row('مفيش التزامات',0))+total('إجمالي الخصوم',S.tL);
-    const eq=head('حقوق الملكية')+S.E.map(x=>x.part?`<tr class="text-slate-500"><td class="p-2 pr-6 text-xs">${esc(x.name)}</td><td class="p-2 text-xs">${x.v<0?'('+nfmt(Math.round(-x.v))+')':nfmt(Math.round(x.v))}</td></tr>`:row(x.name+(x.note?' *':''),x.v)).join('')+total('إجمالي حقوق الملكية',S.tE)+total('إجمالي الخصوم وحقوق الملكية',S.tL+S.tE);
-    el.innerHTML=`<div class="text-sm text-slate-500 mb-3">كسارة ديار — المركز المالي في ${dmy(D)}</div>
+    const eq=head('حقوق الملكية')+S.E.map(x=>x.part?`<tr class="text-slate-800 font-bold"><td class="p-2 pr-6 text-sm">${esc(x.name)}</td><td class="p-2 text-sm" dir="ltr">${x.v<0?'('+nfmt(Math.round(-x.v))+')':nfmt(Math.round(x.v))}</td></tr>`:row(x.name+(x.note?' *':''),x.v)).join('')+total('إجمالي حقوق الملكية',S.tE)+total('إجمالي الخصوم وحقوق الملكية',S.tL+S.tE);
+    el.innerHTML=`<div class="text-base font-bold text-slate-800 mb-3">كسارة ديار — المركز المالي في ${dmy(D)}</div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <table class="w-full text-sm text-right border border-slate-200">${assets}</table>
-        <table class="w-full text-sm text-right border border-slate-200">${liab}${eq}</table>
+        <table class="w-full text-base text-right border border-slate-300">${assets}</table>
+        <table class="w-full text-base text-right border border-slate-300">${liab}${eq}</table>
       </div>
-      <div class="text-[11px] text-slate-500 mt-3">* الأرباح المحتجزة = صافي الربح ناقص أرباح المساهمين (التوزيعات المصروفة والمعتمدة). المعتمد ولسه ماتصرفش بيظهر في الخصوم. رأس المال وأرصدة أول المدة = الأصول − الخصوم − التمويل − الأرباح، يعني اللي حطّه المالك في الكسارة (أو سحبه) من غير ما يتسجل كحركة. المخزون محسوب بمتوسط سعر الشراء.</div>`;
+      <div class="text-xs font-semibold text-slate-700 mt-3">* الأرباح المحتجزة = صافي الربح ناقص أرباح المساهمين (التوزيعات المصروفة والمعتمدة). المعتمد ولسه ماتصرفش بيظهر في الخصوم. رأس المال وأرصدة أول المدة = الأصول − الخصوم − التمويل − الأرباح، يعني اللي حطّه المالك في الكسارة (أو سحبه) من غير ما يتسجل كحركة. المخزون محسوب بمتوسط سعر الشراء.</div>`;
 }
 function exportBalanceSheetExcel(){
     const D=document.getElementById('bs-date')?.value||todayISO(), S=balanceSheetData(D), r=v=>Math.round(v);
