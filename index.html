@@ -8954,8 +8954,8 @@ function cxLastRate(name, eq){ const L=(db.ctrExtracts||[]).filter(x=>x.name===n
 function cxDefaults(){
     const name=document.getElementById('cx-name').value; if(!name) return;
     const last=(db.ctrExtracts||[]).filter(x=>x.name===name && x.to).map(x=>x.to).sort().pop();
-    const nf = last ? addDays(last,1) : ''; document.getElementById('cx-from').value = nf && nf<=todayISO() ? nf : weekStart(todayISO());
-    document.getElementById('cx-to').value = todayISO();
+    const nf = last ? addDays(last,1) : ''; const wf = weekStart(nf && nf<=todayISO() ? nf : todayISO());
+    document.getElementById('cx-from').value = wf; document.getElementById('cx-to').value = addDays(wf,6); // من الخميس للأربع
     document.getElementById('cx-rows').innerHTML = ctrEquips(name).map((e,i)=>`<tr class="border-t border-slate-100"><td class="p-2 font-bold">${esc(e)}</td>
         <td class="p-2"><input id="cx-q-${i}" type="number" step="any" min="0" oninput="cxPreview()" class="w-28 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
         <td class="p-2"><input id="cx-r-${i}" type="number" step="any" min="0" value="${cxLastRate(name,e)}" oninput="cxPreview()" class="w-24 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
