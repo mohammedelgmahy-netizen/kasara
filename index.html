@@ -3041,7 +3041,8 @@ async function handleActivation(e){
 }
 
 /* ================= UTIL ================= */
-const fmt = n => Math.round(Number(n)||0).toLocaleString('ar-EG') + ' ج.م';  // الفلوس من غير كسور
+const __NFm = new Intl.NumberFormat('ar-EG');
+const fmt = n => __NFm.format(Math.round(Number(n)||0)) + ' ج.م';  // الفلوس من غير كسور
 const esc = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const todayISO = () => new Date().toISOString().slice(0,10);
 
@@ -7810,8 +7811,9 @@ const DL_PHONE = '01229900330';
 const AR_DAYS = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
 const dmy = iso => iso ? String(iso).split('-').reverse().join('/') : '';
 const dayNameAr = iso => { const d = new Date(iso+'T12:00:00'); return isNaN(d) ? '' : AR_DAYS[d.getDay()]; };
-const nfmt = n => (Number(n)||0).toLocaleString('ar-EG',{maximumFractionDigits:2});
-const mfmt = n => Math.round(Number(n)||0).toLocaleString('ar-EG');  // مبالغ فلوس من غير كسور
+const __NF2 = new Intl.NumberFormat('ar-EG',{maximumFractionDigits:2}), __NF0 = new Intl.NumberFormat('ar-EG'); // فورمات واحد بدل ما يتعمل جديد كل رقم (كان مبطّأ التحميل)
+const nfmt = n => __NF2.format(Number(n)||0);
+const mfmt = n => __NF0.format(Math.round(Number(n)||0));  // مبالغ فلوس من غير كسور
 let __idSeq = 0;
 const newId = () => Date.now()*1000 + ((__idSeq++ % 90)+1)*10;
 
@@ -9518,7 +9520,8 @@ function eqxFillRate(){
     const bi = g('eqx-bons-info'); if(bi) bi.textContent = '';
 }
 /* مطابقة الأسماء من غير ما تفرق ى/ي و ة/ه والمسافات */
-const normName = s => String(s||'').trim().replace(/\s+/g,' ').replace(/[ىي]/g,'ي').replace(/[ةه]/g,'ه').replace(/[أإآ]/g,'ا');
+const __normC = new Map();
+const normName = s => { const k=String(s||''); let v=__normC.get(k); if(v===undefined){ v=k.trim().replace(/\s+/g,' ').replace(/[ىي]/g,'ي').replace(/[ةه]/g,'ه').replace(/[أإآ]/g,'ا'); if(__normC.size>20000) __normC.clear(); __normC.set(k,v); } return v; };
 function eqxFromBons(silent){
     const g = id=>document.getElementById(id);
     const raw = g('eqx-recipient').value || ''; const name = raw.includes('::') ? raw.split('::')[1] : raw;
