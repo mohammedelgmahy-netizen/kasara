@@ -5026,16 +5026,16 @@ function getClientAccountRowsAll(name){
 function clientSheetHtml(name){
     const D=clientSheetData(name);
     const B='border:1px solid #111;padding:6px 8px;text-align:center;';
-    const n0=v=>nfmt(v?Math.round(v*100)/100:0), nb=v=>v?nfmt(Math.round(v*100)/100):'';
+    const n0=v=>(v?nfmt(Math.round(v*100)/100):''), nb=v=>v?nfmt(Math.round(v*100)/100):'';
     const sz=D.sizes;
     const head=`<tr><th style="${B}">سيارة</th><th style="${B}">مقطورة</th><th style="${B}">العدد</th><th style="${B}">التكعيب</th>${sz.map(x=>`<th style="${B}">${esc(x.label)}</th>`).join('')}</tr>`;
     const rows=D.cars.map(c=>`<tr><td style="${B}">${esc(c.tractor)}</td><td style="${B}">${esc(c.trailer)}</td><td style="${B}">${nfmt(c.n)}</td><td style="${B}">${nb(c.n?c.qty/c.n:0)}</td>${sz.map(x=>`<td style="${B}">${nb(c.q[x.key])}</td>`).join('')}</tr>`);
     while(rows.length<4) rows.push(`<tr>${('<td style="'+B+'height:30px"></td>').repeat(4+sz.length)}</tr>`);
-    const totRow=`<tr style="font-weight:800"><td style="${B}" colspan="2">الإجمالي</td><td style="${B}">${nfmt(D.n)}</td><td style="${B}"></td>${sz.map(x=>`<td style="${B}">${n0(D.tot[x.key])}</td>`).join('')}</tr>`;
+    const totRow=`<tr style="font-weight:800"><td style="${B}" colspan="2">الإجمالي</td><td style="${B}">${D.n?nfmt(D.n):''}</td><td style="${B}"></td>${sz.map(x=>`<td style="${B}">${n0(D.tot[x.key])}</td>`).join('')}</tr>`;
     const priceRow=`<tr><td style="${B};font-weight:800" colspan="4">السعر</td>${sz.map(x=>`<td style="${B}">${n0(D.priceOf(x.key))}</td>`).join('')}</tr>`;
     const amtRow=`<tr style="font-weight:800"><td style="${B}" colspan="4">إجمالي المبلغ</td>${sz.map(x=>`<td style="${B}">${n0(D.amt[x.key])}</td>`).join('')}</tr>`;
     const req=D.bonsTotal+D.otherDebit, totalReq=req+D.prev;
-    const sl=(l,v,bold)=>`<tr${bold?' style="font-weight:800"':''}><td style="${B};width:55%">${l}</td><td style="${B}">${nfmt(Math.round(v))}</td></tr>`;
+    const sl=(l,v,bold)=>`<tr${bold?' style="font-weight:800"':''}><td style="${B};width:55%">${l}</td><td style="${B}">${Math.round(v)?nfmt(Math.round(v)):''}</td></tr>`;
     let sum=sl('المطلوب',D.bonsTotal);
     if(D.otherDebit) sum+=sl('فواتير تانية في الفترة',D.otherDebit);
     sum+=sl(D.prev<0?'ليك حساب سابق':'عليك حساب سابق',Math.abs(D.prev));
