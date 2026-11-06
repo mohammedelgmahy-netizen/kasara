@@ -4994,11 +4994,18 @@ function balanceSheetData(D){
     let profit=0; try{ profit=computePL('ALL','',D||'').profitBeforeTax||0; }catch(x){}
     if(Math.round(fund)) E.push({name:'تمويل المستثمرين', v:fund});
     const dist=(db.profitDistributions||[]).filter(x=>le(x.date)).reduce((a,x)=>a+(Number(x.amount)||0),0);
-    const retained = profit - dist; // الأرباح المحتجزة = صافي الربح المتراكم (من قائمة الدخل) − الأرباح الموزعة
-    E.push({name:'الأرباح المحتجزة'+(Math.round(dist)?` (صافي الربح ${nfmt(Math.round(profit))} − توزيعات ${nfmt(Math.round(dist))})`:''), v:retained});
-    E.push({name:'رأس المال وأرصدة أول المدة', v:tA-tL-fund-retained, note:true});
+    // أرباح المساهمين: حصة المستثمرين من الربح (من تاب الشركاء) — المعتمد ولسه ماتصرفش بيبقى التزام
+    const approved=(db.investorLiabilities||[]).filter(l=>l.status!=='paid' && le(l.date)).reduce((a,l)=>a+(Number(l.amount)||0),0);
+    let invShare=0; try{ (db.investorFunding||[]).filter(f=>le(f.date)).forEach(f=>{ invShare+=investorShareForProject(f)||0; }); }catch(e){}
+    if(Math.round(approved)){ L.push({name:'أرباح مساهمين مستحقة الصرف (معتمدة)', v:approved}); }
+    const tL2=L.reduce((a,x)=>a+x.v,0);
+    const shareholders = invShare - dist - approved;           // أرباح المساهمين اللي لسه في الكسارة
+    const retained = profit - invShare;                         // الأرباح المحتجزة (نصيب الكسارة/المالك)
+    E.push({name:'أرباح المساهمين'+(Math.round(invShare)?` (حصتهم ${nfmt(Math.round(invShare))} − المصروف ${nfmt(Math.round(dist))}${Math.round(approved)?` − المعتمد ${nfmt(Math.round(approved))}`:''})`:''), v:shareholders});
+    E.push({name:'الأرباح المحتجزة', v:retained});
+    E.push({name:'رأس المال وأرصدة أول المدة', v:tA-tL2-fund-shareholders-retained, note:true});
     const tE=E.reduce((a,x)=>a+x.v,0);
-    return {A,L,E,tA,tL,tE};
+    return {A,L,E,tA,tL:tL2,tE};
 }
 function renderFinPosition(){
     const el=document.getElementById('bs-content'); if(!el) return;
@@ -5017,7 +5024,7 @@ function renderFinPosition(){
         <table class="w-full text-sm text-right border border-slate-200">${assets}</table>
         <table class="w-full text-sm text-right border border-slate-200">${liab}${eq}</table>
       </div>
-      <div class="text-[11px] text-slate-500 mt-3">* الأرباح المحتجزة = صافي الربح المتراكم من قائمة الدخل ناقص الأرباح اللي اتوزعت. رأس المال وأرصدة أول المدة = الأصول − الخصوم − التمويل − الأرباح المحتجزة، يعني اللي حطّه المالك في الكسارة (أو سحبه) من غير ما يتسجل كحركة. المخزون محسوب بمتوسط سعر الشراء.</div>`;
+      <div class="text-[11px] text-slate-500 mt-3">* أرباح المساهمين = حصة المستثمرين من الربح (تاب الشركاء) ناقص اللي اتصرف لهم والمعتمد. الأرباح المحتجزة = صافي الربح من قائمة الدخل ناقص حصة المساهمين. رأس المال وأرصدة أول المدة = الأصول − الخصوم − التمويل − الأرباح، يعني اللي حطّه المالك في الكسارة (أو سحبه) من غير ما يتسجل كحركة. المخزون محسوب بمتوسط سعر الشراء.</div>`;
 }
 function exportBalanceSheetExcel(){
     const D=document.getElementById('bs-date')?.value||todayISO(), S=balanceSheetData(D), r=v=>Math.round(v);
