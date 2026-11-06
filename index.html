@@ -5059,7 +5059,7 @@ function balanceSheetData(D){
     if(Math.round(ctrAdv)) A.push({g:'مستحقات أخرى', name:'عهد ومقدمات عند المقاولين', v:ctrAdv});
     // الأصول الثابتة
     let fa=0; (db.assets||[]).filter(a=>a.status!=='sold' && le(a.date)).forEach(a=>{ fa+=assetBookValue(a); });
-    if(Math.round(fa)) A.push({g:'الأصول الثابتة', name:'المعدات والأصول (بعد الإهلاك)', v:fa});
+    if(Math.round(fa)) A.push({g:'أرض وتأمينات المحجر', name:'أرض وتأمينات المحجر', v:fa});
     // الخصوم
     let sup=0, supAdv=0; (db.suppliers||[]).forEach(x=>{ const i=(db.procurements||[]).filter(p=>p.supplier===x.name && le(p.date)).reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0); const pd=(db.payments||[]).filter(p=>p.supplier===x.name && le(p.date)).reduce((a,p)=>a+(Number(p.amount)||0),0); if(i-pd>0) sup+=i-pd; else supAdv+=pd-i; });
     if(Math.round(supAdv)) A.push({g:'مستحقات أخرى', name:'دفعات مقدمة للموردين', v:supAdv});
