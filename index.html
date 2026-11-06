@@ -1671,7 +1671,7 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-right">
                         <thead class="bg-slate-800 text-white"><tr>
-                            <th class="p-3">المستثمر</th><th class="p-3">المشاريع</th><th class="p-3">إجمالي التمويل</th><th class="p-3">النسبة %</th><th class="p-3">صافي ربح المشاريع</th><th class="p-3 text-emerald-300">حصته من الربح</th><th class="p-3">الموزّع فعلاً</th><th class="p-3 text-yellow-300">المتبقي له</th><th class="p-3">اعتماد</th>
+                            <th class="p-3">المستثمر</th><th class="p-3">المشاريع</th><th class="p-3">إجمالي التمويل</th><th class="p-3">النسبة %</th><th class="p-3">صافي ربح المشاريع</th><th class="p-3 text-emerald-300">حصته من الربح</th><th class="p-3">الموزّع فعلاً</th><th class="p-3 text-yellow-300">المتبقي له</th><th class="p-3" style="display:none">اعتماد</th>
                         </tr></thead>
                         <tbody id="tbody-investor-summary"></tbody>
                     </table>
@@ -1679,7 +1679,7 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
             </div>
 
             <!-- LIABILITIES TABLE -->
-            <div class="bg-white rounded-xl border border-amber-100 shadow-sm overflow-hidden">
+            <div class="bg-white rounded-xl border border-amber-100 shadow-sm overflow-hidden" style="display:none"><!-- اتشال: التوزيع بطريقة واحدة (دفع مباشر) -->
                 <div class="p-4 bg-amber-50 border-b border-amber-100">
                     <h3 class="font-bold text-slate-900 text-sm"><i class="fa-solid fa-file-invoice-dollar text-amber-600"></i> مستحقات معتمدة للمستثمرين (خصوم)</h3>
                     
@@ -7378,7 +7378,7 @@ function renderInvestorSummary(){
             <td class="p-3 font-bold text-emerald-700">${fmt(totalShare)}</td>
             <td class="p-3">${fmt(totalDistributed)}</td>
             <td class="p-3 font-bold ${remaining>0?'text-orange-600':'text-slate-500'}">${fmt(remaining)}</td>
-            <td class="p-3">${remaining>0?`<button onclick="approveInvestorDistribution('${esc(inv.name)}','${esc(projects)}',${remaining.toFixed(2)})" style="background:#f59e0b;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer">✅ اعتماد</button>`:'-'}</td>
+            <td class="p-3" style="display:none">${remaining>0?`<button onclick="approveInvestorDistribution('${esc(inv.name)}','${esc(projects)}',${remaining.toFixed(2)})" style="background:#f59e0b;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer">✅ اعتماد</button>`:'-'}</td>
         </tr>`;
     }).filter(Boolean);
     tbody.innerHTML = rows.length
