@@ -272,6 +272,20 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
 #installBtn{background:var(--gold) !important;color:#1b1206 !important}
 /* الطباعة: نرجع الألوان العادية */
 @media print{aside#sidebar{display:none !important}html{font-size:16px}}
+
+/* خط أكبر وأغمق في كل البرنامج (طلب محمد 2026-11-06) */
+main{color:#0f172a}
+main td,main th,main label,main input,main select,main textarea,main p,main li,main span{font-weight:600}
+main th{font-weight:800}
+main .font-bold,main b,main strong{font-weight:800 !important}
+main .text-xs{font-size:.84rem !important;line-height:1.15rem}
+main .text-sm{font-size:.95rem !important;line-height:1.35rem}
+main .text-\[10px\],main .text-\[10\.5px\],main .text-\[11px\]{font-size:12.5px !important}
+main .text-slate-300,main .text-slate-400{color:#475569 !important}
+main .text-slate-500,main .text-slate-600{color:#334155 !important}
+main .text-slate-700,main .text-slate-800{color:#0f172a !important}
+main .text-gray-400,main .text-gray-500,main .text-gray-600{color:#334155 !important}
+aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
 </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col">
