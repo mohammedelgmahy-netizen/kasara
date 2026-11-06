@@ -4621,6 +4621,14 @@ function plRevenueTotal(projectFilter, from, to){
     const other = (db.expensesData||[]).filter(x=>x.category==='إيراد' && !x.tipDeposit && !x.saleId && inP(x.date)).reduce((a,x)=>a+(Number(x.total)||0),0);
     return plBonsRevenue(projectFilter, from, to) + other;
 }
+// جرد المخزون الفعلي (سولار في التنك + سن في المشون): آخر جرد تاريخه ≤ d هو اللي بيتحسب في الميزانية وقائمة الدخل
+function stockCountAt(d){
+    const C=(db.stockCounts||[]).filter(x=>x && x.date && (!d || x.date<=d));
+    if(!C.length) return null;
+    const last=C.map(x=>x.date).sort().pop();
+    const items=C.filter(x=>x.date===last);
+    return { date:last, items, total:items.reduce((a,x)=>a+(Number(x.value)||0),0) };
+}
 function computePL(projectFilter, dateFrom, dateTo){
     const matchProj = rec => projectFilter==='ALL'||!projectFilter||rec.project===projectFilter;
     const matchDate = rec => (!dateFrom||(rec.date||'')>=dateFrom) && (!dateTo||(rec.date||'')<=dateTo);
@@ -4660,6 +4668,7 @@ function computePL(projectFilter, dateFrom, dateTo){
     // المخزون: اللي لسه في المخزن آخر المدة مش تكلفة — وأول المدة بيتضاف (بمتوسط سعر الشراء)
     const stockValueAt = (d) => {   // قيمة المخزون في آخر يوم d (أو قبل أي حاجة لو d فاضي = صفر)
         if(d==null) return 0;
+        const cnt = stockCountAt(d); if(cnt) return cnt.total; // جرد فعلي متسجل → هو المعتمد
         const items = {};
         const stockItems = new Set((db.supplies||[]).map(x=>x.name));
         (db.procurements||[]).filter(p=>(!d || (p.date||'')<=d) && stockItems.has(p.item)).forEach(p=>{ const o = items[p.item] || (items[p.item]={q:0,v:0,bq:0}); o.q += Number(p.qty)||0; o.bq += Number(p.qty)||0; o.v += (Number(p.qty)||0)*(Number(p.price)||0); });
@@ -5039,8 +5048,9 @@ function balanceSheetData(D){
     (db.clients||[]).forEach(c=>{ let b=0; try{ getClientAccountRowsAll(c.name).forEach(r=>{ if(le(r.date)) b+=(r.debit||0)-(r.credit||0); }); }catch(e){} if(b>0) rec+=b; else adv-=b; });
     if(Math.round(rec)) A.push({g:'العملاء', name:'مستحقات على العملاء', v:rec});
     // المخزون (بمتوسط سعر الشراء)
+    const _cnt=stockCountAt(D||''); if(_cnt){ _cnt.items.forEach(it=>A.push({g:'المخزون', name:'مخزون '+it.item+' (جرد '+_cnt.date+': '+Number(it.qty||0).toLocaleString('ar-EG')+' '+(it.unit||'')+')', v:Number(it.value)||0})); } else {
     let inv=0; (db.supplies||[]).forEach(x=>{ try{ const q=itemStockBalance(x.name).balance; if(q<=0) return; const P=(db.procurements||[]).filter(p=>p.item===x.name); const qq=P.reduce((a,p)=>a+(Number(p.qty)||0),0); const avg=qq?P.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0)/qq:0; inv+=q*avg; }catch(e){} });
-    if(Math.round(inv)) A.push({g:'المخزون', name:'مخزون الأصناف (سولار وغيره)', v:inv});
+    if(Math.round(inv)) A.push({g:'المخزون', name:'مخزون الأصناف (سولار وغيره)', v:inv}); }
     // مستحقات على أصحاب المعدات
     try{ let eq=0; Object.entries(equipmentDebtBalances()).filter(([k])=>!k.startsWith('contractor::')).forEach(([,t])=>{ const b=(t.supplied||0)-(t.repaid||0); if(b>0) eq+=b; }); if(Math.round(eq)) A.push({g:'مستحقات أخرى', name:'مستحقات على أصحاب المعدات', v:eq}); }catch(e){}
     // المقاولين
