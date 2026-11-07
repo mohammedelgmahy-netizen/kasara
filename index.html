@@ -399,7 +399,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
             <button onclick="switchTab('expenses')" id="btn-expenses" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
                 <i class="fa-solid fa-money-bill-wave nav-ic" style="--c:#10b981"></i><span>المصروفات</span>
             </button>
-            <button onclick="switchTab('commission')" id="btn-commission" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
+            <button onclick="switchTab('commission')" id="btn-commission" style="display:none" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
                 <i class="fa-solid fa-handshake nav-ic" style="--c:#f59e0b"></i><span>العمولة</span>
             </button>
                                     <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-4 mb-1 px-3">الدفاتر والتقارير</p>
@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 250.4</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 250.5</span></p></div>
         </div>
     </aside>
 
@@ -2793,7 +2793,7 @@ function applyTabVisibility(){
     const isUser = currentRole==='user' || (currentRole==='viewer' && !!SUPABASE_URL);
     document.querySelectorAll('aside#sidebar .tab-btn').forEach(b=>{
         const t = b.id.replace('btn-','');
-        if(t==='cashday'||t==='audit'||t==='collections') return;
+        if(t==='cashday'||t==='audit'||t==='collections') return; if(t==='commission'){ b.style.display='none'; return; } // تاب العمولة اتشال (محمد 2026-11-07)
         b.style.display = (t==='users' ? currentRole==='admin' : (!isUser || tabPerm(t)!=='none')) ? '' : 'none';
     });
     const ub = document.getElementById('users-btn'); if(ub) ub.style.display = currentRole==='admin' ? '' : 'none';
@@ -2860,7 +2860,7 @@ const USERS_KEY = 'kasara-users';
 let __users = [];
 const PERM_GROUPS = [
     ['المتابعة', ['dashboard','masterdata']],
-    ['تسجيل يومي', ['purchases','dailylog','extracts','collections','inventory','equipment','incomes','payroll','expenses','commission']],
+    ['تسجيل يومي', ['purchases','dailylog','extracts','collections','inventory','equipment','incomes','payroll','expenses']],
     ['الدفاتر والتقارير', ['treasury','pl','bs','ledger','investors']]
 ];
 const permLabel = t => (PERM_TABS.find(x=>x[0]===t)||[t,t])[1];
@@ -4267,8 +4267,8 @@ function renderSupplierAccounts(){
    متسجلة في expensesData تحت بند "عمولة جلب عملاء" (مصروف تسويق وبيع):
    commission:'accrual' = عمولة مستحقة (total=القيمة، paid=0) — commission:'pay' = صرف (total=0، paid=المبلغ)
    فقائمة الدخل بتاخد العمولة، والخزينة بتاخد الصرف، والميزانية بتطلع الباقي "مصروفات مستحقة". */
-const COM_CAT='عمولة جلب عملاء', COM_PERSON='عماد ناجي';
-function ensureComCat(){ if(!(db.expenses||[]).some(c=>c.name===COM_CAT)) db.expenses.push({code:nextCode('expenses'), name:COM_CAT, plType:'operating', plBucket:'selling', nameType:'none'}); }
+const COM_CAT='أتعاب إدارة — عماد ناجي', COM_PERSON='عماد ناجي'; // كانت «عمولة جلب عملاء» — محمد 2026-11-07: مصروف إدارة، والتاب اتشال
+function ensureComCat(){ if(!(db.expenses||[]).some(c=>c.name===COM_CAT)) db.expenses.push({code:nextCode('expenses'), name:COM_CAT, plType:'operating', plBucket:'admin', nameType:'none'}); }
 function comCalc(){ const q=Number(document.getElementById('com-qty').value)||0, r=Number(document.getElementById('com-rate').value)||0; document.getElementById('com-amount').textContent=fmt(q*r); }
 function comRows(){ return (db.expensesData||[]).filter(x=>x.category===COM_CAT).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.commission==='pay')-(b.commission==='pay')); }
 function addCommission(e){ e.preventDefault(); ensureComCat();
@@ -5084,7 +5084,7 @@ function balanceSheetData(D){
     if(Math.round(ctrOwe)) L.push({name:'مستحقات المقاولين', v:ctrOwe});
     if(Math.round(adv)) L.push({name:'دفعات مقدمة من العملاء', v:adv});
     // مصروفات مستحقة لسه ماتدفعتش (قيمة المصروف − المدفوع منه) — زي عمولة جلب العملاء
-    try{ let acc=0; (db.expensesData||[]).filter(x=>le(x.date) && !x.tipDeposit).forEach(x=>{ const c=(db.expenses||[]).find(e=>e.name===x.category); if(!c || c.nameType==='contractors' || c.plType==='revenue' || x.category==='إيراد') return; acc+=(Number(x.total)||0)-(Number(x.paid)||0); }); if(Math.round(acc)>0) L.push({name:'مصروفات مستحقة (لم تُدفع)', v:acc}); else if(Math.round(acc)<0) A.push({g:'مستحقات أخرى', name:'مصروفات مدفوعة مقدماً', v:-acc}); }catch(e){}
+    try{ let acc=0, accM=0; (db.expensesData||[]).filter(x=>le(x.date) && !x.tipDeposit).forEach(x=>{ const c=(db.expenses||[]).find(e=>e.name===x.category); if(!c || c.nameType==='contractors' || c.plType==='revenue' || x.category==='إيراد') return; const rem=(Number(x.total)||0)-(Number(x.paid)||0); if(x.category===COM_CAT) accM+=rem; else acc+=rem; }); if(Math.round(accM)) L.push({name:'أتعاب إدارة مستحقة — عماد ناجي', v:accM}); if(Math.round(acc)>0) L.push({name:'مصروفات مستحقة (لم تُدفع)', v:acc}); else if(Math.round(acc)<0) A.push({g:'مستحقات أخرى', name:'مصروفات مدفوعة مقدماً', v:-acc}); }catch(e){}
     const __capE=[]; // سلف شريك اتعتبرت رأس مال (مش دين على الكسارة)
     try{ const s0=db.sariSettings||{}; const bals={'عماد ناجي':Number(s0.loanOpening)||0}; (db.ownerLoans||[]).filter(l=>le(l.date)).forEach(l=>{ const w=loanLender(l); bals[w]=(bals[w]||0)+(l.type==='in'?1:-1)*(Number(l.amount)||0); }); const capL=db.capitalLenders||[]; Object.entries(bals).forEach(([w,v])=>{ if(!Math.round(v)) return; if(capL.includes(w)) __capE.push({name:'رأس مال '+w+' (باقي حصته في شراء الكسارة)', v}); else L.push({name:'قروض / جاري '+w, v}); }); }catch(e){}
     // حقوق الملكية
@@ -10175,7 +10175,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 250.4';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 250.5';
 
     /* تنبيهات */
     const alerts=[];
