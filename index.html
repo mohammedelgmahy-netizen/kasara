@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 253.7</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 253.8</span></p></div>
         </div>
     </aside>
 
@@ -1571,6 +1571,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
                         <button type="button" onclick="shareCard('acct-card','كشف حساب '+(document.getElementById('acct-name').value||''))" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i><span>واتساب</span></button>
                         <button onclick="printSection('acct-card')" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة الكشف</span></button>
                         <button onclick="exportAccountStatementExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
+                        <button id="cst-save-btn" onclick="saveClientStmt()" class="bg-indigo-700 hover:bg-indigo-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-floppy-disk"></i><span>حفظ الكشف</span></button>
                     </div>
                 </div>
                 <div id="acct-title" class="font-bold text-slate-800 mb-1"></div>
@@ -1586,6 +1587,10 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
                         <tfoot id="tfoot-acct"></tfoot>
                     </table>
                 </div>
+            </div>
+            <div id="cst-card" class="bg-white rounded-xl border border-cyan-200 shadow-sm overflow-hidden">
+                <div class="px-4 pt-3 pb-2 flex flex-wrap items-center gap-2 bg-cyan-50 border-b border-cyan-100"><span class="text-xs font-bold text-slate-700">كشوفات العملاء المحفوظة:</span><select id="cst-filter" onchange="renderClientStmts()" class="bg-white border border-cyan-200 rounded px-2 py-1 text-xs font-bold min-w-[10rem]"><option value="">كل العملاء</option></select><input id="cst-search" type="search" oninput="renderClientStmts()" placeholder="🔍 بحث: اسم أو تاريخ (مثلاً 22/10)" class="bg-white border border-cyan-200 rounded px-2 py-1 text-xs flex-1 min-w-[10rem]"></div>
+                <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100"><tr><th class="p-2">التاريخ</th><th class="p-2">العميل</th><th class="p-2">الفترة</th><th class="p-2">البونات</th><th class="p-2">السن</th><th class="p-2">المطلوب</th><th class="p-2">المحصّل</th><th class="p-2">الرصيد</th><th class="p-2"></th></tr></thead><tbody id="tbody-cst"></tbody></table></div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -3364,7 +3369,7 @@ function switchTab(tabId){
     if(tabId==='fleet'){ renderVehicles(); renderTrips(); }
     if(tabId==='masterdata'){ try{ renderMasterData(); }catch(e){} try{ renderVehicles(); }catch(e){} try{ renderSitesCard(); }catch(e){} }
     if(tabId==='audit'){ renderAuditLog(); }
-    if(tabId==='ledger'){ renderAccounts(); try{ renderSupplierStmt(); }catch(e){} try{ renderContractorStmt(); }catch(e){} try{ fillEquipSelects(); renderEqStatement(); }catch(e){} }
+    if(tabId==='ledger'){ renderAccounts(); try{ renderClientStmts(); }catch(e){} try{ renderSupplierStmt(); }catch(e){} try{ renderContractorStmt(); }catch(e){} try{ fillEquipSelects(); renderEqStatement(); }catch(e){} }
     if(tabId==='balance'){ renderTrialBalance(); }
     if(tabId==='investors'){ renderAllProjectProfits(); }
     try{ applyRolePermissions(); }catch(e){}
@@ -4935,6 +4940,7 @@ function renderAccountStatement(){
         return;
     }
     const sheetEl=document.getElementById('acct-sheet'), wrapEl=document.getElementById('acct-table-wrap');
+    { const sb=document.getElementById('cst-save-btn'); if(sb) sb.style.display = type==='client' ? '' : 'none'; }
     if(type==='client'){
         if(!__acctWeekInit){ __acctWeekInit=true; const a=document.getElementById('acct-from'), b=document.getElementById('acct-to'); if(a && b && !a.value && !b.value){ const [f,t]=acctWeekRange(0); a.value=f; b.value=t; } }
         titleEl.textContent=''; legendEl.textContent=''; sumEl.innerHTML=''; foot.innerHTML=''; tbody.innerHTML='';
@@ -5033,6 +5039,55 @@ function clientSheetHtml(name){
       <table style="width:100%;border-collapse:collapse">${head}${rows.join('')}${totRow}${priceRow}${amtRow}</table>
       <div style="height:14px"></div>
       <table style="width:100%;border-collapse:collapse">${sum}</table></div>`;
+}
+
+/* ---------- كشوفات العملاء المحفوظة: زي المستخلص، بالأسبوع، تتحفظ وتفتح تاني (محمد 2026-11-07) ---------- */
+function withAcctRange(from, to, fn){ const f=document.getElementById('acct-from'), t=document.getElementById('acct-to'); const fv=f?f.value:'', tv=t?t.value:''; if(f) f.value=from||''; if(t) t.value=to||''; try{ return fn(); } finally{ if(f) f.value=fv; if(t) t.value=tv; } }
+function clientStmtSnap(name, from, to){ return withAcctRange(from, to, ()=>{ const D=clientSheetData(name); const bons=clientBons(name, from, to); const sin=bons.reduce((a,r)=>a+pureSinQ(r.q),0), qty=bons.reduce((a,r)=>a+bonQtyTotal(r),0); const req=D.bonsTotal+D.otherDebit+D.prev, col=D.credits.reduce((a,c)=>a+c.credit,0); return {n:D.n, sin, qty, req:D.bonsTotal+D.otherDebit, prev:D.prev, col, bal:req-col}; }); }
+function saveClientStmt(){
+    if(isRO()) return;
+    const g=id=>document.getElementById(id); if(g('acct-type').value!=='client') return;
+    const name=g('acct-name').value, from=g('acct-from').value, to=g('acct-to').value;
+    if(!name){ alert('اختار العميل'); return; } if(!from || !to){ alert('اكتب من وإلى'); return; }
+    if(!db.clientStmts) db.clientStmts=[];
+    const dup=db.clientStmts.find(x=>x.name===name && x.from<=to && x.to>=from);
+    if(dup){ alert(`الكشف ده متحفظ قبل كده: ${name} من ${dmy(dup.from)} إلى ${dmy(dup.to)}.\nمش هيتحفظ تاني.`); try{ openClientStmtView(dup.id); }catch(e){} return; }
+    const S=clientStmtSnap(name, from, to);
+    const rec={id:String(newId()), name, from, to, date:todayISO(), n:S.n, sin:Math.round(S.sin*100)/100, qty:Math.round(S.qty*100)/100, req:Math.round(S.req), col:Math.round(S.col), bal:Math.round(S.bal)};
+    db.clientStmts.push(rec); logAudit('create','كشف حساب عميل',`${name} ${dmy(from)}→${dmy(to)}`,null,rec);
+    scheduleSave(); renderClientStmts(); try{ openClientStmtView(rec.id); }catch(e){}
+}
+function deleteClientStmt(id){
+    if(isRO()) return;
+    const old=(db.clientStmts||[]).find(x=>x.id===id); if(!old || !confirm(`تحذف كشف ${old.name} (${dmy(old.from)} → ${dmy(old.to)})؟`)) return;
+    db.clientStmts=db.clientStmts.filter(x=>x.id!==id); logAudit('delete','كشف حساب عميل',old.name,old,null);
+    scheduleSave(); renderClientStmts();
+}
+function renderClientStmts(){
+    const tb=document.getElementById('tbody-cst'); if(!tb) return;
+    const fs=document.getElementById('cst-filter'), fv=fs?fs.value:'';
+    const A=db.clientStmts||[];
+    if(fs){ const N=[...new Set(A.map(x=>x.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar')); fs.innerHTML='<option value="">كل العملاء</option>'+N.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join(''); fs.value=N.includes(fv)?fv:''; }
+    const qv=String(document.getElementById('cst-search')?.value||'').trim().replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+    const qm=x=>!qv || [x.name, dmy(x.date), dmy(x.from), dmy(x.to)].join(' ').includes(qv) || [dmy(x.date),dmy(x.from),dmy(x.to)].some(d=>String(d||'').replace(/\b0(\d)/g,'$1').includes(qv.replace(/\b0(\d)/g,'$1')));
+    const XA=A.filter(x=>(!fs||!fs.value||x.name===fs.value) && qm(x)).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.to||'').localeCompare(a.to||''));
+    const LIM=10, cut=!qv && !(fs&&fs.value) && XA.length>LIM, X=cut?XA.slice(0,LIM):XA;
+    tb.innerHTML=(X.length ? X.map(x=>`<tr class="border-b border-slate-50 cursor-pointer hover:bg-cyan-50" onclick="openClientStmtView('${x.id}')"><td class="p-2 text-xs">${dmy(x.date)}</td><td class="p-2 font-bold">${esc(x.name)}</td><td class="p-2 text-xs">${dmy(x.from)} → ${dmy(x.to)}</td><td class="p-2">${nfmt(x.n)}</td><td class="p-2">${nfmt(x.sin)}</td><td class="p-2">${mfmt(x.req)}</td><td class="p-2 text-emerald-700">${mfmt(x.col)}</td><td class="p-2 font-extrabold ${x.bal>0?'text-rose-700':'text-emerald-700'}">${mfmt(Math.abs(x.bal))} <span class="text-xs">${x.bal>0?'عليه':x.bal<0?'ليه':''}</span></td><td class="p-2"><button onclick="event.stopPropagation();deleteClientStmt('${x.id}')" class="text-rose-600 text-xs">🗑</button></td></tr>`).join('')
+        : `<tr><td colspan="9" class="p-3 text-center text-slate-400">${A.length?'مفيش كشوفات بالبحث ده':'لسه مفيش كشوفات محفوظة — اختار العميل والأسبوع فوق ودوس «حفظ الكشف»'}</td></tr>`)
+        + (cut?`<tr><td colspan="9" class="p-3 text-center text-slate-500 text-xs font-bold">ظاهر آخر ${LIM} كشوفات بس من ${XA.length} — اكتب اسم العميل أو التاريخ في البحث عشان تلاقي الأقدم</td></tr>`:'');
+}
+function openClientStmtView(id){
+    const x=(db.clientStmts||[]).find(r=>String(r.id)===String(id)); if(!x) return;
+    const body=withAcctRange(x.from, x.to, ()=>clientSheetHtml(x.name));
+    document.getElementById('cstv-modal')?.remove();
+    const m=document.createElement('div'); m.id='cstv-modal';
+    m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:12px';
+    m.onclick=e=>{ if(e.target===m) m.remove(); };
+    m.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:14px;max-width:760px;width:100%;padding:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap"><b style="font-size:16px">${esc(x.name)} — من ${dmy(x.from)} إلى ${dmy(x.to)}</b>
+        <span style="display:flex;gap:6px"><button onclick="shareCard('cstv-body','كشف حساب '+${JSON.stringify(x.name).replace(/"/g,'&quot;')})" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px"><i class="fa-brands fa-whatsapp"></i> واتساب</button><button onclick="printHtml(document.getElementById('cstv-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="document.getElementById('cstv-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✕</button></span></div>
+        <div id="cstv-body" style="overflow-x:auto;background:#fff;padding:6px">${body}</div></div>`;
+    document.body.appendChild(m);
 }
 
 /* ================= الميزانية العمومية (قائمة المركز المالي) =================
@@ -10228,7 +10283,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 253.7';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 253.8';
 
     /* تنبيهات */
     const alerts=[];
