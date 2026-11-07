@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 251.4</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 251.5</span></p></div>
         </div>
     </aside>
 
@@ -9083,7 +9083,7 @@ function renderWeeklyReport(){
             <td class="p-2 text-emerald-700 font-bold">${cr?mfmt(cr):'—'}</td><td class="p-2 text-rose-700 font-bold">${dr?mfmt(dr):'—'}</td><td class="p-2 font-bold ${cr-dr<0?'text-rose-700':''}" dir="ltr">${mfmt(cr-dr)}</td>
             <td class="p-2 font-extrabold ${cl<0?'text-rose-700':'text-emerald-700'}" dir="ltr">${mfmt(cl)} <span class="text-xs">${cl<0?'عليه':'ليه'}</span></td></tr>`;
     }).filter(Boolean);
-    tb.innerHTML = rows.length ? rows.join('') + `<tr class="bg-slate-100 font-bold"><td class="p-2">الإجمالي</td><td class="p-2" dir="ltr">${mfmt(T.op)}</td><td></td><td></td><td class="p-2">${mfmt(T.cr)}</td><td class="p-2">${mfmt(T.dr)}</td><td class="p-2" dir="ltr">${mfmt(T.cr-T.dr)}</td><td class="p-2" dir="ltr">${mfmt(T.cl)}</td></tr>`
+    tb.innerHTML = rows.length ? rows.join('') + `<tr class="bg-slate-100 font-bold"><td class="p-2">الإجمالي</td><td class="p-2" dir="ltr">${mfmt(T.op)}</td><td class="p-2">${T.sin?nfmt(T.sin):''}</td><td class="rate-col"></td><td class="p-2">${mfmt(T.cr)}</td><td class="p-2">${mfmt(T.dr)}</td><td class="p-2" dir="ltr">${mfmt(T.cr-T.dr)}</td><td class="p-2" dir="ltr">${mfmt(T.cl)}</td></tr>`
         : '<tr><td colspan="8" class="p-4 text-center text-slate-400">مفيش حركات في الأسبوع ده</td></tr>';
 }
 function addCtrEstimate(){
@@ -10195,7 +10195,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 251.4';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 251.5';
 
     /* تنبيهات */
     const alerts=[];
