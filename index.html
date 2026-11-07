@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 251.0</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 251.2</span></p></div>
         </div>
     </aside>
 
@@ -9261,15 +9261,16 @@ function dlViewLabel(){
 function repHeadTxt(title, sub){
     return `<div class="rep-head"><div style="display:flex;align-items:center;gap:10px"><img src="${brandLogoSrc()}" alt=""><div><div style="font-weight:800;font-size:17px">${siteName()}</div><div style="font-size:11px;color:#555">${title}</div></div></div><div style="font-weight:800">${sub||''}</div></div>`;
 }
-function bonsTableHtml(rows, withNet){
+function bonsTableHtml(rows, withNet, compact){
+    const SZ = compact ? DL_SIZES.filter(s=>rows.some(r=>Number((r.q||{})[s.key])||0)) : DL_SIZES;
     const sums = {}; DL_SIZES.forEach(s=>sums[s.key]=0); let net = 0;
     const body = rows.map((r,i)=>{ DL_SIZES.forEach(s=>sums[s.key]+=Number((r.q||{})[s.key])||0); const ns = bonNetSin(r); net += ns;
         return `<tr><td>${i+1}</td><td>${dmy(r.date)}</td><td>${esc(r.bon||'-')}</td><td>${esc(r.client||'')}</td><td>${esc(r.tractor||'')}</td><td>${esc(r.trailer||'')}</td>
-        ${DL_SIZES.map(s=>`<td>${(r.q||{})[s.key]?nfmt(r.q[s.key]):''}${s.key==='tabaqa'&&r.tabaqaPct&&(r.q||{}).tabaqa?` (${r.tabaqaPct}%)`:''}</td>`).join('')}
+        ${SZ.map(s=>`<td>${(r.q||{})[s.key]?nfmt(r.q[s.key]):''}${s.key==='tabaqa'&&r.tabaqaPct&&(r.q||{}).tabaqa?` (${r.tabaqaPct}%)`:''}</td>`).join('')}
         ${withNet?`<td>${ns?nfmt(ns):''}</td>`:`<td>${esc(r.worker||'')}</td>`}</tr>`; }).join('');
-    return `<table class="rep-tbl"><thead><tr><th>م</th><th>التاريخ</th><th>البون</th><th>العميل</th><th>الجرار</th><th>المقطورة</th>${DL_SIZES.map(s=>`<th>${s.label}</th>`).join('')}<th>${withNet?'صافي السن':'الشغل تبع'}</th></tr></thead>
-        <tbody>${body || `<tr><td colspan="${7+DL_SIZES.length}" style="text-align:center">مفيش بونات</td></tr>`}</tbody>
-        ${rows.length?`<tfoot><tr><td colspan="6">الإجمالي (${rows.length} بون)</td>${DL_SIZES.map(s=>`<td>${nfmt(sums[s.key])}${s.key==='tabaqa'?`<div style="border-top:1px solid #333;margin-top:3px;padding-top:3px;font-size:11px">إجمالي الكمية (سن + طبقة)<br><b style="font-size:13px">${nfmt(DL_SIZES.reduce((a,x)=>a+(sums[x.key]||0),0))}</b></div>`:''}</td>`).join('')}<td>${withNet?nfmt(net):`<div style="font-size:11px">صافي السن</div><b style="font-size:13px">${nfmt(net)}</b>`}</td></tr></tfoot>`:''}</table>`;
+    return `<table class="rep-tbl"><thead><tr><th>م</th><th>التاريخ</th><th>البون</th><th>العميل</th><th>الجرار</th><th>المقطورة</th>${SZ.map(s=>`<th>${s.label}</th>`).join('')}<th>${withNet?'صافي السن':'الشغل تبع'}</th></tr></thead>
+        <tbody>${body || `<tr><td colspan="${7+SZ.length}" style="text-align:center">مفيش بونات</td></tr>`}</tbody>
+        ${rows.length?`<tfoot><tr><td colspan="6">الإجمالي (${rows.length} بون)</td>${SZ.map(s=>`<td>${nfmt(sums[s.key])}${(compact?s===SZ[SZ.length-1]:s.key==='tabaqa')?`<div style="border-top:1px solid #333;margin-top:3px;padding-top:3px;font-size:11px">إجمالي الكمية (سن + طبقة)<br><b style="font-size:13px">${nfmt(DL_SIZES.reduce((a,x)=>a+(sums[x.key]||0),0))}</b></div>`:''}</td>`).join('')}<td>${withNet?nfmt(net):`<div style="font-size:11px">صافي السن</div><b style="font-size:13px">${nfmt(net)}</b>`}</td></tr></tfoot>`:''}</table>`;
 }
 async function htmlToFiles(sections){
     await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
@@ -9324,7 +9325,8 @@ function printSinOnly(){
             const ds=Object.keys(D).sort(); return '<div style="font-weight:800;margin:14px 0 6px">كمية السن اليومية</div><table class="rep-tbl"><thead><tr><th>اليوم</th><th>التاريخ</th><th>عدد البونات</th><th>صافي السن (متر)</th></tr></thead><tbody>'
             + ds.map(d=>`<tr><td>${dayNameAr(d)}</td><td>${dmy(d)}</td><td>${D[d].n}</td><td>${nfmt(Math.round(D[d].v*100)/100)}</td></tr>`).join('')
             + `<tr style="font-weight:800;background:#fef3c7"><td colspan="2">الإجمالي (${ds.length} يوم)</td><td>${rows.length}</td><td>${nfmt(Math.round((pure+tabSin)*100)/100)}</td></tr></tbody></table>`; })()}
-        ${rows.length ? '<div style="font-weight:800;margin:14px 0 6px">تفاصيل البونات</div>'+bonsTableHtml(rows,false) : ''}</div>`);
+        ${rows.length ? '<div style="font-weight:800;margin:14px 0 6px">تفاصيل البونات (كل يوم لوحده)</div>' + [...new Set(rows.map(r=>r.date))].sort().map(d=>{ const dr=rows.filter(r=>r.date===d); const nv=dr.reduce((a,r)=>{ const q=r.q||{}; return a+pureSinQ(q)+(Number(q.tabaqa)||0)*(Number(r.tabaqaPct)||0)/100; },0);
+            return `<div style="break-inside:avoid-page;margin-top:12px"><div style="font-weight:800;background:#fef3c7;border:1px solid #333;padding:6px 10px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><span>${dayNameAr(d)} ${dmy(d)}</span><span>عدد البونات: ${dr.length}</span><span>صافي السن: ${nfmt(Math.round(nv*100)/100)}</span></div>${bonsTableHtml(dr,false,true)}</div>`; }).join('') : ''}</div>`);
 }
 function printExtractFull(id){
     const x = (db.equipExtracts||[]).find(r=>r.id===id); if(!x) return;
@@ -10189,7 +10191,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 251.0';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 251.2';
 
     /* تنبيهات */
     const alerts=[];
