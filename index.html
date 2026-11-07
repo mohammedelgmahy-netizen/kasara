@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 253.2</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 253.3</span></p></div>
         </div>
     </aside>
 
@@ -1273,7 +1273,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
                 <div class="px-4 pt-2 pb-2 flex flex-wrap items-center gap-2 border-t border-indigo-100"><span class="text-xs font-bold text-slate-600">المستخلصات المحفوظة:</span><select id="cx-filter" onchange="renderCtrExtracts()" class="bg-white border border-indigo-200 rounded px-2 py-1 text-xs font-bold min-w-[10rem]"><option value="">كل المقاولين</option></select><input id="cx-search" type="search" oninput="renderCtrExtracts()" placeholder="🔍 بحث: اسم أو تاريخ (مثلاً 22/10)" class="bg-white border border-indigo-200 rounded px-2 py-1 text-xs flex-1 min-w-[10rem]"></div>
                 <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100"><tr><th class="p-2">التاريخ</th><th class="p-2">يتحاسب مع</th><th class="p-2">المعدة</th><th class="p-2">الفترة</th><th class="p-2">الأمتار</th><th class="p-2 rate-col">السعر</th><th class="p-2">المبلغ</th><th class="p-2">ملاحظات</th><th class="p-2"></th></tr></thead><tbody id="tbody-cx"></tbody></table></div>
             </div>
-            <div id="ctr-stmt-card" class="bg-white rounded-xl border border-violet-200 shadow-sm overflow-hidden">
+            <div id="ctr-stmt-card" class="bg-white rounded-xl border border-violet-200 shadow-sm overflow-hidden" style="display:none"><!-- اتشال من الشاشة بطلب محمد 2026-11-07: الكشف بيظهر لما تدوس على المستخلص -->
                 <div class="p-4 border-b border-violet-100 bg-violet-50 flex flex-wrap items-center gap-2">
                     <h3 class="font-bold text-slate-900 ml-2">📒 حساب المقاول</h3>
                     <select id="cs2-name" onchange="renderContractorStmt()" class="bg-white border border-violet-200 rounded px-2 py-1 text-xs font-bold min-w-[10rem]"></select>
@@ -8215,7 +8215,7 @@ document.addEventListener('DOMContentLoaded',()=>{ const L=document.getElementBy
 function qsGo(kind, v){
     const g=id=>document.getElementById(id);
     if(kind==='client'){ switchTab('ledger'); setTimeout(()=>{ try{ g('acct-type').value='client'; onAcctTypeChange(); g('acct-name').value=v; renderAccountStatement(); }catch(e){} },50); }
-    else if(kind==='ctr'){ switchTab('extracts'); setTimeout(()=>{ try{ renderContractorStmt(); g('cs2-name').value=v; renderContractorStmt(); g('ctr-stmt-card').scrollIntoView({behavior:'smooth'}); }catch(e){} },50); }
+    else if(kind==='ctr'){ switchTab('extracts'); setTimeout(()=>{ try{ const f=g('cx-filter'); renderCtrExtracts(); if(f){ f.value=v; renderCtrExtracts(); } g('cx-card').scrollIntoView({behavior:'smooth'}); }catch(e){} },50); }
     else if(kind==='bon'){ switchTab('dailylog'); setTimeout(()=>{ try{ g('dl-view-mode').value='DAY'; g('dl-view-date').value=v; dlModeChanged(); }catch(e){} },50); }
 }
 
@@ -10218,7 +10218,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 253.2';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 253.3';
 
     /* تنبيهات */
     const alerts=[];
