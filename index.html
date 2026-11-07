@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 252.4</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 252.5</span></p></div>
         </div>
     </aside>
 
@@ -1259,9 +1259,9 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
                 <div class="p-4 border-b border-indigo-100 bg-indigo-50 flex flex-wrap items-center justify-between gap-2">
                     <h3 class="font-bold text-slate-900">🗓️ التقرير الأسبوعي للمستخلصات</h3>
                     <div class="flex items-center gap-1 pl-no-print-hide">
-                        <button type="button" onclick="weekShift(-7)" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs font-bold">▶</button>
+                        <button type="button" onclick="weekShift(-7)" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs font-bold">▶ أقدم</button>
                         <input id="wk-from" type="date" onchange="renderWeeklyReport()" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs">
-                        <button type="button" onclick="weekShift(7)" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs font-bold">◀</button>
+                        <button type="button" onclick="weekShift(7)" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs font-bold">أحدث ◀</button>
                         <button type="button" onclick="shareCard('week-card','التقرير الأسبوعي')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-bold"><i class="fa-brands fa-whatsapp"></i> واتساب</button>
                         <button onclick="printSection('week-card')" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1 rounded text-xs font-bold mr-1">🖨️ طباعة</button>
                     </div>
@@ -9130,8 +9130,8 @@ function equipAcctHtml(name, from, to, auto){
     }).filter(Boolean);
     const sum=(L,label)=>{ const t={e:label, q:0, cr:0, dr:0, it:{}}; items.forEach(it=>t.it[it]={q:0,v:0}); L.forEach(r=>{ t.q+=r.q; t.cr+=r.cr; t.dr+=r.dr; items.forEach(it=>{ t.it[it].q+=r.it[it].q; t.it[it].v+=r.it[it].v; }); }); return t; };
     const row=(r,cls)=>{ const cells=items.map(it=>{ const o=r.it[it]; return `<td class="p-2">${o.v?`${mfmt(o.v)}<div class="text-[10px] text-slate-500">${nfmt(o.q)} ${esc(unit[it])}</div>`:'—'}</td>`; }).join('');
-        if(auto) return `<tr class="${cls}"><td class="p-2 font-bold">${esc(r.e)}</td>${cells}<td class="p-2 text-rose-700 font-bold">${r.dr?mfmt(r.dr):'—'}</td></tr>`;
-        return `<tr class="${cls}"><td class="p-2 font-bold">${esc(r.e)}</td><td class="p-2">${r.q?nfmt(r.q):'—'}</td><td class="p-2 text-emerald-700 font-bold">${r.cr?mfmt(r.cr):'—'}</td>${cells}<td class="p-2 text-rose-700 font-bold">${r.dr?mfmt(r.dr):'—'}</td><td class="p-2 font-extrabold ${r.cr-r.dr>=0?'text-emerald-800':'text-rose-800'}">${mfmt(r.cr-r.dr)}</td></tr>`; };
+        if(auto) return `<tr class="${cls}"><td class="p-2 font-bold">${esc(r.e==='بدون معدة'?ctrKind(name):r.e)}</td>${cells}<td class="p-2 text-rose-700 font-bold">${r.dr?mfmt(r.dr):'—'}</td></tr>`;
+        return `<tr class="${cls}"><td class="p-2 font-bold">${esc(r.e==='بدون معدة'?ctrKind(name):r.e)}</td><td class="p-2">${r.q?nfmt(r.q):'—'}</td><td class="p-2 text-emerald-700 font-bold">${r.cr?mfmt(r.cr):'—'}</td>${cells}<td class="p-2 text-rose-700 font-bold">${r.dr?mfmt(r.dr):'—'}</td><td class="p-2 font-extrabold ${r.cr-r.dr>=0?'text-emerald-800':'text-rose-800'}">${mfmt(r.cr-r.dr)}</td></tr>`; };
     const TYPES=['السيارات','اللوادر','الحفارات','معدات أخرى'].filter(t=>R.some(r=>r.type===t));
     const body=TYPES.map(t=>{ const L=R.filter(r=>r.type===t);
         return L.map(r=>row(r,'border-t border-slate-100')).join('') + (TYPES.length>1||L.length>1 ? row(sum(L,'إجمالي '+t),'bg-amber-50/60 border-t border-amber-200 font-extrabold') : '');
@@ -10200,7 +10200,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 252.4';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 252.5';
 
     /* تنبيهات */
     const alerts=[];
