@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 250.6</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 250.7</span></p></div>
         </div>
     </aside>
 
@@ -670,7 +670,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
                             <button type="button" onclick="dlShiftDay(1)" title="اليوم اللي بعده" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs font-bold">◀</button>
                         </span>
                         <select id="dl-days-list" onchange="if(this.value){ document.getElementById('dl-view-mode').value='DAY'; document.getElementById('dl-view-date').value=this.value; dlModeChanged(); }" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs font-bold"></select>
-                        <span id="dl-range-wrap" style="display:none" class="items-center gap-1 text-xs font-bold text-slate-600">من <input id="dl-view-from" type="date" onchange="renderDailyLog()" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs"> إلى <input id="dl-view-to" type="date" onchange="renderDailyLog()" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs"></span>
+                        <span id="dl-range-wrap" style="display:inline-flex" class="items-center gap-1 text-xs font-bold text-slate-600">من <input id="dl-view-from" type="date" onchange="dlRangeChanged()" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs"> إلى <input id="dl-view-to" type="date" onchange="dlRangeChanged()" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs"></span>
                         <select id="dl-filter-client" onchange="renderDailyLog()" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs"></select>
                         <button onclick="printSinBreakdown()" title="طباعة صافي السن" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة</span></button>
                         <button onclick="exportDailyLogExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
@@ -8483,7 +8483,6 @@ function bonOrder(a,b){ return (a.date||'').localeCompare(b.date||'') || (bonNum
 function dlModeChanged(){
     const m = document.getElementById('dl-view-mode').value;
     document.getElementById('dl-day-nav').style.display = m==='DAY' ? 'inline-flex' : 'none';
-    document.getElementById('dl-range-wrap').style.display = m==='RANGE' ? 'inline-flex' : 'none';
     if(m==='RANGE'){
         const f = document.getElementById('dl-view-from'), t = document.getElementById('dl-view-to');
         if(!t.value) t.value = todayISO();
@@ -8491,6 +8490,7 @@ function dlModeChanged(){
     }
     renderDailyLog();
 }
+function dlRangeChanged(){ const m=document.getElementById('dl-view-mode'); if(m && m.value!=='RANGE'){ m.value='RANGE'; document.getElementById('dl-day-nav').style.display='none'; } renderDailyLog(); }
 function dlRows(){
     const mode = document.getElementById('dl-view-mode')?.value || 'DAY';
     const day = document.getElementById('dl-view-date')?.value || todayISO();
@@ -8508,6 +8508,7 @@ function renderDailyLog(){
     try{ renderBatchBtn(); }catch(e){}
     try{ fillDaysList(); }catch(e){}
     const tbody = document.getElementById('tbody-dailylog'); if(!tbody) return;
+    try{ if((document.getElementById('dl-view-mode')?.value||'DAY')==='DAY'){ const dd=document.getElementById('dl-view-date')?.value||todayISO(); document.getElementById('dl-view-from').value=dd; document.getElementById('dl-view-to').value=dd; } }catch(e){}
     const rows = dlRows();
     const mode = document.getElementById('dl-view-mode')?.value || 'DAY';
     const day = document.getElementById('dl-view-date')?.value || todayISO();
@@ -10183,7 +10184,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 250.6';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 250.7';
 
     /* تنبيهات */
     const alerts=[];
