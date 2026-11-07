@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 252.7</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 252.8</span></p></div>
         </div>
     </aside>
 
@@ -3377,7 +3377,7 @@ function switchTab(tabId){
     if(tabId==='sales'){ renderSalesTable(); renderClientSalesAccounts(); renderCollectionsLog(); }
     if(tabId==='inventory'){ renderInventory(); renderStockIssues(); }
     if(tabId==='payroll'){ renderPayrollTab(); }
-    if(tabId==='equipment'){ try{ renderEquipmentTab(); }catch(e){ console.warn(e); } }
+    if(tabId==='equipment'){ try{ renderEquipmentTab(); }catch(e){ console.warn(e); } try{ fillEquipSelects(); renderEqStatement(); }catch(e){} }
     if(tabId==='purchases'){ try{ renderQuickPurchases(); renderPaymentsTable(); renderSupplierStmt(); }catch(e){ console.warn(e); } }
     if(tabId==='production'){ renderProductions(); updateProdTotalPreview(); }
     if(tabId==='fleet'){ renderVehicles(); renderTrips(); }
@@ -6141,7 +6141,7 @@ function renderEquipmentTab(){
     if(window.__eqSel) showEquipDetail(window.__eqSel[0], window.__eqSel[1]); else g('eq-detail').innerHTML='';
 }
 function showEquipDetail(owner, equip){
-    window.__eqs={owner, equip, item:'ALL'}; switchTab('ledger'); renderEqStatement(); const c=document.getElementById('eqs-card'); if(c) c.scrollIntoView({behavior:'smooth'}); window.__eqSel=null; return;
+    window.__eqs={owner, equip, item:'ALL'}; switchTab('equipment'); renderEqStatement(); const c=document.getElementById('eqs-card'); if(c) c.scrollIntoView({behavior:'smooth'}); window.__eqSel=null; return;
     window.__eqSel=[owner, equip];
     const g=id=>document.getElementById(id);
     const L=equipRecords(g('eq-from').value, g('eq-to').value).filter(r=>r.owner===owner&&r.equip===equip).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
@@ -8228,9 +8228,9 @@ function quickSearch(){
     box.innerHTML = `<div style="background:#fff;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.25);overflow:hidden;max-height:340px;overflow-y:auto">${R.length?R.map(([t,l,on])=>`<button type="button" onclick="${esc(on)}" style="display:flex;gap:8px;align-items:center;width:100%;text-align:right;padding:10px 12px;border-bottom:1px solid #f1f5f9;color:#0f172a"><span style="font-size:11px;font-weight:800;background:#e0f2fe;color:#0369a1;border-radius:999px;padding:1px 8px">${t}</span><span style="font-weight:700">${esc(l)}</span></button>`).join(''):'<div style="padding:10px 12px;color:#94a3b8">—</div>'}</div>`;
 }
 
-/* كشف الحساب = العملاء والموردين (والمعدة)، وكشف حساب المقاول فضل في تاب المستخلصات (محمد 2026-11-07) */
+/* كشف الحساب = العملاء والموردين، كشف المعدة في تاب المعدات، وكشف حساب المقاول فضل في تاب المستخلصات (محمد 2026-11-07) */
 document.addEventListener('DOMContentLoaded',()=>{ const L=document.getElementById('tab-ledger'); if(!L) return;
-    ['supplier-stmt-card','eqs-card'].forEach(id=>{ const c=document.getElementById(id); if(c) L.appendChild(c); }); });
+    ['supplier-stmt-card'].forEach(id=>{ const c=document.getElementById(id); if(c) L.appendChild(c); }); });
 function qsGo(kind, v){
     const g=id=>document.getElementById(id);
     if(kind==='client'){ switchTab('ledger'); setTimeout(()=>{ try{ g('acct-type').value='client'; onAcctTypeChange(); g('acct-name').value=v; renderAccountStatement(); }catch(e){} },50); }
@@ -10215,7 +10215,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 252.7';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 252.8';
 
     /* تنبيهات */
     const alerts=[];
