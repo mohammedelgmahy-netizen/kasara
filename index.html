@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 252.8</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 252.9</span></p></div>
         </div>
     </aside>
 
@@ -9029,15 +9029,22 @@ function saveCtrExtract(){
 function openCtrExtractView(id){
     const x=(db.ctrExtracts||[]).find(r=>String(r.id)===String(id)); if(!x) return;
     const from=x.from||x.date, to=x.to||x.date; let eq=''; try{ eq=equipAcctHtml(x.name, from, to)||''; }catch(e){}
-    const body=`<div class="rep-sec">${contractorSheetHtml(x.name, from, to)}</div>${eq?`<div style="font-weight:800;margin:12px 0 6px">حساب كل معدة في الفترة</div>${eq}`:''}`;
+    const T='border:1px solid #cbd5e1;padding:5px 8px;text-align:center';
+    const bons=contractorBons(x.name).filter(r=>(r.date||'')>=from && (r.date||'')<=to), days={};
+    bons.forEach(r=>{ const d=days[r.date]||(days[r.date]={n:0,q:0}); d.n++; d.q+=pureSinQ(r.q); });
+    const DK=Object.keys(days).sort(); let tn=0,tq=0;
+    const sinTbl=DK.length?`<div style="font-weight:800;margin:14px 0 6px">السن اليومي (من البونات)</div><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f1f5f9"><th style="${T}">اليوم</th><th style="${T}">التاريخ</th><th style="${T}">عدد البونات</th><th style="${T}">صافي السن</th></tr></thead><tbody>${DK.map(d=>{ tn+=days[d].n; tq+=days[d].q; return `<tr><td style="${T}">${dayNameAr(d)}</td><td style="${T}">${dmy(d)}</td><td style="${T}">${days[d].n}</td><td style="${T};font-weight:700">${nfmt(days[d].q)}</td></tr>`; }).join('')}<tr style="background:#fef3c7;font-weight:800"><td style="${T}" colspan="2">الإجمالي</td><td style="${T}">${tn}</td><td style="${T}">${nfmt(tq)}</td></tr></tbody></table>`:'';
+    const iss=(db.stockIssues||[]).filter(i=>normName(i.name)===normName(x.name) && (i.date||'')>=from && (i.date||'')<=to).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    const issTbl=iss.length?`<div style="font-weight:800;margin:14px 0 6px">السولار والأصناف المصروفة</div><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f1f5f9"><th style="${T}">التاريخ</th><th style="${T}">الصنف</th><th style="${T}">المعدة</th><th style="${T}">الكمية</th><th style="${T}">القيمة</th></tr></thead><tbody>${iss.map(i=>`<tr><td style="${T}">${dmy(i.date)}</td><td style="${T}">${esc(i.item||'')}</td><td style="${T}">${esc(ctrEqName(x.name,i.equip))}</td><td style="${T}">${nfmt(i.qty)} ${esc(i.unit||'')}</td><td style="${T}">${mfmt((Number(i.qty)||0)*(Number(i.price)||0))}</td></tr>`).join('')}</tbody></table>`:'';
+    const body=`<div class="rep-sec">${contractorSheetHtml(x.name, from, to)}</div>${eq?`<div style="font-weight:800;margin:12px 0 6px">حساب كل معدة في الفترة</div>${eq}`:''}${sinTbl}${issTbl}`;
     document.getElementById('cxv-modal')?.remove();
     const m=document.createElement('div'); m.id='cxv-modal';
     m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:12px';
     m.onclick=e=>{ if(e.target===m) m.remove(); };
     m.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:14px;max-width:760px;width:100%;padding:14px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:16px">${esc(x.name)} — من ${dmy(from)} إلى ${dmy(to)}</b>
-        <span style="display:flex;gap:6px"><button onclick="printHtml(document.getElementById('cxv-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="document.getElementById('cxv-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✕</button></span></div>
-        <div id="cxv-body" style="overflow-x:auto">${body}</div></div>`;
+        <span style="display:flex;gap:6px"><button onclick="shareCard('cxv-body','مستخلص '+${JSON.stringify(x.name).replace(/"/g,'&quot;')})" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px"><i class="fa-brands fa-whatsapp"></i> واتساب</button><button onclick="printHtml(document.getElementById('cxv-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="document.getElementById('cxv-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✕</button></span></div>
+        <div id="cxv-body" style="overflow-x:auto;background:#fff;padding:6px">${body}</div></div>`;
     document.body.appendChild(m);
 }
 function deleteCtrExtract(id){
@@ -10215,7 +10222,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 252.8';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 252.9';
 
     /* تنبيهات */
     const alerts=[];
