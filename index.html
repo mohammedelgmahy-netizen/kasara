@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 251.2</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 251.3</span></p></div>
         </div>
     </aside>
 
@@ -7794,7 +7794,8 @@ function refreshSizes(){
         tr.innerHTML = tr.dataset.lead + DL_SIZES.map(s=>`<th class="p-2">${esc(s.label)}</th>`).join('') + tr.dataset.trail;
     }
 }
-function pureSinQ(q){ q = q||{}; return DL_SIZES.filter(s=>s.key!=='tabaqa').reduce((a,s)=>a+(Number(q[s.key])||0),0); }
+function isSinSize(s){ return s.key!=='tabaqa' && s.key!=='xturba' && !String(s.label||'').includes('تربة'); } // التربة مش سن
+function pureSinQ(q){ q = q||{}; return DL_SIZES.filter(isSinSize).reduce((a,s)=>a+(Number(q[s.key])||0),0); }
 function depositTips(){
     if(isRO()) return;
     const mode = document.getElementById('dl-view-mode')?.value || 'DAY';
@@ -8544,7 +8545,7 @@ function renderDailyLog(){
         const pure = pureSinQ(sums);
         sinBox.innerHTML = rows.length ? `
             <div class="bg-amber-100 border border-amber-300 rounded-lg p-3 col-span-2"><div class="text-xs font-bold text-amber-800">🪨 صافي السن المطلع</div><div class="text-2xl font-bold text-amber-900">${nfmt(pure+tabSin)}</div></div>
-            <div class="bg-slate-50 border border-slate-200 rounded-lg p-3"><div class="text-[11px] font-bold text-slate-600">السن (${DL_SIZES.filter(s=>s.key!=='tabaqa').map(s=>s.label.replace('سن ','')).join(' + ')})</div><div class="text-lg font-bold">${nfmt(pure)}</div></div>
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-3"><div class="text-[11px] font-bold text-slate-600">السن (${DL_SIZES.filter(isSinSize).map(s=>s.label.replace('سن ','')).join(' + ')})</div><div class="text-lg font-bold">${nfmt(pure)}</div></div>
             <div class="bg-slate-50 border border-slate-200 rounded-lg p-3"><div class="text-[11px] font-bold text-slate-600">سن من الطبقة (${nfmt(sums.tabaqa)} طبقة)</div><div class="text-lg font-bold">${nfmt(tabSin)}</div></div>` : '';
     }
     // تجميعة الكميات حسب الشغل تبع مين (عشان الحساب بالمتر)
@@ -8589,7 +8590,7 @@ function renderDailyLog(){
     if(foot) foot.innerHTML = rows.length ? `<tr><td class="p-2" colspan="5">الإجمالي (${nfmt(rows.length)} بون)</td>
         ${DL_SIZES.map(s=>`<td class="p-2">${nfmt(sums[s.key])}</td>`).join('')}<td class="p-2">${mfmt(tip)}</td><td class="p-2 text-lime-700">${fmt(val)}</td><td class="p-2" colspan="3"></td></tr>
         <tr class="bg-amber-50"><td class="p-2 text-amber-900" colspan="15">🪨 صافي السن المطلع: <b class="text-lg">${nfmt(pureSinQ(sums)+tabSin)}</b>
-            <span class="text-xs text-slate-600 mr-2">(${DL_SIZES.filter(s=>s.key!=='tabaqa').map(s=>`${s.label}: ${nfmt(sums[s.key]||0)}`).join(' + ')} + السن اللي في الطبقة: ${nfmt(tabSin)})</span></td></tr>` : '';
+            <span class="text-xs text-slate-600 mr-2">(${DL_SIZES.filter(isSinSize).map(s=>`${s.label}: ${nfmt(sums[s.key]||0)}`).join(' + ')} + السن اللي في الطبقة: ${nfmt(tabSin)})</span></td></tr>` : '';
 }
 function exportDailyLogExcel(){
     const rows = dlRows();
@@ -9298,7 +9299,7 @@ function printSinBreakdown(){
     DL_SIZES.forEach(s=>sums[s.key]=0);
     rows.forEach(r=>{ const q = r.q||{}; DL_SIZES.forEach(s=>sums[s.key]+=Number(q[s.key])||0); tabSin += (Number(q.tabaqa)||0)*(Number(r.tabaqaPct)||0)/100; });
     tab = sums.tabaqa||0;
-    const sizes = DL_SIZES.filter(s=>s.key!=='tabaqa');
+    const sizes = DL_SIZES.filter(isSinSize);
     const pure = sizes.reduce((a,s)=>a+sums[s.key],0);
     const cell = 'border:1.5px solid #333;padding:8px 14px;font-size:15px';
     const html = `<div class="rep-sec">${repHeadTxt('صافي السن', dlViewLabel())}
@@ -10191,7 +10192,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 251.2';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 251.3';
 
     /* تنبيهات */
     const alerts=[];
