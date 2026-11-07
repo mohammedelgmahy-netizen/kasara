@@ -173,7 +173,7 @@ input:focus,select:focus{outline:none;box-shadow:0 0 0 3px rgba(37,99,235,.15);b
 }
 </style>
 
-<style id="sanam-theme">
+<style id="sanam-theme">.rate-col{display:none!important}
 /* ===== ثيم سنام: شريط علوي بنفسجي، قائمة جانبية فاتحة دايمًا ظاهرة، كروت بيضا بظل خفيف ===== */
 :root{--od:#1f4b73;--od-2:#143553;--od-3:#2f6a9c;--od-t:#e6eff7;--gold:#e07a36;--bg:#eef2f7;--card:#fff;--card-2:#f6f8fb;--line:#e3e8ef;--line-2:#d3dbe6;--fg:#0b1520;--fg-2:#1f2b38;--muted:#4a5767;--side:#f9fafb;--shadow:0 1px 2px rgba(15,39,66,.05),0 6px 20px rgba(15,39,66,.06)}
 html{font-size:18.5px}
@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 251.3</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 251.4</span></p></div>
         </div>
     </aside>
 
@@ -1269,7 +1269,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
                 <div id="wk-period" class="px-4 pt-3 text-sm font-bold text-slate-600"></div>
                 <div class="overflow-x-auto p-2">
                     <table class="w-full text-sm text-right" style="min-width:720px">
-                        <thead class="bg-slate-800 text-white"><tr><th class="p-2">المقاول / المعدة</th><th class="p-2">رصيد سابق</th><th class="p-2">صافي السن</th><th class="p-2">سعر المتر</th><th class="p-2">ليه (شغل الأسبوع)</th><th class="p-2">عليه (سولار ومديونيات + سداد)</th><th class="p-2">صافي الأسبوع</th><th class="p-2">الرصيد</th></tr></thead>
+                        <thead class="bg-slate-800 text-white"><tr><th class="p-2">المقاول / المعدة</th><th class="p-2">رصيد سابق</th><th class="p-2">صافي السن</th><th class="p-2 rate-col">سعر المتر</th><th class="p-2">ليه (شغل الأسبوع)</th><th class="p-2">عليه (سولار ومديونيات + سداد)</th><th class="p-2">صافي الأسبوع</th><th class="p-2">الرصيد</th></tr></thead>
                         <tbody id="tbody-week"></tbody>
                     </table>
                 </div>
@@ -1283,14 +1283,14 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
                     <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-600 mb-1">يتحاسب مع</label><select id="cx-name" onchange="cxDefaults()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"></select></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">من</label><input id="cx-from" type="date" onchange="cxPreview(true)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">إلى</label><input id="cx-to" type="date" onchange="cxPreview(true)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
-                    <div class="col-span-2 md:col-span-6 overflow-x-auto"><table class="w-full text-sm text-right border border-slate-200 rounded-lg"><thead class="bg-slate-100"><tr><th class="p-2">المعدة</th><th class="p-2">عدد الأمتار</th><th class="p-2">سعر المتر</th><th class="p-2">المبلغ</th></tr></thead><tbody id="cx-rows"></tbody><tfoot><tr class="bg-indigo-50 font-extrabold"><td class="p-2">الإجمالي</td><td class="p-2" id="cx-tq">—</td><td></td><td class="p-2 text-emerald-700" id="cx-amount">—</td></tr></tfoot></table></div>
+                    <div class="col-span-2 md:col-span-6 overflow-x-auto"><table class="w-full text-sm text-right border border-slate-200 rounded-lg"><thead class="bg-slate-100"><tr><th class="p-2">المعدة</th><th class="p-2">عدد الأمتار</th><th class="p-2" id="cx-rate-th">سعر المتر</th><th class="p-2">المبلغ</th></tr></thead><tbody id="cx-rows"></tbody><tfoot><tr class="bg-indigo-50 font-extrabold"><td class="p-2">الإجمالي</td><td class="p-2" id="cx-tq">—</td><td></td><td class="p-2 text-emerald-700" id="cx-amount">—</td></tr></tfoot></table></div>
                     <div class="col-span-2 md:col-span-4"><div id="cx-info" class="text-sm font-bold text-slate-600"></div></div>
                     <div><input id="cx-notes" placeholder="ملاحظات" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <button type="button" onclick="saveCtrExtract()" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-2 font-bold">حفظ المستخلص</button>
                 </div>
                 <div id="cx-equip-acct" class="px-4 pb-4"></div>
                 <div class="px-4 pt-2 pb-2 flex items-center gap-2 border-t border-indigo-100"><span class="text-xs font-bold text-slate-600">المستخلصات المحفوظة:</span><select id="cx-filter" onchange="renderCtrExtracts()" class="bg-white border border-indigo-200 rounded px-2 py-1 text-xs font-bold min-w-[10rem]"><option value="">كل المقاولين</option></select></div>
-                <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100"><tr><th class="p-2">التاريخ</th><th class="p-2">يتحاسب مع</th><th class="p-2">المعدة</th><th class="p-2">الفترة</th><th class="p-2">الأمتار</th><th class="p-2">السعر</th><th class="p-2">المبلغ</th><th class="p-2">ملاحظات</th><th class="p-2"></th></tr></thead><tbody id="tbody-cx"></tbody></table></div>
+                <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100"><tr><th class="p-2">التاريخ</th><th class="p-2">يتحاسب مع</th><th class="p-2">المعدة</th><th class="p-2">الفترة</th><th class="p-2">الأمتار</th><th class="p-2 rate-col">السعر</th><th class="p-2">المبلغ</th><th class="p-2">ملاحظات</th><th class="p-2"></th></tr></thead><tbody id="tbody-cx"></tbody></table></div>
             </div>
             <div id="ctr-stmt-card" class="bg-white rounded-xl border border-violet-200 shadow-sm overflow-hidden">
                 <div class="p-4 border-b border-violet-100 bg-violet-50 flex flex-wrap items-center gap-2">
@@ -6587,7 +6587,7 @@ function renderEquipExtracts(){
     const er = document.getElementById('eqx-rate'); if(er && !er.value && document.activeElement!==er) eqxFillRate();
     tb.innerHTML = (db.equipExtracts||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(x=>`<tr class="border-b border-slate-50">
         <td class="p-2 font-bold">${esc(x.name)} <span class="text-[10px] text-slate-400">(${stockRecipientLabel(x.recipientType)})</span></td>
-        <td class="p-2 text-xs text-slate-500">${dmy(x.date)}</td><td class="p-2 text-xs">${x.sinQty!=null?`${nfmt(x.sinQty)} × <b>${nfmt(x.rate)}</b>`:'-'}</td><td class="p-2">${mfmt(x.amount)}</td>
+        <td class="p-2 text-xs text-slate-500">${dmy(x.date)}</td><td class="p-2 text-xs">${x.sinQty!=null?`${nfmt(x.sinQty)} متر`:'-'}</td><td class="p-2">${mfmt(x.amount)}</td>
         <td class="p-2 text-rose-700">${mfmt(x.deduct)}${x.advDeduct?`<div class="text-[10px] text-slate-400">سولار ${nfmt(x.dieselDeduct||0)} + عهد ${nfmt(x.advDeduct)}</div>`:''}</td><td class="p-2 font-bold ${x.net<0?'text-rose-700':'text-emerald-700'}">${mfmt(x.net)}</td>
         <td class="p-2 text-xs">${x.carried!=null?`مرحّل <span dir="ltr">${mfmt(x.carried)}</span><div class="font-bold ${x.balanceAfter<0?'text-rose-700':'text-emerald-700'}" dir="ltr">${mfmt(x.balanceAfter)}</div>`:'-'}</td>
         <td class="p-2 text-slate-500">${esc(x.notes||'')}</td>
@@ -8930,7 +8930,7 @@ function contractorStmtRows(name){
     if(ctrIsAuto(c)){
         days.forEach(d=>ev.push({date:d.date, ord:0, day:true, desc:`شغل اليوم — ${d.n} بون${d.old?` (${nfmt(d.old)} متر سن قديم مش محسوب)`:''}`, sin:d.net, n:d.n, old:d.old, price:rate, credit:Math.round(d.net*rate), debit:0}));
     } else {
-        (db.ctrExtracts||[]).filter(x=>normName(x.name)===normName(name)).forEach(x=>ev.push({date:x.date, ord:0, desc:`مستخلص${x.equip?' '+x.equip:''} ${x.from?dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} متر × ${nfmt(x.rate)}${x.notes?' — '+x.notes:''}`, sin:Number(x.qty)||0, credit:Number(x.amount)||0, debit:0}));
+        (db.ctrExtracts||[]).filter(x=>normName(x.name)===normName(name)).forEach(x=>ev.push({date:x.date, ord:0, desc:`مستخلص${(l=>l==='بدون معدة'?'':' '+l)(ctrEqLbl(name,x.equip))} ${x.from?dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} متر${x.notes?' — '+x.notes:''}`, sin:Number(x.qty)||0, credit:Number(x.amount)||0, debit:0}));
     }
     const ctrCats = (db.expenses||[]).filter(c=>c.nameType==='contractors').map(c=>c.name);
     (db.expensesData||[]).filter(x=>ctrCats.includes(x.category) && normName(x.name)===normName(name)).forEach(x=>ev.push({date:x.date, ord:1, desc:(x.payType==='settle'?'سداد — ':'عهدة — ')+(x.desc||x.notes||''), debit:Number(x.paid)||0, credit:0}));
@@ -8953,7 +8953,7 @@ function renderCtrExtracts(){
     const fs=document.getElementById('cx-filter'), fv=fs?fs.value:'';
     if(fs){ const N=[...new Set((db.ctrExtracts||[]).map(x=>x.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar')); fs.innerHTML='<option value="">كل المقاولين</option>'+N.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join(''); fs.value=N.includes(fv)?fv:''; }
     const X=(db.ctrExtracts||[]).filter(x=>!fs||!fs.value||x.name===fs.value).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||String(b.id).localeCompare(String(a.id)));
-    document.getElementById('tbody-cx').innerHTML = X.length ? X.map(x=>`<tr class="border-b border-slate-50"><td class="p-2 text-xs">${dmy(x.date)}</td><td class="p-2 font-bold">${esc(x.name)}</td><td class="p-2">${esc(x.equip||'')}</td><td class="p-2 text-xs">${x.from?dmy(x.from)+' → '+dmy(x.to):'—'}</td><td class="p-2 font-bold">${nfmt(x.qty)}</td><td class="p-2">${nfmt(x.rate)}</td><td class="p-2 font-extrabold text-emerald-700">${mfmt(x.amount)}</td><td class="p-2 text-xs">${esc(x.notes||'')}</td><td class="p-2"><button onclick="deleteCtrExtract('${x.id}')" class="text-rose-600 text-xs">🗑</button></td></tr>`).join('')
+    document.getElementById('tbody-cx').innerHTML = X.length ? X.map(x=>`<tr class="border-b border-slate-50"><td class="p-2 text-xs">${dmy(x.date)}</td><td class="p-2 font-bold">${esc(x.name)}</td><td class="p-2">${esc(x.equip||'')}</td><td class="p-2 text-xs">${x.from?dmy(x.from)+' → '+dmy(x.to):'—'}</td><td class="p-2 font-bold">${nfmt(x.qty)}</td><td class="p-2 rate-col">${nfmt(x.rate)}</td><td class="p-2 font-extrabold text-emerald-700">${mfmt(x.amount)}</td><td class="p-2 text-xs">${esc(x.notes||'')}</td><td class="p-2"><button onclick="deleteCtrExtract('${x.id}')" class="text-rose-600 text-xs">🗑</button></td></tr>`).join('')
         : '<tr><td colspan="9" class="p-3 text-center text-slate-400">—</td></tr>';
 }
 const CX_EQUIPS = ['سيارة برتقالي','سيارة بيضاء','لودر محجر','لودر أرضية'];
@@ -8970,7 +8970,8 @@ function addCtrEquip(t){
     L.push(n); el.value=L.join('، ');
 }
 function ctrEquips(name){ const c=(db.contractors||[]).find(x=>x.name===name); return c && c.equips && c.equips.length ? c.equips : CX_EQUIPS; }
-function cxLastRate(name, eq){ const L=(db.ctrExtracts||[]).filter(x=>x.name===name && x.equip===eq && x.rate).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||String(a.id).localeCompare(String(b.id))); return L.length ? L[L.length-1].rate : (workerRate(name)||''); }
+function codedRate(name, eq){ const c=(db.contractors||[]).find(x=>x.name===name); if(!c) return 0; const er=c.equipRates||{}; const k=Object.keys(er).find(k=>eqNorm(k)===eqNorm(eq)); return Number(k!=null?er[k]:c.rate)||0; } // السعر المكود في دليل الأكواد (محمد 2026-11-07)
+function cxLastRate(name, eq){ const cr=codedRate(name,eq); if(cr) return cr; const L=(db.ctrExtracts||[]).filter(x=>x.name===name && x.equip===eq && x.rate).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||String(a.id).localeCompare(String(b.id))); return L.length ? L[L.length-1].rate : (workerRate(name)||''); }
 function cxDefaults(){
     const name=document.getElementById('cx-name').value; if(!name) return;
     const last=(db.ctrExtracts||[]).filter(x=>x.name===name && x.to).map(x=>x.to).sort().pop();
@@ -8978,8 +8979,9 @@ function cxDefaults(){
     document.getElementById('cx-from').value = wf; document.getElementById('cx-to').value = addDays(wf,6); // من الخميس للأربع
     document.getElementById('cx-rows').innerHTML = ctrEquips(name).map((e,i)=>`<tr class="border-t border-slate-100"><td class="p-2 font-bold">${esc(e)}</td>
         <td class="p-2"><input id="cx-q-${i}" type="number" step="any" min="0" oninput="cxPreview()" class="w-28 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
-        <td class="p-2"><input id="cx-r-${i}" type="number" step="any" min="0" value="${cxLastRate(name,e)}" oninput="cxPreview()" class="w-24 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
+        <td class="p-2${codedRate(name,e)?' rate-col':''}"><input id="cx-r-${i}" type="number" step="any" min="0" value="${cxLastRate(name,e)}" oninput="cxPreview()" class="w-24 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
         <td class="p-2 font-extrabold text-emerald-700" id="cx-a-${i}">—</td></tr>`).join('');
+    { const th=document.getElementById('cx-rate-th'); if(th) th.classList.toggle('rate-col', ctrEquips(name).every(e=>codedRate(name,e))); }
     cxPreview(true);
 }
 function cxPreview(resetQty){
@@ -9031,14 +9033,14 @@ function openQuickExtracts(){
     const rows=L.map((c,i)=>ctrEquips(c.name).map((e,k,A)=>`<tr style="border-bottom:1px solid ${k===A.length-1?'#94a3b8':'#e2e8f0'}">${k===0?`<td rowspan="${A.length}" style="padding:6px;font-weight:800;vertical-align:top">${esc(c.name)}</td>`:''}
         <td style="padding:6px;font-weight:700">${esc(e)}</td>
         <td style="padding:6px"><input data-qi="${i}-${k}" type="number" step="any" min="0" value="" style="width:100px;border:1px solid #cbd5e1;border-radius:6px;padding:4px;font-weight:800"></td>
-        <td style="padding:6px"><input data-ri="${i}-${k}" type="number" step="any" min="0" value="${cxLastRate(c.name,e)}" style="width:70px;border:1px solid #cbd5e1;border-radius:6px;padding:4px;font-weight:800"></td></tr>`).join('')).join('');
+        <td class="${codedRate(c.name,e)?'rate-col':''}" style="padding:6px"><input data-ri="${i}-${k}" type="number" step="any" min="0" value="${cxLastRate(c.name,e)}" style="width:70px;border:1px solid #cbd5e1;border-radius:6px;padding:4px;font-weight:800"></td></tr>`).join('')).join('');
     document.getElementById('qx-modal')?.remove();
     const m=document.createElement('div'); m.id='qx-modal';
     m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:16px';
     m.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:14px;max-width:640px;width:100%;padding:16px">
         <h3 style="font-weight:800;font-size:18px;margin-bottom:6px">⚡ مستخلص سريع للكل</h3>
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;font-size:13px;font-weight:700">من <input id="qx-from" type="date" value="${from}" style="border:1px solid #cbd5e1;border-radius:6px;padding:3px"> إلى <input id="qx-to" type="date" value="${to}" style="border:1px solid #cbd5e1;border-radius:6px;padding:3px"></div>
-        <div style="overflow-x:auto"><table style="width:100%;font-size:13px;border-collapse:collapse"><thead><tr style="background:#f1f5f9"><th style="padding:6px;text-align:right">يتحاسب مع</th><th style="padding:6px;text-align:right">المعدة</th><th style="padding:6px;text-align:right">عدد الأمتار</th><th style="padding:6px;text-align:right">السعر</th></tr></thead><tbody id="qx-body">${rows}</tbody></table></div>
+        <div style="overflow-x:auto"><table style="width:100%;font-size:13px;border-collapse:collapse"><thead><tr style="background:#f1f5f9"><th style="padding:6px;text-align:right">يتحاسب مع</th><th style="padding:6px;text-align:right">المعدة</th><th style="padding:6px;text-align:right">عدد الأمتار</th><th class="rate-col" style="padding:6px;text-align:right">السعر</th></tr></thead><tbody id="qx-body">${rows}</tbody></table></div>
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button onclick="document.getElementById('qx-modal').remove()" style="background:#e2e8f0;padding:8px 14px;border-radius:8px;font-weight:700">إلغاء</button><button onclick="saveQuickExtracts()" style="background:#4f46e5;color:#fff;padding:8px 14px;border-radius:8px;font-weight:700">حفظ المستخلصات</button></div></div>`;
     document.body.appendChild(m);
 }
@@ -9077,7 +9079,7 @@ function renderWeeklyReport(){
         const sin=inP.reduce((s,r)=>s+(r.sin||0),0), cr=inP.reduce((s,r)=>s+r.credit,0), dr=inP.reduce((s,r)=>s+r.debit,0), cl=op+cr-dr;
         if(!op && !cr && !dr && !sin) return '';
         T.op+=op; T.sin+=sin; T.cr+=cr; T.dr+=dr; T.cl+=cl;
-        return `<tr class="border-b border-slate-50"><td class="p-2 font-bold">${esc(c.name)}${c.equip?`<div class="text-[11px] text-sky-700">${esc(c.equip)}</div>`:''}</td><td class="p-2" dir="ltr">${op?mfmt(op):'—'}</td><td class="p-2">${sin?nfmt(sin):'—'}</td><td class="p-2">${rate?nfmt(rate):'<span class="text-xs text-amber-700">السعر بعدين</span>'}</td>
+        return `<tr class="border-b border-slate-50"><td class="p-2 font-bold">${esc(c.name)}${c.equip?`<div class="text-[11px] text-sky-700">${esc(c.equip)}</div>`:''}</td><td class="p-2" dir="ltr">${op?mfmt(op):'—'}</td><td class="p-2">${sin?nfmt(sin):'—'}</td><td class="p-2 rate-col">${rate?nfmt(rate):'<span class="text-xs text-amber-700">السعر بعدين</span>'}</td>
             <td class="p-2 text-emerald-700 font-bold">${cr?mfmt(cr):'—'}</td><td class="p-2 text-rose-700 font-bold">${dr?mfmt(dr):'—'}</td><td class="p-2 font-bold ${cr-dr<0?'text-rose-700':''}" dir="ltr">${mfmt(cr-dr)}</td>
             <td class="p-2 font-extrabold ${cl<0?'text-rose-700':'text-emerald-700'}" dir="ltr">${mfmt(cl)} <span class="text-xs">${cl<0?'عليه':'ليه'}</span></td></tr>`;
     }).filter(Boolean);
@@ -9104,6 +9106,7 @@ function deleteCtrEstimate(id){
 /* هامش صغير: الصرف من المخزون مقسّم على المعدات (لودر محجر / لودر أرضية ...) */
 function eqNorm(e){ e=String(e||'').trim(); if(!e) return 'بدون معدة'; if(CX_EQUIPS.includes(e) || /^سيارة /.test(e)) return e; if((db.contractors||[]).some(c=>(c.equips||[]).includes(e))) return e; if(/محجر/.test(e)) return 'لودر محجر'; if(/أرض|ارض/.test(e)) return 'لودر أرضية'; if(/سيار|تغذ|عربي/.test(e)) return 'سيارات تغذية'; return e.trim()||'بدون معدة'; }
 function eqType(e){ e=String(e||''); if(/لودر/.test(e)) return 'اللوادر'; if(/سيار|عربي|تغذ|قلاب|جرار/.test(e)) return 'السيارات'; if(/حفار/.test(e)) return 'الحفارات'; return 'معدات أخرى'; }
+function ctrEqLbl(name, equip){ const e=eqNorm(equip); if(e!=='بدون معدة') return e; const hasGround=(db.ctrExtracts||[]).some(x=>x.name===name && eqNorm(x.equip)==='لودر أرضية'); return hasGround ? 'لودر محجر' : e; } // مقاول عنده لودر أرضية: اللي من غير معدة = لودر المحجر
 function equipAcctHtml(name, from, to, auto){
     if(!name) return '';
     const inP = d => (!from||d>=from) && (!to||d<=to);
@@ -9112,9 +9115,9 @@ function equipAcctHtml(name, from, to, auto){
     if(!X.length && !S.length) return '';
     const items=[...new Set(S.map(s=>s.item))], unit={};
     S.forEach(s=>{ if(!unit[s.item]) unit[s.item]=s.unit||''; });
-    const eqs=[...new Set([...ctrEquips(name), ...X.map(x=>eqNorm(x.equip)), ...S.map(s=>eqNorm(s.equip))])];
+    const eqs=[...new Set([...ctrEquips(name), ...X.map(x=>ctrEqLbl(name,x.equip)), ...S.map(s=>ctrEqLbl(name,s.equip))])];
     const R=eqs.map(e=>{
-        const xs=X.filter(x=>eqNorm(x.equip)===e), ss=S.filter(s=>eqNorm(s.equip)===e);
+        const xs=X.filter(x=>ctrEqLbl(name,x.equip)===e), ss=S.filter(s=>ctrEqLbl(name,s.equip)===e);
         if(!xs.length && !ss.length) return null;
         const r={e, type:e==='بدون معدة'?'معدات أخرى':eqType(e), q:xs.reduce((a,x)=>a+(Number(x.qty)||0),0), cr:xs.reduce((a,x)=>a+(Number(x.amount)||0),0), dr:0, it:{}};
         items.forEach(it=>{ const L=ss.filter(s=>s.item===it); const o={q:L.reduce((a,s)=>a+(Number(s.qty)||0),0), v:L.reduce((a,s)=>a+(Number(s.qty)||0)*(Number(s.price)||0),0)}; r.it[it]=o; r.dr+=o.v; });
@@ -9174,7 +9177,7 @@ function contractorSheetHtml(name, from, to){
       <table style="width:100%;border-collapse:collapse;margin-bottom:-1px"><tr>
         <td style="${B};font-size:18px;font-weight:800;padding:14px">مستخلص المقاول/ ${esc(name)}</td>
         <td style="${B};width:24%;font-weight:800">${brandLogoSrc()?`<img src="${brandLogoSrc()}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;display:block;margin:0 auto 4px">`:''}كسارة ديار</td></tr>
-        <tr><td colspan="2" style="${B};font-weight:700">الفترة من ${from?dmy(from):'البداية'} حتى ${to?dmy(to):dmy(todayISO())}${rate?` — سعر المتر ${nfmt(rate)}`:''}</td></tr></table>
+        <tr><td colspan="2" style="${B};font-weight:700">الفترة من ${from?dmy(from):'البداية'} حتى ${to?dmy(to):dmy(todayISO())}</td></tr></table>
       <table style="width:100%;border-collapse:collapse">${head}${openRow}${body.join('')}${totRow}</table>
       <div style="height:14px"></div>
       <table style="width:100%;border-collapse:collapse">${sum}</table></div>`;
@@ -9196,7 +9199,7 @@ function renderContractorStmt(){
     const hasOld = Number(((db.contractors||[]).find(c=>c.name===name)||{}).deductSin)>0;
     const prodP = ctrSinIn(name, from, to);
     const card = (lbl,v,cls) => `<div class="${cls} rounded p-2"><div class="text-[11px] font-bold opacity-80">${lbl}</div><div class="font-bold">${v}</div></div>`;
-    g('cs2-summary').innerHTML = card(auto?'صافي السن':'اتحاسب على', nfmt(sin)+' متر', 'bg-amber-50 text-amber-900') + card('سعر المتر', rate?nfmt(rate):'<span class="text-rose-600 text-xs">مش متحدد</span>', 'bg-slate-50')
+    g('cs2-summary').innerHTML = card(auto?'صافي السن':'اتحاسب على', nfmt(sin)+' متر', 'bg-amber-50 text-amber-900') 
         + card('ليه (شغل)', fmt(cr), 'bg-emerald-50 text-emerald-900') + card('عليه (سولار وزيت وشحم + عهد + سداد)', fmt(dr) + stockBreakdown(name, from, to), 'bg-rose-50 text-rose-900')
         + `<div class="rounded p-2 border-2 ${closing<0?'border-rose-300 bg-rose-50':'border-emerald-300 bg-emerald-50'}"><div class="text-[11px] font-bold">${closing<0?'الرصيد: عليه':'الرصيد: ليه'}</div><div class="font-bold text-lg" dir="ltr">${fmt(closing)}</div></div>`
         + (hasOld && auto ? card('فاضل من السن القديم', oldLeft>0 ? nfmt(oldLeft)+' متر' : 'خلص ✓', 'bg-slate-100 text-slate-800') : '');
@@ -9336,9 +9339,9 @@ function printExtractFull(id){
     const period = (x.from||x.to) ? `من ${dmy(x.from)||'البداية'} إلى ${dmy(x.to)||dmy(x.date)}` : `بتاريخ ${dmy(x.date)}`;
     const issues = (db.stockIssues||[]).filter(s=>s.name===x.name && (!x.from || s.date>=x.from) && s.date<=(x.to||x.date));
     const html = `<div class="rep-sec">${repHeadTxt('مستخلص: '+esc(x.name), period)}
-        <div class="rep-sum">${x.sinQty!=null?`<div>صافي السن: ${nfmt(x.sinQty)} متر</div><div>سعر المتر: ${nfmt(x.rate)}</div>`:''}<div>قيمة المستخلص: ${fmt(x.amount)}</div></div>
+        <div class="rep-sum">${x.sinQty!=null?`<div>صافي السن: ${nfmt(x.sinQty)} متر</div>`:''}<div>قيمة المستخلص: ${fmt(x.amount)}</div></div>
         <table class="rep-tbl"><tbody>
-            <tr><td>قيمة المستخلص${x.sinQty!=null?` (${nfmt(x.sinQty)} متر × ${nfmt(x.rate)})`:''}</td><td>${fmt(x.amount)}</td></tr>
+            <tr><td>قيمة المستخلص${x.sinQty!=null?` (${nfmt(x.sinQty)} متر)`:''}</td><td>${fmt(x.amount)}</td></tr>
             <tr><td>خصم سولار وشحم وزيت</td><td>${fmt(x.dieselDeduct||0)}</td></tr>
             <tr><td>خصم عهد</td><td>${fmt(x.advDeduct||0)}</td></tr>
             <tr><td><b>إجمالي الخصم</b></td><td><b>${fmt(x.deduct||0)}</b></td></tr>
@@ -10192,7 +10195,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 251.3';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 251.4';
 
     /* تنبيهات */
     const alerts=[];
