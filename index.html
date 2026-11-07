@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 252.2</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 252.3</span></p></div>
         </div>
     </aside>
 
@@ -5854,8 +5854,8 @@ function stockEquipOpts(){
     const sel=document.getElementById('stock-equip'); if(!sel) return;
     const nm=String(document.getElementById('stock-name')?.value||'').split('::').pop();
     const c=(db.contractors||[]).find(x=>normName(x.name)===normName(nm));
-    const L=(!nm||isCrusherCtr(nm))?crusherEquips():(c&&c.equips&&c.equips.length?c.equips:CX_EQUIPS), pv=sel.value;
-    sel.innerHTML='<option value="">— اختار المعدة —</option>'+L.map(e=>`<option value="${esc(e)}">${esc(e)}</option>`).join('');
+    const L=(!nm||isCrusherCtr(nm))?crusherEquips():(c&&c.equips&&c.equips.length?c.equips:[...new Set(ctrEquips(c?c.name:nm).map(e=>ctrEqLbl(c?c.name:nm,e)))]), pv=sel.value;
+    sel.innerHTML='<option value="">— اختار المعدة —</option>'+L.map(e=>`<option value="${esc(e)}">${esc(e==='بدون معدة'?ctrKind(nm):e)}</option>`).join('');
     if(L.includes(pv)) sel.value=pv;
 }
 function renderCrusherCons(){
@@ -6046,7 +6046,7 @@ function isAdvRec(x){ if(!x) return false; if(x.category===ADV_CAT) return true;
 function equipOwners(){
     const L=[{owner:'الكسارة', equips:crusherEquips()}];
     const CC=(db.contractors||[]).filter(c=>!isCrusherCtr(c.name)), C=CC.filter(c=>c.equips&&c.equips.length);
-    (C.length?C:CC).forEach(c=>L.push({owner:c.name, equips:ctrEquips(c.name)}));
+    (C.length?C:CC).forEach(c=>L.push({owner:c.name, equips:[...new Set(ctrEquips(c.name).map(e=>ctrEqLbl(c.name,e)))]}));
     return L;
 }
 function equipRecords(from, to){
@@ -6063,9 +6063,9 @@ function fillEquipSelects(){
     { const dl=document.getElementById('eqe-desc-list'); if(dl) dl.innerHTML=[...new Set([...(db.supplies||[]).map(x=>x.name),'صيانة','قطع غيار','كاوتش','شحن'])].map(v=>`<option value="${esc(v)}">`).join(''); }
     const sel=document.getElementById('eqe-equip'), os=document.getElementById('eq-owner'); if(!sel) return;
     const pv=sel.value, po=os.value;
-    sel.innerHTML=equipOwners().map(o=>`<optgroup label="${esc(o.owner)}">${o.equips.map(e=>`<option value="${esc(o.owner+'||'+e)}">${esc(e)}</option>`).join('')}</optgroup>`).join('');
+    sel.innerHTML=equipOwners().map(o=>`<optgroup label="${esc(o.owner)}">${o.equips.map(e=>`<option value="${esc(o.owner+'||'+e)}">${esc(e==='بدون معدة'?ctrKind(o.owner):e)}</option>`).join('')}</optgroup>`).join('');
     if([...sel.options].some(o=>o.value===pv)) sel.value=pv;
-    const one=document.getElementById('eq-one'); if(one){ const pv1=one.value; one.innerHTML='<option value="">📋 كشف معدة...</option>'+equipOwners().map(o=>`<optgroup label="${esc(o.owner)}">${o.equips.map(e=>`<option value="${esc(o.owner+'||'+e)}">${esc(e)}</option>`).join('')}</optgroup>`).join(''); one.value=pv1; }
+    const one=document.getElementById('eq-one'); if(one){ const pv1=one.value; one.innerHTML='<option value="">📋 كشف معدة...</option>'+equipOwners().map(o=>`<optgroup label="${esc(o.owner)}">${o.equips.map(e=>`<option value="${esc(o.owner+'||'+e)}">${esc(e==='بدون معدة'?ctrKind(o.owner):e)}</option>`).join('')}</optgroup>`).join(''); one.value=pv1; }
     os.innerHTML='<option value="ALL">كل المعدات</option>'+equipOwners().map(o=>`<option value="${esc(o.owner)}">${esc(o.owner)}</option>`).join('');
     if([...os.options].some(o=>o.value===po)) os.value=po;
 }
@@ -8970,7 +8970,11 @@ function addCtrEquip(t){
     let n=t; if(t==='سيارة'||t==='حفار'){ let i=1; while(L.includes(t+' '+i)) i++; n=t+' '+i; } else if(L.includes(t)){ let i=2; while(L.includes(t+' '+i)) i++; n=t+' '+i; }
     L.push(n); el.value=L.join('، ');
 }
-function ctrEquips(name){ const c=(db.contractors||[]).find(x=>x.name===name); return c && c.equips && c.equips.length ? c.equips : CX_EQUIPS; }
+function ctrHasGround(name){ const c=(db.contractors||[]).find(x=>x.name===name); return Object.keys((c&&c.equipRates)||{}).some(k=>eqNorm(k)==='لودر أرضية') || (db.ctrExtracts||[]).some(x=>x.name===name && eqNorm(x.equip)==='لودر أرضية'); }
+/* معدات المقاول: من غير عربيات الكسارة القديمة (برتقالي/بيضاء) — محمد 2026-11-07 */
+function ctrEquips(name){ const c=(db.contractors||[]).find(x=>x.name===name); if(c && c.equips && c.equips.length) return c.equips; return ctrHasGround(name) ? ['','ارضيه'] : ['']; }
+function ctrKind(name){ const n=String(name||''); return /حفار/.test(n)?'حفار':/لود|لواد/.test(n)?'لودر':/سيار|عربي/.test(n)?'سيارة':'معدة'; }
+function ctrEqName(name,e){ const l=ctrEqLbl(name,e); return l==='بدون معدة' ? ctrKind(name) : l; }
 function codedRate(name, eq){ const c=(db.contractors||[]).find(x=>x.name===name); if(!c) return 0; const er=c.equipRates||{}; const k=Object.keys(er).find(k=>eqNorm(k)===eqNorm(eq)); return Number(k!=null?er[k]:c.rate)||0; } // السعر المكود في دليل الأكواد (محمد 2026-11-07)
 function cxLastRate(name, eq){ const cr=codedRate(name,eq); if(cr) return cr; const L=(db.ctrExtracts||[]).filter(x=>x.name===name && x.equip===eq && x.rate).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||String(a.id).localeCompare(String(b.id))); return L.length ? L[L.length-1].rate : (workerRate(name)||''); }
 function cxDefaults(){
@@ -8978,7 +8982,7 @@ function cxDefaults(){
     const last=(db.ctrExtracts||[]).filter(x=>x.name===name && x.to).map(x=>x.to).sort().pop();
     const nf = last ? addDays(last,1) : ''; const wf = weekStart(nf && nf<=todayISO() ? nf : todayISO());
     document.getElementById('cx-from').value = wf; document.getElementById('cx-to').value = addDays(wf,6); // من الخميس للأربع
-    document.getElementById('cx-rows').innerHTML = ctrEquips(name).map((e,i)=>`<tr class="border-t border-slate-100"><td class="p-2 font-bold">${esc(e)}</td>
+    document.getElementById('cx-rows').innerHTML = ctrEquips(name).map((e,i)=>`<tr class="border-t border-slate-100"><td class="p-2 font-bold">${esc(ctrEqName(name,e))}</td>
         <td class="p-2"><input id="cx-q-${i}" type="number" step="any" min="0" oninput="cxPreview()" class="w-28 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
         <td class="p-2${codedRate(name,e)?' rate-col':''}"><input id="cx-r-${i}" type="number" step="any" min="0" value="${cxLastRate(name,e)}" oninput="cxPreview()" class="w-24 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
         <td class="p-2 font-extrabold text-emerald-700" id="cx-a-${i}">—</td></tr>`).join('');
@@ -9014,7 +9018,7 @@ function saveCtrExtract(){
     const g=id=>document.getElementById(id), name=g('cx-name').value;
     const L=ctrEquips(name).map((e,i)=>({e, q:Number(g('cx-q-'+i)?.value)||0, rt:Number(g('cx-r-'+i)?.value)||0, i})).filter(x=>x.q>0);
     if(!name || !L.length){ alert('اختار المقاول واكتب الأمتار'); return; }
-    const bad=L.find(x=>!(x.rt>0)); if(bad){ alert('اكتب سعر المتر لـ '+bad.e); g('cx-r-'+bad.i).focus(); return; }
+    const bad=L.find(x=>!(x.rt>0)); if(bad){ alert('اكتب سعر المتر لـ '+ctrEqName(name,bad.e)); g('cx-r-'+bad.i).focus(); return; }
     const from=g('cx-from').value, to=g('cx-to').value, notes=g('cx-notes').value.trim();
     if(!db.ctrExtracts) db.ctrExtracts=[];
     L.forEach(x=>{ const rec={id:String(newId()), name, equip:x.e, date:todayISO(), from, to, qty:x.q, rate:x.rt, amount:Math.round(x.q*x.rt), notes};
@@ -9032,7 +9036,7 @@ function openQuickExtracts(){
     const L=extractableCtrs(); if(!L.length){ alert('مفيش مقاولين بيتحاسبوا بمستخلص'); return; }
     const from=weekStart(todayISO()), to=addDays(from,6);
     const rows=L.map((c,i)=>ctrEquips(c.name).map((e,k,A)=>`<tr style="border-bottom:1px solid ${k===A.length-1?'#94a3b8':'#e2e8f0'}">${k===0?`<td rowspan="${A.length}" style="padding:6px;font-weight:800;vertical-align:top">${esc(c.name)}</td>`:''}
-        <td style="padding:6px;font-weight:700">${esc(e)}</td>
+        <td style="padding:6px;font-weight:700">${esc(ctrEqName(c.name,e))}</td>
         <td style="padding:6px"><input data-qi="${i}-${k}" type="number" step="any" min="0" value="" style="width:100px;border:1px solid #cbd5e1;border-radius:6px;padding:4px;font-weight:800"></td>
         <td class="${codedRate(c.name,e)?'rate-col':''}" style="padding:6px"><input data-ri="${i}-${k}" type="number" step="any" min="0" value="${cxLastRate(c.name,e)}" style="width:70px;border:1px solid #cbd5e1;border-radius:6px;padding:4px;font-weight:800"></td></tr>`).join('')).join('');
     document.getElementById('qx-modal')?.remove();
@@ -9055,7 +9059,7 @@ function saveQuickExtracts(){
     const recs=[];
     extractableCtrs().forEach((c,i)=>ctrEquips(c.name).forEach((e,k)=>{
         const q=Number(document.querySelector(`#qx-modal [data-qi="${i}-${k}"]`).value)||0, rt=Number(document.querySelector(`#qx-modal [data-ri="${i}-${k}"]`).value)||0;
-        if(!(q>0)) return; if(!(rt>0)){ miss.push(c.name+' — '+e); return; }
+        if(!(q>0)) return; if(!(rt>0)){ miss.push(c.name+' — '+ctrEqName(c.name,e)); return; }
         recs.push({id:String(newId()), name:c.name, equip:e, date:todayISO(), from:f, to:t, qty:q, rate:rt, amount:Math.round(q*rt), notes:'مستخلص سريع'});
     }));
     if(miss.length){ alert('اكتب السعر لـ: '+miss.join('، ')); return; }
@@ -9116,7 +9120,7 @@ function equipAcctHtml(name, from, to, auto){
     if(!X.length && !S.length) return '';
     const items=[...new Set(S.map(s=>s.item))], unit={};
     S.forEach(s=>{ if(!unit[s.item]) unit[s.item]=s.unit||''; });
-    const eqs=[...new Set([...ctrEquips(name), ...X.map(x=>ctrEqLbl(name,x.equip)), ...S.map(s=>ctrEqLbl(name,s.equip))])];
+    const eqs=[...new Set([...ctrEquips(name).map(e=>ctrEqLbl(name,e)), ...X.map(x=>ctrEqLbl(name,x.equip)), ...S.map(s=>ctrEqLbl(name,s.equip))])];
     const R=eqs.map(e=>{
         const xs=X.filter(x=>ctrEqLbl(name,x.equip)===e), ss=S.filter(s=>ctrEqLbl(name,s.equip)===e);
         if(!xs.length && !ss.length) return null;
@@ -10196,7 +10200,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 252.2';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 252.3';
 
     /* تنبيهات */
     const alerts=[];
