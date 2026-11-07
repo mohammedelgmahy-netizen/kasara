@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 253.0</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 253.1</span></p></div>
         </div>
     </aside>
 
@@ -1255,25 +1255,6 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
 
         <!-- ============ المستخلصات ============ -->
         <div id="tab-extracts" class="tab-content flex-col gap-6">
-            <div id="week-card" class="bg-white rounded-xl border border-indigo-200 shadow-sm overflow-hidden">
-                <div class="p-4 border-b border-indigo-100 bg-indigo-50 flex flex-wrap items-center justify-between gap-2">
-                    <h3 class="font-bold text-slate-900">🗓️ التقرير الأسبوعي للمستخلصات</h3>
-                    <div class="flex items-center gap-1 pl-no-print-hide">
-                        <button type="button" onclick="weekShift(-7)" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs font-bold">▶ أقدم</button>
-                        <input id="wk-from" type="date" onchange="renderWeeklyReport()" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs">
-                        <button type="button" onclick="weekShift(7)" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs font-bold">أحدث ◀</button>
-                        <button type="button" onclick="shareCard('week-card','التقرير الأسبوعي')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-bold"><i class="fa-brands fa-whatsapp"></i> واتساب</button>
-                        <button onclick="printSection('week-card')" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1 rounded text-xs font-bold mr-1">🖨️ طباعة</button>
-                    </div>
-                </div>
-                <div id="wk-period" class="px-4 pt-3 text-sm font-bold text-slate-600"></div>
-                <div class="overflow-x-auto p-2">
-                    <table class="w-full text-sm text-right" style="min-width:720px">
-                        <thead class="bg-slate-800 text-white"><tr><th class="p-2">المقاول / المعدة</th><th class="p-2">رصيد سابق</th><th class="p-2">صافي السن</th><th class="p-2 rate-col">سعر المتر</th><th class="p-2">ليه (شغل الأسبوع)</th><th class="p-2">عليه (سولار ومديونيات + سداد)</th><th class="p-2">صافي الأسبوع</th><th class="p-2">الرصيد</th></tr></thead>
-                        <tbody id="tbody-week"></tbody>
-                    </table>
-                </div>
-            </div>
             <div id="cx-card" class="bg-white rounded-xl border border-indigo-200 shadow-sm overflow-hidden">
                 <div class="p-4 border-b border-indigo-100 bg-indigo-50 flex flex-wrap justify-between items-center gap-2">
                     <h3 class="font-bold text-slate-900">📑 مستخلص مقاول</h3>
@@ -1289,7 +1270,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
                     <button type="button" onclick="saveCtrExtract()" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-2 font-bold">حفظ المستخلص</button>
                 </div>
                 <div id="cx-equip-acct" class="px-4 pb-4"></div>
-                <div class="px-4 pt-2 pb-2 flex items-center gap-2 border-t border-indigo-100"><span class="text-xs font-bold text-slate-600">المستخلصات المحفوظة:</span><select id="cx-filter" onchange="renderCtrExtracts()" class="bg-white border border-indigo-200 rounded px-2 py-1 text-xs font-bold min-w-[10rem]"><option value="">كل المقاولين</option></select></div>
+                <div class="px-4 pt-2 pb-2 flex flex-wrap items-center gap-2 border-t border-indigo-100"><span class="text-xs font-bold text-slate-600">المستخلصات المحفوظة:</span><select id="cx-filter" onchange="renderCtrExtracts()" class="bg-white border border-indigo-200 rounded px-2 py-1 text-xs font-bold min-w-[10rem]"><option value="">كل المقاولين</option></select><input id="cx-search" type="search" oninput="renderCtrExtracts()" placeholder="🔍 بحث: اسم أو تاريخ (مثلاً 22/10)" class="bg-white border border-indigo-200 rounded px-2 py-1 text-xs flex-1 min-w-[10rem]"></div>
                 <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100"><tr><th class="p-2">التاريخ</th><th class="p-2">يتحاسب مع</th><th class="p-2">المعدة</th><th class="p-2">الفترة</th><th class="p-2">الأمتار</th><th class="p-2 rate-col">السعر</th><th class="p-2">المبلغ</th><th class="p-2">ملاحظات</th><th class="p-2"></th></tr></thead><tbody id="tbody-cx"></tbody></table></div>
             </div>
             <div id="ctr-stmt-card" class="bg-white rounded-xl border border-violet-200 shadow-sm overflow-hidden">
@@ -8953,7 +8934,8 @@ function renderCtrExtracts(){
     if(!document.getElementById('cx-from').value) cxDefaults();
     const fs=document.getElementById('cx-filter'), fv=fs?fs.value:'';
     if(fs){ const N=[...new Set((db.ctrExtracts||[]).map(x=>x.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar')); fs.innerHTML='<option value="">كل المقاولين</option>'+N.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join(''); fs.value=N.includes(fv)?fv:''; }
-    const X=(db.ctrExtracts||[]).filter(x=>!fs||!fs.value||x.name===fs.value).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||String(b.id).localeCompare(String(a.id)));
+    const qv=String(document.getElementById('cx-search')?.value||'').trim().replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)), qm=x=>!qv || [x.name, x.notes, x.equip?ctrEqName(x.name,x.equip):'', dmy(x.date), dmy(x.from), dmy(x.to)].join(' ').includes(qv) || [dmy(x.date),dmy(x.from),dmy(x.to)].some(d=>String(d||'').replace(/\b0(\d)/g,'$1').includes(qv.replace(/\b0(\d)/g,'$1')));
+    const X=(db.ctrExtracts||[]).filter(x=>(!fs||!fs.value||x.name===fs.value) && qm(x)).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||String(b.id).localeCompare(String(a.id)));
     document.getElementById('tbody-cx').innerHTML = X.length ? X.map(x=>`<tr class="border-b border-slate-50 cursor-pointer hover:bg-indigo-50" onclick="openCtrExtractView('${x.id}')"><td class="p-2 text-xs">${dmy(x.date)}</td><td class="p-2 font-bold">${esc(x.name)}</td><td class="p-2">${x.equip?esc(ctrEqName(x.name,x.equip)):''}</td><td class="p-2 text-xs">${x.from?dmy(x.from)+' → '+dmy(x.to):'—'}</td><td class="p-2 font-bold">${nfmt(x.qty)}</td><td class="p-2 rate-col">${nfmt(x.rate)}</td><td class="p-2 font-extrabold text-emerald-700">${mfmt(x.amount)}</td><td class="p-2 text-xs">${esc(x.notes||'')}</td><td class="p-2"><button onclick="event.stopPropagation();deleteCtrExtract('${x.id}')" class="text-rose-600 text-xs">🗑</button></td></tr>`).join('')
         : '<tr><td colspan="9" class="p-3 text-center text-slate-400">—</td></tr>';
 }
@@ -10222,7 +10204,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 253.0';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 253.1';
 
     /* تنبيهات */
     const alerts=[];
