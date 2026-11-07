@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 251.5</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 251.6</span></p></div>
         </div>
     </aside>
 
@@ -9068,7 +9068,7 @@ function addDays(d,n){ const x=new Date(d+'T12:00:00'); x.setDate(x.getDate()+n)
 function weekShift(n){ const el=document.getElementById('wk-from'); el.value=addDays(weekStart(el.value),n); renderWeeklyReport(); }
 function renderWeeklyReport(){
     const tb=document.getElementById('tbody-week'); if(!tb) return;
-    const el=document.getElementById('wk-from'); el.value = weekStart(el.value||todayISO());
+    const el=document.getElementById('wk-from'); const lastX=(db.ctrExtracts||[]).map(x=>x.to||x.date).filter(Boolean).sort().pop(); el.value = weekStart(el.value||lastX||todayISO()); // بيفتح على آخر أسبوع فيه مستخلصات
     const from=el.value, to=addDays(from,6);
     document.getElementById('wk-period').textContent = `من الخميس ${dmy(from)} إلى الأربعاء ${dmy(to)}`;
     let T={op:0,sin:0,cr:0,dr:0,cl:0};
@@ -9077,14 +9077,14 @@ function renderWeeklyReport(){
         const before=rows.filter(r=>r.date<from), op=before.length?before[before.length-1].bal:0;
         const inP=rows.filter(r=>r.date>=from && r.date<=to);
         const sin=inP.reduce((s,r)=>s+(r.sin||0),0), cr=inP.reduce((s,r)=>s+r.credit,0), dr=inP.reduce((s,r)=>s+r.debit,0), cl=op+cr-dr;
-        if(!op && !cr && !dr && !sin) return '';
+        if(!cr && !dr && !sin) return ''; // اللي ملوش حركة في الأسبوع مش بيظهر
         T.op+=op; T.sin+=sin; T.cr+=cr; T.dr+=dr; T.cl+=cl;
         return `<tr class="border-b border-slate-50"><td class="p-2 font-bold">${esc(c.name)}${c.equip?`<div class="text-[11px] text-sky-700">${esc(c.equip)}</div>`:''}</td><td class="p-2" dir="ltr">${op?mfmt(op):'—'}</td><td class="p-2">${sin?nfmt(sin):'—'}</td><td class="p-2 rate-col">${rate?nfmt(rate):'<span class="text-xs text-amber-700">السعر بعدين</span>'}</td>
             <td class="p-2 text-emerald-700 font-bold">${cr?mfmt(cr):'—'}</td><td class="p-2 text-rose-700 font-bold">${dr?mfmt(dr):'—'}</td><td class="p-2 font-bold ${cr-dr<0?'text-rose-700':''}" dir="ltr">${mfmt(cr-dr)}</td>
             <td class="p-2 font-extrabold ${cl<0?'text-rose-700':'text-emerald-700'}" dir="ltr">${mfmt(cl)} <span class="text-xs">${cl<0?'عليه':'ليه'}</span></td></tr>`;
     }).filter(Boolean);
     tb.innerHTML = rows.length ? rows.join('') + `<tr class="bg-slate-100 font-bold"><td class="p-2">الإجمالي</td><td class="p-2" dir="ltr">${mfmt(T.op)}</td><td class="p-2">${T.sin?nfmt(T.sin):''}</td><td class="rate-col"></td><td class="p-2">${mfmt(T.cr)}</td><td class="p-2">${mfmt(T.dr)}</td><td class="p-2" dir="ltr">${mfmt(T.cr-T.dr)}</td><td class="p-2" dir="ltr">${mfmt(T.cl)}</td></tr>`
-        : '<tr><td colspan="8" class="p-4 text-center text-slate-400">مفيش حركات في الأسبوع ده</td></tr>';
+        : `<tr><td colspan="8" class="p-4 text-center text-slate-500 font-bold">مفيش مستخلصات ولا حركات في الأسبوع ده${(()=>{ const l=(db.ctrExtracts||[]).map(x=>x.to||x.date).filter(Boolean).sort().pop(); return l?` — آخر مستخلصات متسجلة لحد ${dmy(l)}`:''; })()}</td></tr>`;
 }
 function addCtrEstimate(){
     if(isRO()) return;
@@ -10195,7 +10195,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 251.5';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 251.6';
 
     /* تنبيهات */
     const alerts=[];
