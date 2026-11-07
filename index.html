@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 250.8</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 250.9</span></p></div>
         </div>
     </aside>
 
@@ -9319,7 +9319,8 @@ function printSinOnly(){
     rows.forEach(r=>{ const q=r.q||{}; pure += pureSinQ(q); tab += Number(q.tabaqa)||0; tabSin += (Number(q.tabaqa)||0)*(Number(r.tabaqaPct)||0)/100; });
     printHtml(`<div class="rep-sec">${repHeadTxt('كمية السن', dlViewLabel())}
         <div class="rep-sum"><div>🪨 صافي السن: ${nfmt(pure+tabSin)}</div><div>السن الصافي: ${nfmt(pure)}</div><div>سن من الطبقة: ${nfmt(tabSin)} (من ${nfmt(tab)} طبقة)</div><div>عدد البونات: ${rows.length}</div></div>
-        ${ws && ws.innerHTML ? ws.querySelector('table').outerHTML.replace('<table class="w-full text-sm text-right">','<table class="rep-tbl">') : ''}</div>`);
+        ${ws && ws.innerHTML ? ws.querySelector('table').outerHTML.replace('<table class="w-full text-sm text-right">','<table class="rep-tbl">') : ''}
+        ${rows.length ? '<div style="font-weight:800;margin:14px 0 6px">تفاصيل البونات</div>'+bonsTableHtml(rows,false) : ''}</div>`);
 }
 function printExtractFull(id){
     const x = (db.equipExtracts||[]).find(r=>r.id===id); if(!x) return;
@@ -10184,7 +10185,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 250.8';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 250.9';
 
     /* تنبيهات */
     const alerts=[];
