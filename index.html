@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 253.5</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 253.6</span></p></div>
         </div>
     </aside>
 
@@ -9008,6 +9008,9 @@ function saveCtrExtract(){
     const bad=L.find(x=>!(x.rt>0)); if(bad){ alert('اكتب سعر المتر لـ '+ctrEqName(name,bad.e)); g('cx-r-'+bad.i).focus(); return; }
     const from=g('cx-from').value, to=g('cx-to').value, notes=g('cx-notes').value.trim();
     if(!db.ctrExtracts) db.ctrExtracts=[];
+    /* ميتحفظش مرتين: نفس المقاول ونفس المعدة وفترة متداخلة (محمد 2026-11-07) */
+    if(from && to){ const dup=L.map(x=>(db.ctrExtracts||[]).find(e=>e.name===name && eqNorm(e.equip)===eqNorm(x.e) && e.from && e.to && e.from<=to && e.to>=from)).find(Boolean);
+        if(dup){ alert(`المستخلص ده متحفظ قبل كده: ${name} من ${dmy(dup.from)} إلى ${dmy(dup.to)} (${nfmt(dup.qty)} متر).\nمش هيتحفظ تاني.`); try{ openCtrExtractView(dup.id); }catch(e){} return; } }
     let firstId=null;
     L.forEach(x=>{ const rec={id:String(newId()), name, equip:x.e, date:todayISO(), from, to, qty:x.q, rate:x.rt, amount:Math.round(x.q*x.rt), notes};
         if(!firstId) firstId=rec.id;
@@ -10225,7 +10228,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 253.5';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 253.6';
 
     /* تنبيهات */
     const alerts=[];
