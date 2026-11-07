@@ -4267,7 +4267,7 @@ function renderSupplierAccounts(){
    متسجلة في expensesData تحت بند "عمولة جلب عملاء" (مصروف تسويق وبيع):
    commission:'accrual' = عمولة مستحقة (total=القيمة، paid=0) — commission:'pay' = صرف (total=0، paid=المبلغ)
    فقائمة الدخل بتاخد العمولة، والخزينة بتاخد الصرف، والميزانية بتطلع الباقي "مصروفات مستحقة". */
-const COM_CAT='أتعاب إدارة — عماد ناجي', COM_PERSON='عماد ناجي'; // كانت «عمولة جلب عملاء» — محمد 2026-11-07: مصروف إدارة، والتاب اتشال
+const COM_CAT='بدل إدارة وتشغيل — عماد ناجي', COM_PERSON='عماد ناجي'; // كانت «عمولة جلب عملاء» — محمد 2026-11-07: مصروف إدارة، والتاب اتشال
 function ensureComCat(){ if(!(db.expenses||[]).some(c=>c.name===COM_CAT)) db.expenses.push({code:nextCode('expenses'), name:COM_CAT, plType:'operating', plBucket:'admin', nameType:'none'}); }
 function comCalc(){ const q=Number(document.getElementById('com-qty').value)||0, r=Number(document.getElementById('com-rate').value)||0; document.getElementById('com-amount').textContent=fmt(q*r); }
 function comRows(){ return (db.expensesData||[]).filter(x=>x.category===COM_CAT).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.commission==='pay')-(b.commission==='pay')); }
@@ -5084,7 +5084,7 @@ function balanceSheetData(D){
     if(Math.round(ctrOwe)) L.push({name:'مستحقات المقاولين', v:ctrOwe});
     if(Math.round(adv)) L.push({name:'دفعات مقدمة من العملاء', v:adv});
     // مصروفات مستحقة لسه ماتدفعتش (قيمة المصروف − المدفوع منه) — زي عمولة جلب العملاء
-    try{ let acc=0, accM=0; (db.expensesData||[]).filter(x=>le(x.date) && !x.tipDeposit).forEach(x=>{ const c=(db.expenses||[]).find(e=>e.name===x.category); if(!c || c.nameType==='contractors' || c.plType==='revenue' || x.category==='إيراد') return; const rem=(Number(x.total)||0)-(Number(x.paid)||0); if(x.category===COM_CAT) accM+=rem; else acc+=rem; }); if(Math.round(accM)) L.push({name:'أتعاب إدارة مستحقة — عماد ناجي', v:accM}); if(Math.round(acc)>0) L.push({name:'مصروفات مستحقة (لم تُدفع)', v:acc}); else if(Math.round(acc)<0) A.push({g:'مستحقات أخرى', name:'مصروفات مدفوعة مقدماً', v:-acc}); }catch(e){}
+    try{ let acc=0, accM=0; (db.expensesData||[]).filter(x=>le(x.date) && !x.tipDeposit).forEach(x=>{ const c=(db.expenses||[]).find(e=>e.name===x.category); if(!c || c.nameType==='contractors' || c.plType==='revenue' || x.category==='إيراد') return; const rem=(Number(x.total)||0)-(Number(x.paid)||0); if(x.category===COM_CAT) accM+=rem; else acc+=rem; }); if(Math.round(accM)) L.push({name:'بدل إدارة وتشغيل مستحق — عماد ناجي', v:accM}); if(Math.round(acc)>0) L.push({name:'مصروفات مستحقة (لم تُدفع)', v:acc}); else if(Math.round(acc)<0) A.push({g:'مستحقات أخرى', name:'مصروفات مدفوعة مقدماً', v:-acc}); }catch(e){}
     const __capE=[]; // سلف شريك اتعتبرت رأس مال (مش دين على الكسارة)
     try{ const s0=db.sariSettings||{}; const bals={'عماد ناجي':Number(s0.loanOpening)||0}; (db.ownerLoans||[]).filter(l=>le(l.date)).forEach(l=>{ const w=loanLender(l); bals[w]=(bals[w]||0)+(l.type==='in'?1:-1)*(Number(l.amount)||0); }); const capL=db.capitalLenders||[]; Object.entries(bals).forEach(([w,v])=>{ if(!Math.round(v)) return; if(capL.includes(w)) __capE.push({name:'رأس مال '+w+' (باقي حصته في شراء الكسارة)', v}); else L.push({name:'قروض / جاري '+w, v}); }); }catch(e){}
     // حقوق الملكية
