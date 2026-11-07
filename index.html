@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 250.7</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 250.8</span></p></div>
         </div>
     </aside>
 
@@ -663,7 +663,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
                 <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3">
                     <span class="font-bold text-slate-800">سجل يومي</span>
                     <div class="flex flex-wrap gap-2 items-center">
-                        <select id="dl-view-mode" onchange="dlModeChanged()" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs"><option value="DAY">يوم محدد</option><option value="RANGE">فترة (من - إلى)</option><option value="ALL">كل الأيام</option></select>
+                        <select id="dl-view-mode" onchange="dlModeChanged()" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs"><option value="DAY">يوم محدد</option><option value="RANGE" hidden>فترة</option><option value="ALL">كل الأيام</option></select>
                         <span id="dl-day-nav" class="inline-flex items-center gap-1">
                             <button type="button" onclick="dlShiftDay(-1)" title="اليوم اللي قبله" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs font-bold">▶</button>
                             <input id="dl-view-date" type="date" onchange="renderDailyLog()" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs">
@@ -10184,7 +10184,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 250.7';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 250.8';
 
     /* تنبيهات */
     const alerts=[];
