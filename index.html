@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 250.5</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 250.6</span></p></div>
         </div>
     </aside>
 
@@ -8996,6 +8996,14 @@ function meterBalTxt(mb){
     return (mb.oldLeft>0?`<span class="text-slate-500">فاضل سن قديم ${nfmt(mb.oldLeft)} م</span> — `:'')
         + (Math.abs(mb.diff)<0.01 ? '<span class="text-slate-700">متساوي ✓</span>' : mb.diff>0 ? `<span class="text-emerald-700">ليه ${nfmt(mb.diff)} متر لسه</span>` : `<span class="text-rose-700">اتحاسب زيادة ${nfmt(-mb.diff)} متر</span>`);
 }
+/* بدل إدارة وتشغيل عماد ناجي: 4 جنيه × أمتار مستخلص حفارات عماد كل أسبوع (محمد 2026-11-07) — بيتسجل لوحده من بعد 28/10 */
+const MGMT_FEE_CTR='حفارات عماد', MGMT_FEE_RATE=4, MGMT_FEE_FROM='2026-10-29';
+function addMgmtFee(rec){ try{
+    if(!rec || rec.name!==MGMT_FEE_CTR || !(Number(rec.qty)>0) || (rec.to||rec.date||'')<MGMT_FEE_FROM) return;
+    ensureComCat(); const amt=Math.round(Number(rec.qty)*MGMT_FEE_RATE*100)/100;
+    db.expensesData.push({id:db.nextId.exp++, category:COM_CAT, name:COM_PERSON, project:'كسارة ديار', total:amt, paid:0, remaining:amt, account:'', date:rec.to||rec.date, from:rec.from, to:rec.to, qty:Number(rec.qty), rate:MGMT_FEE_RATE, commission:'accrual', extractId:rec.id, desc:`بدل إدارة وتشغيل ${COM_PERSON} على ${nfmt(rec.qty)} متر سن × ${MGMT_FEE_RATE}`});
+}catch(e){ console.warn(e); } }
+function removeMgmtFee(extractId){ db.expensesData=(db.expensesData||[]).filter(x=>!(x.category===COM_CAT && x.extractId!=null && String(x.extractId)===String(extractId))); }
 function saveCtrExtract(){
     if(isRO()) return;
     const g=id=>document.getElementById(id), name=g('cx-name').value;
@@ -9005,13 +9013,13 @@ function saveCtrExtract(){
     const from=g('cx-from').value, to=g('cx-to').value, notes=g('cx-notes').value.trim();
     if(!db.ctrExtracts) db.ctrExtracts=[];
     L.forEach(x=>{ const rec={id:String(newId()), name, equip:x.e, date:todayISO(), from, to, qty:x.q, rate:x.rt, amount:Math.round(x.q*x.rt), notes};
-        db.ctrExtracts.push(rec); logAudit('create','مستخلص مقاول',`${name} ${x.e} ${x.q}×${x.rt}`,null,rec); });
+        db.ctrExtracts.push(rec); addMgmtFee(rec); logAudit('create','مستخلص مقاول',`${name} ${x.e} ${x.q}×${x.rt}`,null,rec); });
     g('cx-notes').value=''; scheduleSave(); renderAll(); cxDefaults();
 }
 function deleteCtrExtract(id){
     if(isRO()) return;
     const old=(db.ctrExtracts||[]).find(x=>x.id===id); if(!old || !confirm(`تحذف مستخلص ${old.name} (${mfmt(old.amount)})؟`)) return;
-    db.ctrExtracts=db.ctrExtracts.filter(x=>x.id!==id); logAudit('delete','مستخلص مقاول',old.name,old,null);
+    db.ctrExtracts=db.ctrExtracts.filter(x=>x.id!==id); removeMgmtFee(id); logAudit('delete','مستخلص مقاول',old.name,old,null);
     scheduleSave(); renderAll();
 }
 function openQuickExtracts(){
@@ -9046,7 +9054,7 @@ function saveQuickExtracts(){
         recs.push({id:String(newId()), name:c.name, equip:e, date:todayISO(), from:f, to:t, qty:q, rate:rt, amount:Math.round(q*rt), notes:'مستخلص سريع'});
     }));
     if(miss.length){ alert('اكتب السعر لـ: '+miss.join('، ')); return; }
-    recs.forEach(r=>db.ctrExtracts.push(r)); n=recs.length;
+    recs.forEach(r=>{ db.ctrExtracts.push(r); addMgmtFee(r); }); n=recs.length;
     logAudit('create','مستخلص سريع', `${n} مقاول`, null, null);
     document.getElementById('qx-modal').remove(); scheduleSave(); renderAll();
 }
@@ -10175,7 +10183,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 250.5';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 250.6';
 
     /* تنبيهات */
     const alerts=[];
