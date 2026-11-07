@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 253.3</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 253.4</span></p></div>
         </div>
     </aside>
 
@@ -8975,7 +8975,11 @@ function cxDefaults(){
 function cxPreview(resetQty){
     const g=id=>document.getElementById(id), name=g('cx-name').value; if(!name) return;
     let tq=0, ta=0;
-    ctrEquips(name).forEach((e,i)=>{ const qe=g('cx-q-'+i); if(!qe) return; if(resetQty) qe.value='';
+    /* الأمتار بتيجي من البونات (صافي السن في الفترة) — محمد 2026-11-07 */
+    if(resetQty){ const E=ctrEquips(name); E.forEach((e,i)=>{ const qe=g('cx-q-'+i); if(qe) qe.value=''; });
+        const q0=g('cx-q-0'), f=g('cx-from').value, t=g('cx-to').value;
+        if(q0 && f && t && !(codedRate(name,E[0])>=200)){ const r=ctrSinIn(name,f,t); const v=Math.round(r.net*100)/100; if(v>0) q0.value=v; } }
+    ctrEquips(name).forEach((e,i)=>{ const qe=g('cx-q-'+i); if(!qe) return;
         const q=Number(qe.value)||0, rt=Number(g('cx-r-'+i).value)||0; tq+=q; ta+=q*rt;
         g('cx-a-'+i).textContent = q&&rt ? mfmt(q*rt) : '—'; });
     g('cx-tq').textContent = tq ? nfmt(tq) : '—';
@@ -9004,9 +9008,12 @@ function saveCtrExtract(){
     const bad=L.find(x=>!(x.rt>0)); if(bad){ alert('اكتب سعر المتر لـ '+ctrEqName(name,bad.e)); g('cx-r-'+bad.i).focus(); return; }
     const from=g('cx-from').value, to=g('cx-to').value, notes=g('cx-notes').value.trim();
     if(!db.ctrExtracts) db.ctrExtracts=[];
+    let firstId=null;
     L.forEach(x=>{ const rec={id:String(newId()), name, equip:x.e, date:todayISO(), from, to, qty:x.q, rate:x.rt, amount:Math.round(x.q*x.rt), notes};
+        if(!firstId) firstId=rec.id;
         db.ctrExtracts.push(rec); addMgmtFee(rec); logAudit('create','مستخلص مقاول',`${name} ${x.e} ${x.q}×${x.rt}`,null,rec); });
     g('cx-notes').value=''; scheduleSave(); renderAll(); cxDefaults();
+    if(firstId) try{ openCtrExtractView(firstId); }catch(e){} // بعد الحفظ يطلع المستخلص كامل للفترة (محمد 2026-11-07)
 }
 /* لما تدوس على مستخلص محفوظ تظهر تفاصيله (محمد 2026-11-07) */
 function openCtrExtractView(id){
@@ -10218,7 +10225,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 253.3';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 253.4';
 
     /* تنبيهات */
     const alerts=[];
