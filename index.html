@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 250.3</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 250.4</span></p></div>
         </div>
     </aside>
 
@@ -2131,7 +2131,8 @@ async function sbFetch(url, opts){
     opts = Object.assign({}, opts); opts.headers = Object.assign({}, opts.headers||{});
     if(__session && __session.access_token) opts.headers['Authorization'] = 'Bearer ' + __session.access_token;
     const ctrl = new AbortController();
-    const t = setTimeout(()=>ctrl.abort(), 8000);
+    const ms = opts.timeout || 8000; delete opts.timeout;
+    const t = setTimeout(()=>ctrl.abort(), ms);
     try{ return await fetch(url, Object.assign({}, opts, { signal: ctrl.signal })); }
     finally{ clearTimeout(t); }
 }
@@ -2176,7 +2177,7 @@ const store = {
         if(SUPABASE_URL && SUPABASE_ANON_KEY){
             try{
                 const res = await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?key=eq.${encodeURIComponent(key)}&select=value`, {
-                    headers: sbHeaders()
+                    headers: sbHeaders(), timeout: 45000 // البيانات كبرت (أكتر من 1 ميجا) و8 ثواني مش كفاية على النت الضعيف، فكان بيفتح نسخة قديمة من الموبايل
                 });
                 if(res.ok){
                     const rows = await res.json();
@@ -2246,7 +2247,7 @@ function __merge3(b,l,r){
     return l;
 }
 async function __sbGetRaw(key){
-    const res = await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?key=eq.${encodeURIComponent(key)}&select=value`, { headers: sbHeaders() });
+    const res = await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?key=eq.${encodeURIComponent(key)}&select=value`, { headers: sbHeaders(), timeout: 45000 });
     if(!res.ok) throw new Error('read '+res.status);
     const rows = await res.json(); return rows.length ? rows[0].value : null;
 }
@@ -10174,7 +10175,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 250.3';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 250.4';
 
     /* تنبيهات */
     const alerts=[];
