@@ -433,7 +433,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.21</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.22</span></p></div>
         </div>
     </aside>
 
@@ -5048,7 +5048,7 @@ function clientSheetHtml(name){
 
 /* ---------- كشوفات العملاء المحفوظة: زي المستخلص، بالأسبوع، تتحفظ وتفتح تاني (محمد 2026-11-07) ---------- */
 function withAcctRange(from, to, fn){ const f=document.getElementById('acct-from'), t=document.getElementById('acct-to'); const fv=f?f.value:'', tv=t?t.value:''; if(f) f.value=from||''; if(t) t.value=to||''; try{ return fn(); } finally{ if(f) f.value=fv; if(t) t.value=tv; } }
-function clientStmtSnap(name, from, to){ return withAcctRange(from, to, ()=>{ const D=clientSheetData(name); const bons=clientBons(name, from, to); const sin=bons.reduce((a,r)=>a+pureSinQ(r.q,r.date),0), qty=bons.reduce((a,r)=>a+bonQtyTotal(r),0); const req=D.bonsTotal+D.otherDebit+D.prev, col=D.credits.reduce((a,c)=>a+c.credit,0); return {n:D.n, sin, qty, req:D.bonsTotal+D.otherDebit, prev:D.prev, col, bal:req-col}; }); }
+function clientStmtSnap(name, from, to){ return withAcctRange(from, to, ()=>{ const D=clientSheetData(name); const bons=clientBons(name, from, to); const sin=bons.reduce((a,r)=>a+bonNetSin(r),0), qty=bons.reduce((a,r)=>a+bonQtyTotal(r),0); const req=D.bonsTotal+D.otherDebit+D.prev, col=D.credits.reduce((a,c)=>a+c.credit,0); return {n:D.n, sin, qty, req:D.bonsTotal+D.otherDebit, prev:D.prev, col, bal:req-col}; }); }
 function saveClientStmt(){
     if(isRO()) return;
     const g=id=>document.getElementById(id); if(g('acct-type').value!=='client') return;
@@ -10383,7 +10383,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.21';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.22';
 
     /* تنبيهات */
     const alerts=[];
