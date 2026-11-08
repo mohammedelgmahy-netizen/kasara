@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.7</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.8</span></p></div>
         </div>
     </aside>
 
@@ -8621,7 +8621,7 @@ function renderDailyLog(){
     const sums = {}; DL_SIZES.forEach(s=>sums[s.key]=0);
     let tip=0, val=0, tabSin=0;
     rows.forEach(r=>{ tabSin += (Number((r.q||{}).tabaqa)||0) * (Number(r.tabaqaPct)||0) / 100; });
-    tbody.innerHTML = rows.length ? rows.map((r,i)=>{
+    const rowHtml = rows.map((r,i)=>{
         DL_SIZES.forEach(s=>sums[s.key]+=Number((r.q||{})[s.key])||0);
         tip += Number(r.tip)||0;
         const v = r.total!=null ? (Number(r.total)||0) : (r.price ? DL_SIZES.reduce((a,s)=>a+(Number((r.q||{})[s.key])||0),0)*r.price : 0);
@@ -8634,12 +8634,21 @@ function renderDailyLog(){
             <td class="p-2 text-xs font-bold ${r.paidCash?'text-emerald-700':'text-amber-700'}">${v ? (r.paidCash?'نقدي':'آجل') : ''}</td>
             <td class="p-2 text-xs text-slate-500">${dmy(r.date)}</td>
             <td class="p-2"><button onclick="startEdit('bon', ${r.id})" class="text-blue-500 hover:text-blue-700 text-xs ml-2" title="تعديل">✏️</button><button onclick="deleteDailyLog(${r.id})" class="text-red-400 hover:text-red-600 text-xs">🗑</button></td></tr>`;
-    }).join('') : '';
+    });
     {
         const fc = document.getElementById('dl-filter-client')?.value || 'ALL';
         const inV = d => mode==='ALL' || (mode==='RANGE' ? ((!from || d>=from) && (!to || d<=to)) : d===day);
-        const cx = fc==='ALL' && !dlClientQuery() ? cancelledList().filter(x=>x.date && inV(x.date)).sort((a,b)=>a.n-b.n) : [];
-        tbody.innerHTML += cx.map(x=>`<tr class="border-b border-slate-50 bg-slate-100 text-slate-500"><td class="p-2">🚫</td><td class="p-2 font-bold line-through">${x.n}</td><td class="p-2 font-extrabold text-rose-700" colspan="${3+DL_SIZES.length+3}">ملغي${x.note?' — '+esc(x.note):''}</td><td class="p-2 text-xs">${dmy(x.date)}</td><td class="p-2"><button onclick="uncancelBon(${x.n})" class="text-xs" title="شيل الإلغاء">↩️</button></td></tr>`).join('');
+        const cx = fc==='ALL' && !dlClientQuery() ? cancelledList().filter(x=>x.date && inV(x.date)).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(Number(a.n)-Number(b.n))) : [];
+        // البونات الملغية بتفضل في مكانها بترتيب البون (تاريخ ثم رقم)، ومكتوب عليها «لاغي»
+        const cxHtml = x => `<tr class="border-b border-slate-50 bg-slate-100 text-slate-500"><td class="p-2">🚫</td><td class="p-2 font-bold line-through">${x.n}</td><td class="p-2 font-extrabold text-rose-700" colspan="${3+DL_SIZES.length+3}">لاغي${(x.note||'').replace(/^لاغي\s*[—-]?\s*/,'')?' — '+esc((x.note||'').replace(/^لاغي\s*[—-]?\s*/,'')):''}</td><td class="p-2 text-xs">${dmy(x.date)}</td><td class="p-2"><button onclick="uncancelBon(${x.n})" class="text-xs" title="شيل الإلغاء">↩️</button></td></tr>`;
+        const out=[]; let ci=0;
+        rows.forEach((r,i)=>{
+            const bn=bonNum(r);
+            while(ci<cx.length && ((cx[ci].date||'')<(r.date||'') || ((cx[ci].date||'')===(r.date||'') && Number(cx[ci].n)<bn))) out.push(cxHtml(cx[ci++]));
+            out.push(rowHtml[i]);
+        });
+        while(ci<cx.length) out.push(cxHtml(cx[ci++]));
+        tbody.innerHTML = out.join('');
         if(!rows.length && !cx.length) tbody.innerHTML = '<tr><td colspan="15" class="p-4 text-center text-slate-400">لا توجد بونات</td></tr>';
     }
     const sinBox = document.getElementById('dl-sin-summary');
@@ -10348,7 +10357,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.7';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.8';
 
     /* تنبيهات */
     const alerts=[];
