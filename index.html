@@ -433,7 +433,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.20</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.21</span></p></div>
         </div>
     </aside>
 
@@ -8684,7 +8684,7 @@ function renderDailyLog(){
         const pure = pureAcc;
         sinBox.innerHTML = rows.length ? `
             <div class="bg-amber-100 border border-amber-300 rounded-lg p-3 col-span-2"><div class="text-xs font-bold text-amber-800">🪨 صافي السن المطلع</div><div class="text-2xl font-bold text-amber-900">${nfmt(pure+tabSin)}</div></div>
-            <div class="bg-slate-50 border border-slate-200 rounded-lg p-3"><div class="text-[11px] font-bold text-slate-600">السن (${DL_SIZES.filter(isSinSize).map(s=>s.label.replace('سن ','')).join(' + ')})</div><div class="text-lg font-bold">${nfmt(pure)}</div></div>
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-3"><div class="text-[11px] font-bold text-slate-600">السن (${DL_SIZES.filter(isSinSize).map(s=>s.label.replace('سن ','')).join(' + ')} + سن الطبقة)</div><div class="text-lg font-bold">${nfmt(pure+tabSin)}</div></div>
             <div class="bg-slate-50 border border-slate-200 rounded-lg p-3"><div class="text-[11px] font-bold text-slate-600">سن من الطبقة (${nfmt(sums.tabaqa)} طبقة)</div><div class="text-lg font-bold">${nfmt(tabSin)}</div></div>` : '';
     }
     // تجميعة الكميات حسب الشغل تبع مين (عشان الحساب بالمتر)
@@ -8736,7 +8736,7 @@ function exportDailyLogExcel(){
     const aoa = [['التاريخ','رقم البون','اسم العميل','رقم الجرار','رقم المقطورة',...DL_SIZES.map(s=>s.label),'نسبة السن في الطبقة','سن الطبقة','إكرامية','سعر الوحدة','القيمة']];
     rows.forEach(r=>{
         const qty = DL_SIZES.reduce((a,s)=>a+(Number((r.q||{})[s.key])||0),0);
-        aoa.push([dmy(r.date), r.bon||'', r.client, r.tractor||'', r.trailer||'', ...DL_SIZES.map(s=>(r.q||{})[s.key]||''), r.tabaqaPct?r.tabaqaPct+'%':'', (r.q||{}).tabaqa&&r.tabaqaPct ? r.q.tabaqa*r.tabaqaPct/100 : '', r.tip||'', r.price||'', r.total!=null ? r.total : (r.price ? qty*r.price : '')]);
+        aoa.push([dmy(r.date), r.bon||'', r.client, r.tractor||'', r.trailer||'', ...DL_SIZES.map(s=>(r.q||{})[s.key]||''), (r.q||{}).tabaqa ? tabPct(r)+'%' : '', (r.q||{}).tabaqa ? r.q.tabaqa*tabPct(r)/100 : '', r.tip||'', r.price||'', r.total!=null ? r.total : (r.price ? qty*r.price : '')]);
     });
     xlsxSave(aoa,'السجل اليومي',`daily-log-${todayISO()}.xlsx`);
 }
@@ -10383,7 +10383,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.20';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.21';
 
     /* تنبيهات */
     const alerts=[];
