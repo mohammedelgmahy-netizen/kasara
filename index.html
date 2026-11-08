@@ -287,6 +287,9 @@ main .text-slate-700,main .text-slate-800{color:#0f172a !important}
 main .text-gray-400,main .text-gray-500,main .text-gray-600{color:#334155 !important}
 aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
 </style>
+<style>/* فورم البون: مربعات الكميات مستخبية لحد ما الصنف يتختار (محمد 2026-11-08) */
+div:has(> input[id^="dl-q-"]){display:none}
+div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col">
 <!-- ACTIVATION GATE -->
@@ -430,7 +433,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.16</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.17</span></p></div>
         </div>
     </aside>
 
@@ -6950,7 +6953,7 @@ function renderSizeBtns(){
     window.__dlSel = window.__dlSel || new Set();
     DL_SIZES.forEach(sz=>{ const el=document.getElementById('dl-q-'+sz.key); if(el){ const on=Number(el.value)>0; if(on) __dlSel.add(sz.key); el.style.background = on?'#d1fae5':''; el.style.borderColor = on?'#059669':''; el.style.fontWeight = on?'800':'';
         /* محمد 2026-11-08: مربع الكمية يظهر بس للصنف المختار */
-        const wrap=el.parentElement; if(wrap) wrap.style.display = __dlSel.has(sz.key) ? '' : 'none'; } });
+        const wrap=el.parentElement; if(wrap){ wrap.style.display=''; wrap.classList.toggle('dlq-on', __dlSel.has(sz.key)); } } });
     box.innerHTML = `<span class="text-xs font-bold text-slate-600">${cube?`الحمولة (${nfmt(cube)} م):`:'الصنف:'}</span>` + DL_SIZES.map(sz=>{ const on=__dlSel.has(sz.key); return `<button type="button" onclick="dlPickSize('${sz.key}')" class="px-3 py-1.5 rounded-lg text-sm font-bold border-2 ${on?'bg-emerald-600 border-emerald-600 text-white':'bg-white border-slate-300 text-slate-700'}">${on?'✓ ':''}${esc(sz.label)}</button>`; }).join('');
 }
 document.addEventListener('input', e=>{ if(e.target && e.target.id && e.target.id.startsWith('dl-q-')) try{
@@ -7896,6 +7899,7 @@ function refreshSizes(){
     const box = document.getElementById('dl-extra-sizes'), box2 = document.getElementById('dl-extra-sizes2');
     if(box) box.innerHTML = [...bk('s2'), ...userExtra].map(inp).join('');
     if(box2) box2.innerHTML = [...bk('tmix'), ...bk('simsim')].map(inp).join('');
+    try{ if(typeof renderSizeBtns==='function') renderSizeBtns(); }catch(e){}
     const tr = document.getElementById('dl-thead-row');
     if(tr){
         if(!tr.dataset.lead){
@@ -10378,7 +10382,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.16';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.17';
 
     /* تنبيهات */
     const alerts=[];
