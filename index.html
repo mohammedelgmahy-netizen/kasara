@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.0</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.1</span></p></div>
         </div>
     </aside>
 
@@ -1033,22 +1033,6 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
                 </div>
             </div>
 
-            <div id="supplier-stmt-card" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="p-4 border-b border-slate-100 bg-amber-50/60 flex flex-wrap items-center gap-2">
-                    <h3 class="font-bold text-slate-900 ml-2">📒 كشف حساب مورد</h3>
-                    <select id="ss-supplier" onchange="renderSupplierStmt()" class="bg-white border border-amber-200 rounded px-2 py-1 text-xs min-w-[10rem]"></select>
-                    <label class="text-xs font-bold text-slate-600">من <input id="ss-from" type="date" onchange="renderSupplierStmt()" class="bg-white border border-slate-200 rounded p-1 text-xs"></label>
-                    <label class="text-xs font-bold text-slate-600">إلى <input id="ss-to" type="date" onchange="renderSupplierStmt()" class="bg-white border border-slate-200 rounded p-1 text-xs"></label>
-                </div>
-                <div id="ss-summary" class="grid grid-cols-2 md:grid-cols-4 gap-2 p-3 text-center text-sm"></div>
-                <div class="overflow-x-auto max-h-[28rem]">
-                    <table class="w-full text-sm text-right">
-                        <thead class="bg-slate-100 sticky top-0"><tr><th class="p-2">التاريخ</th><th class="p-2">البيان</th><th class="p-2">الكمية</th><th class="p-2">السعر</th><th class="p-2">مشتريات (ليه)</th><th class="p-2">مدفوع</th><th class="p-2">الرصيد له</th></tr></thead>
-                        <tbody id="tbody-ss"></tbody>
-                    </table>
-                </div>
-                <div id="ss-items" class="p-3 border-t border-slate-100"></div>
-            </div>
 
             <!-- مدفوعات الموردين (اتنقلت من تاب المدفوعات) -->
 
@@ -1078,6 +1062,22 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
             </div>
 
             <!-- PAYMENTS LOG -->
+            <div id="supplier-stmt-card" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-amber-50/60 flex flex-wrap items-center gap-2">
+                    <h3 class="font-bold text-slate-900 ml-2">📒 كشف حساب مورد</h3>
+                    <select id="ss-supplier" onchange="renderSupplierStmt()" class="bg-white border border-amber-200 rounded px-2 py-1 text-xs min-w-[10rem]"></select>
+                    <label class="text-xs font-bold text-slate-600">من <input id="ss-from" type="date" onchange="renderSupplierStmt()" class="bg-white border border-slate-200 rounded p-1 text-xs"></label>
+                    <label class="text-xs font-bold text-slate-600">إلى <input id="ss-to" type="date" onchange="renderSupplierStmt()" class="bg-white border border-slate-200 rounded p-1 text-xs"></label>
+                </div>
+                <div id="ss-summary" class="grid grid-cols-2 md:grid-cols-4 gap-2 p-3 text-center text-sm"></div>
+                <div class="overflow-x-auto max-h-[28rem]">
+                    <table class="w-full text-sm text-right">
+                        <thead class="bg-slate-100 sticky top-0"><tr><th class="p-2">التاريخ</th><th class="p-2">البيان</th><th class="p-2">الكمية</th><th class="p-2">السعر</th><th class="p-2">مشتريات (ليه)</th><th class="p-2">مدفوع</th><th class="p-2">الرصيد له</th></tr></thead>
+                        <tbody id="tbody-ss"></tbody>
+                    </table>
+                </div>
+                <div id="ss-items" class="p-3 border-t border-slate-100"></div>
+            </div>
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3">
                     <span class="font-bold text-slate-800">سجل المدفوعات</span>
@@ -10282,7 +10282,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.0';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.1';
 
     /* تنبيهات */
     const alerts=[];
