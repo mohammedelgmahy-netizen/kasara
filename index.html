@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.4</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.5</span></p></div>
         </div>
     </aside>
 
@@ -3502,7 +3502,8 @@ function masterBal(cat, it){
         if(cat==='contractors'){ const R=contractorStmtRows(it.name).rows; const b=R.length?R[R.length-1].bal:0; return Math.abs(b)<1?'':(b>0?chip('ليه '+mfmt(b),'bg-emerald-50 text-emerald-700'):chip('عليه '+mfmt(-b),'bg-rose-50 text-rose-700')); }
         if(cat==='accounts'){ return chip(mfmt(accBalance(it.name)),'bg-teal-50 text-teal-700'); }
         if(cat==='supplies'){ const b=itemStockBalance(it.name).balance; return b?chip(nfmt(b)+' '+(it.unit||''),'bg-slate-100 text-slate-700'):''; }
-        if(cat==='names' && Number(it.salary)>0){ return chip('راتب '+mfmt(it.salary),'bg-indigo-50 text-indigo-700'); }
+        if((cat==='names'||cat==='persons') && Number(it.perMeter)>0){ return chip(nfmt(it.perMeter)+' ج × صافي السن','bg-indigo-50 text-indigo-700'); }
+        if((cat==='names'||cat==='persons') && Number(it.salary)>0){ return chip('راتب '+mfmt(it.salary),'bg-indigo-50 text-indigo-700'); }
     }catch(e){}
     return '';
 }
@@ -6261,7 +6262,11 @@ function deleteIncome(id){
     const old=(db.incomes||[]).find(x=>x.id===id); if(!old || !confirm(`تحذف ${old.type} (${mfmt(old.amount)})؟`)) return;
     db.incomes=db.incomes.filter(x=>x.id!==id); logAudit('delete','إيراد',old.type,old,null); scheduleSave(); renderAll(); renderIncomes();
 }
-function payrollPeople(){ return (db.names||[]).filter(n=>Number(n.salary)>0); }
+function payrollPeople(){ return (db.names||[]).filter(n=>Number(n.salary)>0 || Number(n.perMeter)>0); }
+/* مرتب بالمتر (عماد ناجي: 4 ج × صافي السن المطلع في الشهر — محمد 2026-11-08) */
+function monthNetSin(m){ return (db.dailyLog||[]).filter(r=>(r.date||'').startsWith(m)).reduce((a,r)=>a+bonNetSin(r),0); }
+function salaryOf(n, m){ return Number(n.perMeter)>0 ? Math.round(Number(n.perMeter)*monthNetSin(m)*100)/100 : (Number(n.salary)||0); }
+function salaryLabel(n, m){ return Number(n.perMeter)>0 ? `${nfmt(salaryOf(n,m))}<div class="text-[10px] text-slate-500">${nfmt(monthNetSin(m))} م صافي سن × ${nfmt(n.perMeter)} ج</div>` : nfmt(n.salary); }
 function ensurePayCat(name){
     if(!db.expenses) db.expenses=[];
     if(!db.expenses.some(c=>c.name===name)) db.expenses.push({code:nextCode('expenses'), name, nameType:'names'});
@@ -6332,17 +6337,19 @@ function deleteSalaryEntry(id){
 function payMonth(n, m){
     const att = db.attendance||{}; let a=0,h=0;
     Object.keys(att).forEach(d=>{ if(d.startsWith(m)){ const v=att[d][n.name]; if(v==='a') a++; else if(v==='h') h++; } });
-    const ded = Math.round((a + h/2)*(n.salary/30));
+    const sal = salaryOf(n,m);
+    const ded = Math.round((a + h/2)*(sal/30));
     const E = db.expensesData||[];
     const adv = E.filter(x=>x.name===n.name && isAdvRec(x) && (x.date||'').startsWith(m)).reduce((s,x)=>s+(Number(x.paid)||0),0);
     const paid = E.filter(x=>x.name===n.name && x.category===SAL_CAT && x.salaryMonth===m).reduce((s,x)=>s+(Number(x.paid)||0),0);
-    return {a,h,ded,adv,paid,net:n.salary-ded-adv-paid};
+    return {a,h,ded,adv,paid,net:sal-ded-adv-paid};
 }
 /* أول شهر ليه حركة (حضور / سلفة / صرف) — ومنه بيبدأ الترحيل */
 function payStartMonth(n){
     const ms=[];
     Object.keys(db.attendance||{}).forEach(d=>{ if((db.attendance[d]||{})[n.name]) ms.push(d.slice(0,7)); });
     (db.expensesData||[]).filter(x=>x.name===n.name && (isAdvRec(x) || x.category===SAL_CAT)).forEach(x=>{ ms.push((x.date||'').slice(0,7)); if(x.salaryMonth) ms.push(x.salaryMonth); });
+    if(Number(n.perMeter)>0){ const d=(db.dailyLog||[]).map(r=>r.date||'').filter(Boolean).sort()[0]; if(d) ms.push(d.slice(0,7)); } // بالمتر: من أول بون
     return ms.filter(Boolean).sort()[0] || '';
 }
 function nextMonth(m){ let [y,mo]=m.split('-').map(Number); mo++; if(mo>12){mo=1;y++;} return y+'-'+String(mo).padStart(2,'0'); }
@@ -6354,12 +6361,12 @@ function payCarry(n, m){
 /* كشف راتب موظف واحد (صورة واتساب) */
 function shareSlip(name, m){
     const n=payrollPeople().find(x=>x.name===name); if(!n) return;
-    const {a,h,ded,adv,paid}=payMonth(n,m), cr=payCarry(n,m), net=n.salary+cr-ded-adv-paid;
+    const {a,h,ded,adv,paid}=payMonth(n,m), cr=payCarry(n,m), net=salaryOf(n,m)+cr-ded-adv-paid;
     const advs=(db.expensesData||[]).filter(x=>x.name===name && isAdvRec(x) && (x.date||'').startsWith(m)).sort((x,y)=>(x.date||'').localeCompare(y.date||''));
     const row=(l,v,c)=>`<tr><td style="padding:8px 12px;border:1px solid #cbd5e1;font-weight:700;background:#f8fafc;width:45%">${l}</td><td style="padding:8px 12px;border:1px solid #cbd5e1;font-weight:800;${c?'color:'+c:''}">${v}</td></tr>`;
     const html=`<div class="rep-sec">${repHeadTxt('كشف راتب', name+' — شهر '+m)}
         <table style="width:100%;border-collapse:collapse;font-size:15px;margin-top:8px">
-            ${row('الراتب الشهري', mfmt(n.salary))}
+            ${row(Number(n.perMeter)>0?`الراتب الشهري (${nfmt(monthNetSin(m))} م صافي سن × ${nfmt(n.perMeter)} ج)`:'الراتب الشهري', mfmt(salaryOf(n,m)))}
             ${cr?row(cr<0?'مرحّل عليه من اللي فات':'مرحّل ليه من اللي فات', mfmt(Math.abs(cr)), cr<0?'#be123c':'#047857'):''}
             ${row('أيام الغياب', a?nfmt(a):'—')}${h?row('أنصاص أيام', nfmt(h)):''}
             ${ded?row('خصم الغياب', mfmt(ded), '#be123c'):''}
@@ -6381,10 +6388,11 @@ function renderPayroll(){
     let T={s:0,cr:0,ded:0,adv:0,paid:0,net:0};
     const rows = payrollPeople().map(n=>{
         const {a,h,ded,adv,paid} = payMonth(n,m), cr = payCarry(n,m);
-        const net = n.salary + cr - ded - adv - paid;
-        T.s+=n.salary; T.cr+=cr; T.ded+=ded; T.adv+=adv; T.paid+=paid; T.net+=net;
+        const sal = salaryOf(n,m);
+        const net = sal + cr - ded - adv - paid;
+        T.s+=sal; T.cr+=cr; T.ded+=ded; T.adv+=adv; T.paid+=paid; T.net+=net;
         const nm = esc(JSON.stringify(n.name)).replace(/"/g,'&quot;');
-        return `<tr class="border-b border-slate-50"><td class="p-2 font-bold">${esc(n.name)}</td><td class="p-2">${nfmt(n.salary)}</td><td class="p-2 font-bold ${cr<0?'text-rose-700':cr>0?'text-emerald-700':''}">${cr?nfmt(cr)+(cr<0?' عليه':' ليه'):'—'}</td><td class="p-2">${a?nfmt(a):'—'}</td><td class="p-2">${h?nfmt(h):'—'}</td>
+        return `<tr class="border-b border-slate-50"><td class="p-2 font-bold">${esc(n.name)}</td><td class="p-2">${salaryLabel(n,m)}</td><td class="p-2 font-bold ${cr<0?'text-rose-700':cr>0?'text-emerald-700':''}">${cr?nfmt(cr)+(cr<0?' عليه':' ليه'):'—'}</td><td class="p-2">${a?nfmt(a):'—'}</td><td class="p-2">${h?nfmt(h):'—'}</td>
             <td class="p-2 text-rose-700">${ded?nfmt(ded):'—'}</td><td class="p-2 text-rose-700">${adv?nfmt(adv):'—'}</td><td class="p-2">${paid?nfmt(paid):'—'}</td>
             <td class="p-2 font-extrabold ${net<0?'text-rose-700':'text-emerald-700'}">${nfmt(net)}</td>
             <td class="p-2 pl-no-print-hide whitespace-nowrap"><button onclick="shareSlip(${nm}, '${m}')" title="واتساب للموظف" class="bg-green-600 text-white px-2 py-1 rounded-lg text-xs font-bold ml-1"><i class="fa-brands fa-whatsapp"></i></button>${net>0?`<button onclick="paySalary(${nm}, ${net}, '${m}')" class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-bold">صرف</button>`:''}</td></tr>`;
@@ -10331,7 +10339,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.4';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.5';
 
     /* تنبيهات */
     const alerts=[];
