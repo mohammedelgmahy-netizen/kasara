@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.8</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.9</span></p></div>
         </div>
     </aside>
 
@@ -631,7 +631,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
                         <div id="dl-extra-sizes" class="contents"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">طبقة عادية</label><input id="dl-q-tabaqa" type="number" step="any" min="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div id="dl-extra-sizes2" class="contents"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">نسبة السن في الطبقة</label><select id="dl-tabaqa-pct" onchange="document.getElementById('dl-tabaqa-pct-custom').style.display=this.value==='custom'?'':'none'" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="">بدون نسبة</option><option value="10">10%</option><option value="20">20%</option><option value="30">30%</option><option value="40">40%</option><option value="50">50%</option><option value="custom">نسبة تانية...</option></select>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">نسبة السن في الطبقة</label><select id="dl-tabaqa-pct" onchange="document.getElementById('dl-tabaqa-pct-custom').style.display=this.value==='custom'?'':'none'" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="">عادي (50%)</option><option value="10">10%</option><option value="20">20%</option><option value="30">30%</option><option value="40">40%</option><option value="50">50%</option><option value="60">60%</option><option value="custom">نسبة تانية...</option></select>
                             <input id="dl-tabaqa-pct-custom" type="number" step="any" min="0" max="100" placeholder="اكتب النسبة %" style="display:none" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm mt-1"></div>
                         <div class="flex items-end"><button type="button" onclick="addSizeType()" class="w-full bg-white border-2 border-dashed border-amber-400 text-amber-700 font-bold rounded-lg p-2 text-xs">+ صنف جديد</button></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">إكرامية (ج.م)</label><input id="dl-tip" type="number" step="any" min="0" oninput="this.dataset.touched=1" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
@@ -5045,7 +5045,7 @@ function clientSheetHtml(name){
 
 /* ---------- كشوفات العملاء المحفوظة: زي المستخلص، بالأسبوع، تتحفظ وتفتح تاني (محمد 2026-11-07) ---------- */
 function withAcctRange(from, to, fn){ const f=document.getElementById('acct-from'), t=document.getElementById('acct-to'); const fv=f?f.value:'', tv=t?t.value:''; if(f) f.value=from||''; if(t) t.value=to||''; try{ return fn(); } finally{ if(f) f.value=fv; if(t) t.value=tv; } }
-function clientStmtSnap(name, from, to){ return withAcctRange(from, to, ()=>{ const D=clientSheetData(name); const bons=clientBons(name, from, to); const sin=bons.reduce((a,r)=>a+pureSinQ(r.q),0), qty=bons.reduce((a,r)=>a+bonQtyTotal(r),0); const req=D.bonsTotal+D.otherDebit+D.prev, col=D.credits.reduce((a,c)=>a+c.credit,0); return {n:D.n, sin, qty, req:D.bonsTotal+D.otherDebit, prev:D.prev, col, bal:req-col}; }); }
+function clientStmtSnap(name, from, to){ return withAcctRange(from, to, ()=>{ const D=clientSheetData(name); const bons=clientBons(name, from, to); const sin=bons.reduce((a,r)=>a+pureSinQ(r.q,r.date),0), qty=bons.reduce((a,r)=>a+bonQtyTotal(r),0); const req=D.bonsTotal+D.otherDebit+D.prev, col=D.credits.reduce((a,c)=>a+c.credit,0); return {n:D.n, sin, qty, req:D.bonsTotal+D.otherDebit, prev:D.prev, col, bal:req-col}; }); }
 function saveClientStmt(){
     if(isRO()) return;
     const g=id=>document.getElementById(id); if(g('acct-type').value!=='client') return;
@@ -7894,8 +7894,18 @@ function refreshSizes(){
         tr.innerHTML = tr.dataset.lead + DL_SIZES.map(s=>`<th class="p-2">${esc(s.label)}</th>`).join('') + tr.dataset.trail;
     }
 }
-function isSinSize(s){ return s.key!=='tabaqa' && s.key!=='xturba' && !String(s.label||'').includes('تربة'); } // التربة مش سن
-function pureSinQ(q){ q = q||{}; return DL_SIZES.filter(isSinSize).reduce((a,s)=>a+(Number(q[s.key])||0),0); }
+/* صافي السن بنفس نسب الملفات الأسبوعية (محمد 2026-11-08):
+   سن 1/1.5/2/3/سن مخلوط 100% — طبقة عادية 50% (أو نسبة البون لو مكتوبة) — طبقة مخلوط 50% لحد 9/9 و40% من 10/9
+   تربة 25% لحد 14/10 و10% من 15/10 — طبقة بلنفة 40% — سمسمية مش محسوبة */
+function sinFactor(key, date){ const d=String(date||''); 
+    if(key==='tmix') return d && d<'2026-09-10' ? 0.5 : 0.4;
+    if(key==='xturba') return d && d<'2026-10-15' ? 0.25 : 0.1;
+    if(key==='xbalanfa') return 0.4;
+    if(key==='simsim') return 0;
+    return 1; }
+function tabPct(r){ return Number((r||{}).tabaqaPct)||50; }
+function isSinSize(s){ return s.key!=='tabaqa' && s.key!=='xturba' && s.key!=='simsim' && !String(s.label||'').includes('تربة'); } // أصناف السن (للعرض)
+function pureSinQ(q, date){ q = q||{}; return DL_SIZES.filter(s=>s.key!=='tabaqa').reduce((a,s)=>a+(Number(q[s.key])||0)*sinFactor(s.key,date),0); }
 function depositTips(){
     if(isRO()) return;
     const mode = document.getElementById('dl-view-mode')?.value || 'DAY';
@@ -8620,7 +8630,8 @@ function renderDailyLog(){
     if(head) head.innerHTML = `<span>كسارة الديار — ${DL_PHONE}</span><span>${dlClientQuery() ? `كل بونات العميل «${esc(dlClientQuery())}» من بداية الشغل` : mode==='DAY' ? `اليوم: ${dayNameAr(day)} — التاريخ: ${dmy(day)}` : mode==='RANGE' ? `الفترة: من ${dmy(from)||'البداية'} إلى ${dmy(to)||'النهارده'}` : 'كل الأيام'}</span>`;
     const sums = {}; DL_SIZES.forEach(s=>sums[s.key]=0);
     let tip=0, val=0, tabSin=0;
-    rows.forEach(r=>{ tabSin += (Number((r.q||{}).tabaqa)||0) * (Number(r.tabaqaPct)||0) / 100; });
+    let pureAcc=0;
+    rows.forEach(r=>{ tabSin += (Number((r.q||{}).tabaqa)||0) * tabPct(r) / 100; pureAcc += pureSinQ(r.q, r.date); });
     const rowHtml = rows.map((r,i)=>{
         DL_SIZES.forEach(s=>sums[s.key]+=Number((r.q||{})[s.key])||0);
         tip += Number(r.tip)||0;
@@ -8653,7 +8664,7 @@ function renderDailyLog(){
     }
     const sinBox = document.getElementById('dl-sin-summary');
     if(sinBox){
-        const pure = pureSinQ(sums);
+        const pure = pureAcc;
         sinBox.innerHTML = rows.length ? `
             <div class="bg-amber-100 border border-amber-300 rounded-lg p-3 col-span-2"><div class="text-xs font-bold text-amber-800">🪨 صافي السن المطلع</div><div class="text-2xl font-bold text-amber-900">${nfmt(pure+tabSin)}</div></div>
             <div class="bg-slate-50 border border-slate-200 rounded-lg p-3"><div class="text-[11px] font-bold text-slate-600">السن (${DL_SIZES.filter(isSinSize).map(s=>s.label.replace('سن ','')).join(' + ')})</div><div class="text-lg font-bold">${nfmt(pure)}</div></div>
@@ -8665,17 +8676,17 @@ function renderDailyLog(){
         const g = {};
         rows.forEach(r=>{
             const w = (r.worker==='شغل الكسارة' ? 'الكسارة' : r.worker) || 'غير محدد', q = r.q||{};
-            const o = g[w] || (g[w] = {bons:0, q:{}, tabSin:0});
+            const o = g[w] || (g[w] = {bons:0, q:{}, tabSin:0, pure:0});
             o.bons++;
             DL_SIZES.forEach(s=>o.q[s.key] = (o.q[s.key]||0) + (Number(q[s.key])||0));
-            o.tabSin += (Number(q.tabaqa)||0) * (Number(r.tabaqaPct)||0) / 100;
+            o.tabSin += (Number(q.tabaqa)||0) * tabPct(r) / 100; o.pure += pureSinQ(q, r.date);
         });
         const names = Object.keys(g).sort((a,b)=> a==='الكسارة' ? 1 : b==='الكسارة' ? -1 : a.localeCompare(b,'ar'));
         ws.innerHTML = names.length ? `
             <div class="font-bold text-slate-800 mb-2">📦 الكميات حسب الشغل</div>
             <div class="overflow-x-auto"><table class="w-full text-sm text-right">
                 <thead class="bg-violet-50"><tr><th class="p-2">الشغل تبع</th><th class="p-2">بونات</th>${DL_SIZES.map(s=>`<th class="p-2">${s.label}</th>`).join('')}<th class="p-2">إجمالي الكمية</th><th class="p-2">صافي السن</th><th class="p-2">سعر المتر</th><th class="p-2">المستحق له (صافي السن × السعر)</th></tr></thead>
-                <tbody>${names.map(n=>{ const o=g[n]; const tot = DL_SIZES.reduce((s,x)=>s+o.q[x.key],0); const pure = pureSinQ(o.q);
+                <tbody>${names.map(n=>{ const o=g[n]; const tot = DL_SIZES.reduce((s,x)=>s+o.q[x.key],0); const pure = o.pure;
                     return `<tr class="border-b border-slate-100"><td class="p-2 font-bold">${esc(n)}</td><td class="p-2">${o.bons}</td>
                     ${DL_SIZES.map(s=>`<td class="p-2">${o.q[s.key]?nfmt(o.q[s.key]):''}</td>`).join('')}
                     <td class="p-2 font-bold text-violet-800">${nfmt(tot)}</td><td class="p-2 font-bold text-amber-800">${nfmt(pure+o.tabSin)}</td>
@@ -8700,7 +8711,7 @@ function renderDailyLog(){
     const foot = document.getElementById('tfoot-dailylog');
     if(foot) foot.innerHTML = rows.length ? `<tr><td class="p-2" colspan="5">الإجمالي (${nfmt(rows.length)} بون)</td>
         ${DL_SIZES.map(s=>`<td class="p-2">${nfmt(sums[s.key])}</td>`).join('')}<td class="p-2">${mfmt(tip)}</td><td class="p-2 text-lime-700">${fmt(val)}</td><td class="p-2" colspan="3"></td></tr>
-        <tr class="bg-amber-50"><td class="p-2 text-amber-900" colspan="15">🪨 صافي السن المطلع: <b class="text-lg">${nfmt(pureSinQ(sums)+tabSin)}</b>
+        <tr class="bg-amber-50"><td class="p-2 text-amber-900" colspan="15">🪨 صافي السن المطلع: <b class="text-lg">${nfmt(pureAcc+tabSin)}</b>
             <span class="text-xs text-slate-600 mr-2">(${DL_SIZES.filter(isSinSize).map(s=>`${s.label}: ${nfmt(sums[s.key]||0)}`).join(' + ')} + السن اللي في الطبقة: ${nfmt(tabSin)})</span></td></tr>` : '';
 }
 function exportDailyLogExcel(){
@@ -9153,7 +9164,7 @@ function openCtrExtractView(id){
     const from=x.from||x.date, to=x.to||x.date; let eq=''; try{ eq=equipAcctHtml(x.name, from, to)||''; }catch(e){}
     const T='border:1px solid #cbd5e1;padding:5px 8px;text-align:center';
     const bons=contractorBons(x.name).filter(r=>(r.date||'')>=from && (r.date||'')<=to), days={};
-    bons.forEach(r=>{ const d=days[r.date]||(days[r.date]={n:0,q:0}); d.n++; d.q+=pureSinQ(r.q); });
+    bons.forEach(r=>{ const d=days[r.date]||(days[r.date]={n:0,q:0}); d.n++; d.q+=pureSinQ(r.q,r.date)+(Number((r.q||{}).tabaqa)||0)*tabPct(r)/100; });
     const DK=Object.keys(days).sort(); let tn=0,tq=0;
     const sinTbl=DK.length?`<div style="font-weight:800;margin:14px 0 6px">السن اليومي (من البونات)</div><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f1f5f9"><th style="${T}">اليوم</th><th style="${T}">التاريخ</th><th style="${T}">عدد البونات</th><th style="${T}">صافي السن</th></tr></thead><tbody>${DK.map(d=>{ tn+=days[d].n; tq+=days[d].q; return `<tr><td style="${T}">${dayNameAr(d)}</td><td style="${T}">${dmy(d)}</td><td style="${T}">${days[d].n}</td><td style="${T};font-weight:700">${nfmt(days[d].q)}</td></tr>`; }).join('')}<tr style="background:#fef3c7;font-weight:800"><td style="${T}" colspan="2">الإجمالي</td><td style="${T}">${tn}</td><td style="${T}">${nfmt(tq)}</td></tr></tbody></table>`:'';
     const iss=(db.stockIssues||[]).filter(i=>normName(i.name)===normName(x.name) && (i.date||'')>=from && (i.date||'')<=to).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
@@ -9460,38 +9471,36 @@ function printBonsOnly(){
 }
 /* طباعة صافي السن بس: كل صنف لوحده + السن اللي في الطبقة */
 function printSinBreakdown(){
-    const rows = dlRows(), sums = {}; let tabSin = 0, tab = 0;
-    DL_SIZES.forEach(s=>sums[s.key]=0);
-    rows.forEach(r=>{ const q = r.q||{}; DL_SIZES.forEach(s=>sums[s.key]+=Number(q[s.key])||0); tabSin += (Number(q.tabaqa)||0)*(Number(r.tabaqaPct)||0)/100; });
-    tab = sums.tabaqa||0;
-    const sizes = DL_SIZES.filter(isSinSize);
-    const pure = sizes.reduce((a,s)=>a+sums[s.key],0);
+    const rows = dlRows(), sums = {}, net = {};
+    DL_SIZES.forEach(s=>{ sums[s.key]=0; net[s.key]=0; });
+    rows.forEach(r=>{ const q = r.q||{}; DL_SIZES.forEach(s=>{ const v=Number(q[s.key])||0; sums[s.key]+=v; net[s.key]+= s.key==='tabaqa' ? v*tabPct(r)/100 : v*sinFactor(s.key, r.date); }); });
+    const sizes = DL_SIZES.filter(s=>sums[s.key]);
+    const total = sizes.reduce((a,s)=>a+net[s.key],0);
     const cell = 'border:1.5px solid #333;padding:8px 14px;font-size:15px';
     const html = `<div class="rep-sec">${repHeadTxt('صافي السن', dlViewLabel())}
-        <table style="width:100%;max-width:520px;margin:10px auto;border-collapse:collapse">
-            <thead><tr style="background:#e2e8f0;font-weight:800"><td style="${cell}">الصنف</td><td style="${cell};text-align:center">الكمية (متر)</td></tr></thead>
+        <table style="width:100%;max-width:560px;margin:10px auto;border-collapse:collapse">
+            <thead><tr style="background:#e2e8f0;font-weight:800"><td style="${cell}">الصنف</td><td style="${cell};text-align:center">الكمية (متر)</td><td style="${cell};text-align:center">صافي السن</td></tr></thead>
             <tbody>
-                ${sizes.map(s=>`<tr><td style="${cell};font-weight:700">${esc(s.label)}</td><td style="${cell};text-align:center">${nfmt(sums[s.key])}</td></tr>`).join('')}
-                <tr><td style="${cell};font-weight:700">السن من الطبقة<div style="font-size:11px;color:#555;font-weight:400">من ${nfmt(tab)} متر طبقة</div></td><td style="${cell};text-align:center">${nfmt(tabSin)}</td></tr>
-                <tr style="background:#fef3c7;font-weight:800"><td style="${cell}">🪨 إجمالي صافي السن</td><td style="${cell};text-align:center;font-size:18px">${nfmt(pure+tabSin)}</td></tr>
+                ${sizes.map(s=>`<tr><td style="${cell};font-weight:700">${esc(s.label)}</td><td style="${cell};text-align:center">${nfmt(sums[s.key])}</td><td style="${cell};text-align:center">${nfmt(Math.round(net[s.key]*100)/100)}</td></tr>`).join('')}
+                <tr style="background:#fef3c7;font-weight:800"><td style="${cell}" colspan="2">🪨 إجمالي صافي السن</td><td style="${cell};text-align:center;font-size:18px">${nfmt(Math.round(total*100)/100)}</td></tr>
             </tbody>
         </table>
-        <p style="text-align:center;font-size:11px;color:#555">عدد البونات: ${rows.length}</p></div>`;
+        <p style="text-align:center;font-size:11px;color:#555">عدد البونات: ${rows.length} — طبقة عادية 50% · طبقة مخلوط 50% (40% من 10/9) · تربة 25% (10% من 15/10) · طبقة بلنفة 40% · سمسمية مش محسوبة</p></div>`;
     printHtml(html);
 }
 function printSinOnly(){
     const sin = document.getElementById('dl-sin-summary')?.innerText || '';
     const ws = document.getElementById('dl-worker-summary');
     const rows = dlRows(); let pure=0, tabSin=0, tab=0;
-    rows.forEach(r=>{ const q=r.q||{}; pure += pureSinQ(q); tab += Number(q.tabaqa)||0; tabSin += (Number(q.tabaqa)||0)*(Number(r.tabaqaPct)||0)/100; });
+    rows.forEach(r=>{ const q=r.q||{}; pure += pureSinQ(q,r.date); tab += Number(q.tabaqa)||0; tabSin += (Number(q.tabaqa)||0)*tabPct(r)/100; });
     printHtml(`<div class="rep-sec">${repHeadTxt('كمية السن', dlViewLabel())}
         <div class="rep-sum"><div>🪨 صافي السن: ${nfmt(pure+tabSin)}</div><div>السن الصافي: ${nfmt(pure)}</div><div>سن من الطبقة: ${nfmt(tabSin)} (من ${nfmt(tab)} طبقة)</div><div>عدد البونات: ${rows.length}</div></div>
         ${ws && ws.innerHTML ? ws.querySelector('table').outerHTML.replace('<table class="w-full text-sm text-right">','<table class="rep-tbl">') : ''}
-        ${(()=>{ if(!rows.length) return ''; const D={}; rows.forEach(r=>{ const q=r.q||{}; const o=D[r.date]||(D[r.date]={n:0,v:0}); o.n++; o.v+=pureSinQ(q)+(Number(q.tabaqa)||0)*(Number(r.tabaqaPct)||0)/100; });
+        ${(()=>{ if(!rows.length) return ''; const D={}; rows.forEach(r=>{ const q=r.q||{}; const o=D[r.date]||(D[r.date]={n:0,v:0}); o.n++; o.v+=pureSinQ(q,r.date)+(Number(q.tabaqa)||0)*tabPct(r)/100; });
             const ds=Object.keys(D).sort(); return '<div style="font-weight:800;margin:14px 0 6px">كمية السن اليومية</div><table class="rep-tbl"><thead><tr><th>اليوم</th><th>التاريخ</th><th>عدد البونات</th><th>صافي السن (متر)</th></tr></thead><tbody>'
             + ds.map(d=>`<tr><td>${dayNameAr(d)}</td><td>${dmy(d)}</td><td>${D[d].n}</td><td>${nfmt(Math.round(D[d].v*100)/100)}</td></tr>`).join('')
             + `<tr style="font-weight:800;background:#fef3c7"><td colspan="2">الإجمالي (${ds.length} يوم)</td><td>${rows.length}</td><td>${nfmt(Math.round((pure+tabSin)*100)/100)}</td></tr></tbody></table>`; })()}
-        ${rows.length ? '<div style="font-weight:800;margin:14px 0 6px">تفاصيل البونات (كل يوم لوحده)</div>' + [...new Set(rows.map(r=>r.date))].sort().map(d=>{ const dr=rows.filter(r=>r.date===d); const nv=dr.reduce((a,r)=>{ const q=r.q||{}; return a+pureSinQ(q)+(Number(q.tabaqa)||0)*(Number(r.tabaqaPct)||0)/100; },0);
+        ${rows.length ? '<div style="font-weight:800;margin:14px 0 6px">تفاصيل البونات (كل يوم لوحده)</div>' + [...new Set(rows.map(r=>r.date))].sort().map(d=>{ const dr=rows.filter(r=>r.date===d); const nv=dr.reduce((a,r)=>{ const q=r.q||{}; return a+pureSinQ(q,r.date)+(Number(q.tabaqa)||0)*tabPct(r)/100; },0);
             return `<div style="break-inside:avoid-page;margin-top:12px"><div style="font-weight:800;background:#fef3c7;border:1px solid #333;padding:6px 10px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><span>${dayNameAr(d)} ${dmy(d)}</span><span>عدد البونات: ${dr.length}</span><span>صافي السن: ${nfmt(Math.round(nv*100)/100)}</span></div>${bonsTableHtml(dr,false,true)}</div>`; }).join('') : ''}</div>`);
 }
 function printExtractFull(id){
@@ -9543,12 +9552,12 @@ function dailyReportSections(d){
     const bonRows = bons.map((r,i)=>{
         DL_SIZES.forEach(s=>sums[s.key]+=Number((r.q||{})[s.key])||0);
         const v = r.total!=null ? (Number(r.total)||0) : (r.price ? DL_SIZES.reduce((a,s)=>a+(Number((r.q||{})[s.key])||0),0)*r.price : 0);
-        val += v; const ts=(Number((r.q||{}).tabaqa)||0)*(Number(r.tabaqaPct)||0)/100; tabSin += ts; const ns=pureSinQ(r.q||{})+ts;
+        val += v; const ts=(Number((r.q||{}).tabaqa)||0)*tabPct(r)/100; tabSin += ts; const ns=pureSinQ(r.q||{},r.date)+ts;
         return `<tr><td>${i+1}</td><td>${esc(r.bon||'-')}</td><td>${esc(r.client||'')}</td><td>${esc(r.tractor||'')}</td><td>${esc(r.trailer||'')}</td>
             ${DL_SIZES.map(s=>`<td>${(r.q||{})[s.key]?nfmt(r.q[s.key]):''}${s.key==='tabaqa'&&r.tabaqaPct&&(r.q||{}).tabaqa?` (${r.tabaqaPct}%)`:''}</td>`).join('')}
             <td style="font-weight:800">${ns?nfmt(Math.round(ns*100)/100):''}</td><td>${v?mfmt(v):''}</td><td>${v?(r.paidCash?'نقدي':'آجل'):''}</td></tr>`;
     }).join('');
-    const pure = pureSinQ(sums);
+    const pure = pureSinQ(sums, d);
     const secBons = `<div class="rep-sec">${repHead('بونات اليوم', d)}
         <div class="rep-sum"><div>عدد البونات: ${nfmt(bons.length)}</div><div>قيمة المبيعات: ${fmt(val)}</div><div>🪨 صافي السن: ${nfmt(pure+tabSin)}</div></div>
         <table class="rep-tbl"><thead><tr><th>م</th><th>البون</th><th>العميل</th><th>الجرار</th><th>المقطورة</th>${DL_SIZES.map(s=>`<th>${s.label}</th>`).join('')}<th>صافي السن</th><th>القيمة</th><th>الدفع</th></tr></thead>
@@ -9709,7 +9718,7 @@ function finishEdit(){
 });
 
 /* ---------- سعر المتر للمقاول + حساب المستخلص من البونات ---------- */
-function bonNetSin(r){ const q = r.q||{}; return pureSinQ(q)+(Number(q.tabaqa)||0)*(Number(r.tabaqaPct)||0)/100; }
+function bonNetSin(r){ const q = r.q||{}; return pureSinQ(q,r.date)+(Number(q.tabaqa)||0)*tabPct(r)/100; }
 function workerRate(name){ const c = (db.contractors||[]).find(x=>x.name===name); return c && Number(c.rate) || 0; }
 function eqxFillRate(){
     const g = id=>document.getElementById(id);
@@ -9728,7 +9737,7 @@ function eqxFromBons(silent){
     const from = g('eqx-from').value, to = g('eqx-to').value;
     const rows = contractorBons(name).filter(r=>(!from || r.date>=from) && (!to || r.date<=to));
     let pure = 0, tabSin = 0, tabNoPct = 0;
-    rows.forEach(r=>{ const q = r.q||{}; pure += pureSinQ(q); const t = Number(q.tabaqa)||0, pct = Number(r.tabaqaPct)||0; if(t && pct) tabSin += t*pct/100; else tabNoPct += t; });
+    rows.forEach(r=>{ const q = r.q||{}; pure += pureSinQ(q,r.date); const t = Number(q.tabaqa)||0; tabSin += t*tabPct(r)/100; });
     const qty = pure + tabSin;
     const rate = Number(g('eqx-rate').value) || workerRate(name);
     if(!rows.length){
@@ -10357,7 +10366,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.8';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.9';
 
     /* تنبيهات */
     const alerts=[];
