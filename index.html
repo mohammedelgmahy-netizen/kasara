@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.13</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.15</span></p></div>
         </div>
     </aside>
 
@@ -6947,11 +6947,18 @@ function dlCubeNum(){ const t=String(document.getElementById('dl-cube')?.value||
 function renderSizeBtns(){
     const box=document.getElementById('dl-size-btns'); if(!box) return;
     const cube=dlCubeNum();
-    DL_SIZES.forEach(sz=>{ const el=document.getElementById('dl-q-'+sz.key); if(el){ const on=Number(el.value)>0; el.style.background = on?'#d1fae5':''; el.style.borderColor = on?'#059669':''; el.style.fontWeight = on?'800':''; } });
-    box.innerHTML=''; box.style.display='none'; return; // محمد 2026-11-08: شيل زراير الأصناف — دوسة على المربع بتحط التكعيب
-    box.innerHTML = `<span class="text-xs font-bold text-slate-600">الحمولة (${nfmt(cube)} م):</span>` + DL_SIZES.map(sz=>{ const on=Number(document.getElementById('dl-q-'+sz.key)?.value)>0; return `<button type="button" onclick="dlPickSize('${sz.key}')" class="px-3 py-1.5 rounded-lg text-sm font-bold border-2 ${on?'bg-emerald-600 border-emerald-600 text-white':'bg-white border-slate-300 text-slate-700'}">${on?'✓ ':''}${esc(sz.label)}</button>`; }).join('');
+    window.__dlSel = window.__dlSel || new Set();
+    DL_SIZES.forEach(sz=>{ const el=document.getElementById('dl-q-'+sz.key); if(el){ const on=Number(el.value)>0; if(on) __dlSel.add(sz.key); el.style.background = on?'#d1fae5':''; el.style.borderColor = on?'#059669':''; el.style.fontWeight = on?'800':'';
+        /* محمد 2026-11-08: مربع الكمية يظهر بس للصنف المختار */
+        const wrap=el.parentElement; if(wrap) wrap.style.display = (!cube || __dlSel.has(sz.key)) ? '' : 'none'; } });
+    if(!cube){ box.innerHTML=''; return; }
+    box.innerHTML = `<span class="text-xs font-bold text-slate-600">الحمولة (${nfmt(cube)} م):</span>` + DL_SIZES.map(sz=>{ const on=__dlSel.has(sz.key); return `<button type="button" onclick="dlPickSize('${sz.key}')" class="px-3 py-1.5 rounded-lg text-sm font-bold border-2 ${on?'bg-emerald-600 border-emerald-600 text-white':'bg-white border-slate-300 text-slate-700'}">${on?'✓ ':''}${esc(sz.label)}</button>`; }).join('');
 }
-document.addEventListener('input', e=>{ if(e.target && e.target.id && e.target.id.startsWith('dl-q-')) try{ renderSizeBtns(); }catch(x){} });
+document.addEventListener('input', e=>{ if(e.target && e.target.id && e.target.id.startsWith('dl-q-')) try{
+    /* صنفين في نفس العربية (الجرار صنف والمقطورة صنف): تكتب كمية واحد، والتاني ياخد باقي التكعيب */
+    const sel=[...(window.__dlSel||[])], k=e.target.id.slice(5), cube=dlCubeNum();
+    if(cube && sel.length===2 && sel.includes(k)){ const other=document.getElementById('dl-q-'+sel.find(x=>x!==k)); const v=Number(e.target.value)||0; if(other) other.value = v>0 && v<cube ? Math.round((cube-v)*100)/100 : (v>=cube?'':other.value); }
+    renderSizeBtns(); }catch(x){} });
 document.addEventListener('click', e=>{ const el=e.target; if(!el || !el.id || !el.id.startsWith('dl-q-') || el.value) return; const cube=dlCubeNum(); if(!cube) return;
     if(DL_SIZES.some(sz=>{ const o=document.getElementById('dl-q-'+sz.key); return o && o!==el && Number(o.value)>0; })) return;
     el.value=cube; try{ renderSizeBtns(); }catch(x){} });
@@ -6962,7 +6969,11 @@ function dlCubeChanged(el){
 }
 function dlPickSize(key){
     const cube=dlCubeNum(); if(!cube) return;
-    DL_SIZES.forEach(sz=>{ const el=document.getElementById('dl-q-'+sz.key); if(el) el.value = sz.key===key ? cube : ''; });
+    /* اختيار أكتر من صنف: أول صنف ياخد التكعيب، والصنف التاني تكتب كميته؛ دوسة تانية تلغي الصنف */
+    window.__dlSel = window.__dlSel || new Set();
+    const el=document.getElementById('dl-q-'+key);
+    if(__dlSel.has(key)){ __dlSel.delete(key); if(el) el.value=''; }
+    else { __dlSel.add(key); if(el && !el.value) el.value = __dlSel.size===1 ? cube : ''; if(el && __dlSel.size>1) setTimeout(()=>{ try{ el.focus(); }catch(x){} },50); }
     renderSizeBtns();
 }
 /* ===== قراءة صورة البون بالذكاء الاصطناعي (المفتاح محفوظ على الجهاز بس) ===== */
@@ -8142,7 +8153,7 @@ function addDailyLog(e){
     logAudit('create','بون سجل يومي',`${bon||'-'} - ${client}`,null,entry);
     const keepDate = entry.date, keepProject = entry.project;
     e.target.reset();
-    g('dl-date').value = keepDate; g('dl-project').value = keepProject; try{ renderSizeBtns(); }catch(x){}
+    g('dl-date').value = keepDate; g('dl-project').value = keepProject; window.__dlSel=new Set(); try{ renderSizeBtns(); }catch(x){}
     window.__fillMissing=null; if(window.__manualBon){ window.__manualBon=false; const mb=g('dl-bon-manual'); if(mb) mb.textContent='بون فات'; g('dl-bon').placeholder=''; } g('dl-bon').style.background=''; g('dl-bon').style.borderColor='';
     g('dl-bon').value = nextBonNo(); g('dl-bon').readOnly = true;
     window.__editBon = null;
@@ -9612,7 +9623,7 @@ function startEdit(kind, id){
     let tab = null, formAnchor = null;
     if(kind==='bon'){
         const r = (db.dailyLog||[]).find(x=>x.id===id); if(!r) return;
-        window.__editBon = {id:r.id, bon:r.bon};
+        window.__editBon = {id:r.id, bon:r.bon}; window.__dlSel=new Set();
         silentDelete(()=>deleteDailyLog(id)); tab='dailylog'; formAnchor='dl-bon';
         try{ renderShares(Array.isArray(r.shares) ? r.shares : sharedContractors().map(c=>c.name)); }catch(e){}
         setVal('dl-date', r.date); setVal('dl-bon', r.bon); setVal('dl-client', r.client); setVal('dl-tractor', r.tractor); setVal('dl-trailer', r.trailer); setVal('dl-worker', r.worker==='شغل الكسارة' ? 'الكسارة' : (r.worker||''));
@@ -10367,7 +10378,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.13';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.15';
 
     /* تنبيهات */
     const alerts=[];
