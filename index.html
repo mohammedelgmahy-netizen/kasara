@@ -433,7 +433,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.17</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.18</span></p></div>
         </div>
     </aside>
 
@@ -2737,7 +2737,7 @@ async function pollSharedUpdates(){
         if(__dirty){ syncing=false; return; }
         const val = await store.get(STORAGE_KEY);
         if(__dirty){ syncing=false; return; }
-        if(val && val !== JSON.stringify(db)){
+        if(val && val !== __lastSynced && val !== JSON.stringify(db)){ // نفس النسخة اللي سحبناها قبل كده = مفيش تحديث (كان بيعيد رسم الشاشة كل 5 ثواني)
             db = JSON.parse(val); try{ applyTombstones(); }catch(e){} __lastSynced = val; rememberSynced(); __stampBase = snapIds();
             renderAll();
             const ind = document.getElementById('save-indicator');
@@ -10382,7 +10382,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.17';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.18';
 
     /* تنبيهات */
     const alerts=[];
