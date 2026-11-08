@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.1</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.2</span></p></div>
         </div>
     </aside>
 
@@ -671,6 +671,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
                         </span>
                         <select id="dl-days-list" onchange="if(this.value){ document.getElementById('dl-view-mode').value='DAY'; document.getElementById('dl-view-date').value=this.value; dlModeChanged(); }" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs font-bold"></select>
                         <span id="dl-range-wrap" style="display:inline-flex" class="items-center gap-1 text-xs font-bold text-slate-600">من <input id="dl-view-from" type="date" onchange="dlRangeChanged()" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs"> إلى <input id="dl-view-to" type="date" onchange="dlRangeChanged()" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs"></span>
+                        <input id="dl-client-search" type="search" oninput="renderDailyLog()" placeholder="اكتب اسم العميل — كل بوناته من البداية" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs font-bold w-56">
                         <select id="dl-filter-client" onchange="renderDailyLog()" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs"></select>
                         <button onclick="printSinBreakdown()" title="طباعة صافي السن" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة</span></button>
                         <button onclick="exportDailyLogExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
@@ -8528,13 +8529,15 @@ function dlModeChanged(){
     renderDailyLog();
 }
 function dlRangeChanged(){ const m=document.getElementById('dl-view-mode'); if(m && m.value!=='RANGE'){ m.value='RANGE'; document.getElementById('dl-day-nav').style.display='none'; } renderDailyLog(); }
+function dlClientQuery(){ return (document.getElementById('dl-client-search')?.value||'').replace(/\s+/g,' ').trim(); }
 function dlRows(){
     const mode = document.getElementById('dl-view-mode')?.value || 'DAY';
     const day = document.getElementById('dl-view-date')?.value || todayISO();
     const from = document.getElementById('dl-view-from')?.value || '', to = document.getElementById('dl-view-to')?.value || '';
     const fc = document.getElementById('dl-filter-client')?.value || 'ALL';
-    const inView = r => mode==='ALL' || (mode==='RANGE' ? ((!from || r.date>=from) && (!to || r.date<=to)) : r.date===day);
-    return (db.dailyLog||[]).filter(r=>inView(r)&&(fc==='ALL'||r.client===fc))
+    const qs = dlClientQuery();
+    const inView = r => qs || mode==='ALL' || (mode==='RANGE' ? ((!from || r.date>=from) && (!to || r.date<=to)) : r.date===day);
+    return (db.dailyLog||[]).filter(r=>inView(r)&&(fc==='ALL'||r.client===fc)&&(!qs||(r.client||'').replace(/\s+/g,' ').includes(qs)))
         .slice().sort(bonOrder);
 }
 function renderDailyLog(){
@@ -8551,7 +8554,7 @@ function renderDailyLog(){
     const day = document.getElementById('dl-view-date')?.value || todayISO();
     const head = document.getElementById('dl-print-head');
     const from = document.getElementById('dl-view-from')?.value || '', to = document.getElementById('dl-view-to')?.value || '';
-    if(head) head.innerHTML = `<span>كسارة الديار — ${DL_PHONE}</span><span>${mode==='DAY' ? `اليوم: ${dayNameAr(day)} — التاريخ: ${dmy(day)}` : mode==='RANGE' ? `الفترة: من ${dmy(from)||'البداية'} إلى ${dmy(to)||'النهارده'}` : 'كل الأيام'}</span>`;
+    if(head) head.innerHTML = `<span>كسارة الديار — ${DL_PHONE}</span><span>${dlClientQuery() ? `كل بونات العميل «${esc(dlClientQuery())}» من بداية الشغل` : mode==='DAY' ? `اليوم: ${dayNameAr(day)} — التاريخ: ${dmy(day)}` : mode==='RANGE' ? `الفترة: من ${dmy(from)||'البداية'} إلى ${dmy(to)||'النهارده'}` : 'كل الأيام'}</span>`;
     const sums = {}; DL_SIZES.forEach(s=>sums[s.key]=0);
     let tip=0, val=0, tabSin=0;
     rows.forEach(r=>{ tabSin += (Number((r.q||{}).tabaqa)||0) * (Number(r.tabaqaPct)||0) / 100; });
@@ -8572,7 +8575,7 @@ function renderDailyLog(){
     {
         const fc = document.getElementById('dl-filter-client')?.value || 'ALL';
         const inV = d => mode==='ALL' || (mode==='RANGE' ? ((!from || d>=from) && (!to || d<=to)) : d===day);
-        const cx = fc==='ALL' ? cancelledList().filter(x=>x.date && inV(x.date)).sort((a,b)=>a.n-b.n) : [];
+        const cx = fc==='ALL' && !dlClientQuery() ? cancelledList().filter(x=>x.date && inV(x.date)).sort((a,b)=>a.n-b.n) : [];
         tbody.innerHTML += cx.map(x=>`<tr class="border-b border-slate-50 bg-slate-100 text-slate-500"><td class="p-2">🚫</td><td class="p-2 font-bold line-through">${x.n}</td><td class="p-2 font-extrabold text-rose-700" colspan="${3+DL_SIZES.length+3}">ملغي${x.note?' — '+esc(x.note):''}</td><td class="p-2 text-xs">${dmy(x.date)}</td><td class="p-2"><button onclick="uncancelBon(${x.n})" class="text-xs" title="شيل الإلغاء">↩️</button></td></tr>`).join('');
         if(!rows.length && !cx.length) tbody.innerHTML = '<tr><td colspan="15" class="p-4 text-center text-slate-400">لا توجد بونات</td></tr>';
     }
@@ -8614,7 +8617,7 @@ function renderDailyLog(){
         const mode = document.getElementById('dl-view-mode')?.value || 'DAY';
         const tipsTotal = rows.reduce((s,r)=>s+(Number(r.tip)||0),0);
         const from = document.getElementById('dl-view-from')?.value||'', to = document.getElementById('dl-view-to')?.value||'', day = document.getElementById('dl-view-date')?.value||todayISO();
-        const inView = d => mode==='ALL' || (mode==='RANGE' ? ((!from||d>=from)&&(!to||d<=to)) : d===day);
+        const inView = d => dlClientQuery() || mode==='ALL' || (mode==='RANGE' ? ((!from||d>=from)&&(!to||d<=to)) : d===day);
         const dep = (db.expensesData||[]).filter(x=>x.tipDeposit && inView(x.date)).reduce((s,x)=>s+(Number(x.paid)||0),0);
         tipBox.innerHTML = `<b class="text-lime-900">💵 الإكرامية:</b>
             <span>الإجمالي <b>${mfmt(tipsTotal)}</b></span>
@@ -10282,7 +10285,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.1';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.2';
 
     /* تنبيهات */
     const alerts=[];
