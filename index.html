@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.6</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.7</span></p></div>
         </div>
     </aside>
 
@@ -755,6 +755,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
                 <form onsubmit="addClientCollection(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">العميل</label><select id="coll-client" required onchange="showClientCollectionBalance()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">المبلغ المحصّل</label><input id="coll-amount" type="number" step="any" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">خصم (اختياري)</label><input id="coll-discount" type="number" step="any" min="0" placeholder="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">الخزينة</label><select id="coll-account" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div class="hidden"><label class="block text-xs font-bold text-slate-600 mb-1">المشروع (اختياري)</label><select id="coll-project" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="coll-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
@@ -5727,6 +5728,13 @@ function addClientCollection(e){
         desc: notes || ''
     };
     db.expensesData.push(rec);
+    const disc = Math.round((Number(document.getElementById('coll-discount')?.value)||0)*100)/100;
+    if(disc>0){
+        // خصم مع التحصيل: سطر إيراد بقيمة سالبة (نفس شكل خصومات كشوف العملاء) — بيخفض رصيد العميل بالخصم
+        const drec = { id: db.nextId.exp++, category:'إيراد', activity:rec.activity, name:client, project, total:-disc, paid:0, remaining:0, executedValue:0, date, account:'', notes:'خصم مع التحصيل', desc:'خصم مع تحصيل '+fmt(amount) };
+        db.expensesData.push(drec);
+        logAudit('create', 'خصم عميل', `${client} - ${fmt(disc)}`, null, drec);
+    }
     logAudit('create', 'تحصيل من عميل', `${client} - ${fmt(amount)}`, null, rec);
     e.target.reset();
     document.getElementById('coll-date').value = todayISO();
@@ -10340,7 +10348,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.6';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.7';
 
     /* تنبيهات */
     const alerts=[];
