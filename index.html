@@ -1831,7 +1831,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
                     <option value="clients">العملاء</option>
                     <option value="suppliers">الموردين</option>
                     <option value="contractors">المقاولين (أصحاب المعدات)</option>
-                    <option value="names">الموظفين / الأفراد</option>
+                    <option value="names">الأفراد (الموظفين)</option>
                     <option value="investors">المستثمرين والممولين</option>
                     <option value="accounts">الخزن والبنوك</option>
                     <option value="supplies">الأصناف</option>
@@ -3380,7 +3380,7 @@ const MASTER_META = {
     clients:{label:'العملاء', color:'bg-cyan-100 text-cyan-800'},
     suppliers:{label:'الموردين', color:'bg-purple-100 text-purple-800'},
     contractors:{label:'المقاولين (أصحاب المعدات)', color:'bg-violet-100 text-violet-800'},
-    names:{label:'الموظفين', color:'bg-indigo-100 text-indigo-800'},
+    names:{label:'الأفراد (الموظفين)', color:'bg-indigo-100 text-indigo-800'},
     investors:{label:'المستثمرين والممولين', color:'bg-orange-100 text-orange-800'},
     accounts:{label:'الخزن والبنوك', color:'bg-teal-100 text-teal-800'},
     supplies:{label:'الأصناف', color:'bg-amber-100 text-amber-800'},
@@ -3396,7 +3396,7 @@ function renderMasterData(){
     const catHtml = {}, catCount = {};
     [...Object.keys(MASTER_META), 'persons'].forEach(cat=>{
         const dbCat = cat==='persons' ? 'names' : cat;
-        const src = cat==='persons' ? (db.names||[]).filter(n=>!(Number(n.salary)>0)) : cat==='names' ? (db.names||[]).filter(n=>Number(n.salary)>0) : (db[cat]||[]);
+        const src = cat==='persons' ? (db.names||[]) : cat==='names' ? [] : (db[cat]||[]); // الأفراد = الموظفين (محمد 2026-11-08): قائمة واحدة
         const items = [...src].filter(it=>!(cat==='expenses' && it.name==='إيراد')).filter(it=>textMatch([it.name, it.code], term)).sort((a,b)=>a.code-b.code);
         let rows = items.map(it=>{
             let badge = '';
@@ -3484,7 +3484,7 @@ function renderMasterData(){
     if(general.length){ expCount += general.length;
         expBody += `<div class="border border-slate-200 rounded-xl p-2 flex flex-col gap-1.5"><div class="font-bold text-slate-600 text-sm">أنشطة عامة (لكل التبويبات)</div><div class="flex flex-col gap-1.5 pr-5 border-r-2 border-slate-200 mr-2">${general.map(actRow).join('')}</div></div>`; }
     const expBox = box('expenses', '🧾 المصروفات (التبويب ← النشاط)', tabs.length, MASTER_META.expenses.color, 'expenses', expBody || '<p class="text-sm text-slate-400 text-center py-3">لا توجد بنود</p>');
-    const GROUPS=[['clients','🧑‍💼'],['suppliers','🏭'],['contractors','🚜'],['names','👷'],['persons','🙋'],['investors','💼'],['accounts','🏦'],['supplies','📦'],['expenses','🧾']];
+    const GROUPS=[['clients','🧑‍💼'],['suppliers','🏭'],['contractors','🚜'],['persons','👷'],['investors','💼'],['accounts','🏦'],['supplies','📦'],['expenses','🧾']];
     const cnt = c => catCount[c];
     let cur = window.__mdTab || 'clients';
     if(term && !cnt(cur)){ const f=GROUPS.find(([c])=>cnt(c)>0); if(f) cur=f[0]; }
