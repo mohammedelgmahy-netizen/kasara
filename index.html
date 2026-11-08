@@ -430,7 +430,7 @@ aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.15</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.16</span></p></div>
         </div>
     </aside>
 
@@ -6950,9 +6950,8 @@ function renderSizeBtns(){
     window.__dlSel = window.__dlSel || new Set();
     DL_SIZES.forEach(sz=>{ const el=document.getElementById('dl-q-'+sz.key); if(el){ const on=Number(el.value)>0; if(on) __dlSel.add(sz.key); el.style.background = on?'#d1fae5':''; el.style.borderColor = on?'#059669':''; el.style.fontWeight = on?'800':'';
         /* محمد 2026-11-08: مربع الكمية يظهر بس للصنف المختار */
-        const wrap=el.parentElement; if(wrap) wrap.style.display = (!cube || __dlSel.has(sz.key)) ? '' : 'none'; } });
-    if(!cube){ box.innerHTML=''; return; }
-    box.innerHTML = `<span class="text-xs font-bold text-slate-600">الحمولة (${nfmt(cube)} م):</span>` + DL_SIZES.map(sz=>{ const on=__dlSel.has(sz.key); return `<button type="button" onclick="dlPickSize('${sz.key}')" class="px-3 py-1.5 rounded-lg text-sm font-bold border-2 ${on?'bg-emerald-600 border-emerald-600 text-white':'bg-white border-slate-300 text-slate-700'}">${on?'✓ ':''}${esc(sz.label)}</button>`; }).join('');
+        const wrap=el.parentElement; if(wrap) wrap.style.display = __dlSel.has(sz.key) ? '' : 'none'; } });
+    box.innerHTML = `<span class="text-xs font-bold text-slate-600">${cube?`الحمولة (${nfmt(cube)} م):`:'الصنف:'}</span>` + DL_SIZES.map(sz=>{ const on=__dlSel.has(sz.key); return `<button type="button" onclick="dlPickSize('${sz.key}')" class="px-3 py-1.5 rounded-lg text-sm font-bold border-2 ${on?'bg-emerald-600 border-emerald-600 text-white':'bg-white border-slate-300 text-slate-700'}">${on?'✓ ':''}${esc(sz.label)}</button>`; }).join('');
 }
 document.addEventListener('input', e=>{ if(e.target && e.target.id && e.target.id.startsWith('dl-q-')) try{
     /* صنفين في نفس العربية (الجرار صنف والمقطورة صنف): تكتب كمية واحد، والتاني ياخد باقي التكعيب */
@@ -6965,15 +6964,16 @@ document.addEventListener('click', e=>{ const el=e.target; if(!el || !el.id || !
 function dlCubeChanged(el){
     const p=Number(String(el.dataset.prev||'').replace(/[^0-9.]/g,''))||0, n=dlCubeNum();
     if(p && p!==n) DL_SIZES.forEach(sz=>{ const q=document.getElementById('dl-q-'+sz.key); if(q && Number(q.value)===p) q.value = n||''; });
+    const sel=[...(window.__dlSel||[])]; if(n && sel.length===1){ const q=document.getElementById('dl-q-'+sel[0]); if(q && !q.value) q.value=n; }
     el.dataset.prev = el.value; renderSizeBtns();
 }
 function dlPickSize(key){
-    const cube=dlCubeNum(); if(!cube) return;
+    const cube=dlCubeNum();
     /* اختيار أكتر من صنف: أول صنف ياخد التكعيب، والصنف التاني تكتب كميته؛ دوسة تانية تلغي الصنف */
     window.__dlSel = window.__dlSel || new Set();
     const el=document.getElementById('dl-q-'+key);
     if(__dlSel.has(key)){ __dlSel.delete(key); if(el) el.value=''; }
-    else { __dlSel.add(key); if(el && !el.value) el.value = __dlSel.size===1 ? cube : ''; if(el && __dlSel.size>1) setTimeout(()=>{ try{ el.focus(); }catch(x){} },50); }
+    else { __dlSel.add(key); if(el && !el.value) el.value = (__dlSel.size===1 && cube) ? cube : ''; if(el && !cube) setTimeout(()=>{ try{ el.focus(); }catch(x){} },50); if(el && __dlSel.size>1) setTimeout(()=>{ try{ el.focus(); }catch(x){} },50); }
     renderSizeBtns();
 }
 /* ===== قراءة صورة البون بالذكاء الاصطناعي (المفتاح محفوظ على الجهاز بس) ===== */
@@ -10378,7 +10378,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.15';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.16';
 
     /* تنبيهات */
     const alerts=[];
