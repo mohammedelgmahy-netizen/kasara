@@ -5073,7 +5073,7 @@ function clientSheetHtml(name){
     sum+=sl(bal<0?'إجمالي الرصيد ليك':'إجمالي المطلوب',Math.abs(bal),true);
     return `<div style="direction:rtl;color:#111;font-size:14px;min-width:560px">
       <table style="width:100%;border-collapse:collapse;margin-bottom:-1px"><tr>
-        <td style="${B};font-size:18px;font-weight:800;padding:14px">السيد/ ${esc(name)}</td>
+        <td style="${B};font-size:18px;font-weight:800;padding:14px">${/نقدي/.test(name)?'':'السيد/ '}${esc(name)}</td>
         <td style="${B};width:24%;font-weight:800">${brandLogoSrc()?`<img src="${brandLogoSrc()}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;display:block;margin:0 auto 4px">`:''}كسارة الديار</td></tr>
         <tr><td colspan="2" style="${B};font-weight:700">الفترة من ${D.from?dmy(D.from):'-'} حتى ${D.to?dmy(D.to):'-'}</td></tr></table>
       <table style="width:100%;border-collapse:collapse">${head}${rows.join('')}${totRow}${priceRow}${amtRow}</table>
@@ -5320,7 +5320,7 @@ function exportAccountStatementExcel(){
     if(!name){ alert('اختر الحساب أولاً'); return; }
     if(type==='client'){
         const D=clientSheetData(name), sz=D.sizes, r2=v=>Math.round((v||0)*100)/100;
-        const aoa=[[`السيد/ ${name}`,'','','','كسارة الديار'],[`الفترة من ${dmy(D.from)} حتى ${dmy(D.to)}`],
+        const aoa=[[`${/نقدي/.test(name)?'':'السيد/ '}${name}`,'','','','كسارة الديار'],[`الفترة من ${dmy(D.from)} حتى ${dmy(D.to)}`],
             ['سيارة','مقطورة','العدد','التكعيب',...sz.map(x=>x.label)]];
         D.cars.forEach(c=>aoa.push([c.tractor,c.trailer,c.n,r2(c.n?c.qty/c.n:0),...sz.map(x=>r2(c.q[x.key])||'')]));
         aoa.push(['الإجمالي','',D.n,'',...sz.map(x=>r2(D.tot[x.key]))]);
