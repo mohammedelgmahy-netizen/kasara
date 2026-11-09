@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.28</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.30</span></p></div>
         </div>
     </aside>
 
@@ -8567,7 +8567,7 @@ function dlClientPrice(){
     el.value = lastClientPrice(document.getElementById('dl-client').value);
 }
 /* ===== تسعير البونات اللي اتسجلت من غير سعر ===== */
-function unpricedBons(){ return (db.dailyLog||[]).filter(r=>!(Number(r.price)>0) && bonQtyTotal(r)>0); }
+function unpricedBons(){ return (db.dailyLog||[]).filter(r=>!r.free && !(Number(r.price)>0) && bonQtyTotal(r)>0); }
 /* ===== تسلسل البون الورقي: الأرقام اللي اتنطت (فجوة أكبر من ٥٠ = دفتر جديد) ===== */
 function missingBons(){
     const cx=cancelledList().map(x=>x.n);
@@ -10500,7 +10500,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.28';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.30';
 
     /* تنبيهات */
     const alerts=[];
