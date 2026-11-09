@@ -412,6 +412,9 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             <button onclick="switchTab('treasury')" id="btn-treasury" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
                 <i class="fa-solid fa-vault nav-ic" style="--c:#e11d48"></i><span>الخزينة</span>
             </button>
+            <button onclick="switchTab('tb')" id="btn-tb" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
+                <i class="fa-solid fa-table-list nav-ic" style="--c:#0ea5e9"></i><span>ميزان المراجعة</span>
+            </button>
             <button onclick="switchTab('pl')" id="btn-pl" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
                 <i class="fa-solid fa-chart-pie nav-ic" style="--c:#22c55e"></i><span>قائمة الدخل</span>
             </button>
@@ -433,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.25</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.26</span></p></div>
         </div>
     </aside>
 
@@ -1478,7 +1481,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
 
         <!-- P&L -->
-        <div id="tab-pl" class="tab-content flex-col gap-6">
+        <div id="tab-tb" class="tab-content flex-col gap-6">
             <div id="tb-card" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm w-full">
                 <div class="flex flex-wrap justify-between items-center border-b-2 border-slate-900 pb-4 mb-4 gap-2">
                     <h2 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-table-list text-sky-600"></i> ميزان المراجعة</h2>
@@ -1491,6 +1494,9 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 </div>
                 <div id="tb-content"></div>
             </div>
+        </div>
+
+        <div id="tab-pl" class="tab-content flex-col gap-6">
             <div class="flex justify-end gap-2 w-full">
                 <button onclick="exportPLExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
                     <i class="fa-solid fa-file-excel"></i><span>تصدير إكسيل</span>
@@ -2785,6 +2791,7 @@ function tabPerm(tab){
 function permObj(u, tab){
     let x = u && u.perms ? u.perms[tab] : null;
     if(x==null && tab==='bs' && u && u.perms) x = u.perms.pl;
+    if(x==null && tab==='tb' && u && u.perms) x = u.perms.pl; // ميزان المراجعة ياخد صلاحية قائمة الدخل
     if(x==null && tab==='commission' && u && u.perms) x = u.perms.expenses; // العمولة تاخد صلاحية المصروفات // المركز المالي ياخد نفس صلاحية قائمة الدخل
     if(x==='edit') return {v:true,e:true,d:!(u&&u.noDelete)};
     if(x==='view') return {v:true,e:false,d:false};
@@ -3268,7 +3275,7 @@ function renderAll(){
     try{ renderTreasury(); }catch(e){ console.warn(e); }
     try{ renderPL(); }catch(e){ console.warn(e); }
     try{ if(activeTab==='bs') renderFinPosition(); }catch(e){ console.warn(e); }
-    try{ if(activeTab==='pl') tbRender(); }catch(e){ console.warn(e); }
+    try{ if(activeTab==='tb') tbRender(); }catch(e){ console.warn(e); }
     try{ if(activeTab==='commission') renderCommission(); }catch(e){ console.warn(e); }
     try{ renderTaxTable(); }catch(e){ console.warn(e); }
     try{ renderAccounts(); }catch(e){ console.warn(e); }
@@ -3369,7 +3376,8 @@ function switchTab(tabId){
     tabEl.classList.add('active');
     document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
     document.getElementById('btn-'+tabId)?.classList.add('active');
-    if(tabId==='pl'){ renderTaxTable(); renderPL(); try{ tbRender(); }catch(e){ console.warn(e); } }
+    if(tabId==='pl'){ renderTaxTable(); renderPL(); }
+    if(tabId==='tb'){ try{ tbRender(); }catch(e){ console.warn(e); } }
     if(tabId==='bs'){ try{ renderFinPosition(); }catch(e){ console.warn(e); } }
     if(tabId==='commission'){ try{ renderCommission(); }catch(e){ console.warn(e); } }
     if(tabId==='treasury'||tabId==='incomes'){ try{ renderCashCount(); }catch(e){ console.warn(e); } }
@@ -10479,7 +10487,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.25';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.26';
 
     /* تنبيهات */
     const alerts=[];
