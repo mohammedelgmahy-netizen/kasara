@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.26</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.27</span></p></div>
         </div>
     </aside>
 
@@ -4443,6 +4443,10 @@ function renderExpensesTable(){
 
 /* ================= TREASURY ================= */
 const docRef = (prefix,id) => (id!=null && Number(id)>0 && Number(id)<1e9) ? `${prefix}-${id}` : '';
+/* بون نقدي ملوش حركة تحصيل مربوطة (زي البونات المستوردة) — فلوسه اتدفعت ساعتها ودخلت درج المكتب */
+function cashBonUnposted(r){
+    return !!(r && r.paidCash && !(r.saleGroupId && (db.expensesData||[]).some(x=>x.saleId===r.saleGroupId && (Number(x.paid)||0)>0)));
+}
 function treasuryEvents(){
     const defaultAccount = (db.accounts&&db.accounts[0]&&db.accounts[0].name) || 'الخزينة النقدية';
     const events = [];
@@ -4461,6 +4465,12 @@ function treasuryEvents(){
             }
             events.push({ref:['exp',x.id], date:x.date, desc:x.desc || `${x.category} - ${x.activity} (${x.name})`, project:x.project, account, inflow:0, outflow:x.paid, doc:docRef('م',x.id)});
         }
+    });
+    // البونات النقدي اللي ملهاش حركة تحصيل: فلوسها دخلت درج المكتب يوم البون
+    (db.dailyLog||[]).forEach(r=>{
+        if(!cashBonUnposted(r)) return; const v = Number(bonValue(r))||0; if(!v) return;
+        const acc = (db.accounts||[]).some(a=>a.name===DRAWER_ACC) ? DRAWER_ACC : defaultAccount;
+        events.push({date:r.date, desc:`مبيعات نقدي — بون ${r.bon||'-'}`, project:r.project||'-', account:acc, inflow:v, outflow:0, grp:'sales'});
     });
     db.payments.forEach(pay=>{
         events.push({date:pay.date, desc:`سداد ${pay.supplier}${pay.notes?' — '+pay.notes:''}`, project:pay.project||'-', account:pay.account||defaultAccount, inflow:0, outflow:pay.amount, doc:docRef('د',pay.id)});
@@ -4884,6 +4894,9 @@ function getClientAccountRows(name){
     bons.forEach(r=>{
         const v = bonValue(r);
         rows.push({ date:r.date, desc:`بون ${r.bon||'-'} — ${bonItemsText(r)}${r.tractor?` — جرار ${r.tractor}`:''} (${r.paidCash?'نقدي':'آجل'})${v?'':' — مفيش سعر'}`, debit:v, credit:0, bon:r.bon });
+        // البون النقدي = اتدفع ساعتها (لو مالوش تحصيل مربوط بيه من فاتورة البيع)
+        if(v && cashBonUnposted(r))
+            rows.push({ date:r.date, desc:`مدفوع نقدي — بون ${r.bon||'-'}`, debit:0, credit:v, cashBon:true });
     });
     // فواتير مبيعات مش مربوطة ببون (لو موجودة من قبل)
     const groups = {};
@@ -5026,7 +5039,7 @@ function clientSheetData(name){
     const before = start ? allRows.filter(r=>(r.date||'')<start) : [];
     const prev = before.reduce((a,r)=>a+(r.debit||0)-(r.credit||0),0);
     const inRange = d => (!start || (d||'')>=start);
-    const bonsTotal = sizes.reduce((a,sz)=>a+(amt[sz.key]||0),0);
+    const bonsTotal = bons.reduce((a,r)=>a+(Number(bonValue(r))||0),0); // نفس قيمة البون في الرصيد (عشان التقريب)
     // مديونيات تانية في الفترة (فواتير مش مربوطة ببون)
     const otherDebit = allRows.filter(r=>!r.bon && r.debit>0 && inRange(r.date) && (!to || r.date<=to)).reduce((a,r)=>a+r.debit,0);
     const credits = allRows.filter(r=>r.credit>0 && inRange(r.date)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
@@ -10487,7 +10500,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.26';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.27';
 
     /* تنبيهات */
     const alerts=[];
