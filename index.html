@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.32</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.33</span></p></div>
         </div>
     </aside>
 
@@ -5480,6 +5480,30 @@ function addPrintBrand(el){
     const clean = ()=>{ b.remove(); window.removeEventListener('afterprint', clean); };
     window.addEventListener('afterprint', clean);
 }
+/* محمد 2026-11-09: كشف الحساب والمستخلص وأي ورقة تطلع صفحة A4 واحدة — بنصغّر الورقة لحد ما تدخل */
+const PRINT_W=718, PRINT_H=1000;
+function fitBox(u, avail){
+    // بنكبّر عرض الورقة ونصغّرها بـ zoom: العرض النهائي = عرض الصفحة، والطول ما يعدّيش صفحة
+    let L=avail; u.style.width=L+'px'; L=Math.max(L, u.scrollWidth);
+    for(let k=0;k<8;k++){ u.style.width=L+'px'; const H=u.scrollHeight, need=H*avail/L; if(need<=PRINT_H) break; L=Math.ceil(L*Math.min(need/PRINT_H, 3)*1.02); }
+    if(L<=avail){ u.style.width=''; return; }
+    u.style.width=L+'px'; u.style.zoom=avail/L; u.dataset.fitZoom='1';
+}
+function fitPrintOnePage(){
+    const t=document.querySelector('.print-target'); if(!t) return;
+    const units=[...t.querySelectorAll(':scope > .rep-sec')];
+    if(units.length){ fitBox(units[0], PRINT_W-40); return; } // الورقة الأولى (المستخلص/الكشف) بس، والمرفقات زي ما هي
+    const old=t.style.cssText; t.style.boxSizing='border-box'; t.style.padding='20px'; t.style.maxWidth='none';
+    fitBox(t, PRINT_W); if(!t.dataset.fitZoom){ t.style.cssText=old; return; }
+    t.dataset.fitOld=old;
+    const h=Math.ceil(t.scrollHeight*Number(t.style.zoom))+20;
+    [document.documentElement, document.body].forEach(e=>{ e.style.setProperty('height', h+'px', 'important'); e.style.setProperty('overflow','hidden','important'); });
+}
+function unfitPrint(){
+    document.querySelectorAll('[data-fit-zoom]').forEach(u=>{ if(u.dataset.fitOld!=null){ u.style.cssText=u.dataset.fitOld; delete u.dataset.fitOld; } else { u.style.zoom=''; u.style.width=''; } delete u.dataset.fitZoom; });
+    [document.documentElement, document.body].forEach(e=>{ e.style.removeProperty('height'); e.style.removeProperty('overflow'); });
+}
+window.addEventListener('beforeprint', fitPrintOnePage); window.addEventListener('afterprint', unfitPrint);
 function printSection(id){
     document.querySelectorAll('.print-target').forEach(el=>el.classList.remove('print-target'));
     const el = document.getElementById(id);
@@ -10506,7 +10530,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.32';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.33';
 
     /* تنبيهات */
     const alerts=[];
