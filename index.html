@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.40</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.41</span></p></div>
         </div>
     </aside>
 
@@ -1926,12 +1926,13 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 <label class="block text-xs font-bold text-slate-600 mb-1">سعر المتر اللي بنحاسبه بيه (ج.م)</label>
                 <input id="master-rate" type="number" step="any" min="0" placeholder="مثال: 53" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm">
                 <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 mt-3">
-                    <label class="block text-xs font-bold text-amber-800 mb-1">رصيد افتتاحي (اختياري) — حسابه يبدأ من التاريخ ده بالرصيد ده، وأي حركات قبله مش بتتحسب</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <input id="master-ctr-open" type="number" step="any" min="0" placeholder="المبلغ" class="bg-white border border-slate-200 rounded-lg p-2 text-sm">
-                        <select id="master-ctr-open-dir" class="bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="le">ليه</option><option value="alih">عليه</option></select>
-                        <input id="master-ctr-open-date" type="date" class="bg-white border border-slate-200 rounded-lg p-2 text-sm">
+                    <label class="block text-xs font-bold text-amber-800 mb-1">رصيد افتتاحي (اختياري) — بيتسجل بتاريخ اليوم، وأي حركات قديمة قبله مش بتتحسب</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="block text-[11px] font-bold text-slate-600">إجمالي حسابه القديم (ليه)</label><input id="master-ctr-open-total" type="number" step="any" min="0" oninput="ctrOpenCalc()" placeholder="0" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <div><label class="block text-[11px] font-bold text-slate-600">المدفوع له من القديم</label><input id="master-ctr-open-paid" type="number" step="any" min="0" oninput="ctrOpenCalc()" placeholder="0" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <input id="master-ctr-open-date" type="date" class="hidden">
                     </div>
+                    <div id="master-ctr-open-net" class="text-xs font-bold mt-1 text-slate-700"></div>
                 </div>
             </div>
             <div id="master-salary-wrap" class="hidden">
@@ -1989,12 +1990,13 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 <label class="block text-xs font-bold text-slate-600 mb-1">المواد التي يوردها هذا المورد</label>
                 <div id="master-supplier-items-list" class="flex flex-wrap gap-2 bg-slate-50 border border-slate-200 rounded-lg p-2 max-h-32 overflow-y-auto"></div>
                 <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 mt-3">
-                    <label class="block text-xs font-bold text-amber-800 mb-1">رصيد افتتاحي (اختياري) — حسابه يبدأ من التاريخ ده بالرصيد ده، وأي حركات قبله مش بتتحسب</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <input id="master-sup-open" type="number" step="any" min="0" placeholder="المبلغ" class="bg-white border border-slate-200 rounded-lg p-2 text-sm">
-                        <select id="master-sup-open-dir" class="bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="le">له</option><option value="lena">لنا عنده</option></select>
-                        <input id="master-sup-open-date" type="date" class="bg-white border border-slate-200 rounded-lg p-2 text-sm">
+                    <label class="block text-xs font-bold text-amber-800 mb-1">رصيد افتتاحي (اختياري) — بيتسجل بتاريخ اليوم، وأي حركات قديمة قبله مش بتتحسب</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="block text-[11px] font-bold text-slate-600">إجمالي فواتيره القديمة (له)</label><input id="master-sup-open-total" type="number" step="any" min="0" oninput="supOpenCalc()" placeholder="0" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <div><label class="block text-[11px] font-bold text-slate-600">المدفوع له من القديم</label><input id="master-sup-open-paid" type="number" step="any" min="0" oninput="supOpenCalc()" placeholder="0" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <input id="master-sup-open-date" type="date" class="hidden">
                     </div>
+                    <div id="master-sup-open-net" class="text-xs font-bold mt-1 text-slate-700"></div>
                 </div>
             </div>
             <div class="flex justify-end gap-2 mt-2">
@@ -3558,6 +3560,10 @@ function plBadgeColor(plType){
     }
 }
 
+/* المتبقي من الرصيد الافتتاحي = الإجمالي − المدفوع (محمد 2026-11-09) */
+function _openNet(tid, pid, box, leW, alihW){ const el=document.getElementById(box); if(!el) return; const t=Number(document.getElementById(tid)?.value)||0, p=Number(document.getElementById(pid)?.value)||0; const n=t-p; el.textContent = (t||p) ? `المتبقي: ${nfmt(Math.abs(Math.round(n)))} ${n>=0?leW:alihW}` : ''; el.className = 'text-xs font-bold mt-1 ' + (n>=0?'text-emerald-700':'text-rose-700'); }
+function ctrOpenCalc(){ _openNet('master-ctr-open-total','master-ctr-open-paid','master-ctr-open-net','ليه','عليه'); }
+function supOpenCalc(){ _openNet('master-sup-open-total','master-sup-open-paid','master-sup-open-net','له','لنا عنده'); }
 function openAddMasterModal(){
     document.getElementById('master-edit-code').value = '';
     document.getElementById('master-modal-title').textContent = 'إضافة بند جديد لدليل الأكواد';
@@ -3567,8 +3573,8 @@ function openAddMasterModal(){
     document.getElementById('master-ctrkind').value = 'equip'; document.getElementById('master-autobill').checked = false; document.getElementById('master-ctr-equips').value = '';
     document.getElementById('master-notstarted').checked = false; document.getElementById('master-startfrom').value = '';
     document.getElementById('master-deductsin').value = '';
-    document.getElementById('master-ctr-open').value = ''; document.getElementById('master-ctr-open-dir').value = 'le'; document.getElementById('master-ctr-open-date').value = '';
-    document.getElementById('master-sup-open').value = ''; document.getElementById('master-sup-open-dir').value = 'le'; document.getElementById('master-sup-open-date').value = '';
+    document.getElementById('master-ctr-open-total').value = ''; document.getElementById('master-ctr-open-paid').value = ''; document.getElementById('master-ctr-open-date').value = ''; ctrOpenCalc();
+    document.getElementById('master-sup-open-total').value = ''; document.getElementById('master-sup-open-paid').value = ''; document.getElementById('master-sup-open-date').value = ''; supOpenCalc();
     document.getElementById('master-contract').value = '';
     document.getElementById('master-prepaid').checked = false;
     document.getElementById('master-min-stock').value = ''; document.getElementById('master-open-qty').value = '';
@@ -3607,12 +3613,13 @@ function openEditMasterModal(cat, code){
     document.getElementById('master-notstarted').checked = cat==='contractors' && !!item.notStarted;
     document.getElementById('master-startfrom').value = cat==='contractors' ? (item.startFrom||'') : '';
     document.getElementById('master-deductsin').value = cat==='contractors' ? (item.deductSin||'') : '';
-    document.getElementById('master-ctr-open').value = cat==='contractors' && item.openBal ? Math.abs(item.openBal) : '';
-    document.getElementById('master-ctr-open-dir').value = cat==='contractors' && Number(item.openBal)<0 ? 'alih' : 'le';
-    document.getElementById('master-ctr-open-date').value = cat==='contractors' ? (item.openDate||'') : '';
-    document.getElementById('master-sup-open').value = cat==='suppliers' && item.openBal ? Math.abs(item.openBal) : '';
-    document.getElementById('master-sup-open-dir').value = cat==='suppliers' && Number(item.openBal)<0 ? 'lena' : 'le';
-    document.getElementById('master-sup-open-date').value = cat==='suppliers' ? (item.openDate||'') : '';
+    const _legacy = it => ({t: it.openTotal!=null ? it.openTotal : (Number(it.openBal)>0 ? it.openBal : ''), p: it.openPaid!=null ? it.openPaid : (Number(it.openBal)<0 ? -it.openBal : '')});
+    const _co = cat==='contractors' && (item.openBal||item.openTotal||item.openPaid) ? _legacy(item) : {t:'',p:''};
+    document.getElementById('master-ctr-open-total').value = _co.t; document.getElementById('master-ctr-open-paid').value = _co.p;
+    document.getElementById('master-ctr-open-date').value = cat==='contractors' ? (item.openDate||'') : ''; ctrOpenCalc();
+    const _so = cat==='suppliers' && (item.openBal||item.openTotal||item.openPaid) ? _legacy(item) : {t:'',p:''};
+    document.getElementById('master-sup-open-total').value = _so.t; document.getElementById('master-sup-open-paid').value = _so.p;
+    document.getElementById('master-sup-open-date').value = cat==='suppliers' ? (item.openDate||'') : ''; supOpenCalc();
     if(cat==='accounts' && document.getElementById('master-opening-balance')) document.getElementById('master-opening-balance').value = item.openingBalance || '';
     document.getElementById('add-master-modal').classList.remove('hidden');
     document.getElementById('add-master-modal').classList.add('flex');
@@ -3736,8 +3743,8 @@ function saveMasterItem(e){
     if(type==='suppliers'){
         const checked = [...document.querySelectorAll('.supplier-item-check:checked')].map(cb=>cb.value);
         if(checked.length) item.items = checked;
-        const ob = Number(document.getElementById('master-sup-open').value)||0;
-        if(ob>0){ item.openBal = document.getElementById('master-sup-open-dir').value==='lena' ? -ob : ob; item.openDate = document.getElementById('master-sup-open-date').value || todayISO(); }
+        const ot = Number(document.getElementById('master-sup-open-total').value)||0, op = Number(document.getElementById('master-sup-open-paid').value)||0;
+        if(ot||op){ item.openTotal = ot; item.openPaid = op; item.openBal = ot - op; item.openDate = document.getElementById('master-sup-open-date').value || todayISO(); }
     }
     if(type==='activities'){
         const cats = [...document.querySelectorAll('.activity-cat-check:checked')].map(cb=>cb.value);
@@ -3756,8 +3763,8 @@ function saveMasterItem(e){
         if(type==='names'){ const sal = Number(document.getElementById('master-salary').value)||0; if(sal>0) item.salary = sal; }
     }
     if(type==='contractors'){ const rt = Number(document.getElementById('master-rate').value)||0; if(rt>0) item.rate = rt; const eq = document.getElementById('master-equip').value.trim(); if(eq) item.equip = eq; const eqs = [...new Set(document.getElementById('master-ctr-equips').value.split(/[،,\n]+/).map(x=>x.trim()).filter(Boolean))]; if(eqs.length) item.equips = eqs; if(document.getElementById('master-ctrkind').value==='owner') item.sinOwner = true; else item.allSin = true;  if(document.getElementById('master-notstarted').checked) item.notStarted = true; const sf = document.getElementById('master-startfrom').value; if(sf) item.startFrom = sf; const ds = Number(document.getElementById('master-deductsin').value)||0; if(ds>0) item.deductSin = ds;
-        const ob = Number(document.getElementById('master-ctr-open').value)||0;
-        if(ob>0){ item.openBal = document.getElementById('master-ctr-open-dir').value==='alih' ? -ob : ob; item.openDate = document.getElementById('master-ctr-open-date').value || todayISO(); } }
+        const ot = Number(document.getElementById('master-ctr-open-total').value)||0, op = Number(document.getElementById('master-ctr-open-paid').value)||0;
+        if(ot||op){ item.openTotal = ot; item.openPaid = op; item.openBal = ot - op; item.openDate = document.getElementById('master-ctr-open-date').value || todayISO(); } }
     if(type==='accounts'){
         const ob = Number(document.getElementById('master-opening-balance').value);
         item.openingBalance = ob || 0;
@@ -6652,7 +6659,7 @@ function buyItemChanged(){
     if(last){ if(!g('buy-supplier').value && last.supplier) g('buy-supplier').value = last.supplier; if(!g('buy-price').value) g('buy-price').value = last.price; buyTotal(); }
 }
 /* رصيد افتتاحي للمورد من التكويد: حسابه يبدأ من openDate بالرصيد المكتوب (محمد 2026-11-09) */
-function supOpen(name){ const s=(db.suppliers||[]).find(x=>x.name===name)||{}; return {ob:Number(s.openBal)||0, od:(s.openBal?(s.openDate||''):'')}; }
+function supOpen(name){ const s=(db.suppliers||[]).find(x=>x.name===name)||{}; const any=(Number(s.openBal)||0)||(Number(s.openTotal)||0)||(Number(s.openPaid)||0); return {ob:Number(s.openBal)||0, od:(any?(s.openDate||''):'')}; }
 /* كشف حساب مورد: المشتريات (ليه) − المدفوع = الرصيد له */
 function renderSupplierStmt(){
     const g = id=>document.getElementById(id); const tb = g('tbody-ss'); if(!tb) return;
@@ -6665,7 +6672,9 @@ function renderSupplierStmt(){
     (db.procurements||[]).filter(p=>p.supplier===name && after(p.date)).forEach(p=>ev.push({date:p.date, id:p.id, desc:`${p.item}${p.invoiceNumber?' — '+p.invoiceNumber:''}${p.notes?' — '+p.notes:''}`, qty:p.qty, unit:p.unit, price:p.price, debit:Math.round((Number(p.qty)||0)*(Number(p.price)||0)), credit:0, item:p.item}));
     (db.payments||[]).filter(p=>p.supplier===name && after(p.date)).forEach(p=>ev.push({date:p.date, id:p.id+0.5, desc:p.notes||'دفعة', debit:0, credit:Math.round(Number(p.amount)||0)}));
     ev.sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.id-b.id));
-    if(sOB && sOD) ev.unshift({date:sOD, id:-1, desc:'رصيد افتتاحي', debit: sOB>0?Math.round(sOB):0, credit: sOB<0?Math.round(-sOB):0});
+    const _ss=(db.suppliers||[]).find(x=>x.name===name)||{}, sOT=Number(_ss.openTotal)||0, sOP=Number(_ss.openPaid)||0;
+    if(sOD && (sOT||sOP)){ if(sOP) ev.unshift({date:sOD, id:-0.5, desc:'المدفوع له من القديم', debit:0, credit:Math.round(sOP)}); if(sOT) ev.unshift({date:sOD, id:-1, desc:'إجمالي فواتيره القديمة', debit:Math.round(sOT), credit:0}); }
+    else if(sOB && sOD) ev.unshift({date:sOD, id:-1, desc:'رصيد افتتاحي', debit: sOB>0?Math.round(sOB):0, credit: sOB<0?Math.round(-sOB):0});
     let bal = 0, opening = 0; const rows = [];
     ev.forEach(e=>{ bal += e.debit - e.credit; if(from && (e.date||'')<from){ opening = bal; return; } if(to && (e.date||'')>to) return; rows.push({...e, bal}); });
     const tD = rows.reduce((s,r)=>s+r.debit,0), tC = rows.reduce((s,r)=>s+r.credit,0), closing = opening + tD - tC;
@@ -9263,8 +9272,10 @@ function contractorStmtRows(name){
     (db.equipmentRepayments||[]).filter(r=>!r.deduct && normName(r.name)===normName(name)).forEach(r=>ev.push({date:r.date, ord:3, desc:'سداد سولار نقدي — '+(r.notes||''), debit:0, credit:Number(r.amount)||0}));
     ev.sort((a,b)=>(a.date||'').localeCompare(b.date||'')||a.ord-b.ord);
     /* رصيد افتتاحي من التكويد: حسابه يبدأ من openDate بالرصيد المكتوب، وأي حركات قبل اليوم ده بتتشال (محمد 2026-11-09) */
-    let evF = ev; const ob=Number(c.openBal)||0;
-    if(ob && c.openDate){ evF = ev.filter(e=>(e.date||'') >= c.openDate); evF.unshift({date:c.openDate, ord:-1, desc:'رصيد افتتاحي', credit: ob>0?ob:0, debit: ob<0?-ob:0}); }
+    let evF = ev; const ob=Number(c.openBal)||0, oT=Number(c.openTotal)||0, oP=Number(c.openPaid)||0;
+    if((ob||oT||oP) && c.openDate){ evF = ev.filter(e=>(e.date||'') >= c.openDate);
+        if(oT||oP){ if(oP) evF.unshift({date:c.openDate, ord:-1, desc:'المدفوع له من الحساب القديم', debit:Math.round(oP), credit:0}); if(oT) evF.unshift({date:c.openDate, ord:-2, desc:'إجمالي حسابه القديم', credit:Math.round(oT), debit:0}); }
+        else evF.unshift({date:c.openDate, ord:-1, desc:'رصيد افتتاحي', credit: ob>0?ob:0, debit: ob<0?-ob:0}); }
     let bal = 0; evF.forEach(e=>{ bal += e.credit - e.debit; e.bal = bal; });
     let shownRate = rate;
     if(!ctrIsAuto(c)){ const lx=(db.ctrExtracts||[]).filter(x=>normName(x.name)===normName(name)).sort((a,b)=>(a.date||'').localeCompare(b.date||'')).pop(); if(lx) shownRate = lx.rate; }
@@ -10573,7 +10584,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.40';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.41';
 
     /* تنبيهات */
     const alerts=[];
