@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.39</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.40</span></p></div>
         </div>
     </aside>
 
@@ -1988,7 +1988,14 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             <div id="master-supplier-items-wrap" class="hidden">
                 <label class="block text-xs font-bold text-slate-600 mb-1">المواد التي يوردها هذا المورد</label>
                 <div id="master-supplier-items-list" class="flex flex-wrap gap-2 bg-slate-50 border border-slate-200 rounded-lg p-2 max-h-32 overflow-y-auto"></div>
-                
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 mt-3">
+                    <label class="block text-xs font-bold text-amber-800 mb-1">رصيد افتتاحي (اختياري) — حسابه يبدأ من التاريخ ده بالرصيد ده، وأي حركات قبله مش بتتحسب</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <input id="master-sup-open" type="number" step="any" min="0" placeholder="المبلغ" class="bg-white border border-slate-200 rounded-lg p-2 text-sm">
+                        <select id="master-sup-open-dir" class="bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="le">له</option><option value="lena">لنا عنده</option></select>
+                        <input id="master-sup-open-date" type="date" class="bg-white border border-slate-200 rounded-lg p-2 text-sm">
+                    </div>
+                </div>
             </div>
             <div class="flex justify-end gap-2 mt-2">
                 <button type="button" onclick="closeAddMasterModal()" class="px-4 py-2 text-sm font-semibold bg-slate-100 hover:bg-slate-200 rounded-lg">إلغاء</button>
@@ -3561,6 +3568,7 @@ function openAddMasterModal(){
     document.getElementById('master-notstarted').checked = false; document.getElementById('master-startfrom').value = '';
     document.getElementById('master-deductsin').value = '';
     document.getElementById('master-ctr-open').value = ''; document.getElementById('master-ctr-open-dir').value = 'le'; document.getElementById('master-ctr-open-date').value = '';
+    document.getElementById('master-sup-open').value = ''; document.getElementById('master-sup-open-dir').value = 'le'; document.getElementById('master-sup-open-date').value = '';
     document.getElementById('master-contract').value = '';
     document.getElementById('master-prepaid').checked = false;
     document.getElementById('master-min-stock').value = ''; document.getElementById('master-open-qty').value = '';
@@ -3602,6 +3610,9 @@ function openEditMasterModal(cat, code){
     document.getElementById('master-ctr-open').value = cat==='contractors' && item.openBal ? Math.abs(item.openBal) : '';
     document.getElementById('master-ctr-open-dir').value = cat==='contractors' && Number(item.openBal)<0 ? 'alih' : 'le';
     document.getElementById('master-ctr-open-date').value = cat==='contractors' ? (item.openDate||'') : '';
+    document.getElementById('master-sup-open').value = cat==='suppliers' && item.openBal ? Math.abs(item.openBal) : '';
+    document.getElementById('master-sup-open-dir').value = cat==='suppliers' && Number(item.openBal)<0 ? 'lena' : 'le';
+    document.getElementById('master-sup-open-date').value = cat==='suppliers' ? (item.openDate||'') : '';
     if(cat==='accounts' && document.getElementById('master-opening-balance')) document.getElementById('master-opening-balance').value = item.openingBalance || '';
     document.getElementById('add-master-modal').classList.remove('hidden');
     document.getElementById('add-master-modal').classList.add('flex');
@@ -3725,6 +3736,8 @@ function saveMasterItem(e){
     if(type==='suppliers'){
         const checked = [...document.querySelectorAll('.supplier-item-check:checked')].map(cb=>cb.value);
         if(checked.length) item.items = checked;
+        const ob = Number(document.getElementById('master-sup-open').value)||0;
+        if(ob>0){ item.openBal = document.getElementById('master-sup-open-dir').value==='lena' ? -ob : ob; item.openDate = document.getElementById('master-sup-open-date').value || todayISO(); }
     }
     if(type==='activities'){
         const cats = [...document.querySelectorAll('.activity-cat-check:checked')].map(cb=>cb.value);
@@ -5169,7 +5182,7 @@ function balanceSheetData(D){
     let fa=0; (db.assets||[]).filter(a=>a.status!=='sold' && le(a.date)).forEach(a=>{ fa+=assetBookValue(a); });
     if(Math.round(fa)) A.push({g:'أرض وتأمينات المحجر', name:'أرض وتأمينات المحجر', v:fa});
     // الخصوم
-    let sup=0, supAdv=0; (db.suppliers||[]).forEach(x=>{ const i=(db.procurements||[]).filter(p=>p.supplier===x.name && le(p.date)).reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0); const pd=(db.payments||[]).filter(p=>p.supplier===x.name && le(p.date)).reduce((a,p)=>a+(Number(p.amount)||0),0); if(i-pd>0) sup+=i-pd; else supAdv+=pd-i; });
+    let sup=0, supAdv=0; (db.suppliers||[]).forEach(x=>{ const {ob:sOB, od:sOD}=supOpen(x.name); const ok=p=>le(p.date) && (!sOD || (p.date||'')>=sOD); const i=(db.procurements||[]).filter(p=>p.supplier===x.name && ok(p)).reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0); const pd=(db.payments||[]).filter(p=>p.supplier===x.name && ok(p)).reduce((a,p)=>a+(Number(p.amount)||0),0); const b=(sOD && le(sOD)?sOB:0)+i-pd; if(b>0) sup+=b; else supAdv+=-b; });
     if(Math.round(supAdv)) A.push({g:'مستحقات أخرى', name:'دفعات مقدمة للموردين', v:supAdv});
     if(Math.round(sup)) L.push({name:'الموردين', v:sup});
     if(Math.round(ctrOwe)) L.push({name:'مستحقات المقاولين', v:ctrOwe});
@@ -5235,7 +5248,7 @@ function tbData(D){
     // تفصيل العملاء والموردين والمقاولين بالاسم (نفس حساب المركز المالي)
     const cl=[], su=[], ct=[];
     (db.clients||[]).forEach(c=>{ let b=0; try{ getClientAccountRowsAll(c.name).forEach(r=>{ if(le(r.date)) b+=(r.debit||0)-(r.credit||0); }); }catch(e){} if(Math.round(b)) cl.push({name:c.name, v:b}); });
-    (db.suppliers||[]).forEach(x=>{ const i=(db.procurements||[]).filter(p=>p.supplier===x.name && le(p.date)).reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0); const pd=(db.payments||[]).filter(p=>p.supplier===x.name && le(p.date)).reduce((a,p)=>a+(Number(p.amount)||0),0); if(Math.round(i-pd)) su.push({name:x.name, v:i-pd}); });
+    (db.suppliers||[]).forEach(x=>{ const {ob:sOB, od:sOD}=supOpen(x.name); const ok=p=>le(p.date) && (!sOD || (p.date||'')>=sOD); const i=(db.procurements||[]).filter(p=>p.supplier===x.name && ok(p)).reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0); const pd=(db.payments||[]).filter(p=>p.supplier===x.name && ok(p)).reduce((a,p)=>a+(Number(p.amount)||0),0); const b=(sOD && le(sOD)?sOB:0)+i-pd; if(Math.round(b)) su.push({name:x.name, v:b}); });
     (db.contractors||[]).forEach(c=>{ try{ let b=0; contractorStmtRows(c.name).rows.forEach(r=>{ if(le(r.date)) b+=(r.credit||0)-(r.debit||0); }); if(Math.round(b)) ct.push({name:c.name, v:b}); }catch(e){} });
     const sum = (L,f) => L.filter(f).reduce((a,x)=>a+x.v,0);
     const near = (a,b) => Math.abs(a-b) < 1;
@@ -6638,6 +6651,8 @@ function buyItemChanged(){
     const last = (db.procurements||[]).filter(p=>p.item===item).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id-a.id))[0];
     if(last){ if(!g('buy-supplier').value && last.supplier) g('buy-supplier').value = last.supplier; if(!g('buy-price').value) g('buy-price').value = last.price; buyTotal(); }
 }
+/* رصيد افتتاحي للمورد من التكويد: حسابه يبدأ من openDate بالرصيد المكتوب (محمد 2026-11-09) */
+function supOpen(name){ const s=(db.suppliers||[]).find(x=>x.name===name)||{}; return {ob:Number(s.openBal)||0, od:(s.openBal?(s.openDate||''):'')}; }
 /* كشف حساب مورد: المشتريات (ليه) − المدفوع = الرصيد له */
 function renderSupplierStmt(){
     const g = id=>document.getElementById(id); const tb = g('tbody-ss'); if(!tb) return;
@@ -6646,10 +6661,11 @@ function renderSupplierStmt(){
     const tblWrap = tb.closest('.overflow-x-auto');
     if(name==='__ALL__'){ if(tblWrap) tblWrap.style.display='none'; renderAllSuppliersStmt(from, to); return; }
     if(tblWrap) tblWrap.style.display='';
-    const ev = [];
-    (db.procurements||[]).filter(p=>p.supplier===name).forEach(p=>ev.push({date:p.date, id:p.id, desc:`${p.item}${p.invoiceNumber?' — '+p.invoiceNumber:''}${p.notes?' — '+p.notes:''}`, qty:p.qty, unit:p.unit, price:p.price, debit:Math.round((Number(p.qty)||0)*(Number(p.price)||0)), credit:0, item:p.item}));
-    (db.payments||[]).filter(p=>p.supplier===name).forEach(p=>ev.push({date:p.date, id:p.id+0.5, desc:p.notes||'دفعة', debit:0, credit:Math.round(Number(p.amount)||0)}));
+    const ev = []; const {ob:sOB, od:sOD} = supOpen(name); const after = d => !sOD || (d||'')>=sOD;
+    (db.procurements||[]).filter(p=>p.supplier===name && after(p.date)).forEach(p=>ev.push({date:p.date, id:p.id, desc:`${p.item}${p.invoiceNumber?' — '+p.invoiceNumber:''}${p.notes?' — '+p.notes:''}`, qty:p.qty, unit:p.unit, price:p.price, debit:Math.round((Number(p.qty)||0)*(Number(p.price)||0)), credit:0, item:p.item}));
+    (db.payments||[]).filter(p=>p.supplier===name && after(p.date)).forEach(p=>ev.push({date:p.date, id:p.id+0.5, desc:p.notes||'دفعة', debit:0, credit:Math.round(Number(p.amount)||0)}));
     ev.sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.id-b.id));
+    if(sOB && sOD) ev.unshift({date:sOD, id:-1, desc:'رصيد افتتاحي', debit: sOB>0?Math.round(sOB):0, credit: sOB<0?Math.round(-sOB):0});
     let bal = 0, opening = 0; const rows = [];
     ev.forEach(e=>{ bal += e.debit - e.credit; if(from && (e.date||'')<from){ opening = bal; return; } if(to && (e.date||'')>to) return; rows.push({...e, bal}); });
     const tD = rows.reduce((s,r)=>s+r.debit,0), tC = rows.reduce((s,r)=>s+r.credit,0), closing = opening + tD - tC;
@@ -6670,9 +6686,11 @@ function allSuppliersStmtData(from, to){
     const names = [...new Set([...(db.suppliers||[]).map(x=>x.name), ...(db.procurements||[]).map(p=>p.supplier), ...(db.payments||[]).map(p=>p.supplier)].filter(Boolean))];
     const inR = d=>(!from || (d||'')>=from) && (!to || (d||'')<=to), before = d=>from && (d||'')<from;
     const rows = names.map(n=>{
-        const pr = (db.procurements||[]).filter(p=>p.supplier===n), pa = (db.payments||[]).filter(p=>p.supplier===n);
+        const {ob:sOB, od:sOD} = supOpen(n); const after = d => !sOD || (d||'')>=sOD;
+        const pr = (db.procurements||[]).filter(p=>p.supplier===n && after(p.date)), pa = (db.payments||[]).filter(p=>p.supplier===n && after(p.date));
         const v = p=>Math.round((Number(p.qty)||0)*(Number(p.price)||0)), a = p=>Math.round(Number(p.amount)||0);
-        const opening = pr.filter(p=>before(p.date)).reduce((t,p)=>t+v(p),0) - pa.filter(p=>before(p.date)).reduce((t,p)=>t+a(p),0);
+        let opening = pr.filter(p=>before(p.date)).reduce((t,p)=>t+v(p),0) - pa.filter(p=>before(p.date)).reduce((t,p)=>t+a(p),0);
+        if(sOB && sOD && (!to || sOD<=to)) opening += Math.round(sOB);
         const buy = pr.filter(p=>inR(p.date)).reduce((t,p)=>t+v(p),0), paid = pa.filter(p=>inR(p.date)).reduce((t,p)=>t+a(p),0);
         return {name:n, opening, buy, paid, closing: opening+buy-paid};
     }).filter(r=>r.opening||r.buy||r.paid);
@@ -10555,7 +10573,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.39';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.40';
 
     /* تنبيهات */
     const alerts=[];
