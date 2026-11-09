@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.36</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.37</span></p></div>
         </div>
     </aside>
 
@@ -9341,42 +9341,14 @@ function openCtrExtractView(id){
     const issTbl=iss.length?`<div style="font-weight:800;margin:14px 0 6px">السولار والأصناف المصروفة</div><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f1f5f9"><th style="${T}">التاريخ</th><th style="${T}">الصنف</th><th style="${T}">المعدة</th><th style="${T}">الكمية</th><th style="${T}">القيمة</th></tr></thead><tbody>${iss.map(i=>`<tr><td style="${T}">${dmy(i.date)}</td><td style="${T}">${esc(i.item||'')}</td><td style="${T}">${esc(ctrEqName(x.name,i.equip))}</td><td style="${T}">${nfmt(i.qty)} ${esc(i.unit||'')}</td><td style="${T}">${mfmt((Number(i.qty)||0)*(Number(i.price)||0))}</td></tr>`).join('')}</tbody></table>`:'';
     const body=`<div class="rep-sec">${contractorSheetHtml(x.name, from, to).replace(SIG_LINE,'')}${eq?`<div style="font-weight:800;margin:12px 0 6px">حساب كل معدة في الفترة</div>${eq}`:''}${sinTbl}${issTbl}${SIG_LINE}</div>`; // الإمضاء في الآخر والكل صفحة واحدة
     document.getElementById('cxv-modal')?.remove();
-    const m=document.createElement('div'); m.id='cxv-modal'; m.dataset.xid=String(x.id);
+    const m=document.createElement('div'); m.id='cxv-modal';
     m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:12px';
     m.onclick=e=>{ if(e.target===m) m.remove(); };
     m.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:14px;max-width:760px;width:100%;padding:14px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:16px">${esc(x.name)} — من ${dmy(from)} إلى ${dmy(to)}</b>
-        <span style="display:flex;gap:6px"><button onclick="ctrQuickSettle(${JSON.stringify(x.name).replace(/"/g,'&quot;')},'${to}')" style="background:#d97706;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✅ خالص مؤقت</button><button onclick="shareCard('cxv-body','مستخلص '+${JSON.stringify(x.name).replace(/"/g,'&quot;')})" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px"><i class="fa-brands fa-whatsapp"></i> واتساب</button><button onclick="printHtml(document.getElementById('cxv-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="document.getElementById('cxv-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✕</button></span></div>
+        <span style="display:flex;gap:6px"><button onclick="shareCard('cxv-body','مستخلص '+${JSON.stringify(x.name).replace(/"/g,'&quot;')})" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px"><i class="fa-brands fa-whatsapp"></i> واتساب</button><button onclick="printHtml(document.getElementById('cxv-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="document.getElementById('cxv-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✕</button></span></div>
         <div id="cxv-body" style="overflow-x:auto;background:#fff;padding:6px">${body}</div></div>`;
     document.body.appendChild(m);
-}
-/* خالص مؤقت: يسدد رصيد المقاول لحد تاريخ معين بحركة سداد واحدة قابلة للمسح (محمد 2026-11-09) */
-function ctrQuickSettle(name, to){
-    if(isRO()) return;
-    const cat = ((db.expenses||[]).find(c=>c.nameType==='contractors')||{}).name;
-    if(!cat){ alert('مفيش نوع مصروف للمقاولين في دليل الأكواد'); return; }
-    const prev = (db.expensesData||[]).find(x=>x.tempSettle && normName(x.name)===normName(name) && x.date===to);
-    if(prev){
-        if(!confirm(`فيه خالص مؤقت متسجل لـ ${name} يوم ${dmy(to)} بمبلغ ${mfmt(prev.paid)}.\nتشيله؟`)) return;
-        db.expensesData = db.expensesData.filter(x=>x.id!==prev.id);
-        logAudit('delete','خالص مؤقت',`${name} - ${mfmt(prev.paid)}`,prev,null);
-        scheduleSave(); renderAll();
-        try{ document.getElementById('cxv-modal')?.remove(); }catch(e){}
-        return;
-    }
-    const {rows} = contractorStmtRows(name);
-    const upTo = rows.filter(r=>!to || r.date<=to);
-    const bal = upTo.length ? upTo[upTo.length-1].bal : 0;
-    if(!(bal>0.5)){ alert(`${name} مفيش ليه رصيد لحد ${dmy(to)} (رصيده ${mfmt(bal)}).`); return; }
-    const amt = Math.round(bal);
-    if(!confirm(`تسجل خالص مؤقت لـ ${name}؟\nهيتسجل سداد ${mfmt(amt)} بتاريخ ${dmy(to)} من ${SARI_ACC}، ورصيده يبقى صفر.\n(تقدر تشيله بنفس الزرار أو من جدول المصروفات)`)) return;
-    const rec = { id: db.nextId.exp++, category: cat, activity:'', name, project:'', total: amt, paid: amt, remaining: 0,
-        account: SARI_ACC, date: to || todayISO(), notes:'خالص مؤقت', desc:'خالص مؤقت', payType:'settle', tempSettle:1 };
-    db.expensesData.push(rec);
-    logAudit('create','خالص مؤقت',`${name} - ${mfmt(amt)}`,null,rec);
-    scheduleSave(); renderAll();
-    try{ const mm=document.getElementById('cxv-modal'); if(mm){ const idAttr=mm.dataset.xid; mm.remove(); if(idAttr) openCtrExtractView(idAttr); } }catch(e){}
-    alert(`تم: ${name} خالص لحد ${dmy(to)} ✓`);
 }
 function deleteCtrExtract(id){
     if(isRO()) return;
@@ -10565,7 +10537,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.36';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.37';
 
     /* تنبيهات */
     const alerts=[];
