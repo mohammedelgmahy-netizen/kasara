@@ -418,6 +418,9 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             <button onclick="switchTab('bs')" id="btn-bs" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
                 <i class="fa-solid fa-scale-balanced nav-ic" style="--c:#6366f1"></i><span>المركز المالي</span>
             </button>
+            <button onclick="switchTab('tb')" id="btn-tb" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
+                <i class="fa-solid fa-table-list nav-ic" style="--c:#0ea5e9"></i><span>ميزان المراجعة</span>
+            </button>
             <button onclick="switchTab('ledger')" id="btn-ledger" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
                 <i class="fa-solid fa-file-invoice nav-ic" style="--c:#6366f1"></i><span>كشف الحساب</span>
             </button>
@@ -433,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.23</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.24</span></p></div>
         </div>
     </aside>
 
@@ -1555,6 +1558,21 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     </div>
                 </div>
                 <div id="bs-content"></div>
+            </div>
+        </div>
+
+        <div id="tab-tb" class="tab-content flex-col gap-6">
+            <div id="tb-card" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm w-full">
+                <div class="flex flex-wrap justify-between items-center border-b-2 border-slate-900 pb-4 mb-4 gap-2">
+                    <h2 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-table-list text-sky-600"></i> ميزان المراجعة</h2>
+                    <div class="pl-no-print-hide flex flex-wrap items-center gap-2">
+                        <span class="text-xs text-slate-500">في تاريخ</span>
+                        <input id="tb-date" type="date" onchange="tbRender()" class="bg-slate-100 border border-slate-300 rounded px-2 py-1 text-xs">
+                        <button type="button" onclick="printSection('tb-card')" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة</span></button>
+                        <button type="button" onclick="tbExportExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
+                    </div>
+                </div>
+                <div id="tb-content"></div>
             </div>
         </div>
 
@@ -2773,6 +2791,7 @@ function tabPerm(tab){
 function permObj(u, tab){
     let x = u && u.perms ? u.perms[tab] : null;
     if(x==null && tab==='bs' && u && u.perms) x = u.perms.pl;
+    if(x==null && tab==='tb' && u && u.perms) x = u.perms.pl; // ميزان المراجعة ياخد صلاحية قائمة الدخل
     if(x==null && tab==='commission' && u && u.perms) x = u.perms.expenses; // العمولة تاخد صلاحية المصروفات // المركز المالي ياخد نفس صلاحية قائمة الدخل
     if(x==='edit') return {v:true,e:true,d:!(u&&u.noDelete)};
     if(x==='view') return {v:true,e:false,d:false};
@@ -3256,6 +3275,7 @@ function renderAll(){
     try{ renderTreasury(); }catch(e){ console.warn(e); }
     try{ renderPL(); }catch(e){ console.warn(e); }
     try{ if(activeTab==='bs') renderFinPosition(); }catch(e){ console.warn(e); }
+    try{ if(activeTab==='tb') tbRender(); }catch(e){ console.warn(e); }
     try{ if(activeTab==='commission') renderCommission(); }catch(e){ console.warn(e); }
     try{ renderTaxTable(); }catch(e){ console.warn(e); }
     try{ renderAccounts(); }catch(e){ console.warn(e); }
@@ -3358,6 +3378,7 @@ function switchTab(tabId){
     document.getElementById('btn-'+tabId)?.classList.add('active');
     if(tabId==='pl'){ renderTaxTable(); renderPL(); }
     if(tabId==='bs'){ try{ renderFinPosition(); }catch(e){ console.warn(e); } }
+    if(tabId==='tb'){ try{ tbRender(); }catch(e){ console.warn(e); } }
     if(tabId==='commission'){ try{ renderCommission(); }catch(e){ console.warn(e); } }
     if(tabId==='treasury'||tabId==='incomes'){ try{ renderCashCount(); }catch(e){ console.warn(e); } }
     if(tabId==='incomes'){ try{ renderIncomes(); renderSari(); }catch(e){ console.warn(e); } }
@@ -5177,6 +5198,87 @@ function exportBalanceSheetExcel(){
     S.E.forEach(x=>aoa.push([x.name, r(x.v)])); aoa.push(['إجمالي حقوق الملكية', r(S.tE)],['إجمالي الخصوم وحقوق الملكية', r(S.tL+S.tE)]);
     xlsxSave(aoa, 'الميزانية', `الميزانية-العمومية-${D}.xlsx`);
 }
+/* ================= ميزان المراجعة (قراءة بس — من نفس أرقام المركز المالي وقائمة الدخل) ================= */
+function tbData(D){
+    const le = d => !D || !d || d<=D;
+    const S = balanceSheetData(D);
+    let P = null; try{ P = computePL('ALL','',D||''); }catch(e){}
+    const rows = []; // {g, name, dr, cr}
+    const put = (g, name, v, side) => { v = Number(v)||0; if(!Math.round(v)) return; if(side==='cr') v = -v; rows.push({g, name, dr: v>0?v:0, cr: v<0?-v:0}); };
+    // تفصيل العملاء والموردين والمقاولين بالاسم (نفس حساب المركز المالي)
+    const cl=[], su=[], ct=[];
+    (db.clients||[]).forEach(c=>{ let b=0; try{ getClientAccountRowsAll(c.name).forEach(r=>{ if(le(r.date)) b+=(r.debit||0)-(r.credit||0); }); }catch(e){} if(Math.round(b)) cl.push({name:c.name, v:b}); });
+    (db.suppliers||[]).forEach(x=>{ const i=(db.procurements||[]).filter(p=>p.supplier===x.name && le(p.date)).reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0); const pd=(db.payments||[]).filter(p=>p.supplier===x.name && le(p.date)).reduce((a,p)=>a+(Number(p.amount)||0),0); if(Math.round(i-pd)) su.push({name:x.name, v:i-pd}); });
+    (db.contractors||[]).forEach(c=>{ try{ let b=0; contractorStmtRows(c.name).rows.forEach(r=>{ if(le(r.date)) b+=(r.credit||0)-(r.debit||0); }); if(Math.round(b)) ct.push({name:c.name, v:b}); }catch(e){} });
+    const sum = (L,f) => L.filter(f).reduce((a,x)=>a+x.v,0);
+    const near = (a,b) => Math.abs(a-b) < 1;
+    const aV = n => S.A.filter(x=>x.name===n).reduce((a,x)=>a+x.v,0), lV = n => S.L.filter(x=>x.name===n).reduce((a,x)=>a+x.v,0);
+    const okC = near(sum(cl,x=>x.v>0), aV('مستحقات على العملاء')) && near(-sum(cl,x=>x.v<0), lV('دفعات مقدمة من العملاء'));
+    const okS = near(sum(su,x=>x.v>0), lV('الموردين')) && near(-sum(su,x=>x.v<0), aV('دفعات مقدمة للموردين'));
+    const okT = near(sum(ct,x=>x.v>0), lV('مستحقات المقاولين')) && near(-sum(ct,x=>x.v<0), aV('عهد ومقدمات عند المقاولين'));
+    // الأصول (مدين)
+    S.A.forEach(x=>{
+        if(okC && x.name==='مستحقات على العملاء') return;
+        if(okS && x.name==='دفعات مقدمة للموردين') return;
+        if(okT && x.name==='عهد ومقدمات عند المقاولين') return;
+        put(x.g || 'الأصول', x.name, x.v, 'dr');
+    });
+    if(okC) cl.forEach(x=>put('العملاء', x.name, x.v, 'dr'));
+    if(okS) su.forEach(x=>put('الموردين', x.name, x.v, 'cr'));
+    if(okT) ct.forEach(x=>put('المقاولين', x.name, x.v, 'cr'));
+    // الخصوم (دائن)
+    S.L.forEach(x=>{
+        if(okC && x.name==='دفعات مقدمة من العملاء') return;
+        if(okS && x.name==='الموردين') return;
+        if(okT && x.name==='مستحقات المقاولين') return;
+        put('الخصوم', x.name, x.v, 'cr');
+    });
+    // حقوق الملكية (دائن) — من غير سطور الربح لأن الإيرادات والمصروفات ظاهرة لوحدها تحت
+    let plug = 0;
+    S.E.forEach(x=>{ if(x.part || x.name==='الأرباح المحتجزة') return; if(x.note){ plug = x.v; } put('حقوق الملكية', x.name + (x.note ? ' *' : ''), x.v, 'cr'); });
+    const dividends = S.E.filter(x=>x.part && /^\(−\)/.test(x.name)).reduce((a,x)=>a-x.v,0);
+    put('حقوق الملكية', 'توزيعات أرباح المساهمين', dividends, 'dr');
+    // الإيرادات والتكاليف والمصروفات (من قائمة الدخل)
+    if(P){
+        P.revenueLines.forEach(l=>put('الإيرادات', l.label, l.value, 'cr'));
+        P.directLines.forEach(l=>put('تكلفة الإنتاج', l.label, l.value, 'dr'));
+        P.operatingLines.forEach(l=>put('المصروفات التشغيلية والإدارية', l.label, l.value, 'dr'));
+        P.otherLines.forEach(l=>put('مصروفات أخرى', l.label, l.value, 'dr'));
+    }
+    const tDr = rows.reduce((a,r)=>a+r.dr,0), tCr = rows.reduce((a,r)=>a+r.cr,0);
+    return {rows, tDr, tCr, plug, detail:{clients:okC, suppliers:okS, contractors:okT}};
+}
+function tbRender(){
+    const el=document.getElementById('tb-content'); if(!el) return;
+    const dI=document.getElementById('tb-date'); if(dI && !dI.value) dI.value=todayISO();
+    const D=dI?dI.value:'';
+    let T; try{ T = tbData(D); }catch(err){ console.error(err); el.innerHTML = '<div class="text-rose-700">تعذر حساب الميزان: '+esc(err.message)+'</div>'; return; }
+    const n = v => v ? nfmt(Math.round(v)) : '';
+    const groups = [...new Set(T.rows.map(r=>r.g))];
+    const body = groups.map(g=>{
+        const L = T.rows.filter(r=>r.g===g);
+        const gd = L.reduce((a,r)=>a+r.dr,0), gc = L.reduce((a,r)=>a+r.cr,0);
+        return `<tr class="bg-slate-100"><td class="p-2 font-extrabold text-slate-800">${esc(g)}</td><td class="p-2 text-left font-extrabold text-slate-800" dir="ltr">${n(gd)}</td><td class="p-2 text-left font-extrabold text-slate-800" dir="ltr">${n(gc)}</td></tr>`
+            + (L.length===1 && L[0].name===g ? '' : L.map(r=>`<tr class="border-b border-slate-100"><td class="p-2 pr-5 font-bold text-slate-900">${esc(r.name)}</td><td class="p-2 text-left font-bold text-slate-950" dir="ltr">${n(r.dr)}</td><td class="p-2 text-left font-bold text-slate-950" dir="ltr">${n(r.cr)}</td></tr>`).join(''))
+    }).join('');
+    const diff = Math.round(T.tDr - T.tCr);
+    el.innerHTML = `<div class="text-base font-bold text-slate-800 mb-3">كسارة الديار — ميزان المراجعة في ${dmy(D)}</div>
+      <div class="overflow-x-auto"><table class="w-full text-base text-right border border-slate-300">
+        <thead><tr class="bg-slate-800 text-white"><th class="p-2">الحساب</th><th class="p-2 text-left">مدين</th><th class="p-2 text-left">دائن</th></tr></thead>
+        <tbody>${body || '<tr><td colspan="3" class="p-4 text-center text-slate-400">مفيش أرصدة</td></tr>'}</tbody>
+        <tfoot><tr class="bg-indigo-50 font-extrabold text-slate-950 text-lg border-t-2 border-slate-400"><td class="p-2">الإجمالي</td><td class="p-2 text-left" dir="ltr">${nfmt(Math.round(T.tDr))}</td><td class="p-2 text-left" dir="ltr">${nfmt(Math.round(T.tCr))}</td></tr>
+        ${diff ? `<tr class="bg-rose-50 text-rose-800 font-extrabold"><td class="p-2">الفرق</td><td class="p-2 text-left" dir="ltr" colspan="2">${nfmt(diff)}</td></tr>` : ''}</tfoot>
+      </table></div>
+      ${Math.round(T.plug) ? '' : '<!--'}<div class="text-xs font-semibold text-slate-700 mt-3">* «رأس المال وأرصدة أول المدة» مش رقم متسجل: البرنامج بيحسبه فرق (الأصول − الخصوم − باقي حقوق الملكية − الأرباح المحتجزة)، زي ما هو في شاشة المركز المالي. هيتظبط لما تتدخل الأرصدة الافتتاحية الحقيقية (رأس المال وأرصدة العملاء والموردين القديمة).</div>${Math.round(T.plug) ? '' : '-->'}`;
+}
+function tbExportExcel(){
+    const D=document.getElementById('tb-date')?.value||todayISO(), T=tbData(D), r=v=>Math.round(v)||'';
+    const aoa=[['ميزان المراجعة — كسارة الديار'],['في تاريخ', dmy(D)],[],['المجموعة','الحساب','مدين','دائن']];
+    T.rows.forEach(x=>aoa.push([x.g, x.name, r(x.dr), r(x.cr)]));
+    aoa.push([],['','الإجمالي', Math.round(T.tDr), Math.round(T.tCr)]);
+    xlsxSave(aoa, 'ميزان المراجعة', `ميزان-المراجعة-${D}.xlsx`);
+}
+
 function renderAccountsOverview(){
     const term = document.getElementById('acct-search')?.value || '';
     const cEl = document.getElementById('tbody-acct-clients'), pEl = document.getElementById('tbody-acct-persons');
@@ -10385,7 +10487,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.23';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.24';
 
     /* تنبيهات */
     const alerts=[];
