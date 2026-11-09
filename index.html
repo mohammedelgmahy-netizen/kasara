@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.37</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.38</span></p></div>
         </div>
     </aside>
 
@@ -1925,6 +1925,14 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 </div>
                 <label class="block text-xs font-bold text-slate-600 mb-1">سعر المتر اللي بنحاسبه بيه (ج.م)</label>
                 <input id="master-rate" type="number" step="any" min="0" placeholder="مثال: 53" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm">
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 mt-3">
+                    <label class="block text-xs font-bold text-amber-800 mb-1">رصيد افتتاحي (اختياري) — حسابه يبدأ من التاريخ ده بالرصيد ده، وأي حركات قبله مش بتتحسب</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <input id="master-ctr-open" type="number" step="any" min="0" placeholder="المبلغ" class="bg-white border border-slate-200 rounded-lg p-2 text-sm">
+                        <select id="master-ctr-open-dir" class="bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="le">ليه</option><option value="alih">عليه</option></select>
+                        <input id="master-ctr-open-date" type="date" class="bg-white border border-slate-200 rounded-lg p-2 text-sm">
+                    </div>
+                </div>
             </div>
             <div id="master-salary-wrap" class="hidden">
                 <label class="block text-xs font-bold text-slate-600 mb-1">الراتب الشهري (ج.م)</label>
@@ -3552,6 +3560,7 @@ function openAddMasterModal(){
     document.getElementById('master-ctrkind').value = 'equip'; document.getElementById('master-autobill').checked = false; document.getElementById('master-ctr-equips').value = '';
     document.getElementById('master-notstarted').checked = false; document.getElementById('master-startfrom').value = '';
     document.getElementById('master-deductsin').value = '';
+    document.getElementById('master-ctr-open').value = ''; document.getElementById('master-ctr-open-dir').value = 'le'; document.getElementById('master-ctr-open-date').value = '';
     document.getElementById('master-contract').value = '';
     document.getElementById('master-prepaid').checked = false;
     document.getElementById('master-min-stock').value = ''; document.getElementById('master-open-qty').value = '';
@@ -3590,6 +3599,9 @@ function openEditMasterModal(cat, code){
     document.getElementById('master-notstarted').checked = cat==='contractors' && !!item.notStarted;
     document.getElementById('master-startfrom').value = cat==='contractors' ? (item.startFrom||'') : '';
     document.getElementById('master-deductsin').value = cat==='contractors' ? (item.deductSin||'') : '';
+    document.getElementById('master-ctr-open').value = cat==='contractors' && item.openBal ? Math.abs(item.openBal) : '';
+    document.getElementById('master-ctr-open-dir').value = cat==='contractors' && Number(item.openBal)<0 ? 'alih' : 'le';
+    document.getElementById('master-ctr-open-date').value = cat==='contractors' ? (item.openDate||'') : '';
     if(cat==='accounts' && document.getElementById('master-opening-balance')) document.getElementById('master-opening-balance').value = item.openingBalance || '';
     document.getElementById('add-master-modal').classList.remove('hidden');
     document.getElementById('add-master-modal').classList.add('flex');
@@ -3730,7 +3742,9 @@ function saveMasterItem(e){
         if(acts.length) item.activities = acts;
         if(type==='names'){ const sal = Number(document.getElementById('master-salary').value)||0; if(sal>0) item.salary = sal; }
     }
-    if(type==='contractors'){ const rt = Number(document.getElementById('master-rate').value)||0; if(rt>0) item.rate = rt; const eq = document.getElementById('master-equip').value.trim(); if(eq) item.equip = eq; const eqs = [...new Set(document.getElementById('master-ctr-equips').value.split(/[،,\n]+/).map(x=>x.trim()).filter(Boolean))]; if(eqs.length) item.equips = eqs; if(document.getElementById('master-ctrkind').value==='owner') item.sinOwner = true; else item.allSin = true;  if(document.getElementById('master-notstarted').checked) item.notStarted = true; const sf = document.getElementById('master-startfrom').value; if(sf) item.startFrom = sf; const ds = Number(document.getElementById('master-deductsin').value)||0; if(ds>0) item.deductSin = ds; }
+    if(type==='contractors'){ const rt = Number(document.getElementById('master-rate').value)||0; if(rt>0) item.rate = rt; const eq = document.getElementById('master-equip').value.trim(); if(eq) item.equip = eq; const eqs = [...new Set(document.getElementById('master-ctr-equips').value.split(/[،,\n]+/).map(x=>x.trim()).filter(Boolean))]; if(eqs.length) item.equips = eqs; if(document.getElementById('master-ctrkind').value==='owner') item.sinOwner = true; else item.allSin = true;  if(document.getElementById('master-notstarted').checked) item.notStarted = true; const sf = document.getElementById('master-startfrom').value; if(sf) item.startFrom = sf; const ds = Number(document.getElementById('master-deductsin').value)||0; if(ds>0) item.deductSin = ds;
+        const ob = Number(document.getElementById('master-ctr-open').value)||0;
+        if(ob>0){ item.openBal = document.getElementById('master-ctr-open-dir').value==='alih' ? -ob : ob; item.openDate = document.getElementById('master-ctr-open-date').value || todayISO(); } }
     if(type==='accounts'){
         const ob = Number(document.getElementById('master-opening-balance').value);
         item.openingBalance = ob || 0;
@@ -9229,10 +9243,13 @@ function contractorStmtRows(name){
     (db.stockIssues||[]).filter(s=>normName(s.name)===normName(name)).forEach(s=>ev.push({date:s.date, ord:2, item:s.item, qtyTxt:`${nfmt(Number(s.qty)||0)} ${s.unit||''}`, price:Number(s.price)||0, desc:`${s.item} ${nfmt(s.qty)} ${s.unit||''} × ${nfmt(s.price)}${s.equip?' — '+s.equip:''}${s.notes?' — '+s.notes:''}`, debit:Math.round((Number(s.qty)||0)*(Number(s.price)||0)), credit:0}));
     (db.equipmentRepayments||[]).filter(r=>!r.deduct && normName(r.name)===normName(name)).forEach(r=>ev.push({date:r.date, ord:3, desc:'سداد سولار نقدي — '+(r.notes||''), debit:0, credit:Number(r.amount)||0}));
     ev.sort((a,b)=>(a.date||'').localeCompare(b.date||'')||a.ord-b.ord);
-    let bal = 0; ev.forEach(e=>{ bal += e.credit - e.debit; e.bal = bal; });
+    /* رصيد افتتاحي من التكويد: حسابه يبدأ من openDate بالرصيد المكتوب، وأي حركات قبل اليوم ده بتتشال (محمد 2026-11-09) */
+    let evF = ev; const ob=Number(c.openBal)||0;
+    if(ob && c.openDate){ evF = ev.filter(e=>(e.date||'') >= c.openDate); evF.unshift({date:c.openDate, ord:-1, desc:'رصيد افتتاحي', credit: ob>0?ob:0, debit: ob<0?-ob:0}); }
+    let bal = 0; evF.forEach(e=>{ bal += e.credit - e.debit; e.bal = bal; });
     let shownRate = rate;
     if(!ctrIsAuto(c)){ const lx=(db.ctrExtracts||[]).filter(x=>normName(x.name)===normName(name)).sort((a,b)=>(a.date||'').localeCompare(b.date||'')).pop(); if(lx) shownRate = lx.rate; }
-    return {rows:ev, rate:shownRate, oldLeft, auto:ctrIsAuto(c)};
+    return {rows:evF, rate:shownRate, oldLeft, auto:ctrIsAuto(c)};
 }
 /* ---------- مستخلص مقاول ---------- */
 function extractableCtrs(){ return (db.contractors||[]).filter(c=>!ctrIsAuto(c)); }
@@ -10537,7 +10554,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.37';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.38';
 
     /* تنبيهات */
     const alerts=[];
