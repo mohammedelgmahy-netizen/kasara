@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.30</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.31</span></p></div>
         </div>
     </aside>
 
@@ -496,7 +496,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <div class="bg-emerald-50 p-3 rounded-lg text-emerald-600"><i class="fa-solid fa-sack-dollar text-xl"></i></div>
                 </div>
                 <div style="display:none" onclick="openDashMoves('sari')" title="اضغط لعرض الحركات" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:ring-2 hover:ring-slate-300 transition">
-                    <div><p class="text-xs font-bold text-emerald-700">المعلقات (خزينة عماد ناجي)</p><h3 id="kpi-sari" class="text-2xl font-bold mt-1">-</h3></div>
+                    <div><p class="text-xs font-bold text-emerald-700">معلق عماد ناجي</p><h3 id="kpi-sari" class="text-2xl font-bold mt-1">-</h3></div>
                     <div class="bg-emerald-50 p-3 rounded-lg text-emerald-600"><i class="fa-solid fa-wallet text-xl"></i></div>
                 </div>
                 <div onclick="openDashMoves('custody')" title="اضغط لعرض العهد" class="bg-white p-5 rounded-xl border border-violet-200 shadow-sm flex items-center justify-between cursor-pointer hover:ring-2 hover:ring-violet-300 transition">
@@ -844,7 +844,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 <h3 class="font-bold text-slate-900">⚙️ الأرصدة الافتتاحية وبداية الخزينة</h3>
                     <form onsubmit="saveSariSettings(event)" class="grid grid-cols-2 md:grid-cols-5 gap-3 items-end mt-3">
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">تاريخ بداية الخزينة</label><input id="sari-start" type="date" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">رصيد خزينة عماد ناجي الافتتاحي</label><input id="sari-cash-open" type="number" step="any" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">رصيد معلق عماد ناجي الافتتاحي</label><input id="sari-cash-open" type="number" step="any" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">رصيد درج المكتب الافتتاحي</label><input id="drawer-cash-open" type="number" step="any" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">سلف عماد ناجي الافتتاحية</label><input id="sari-loan-open" type="number" step="any" min="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div><button type="submit" class="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold p-2.5 rounded-lg text-sm">حفظ الإعدادات</button></div>
@@ -1386,7 +1386,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     </div>
                 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3"><p class="text-xs font-bold text-emerald-700">خزينة عماد ناجي (المعلق)</p><p id="sari-cash" class="text-xl font-bold text-emerald-800">-</p></div>
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3"><p class="text-xs font-bold text-emerald-700">معلق عماد ناجي</p><p id="sari-cash" class="text-xl font-bold text-emerald-800">-</p></div>
                     <div class="bg-sky-50 border border-sky-200 rounded-lg p-3"><p class="text-xs font-bold text-sky-700">درج المكتب</p><p id="drawer-cash" class="text-xl font-bold text-sky-800">-</p></div>
                     <div class="bg-amber-50 border border-amber-200 rounded-lg p-3"><p class="text-xs font-bold text-amber-700">السلف المستحقة (كل الأشخاص)</p><p id="sari-loan" class="text-xl font-bold text-amber-800">-</p></div>
                     <div class="bg-slate-50 border border-slate-200 rounded-lg p-3"><p class="text-xs font-bold text-slate-600">صافي النقدية (كل الخزن − السلف)</p><p id="sari-net" class="text-xl font-bold text-slate-800">-</p></div>
@@ -2071,7 +2071,7 @@ function seedDb(){
         cashTransfers: [],
         sales: [],
         accounts: [
-            {code:9501, name:'خزينة عماد ناجي (المعلق)', openingBalance:0},
+            {code:9501, name:'معلق عماد ناجي', openingBalance:0},
             {code:9502, name:'درج المكتب', openingBalance:0}
         ],
         invoices: [],
@@ -3332,7 +3332,7 @@ function homeKpisHtml(){
     const collM=(db.expensesData||[]).filter(x=>(x.date||'').startsWith(m) && x.category==='إيراد').reduce((a,x)=>a+(Number(x.paid)||0),0);
     let sari=0, drawer=0, loans=0; try{ sari=accBalance(SARI_ACC); drawer=accBalance(DRAWER_ACC); loans=sariLoanRows().closing; }catch(e){}
     const K=[
-        ['treasury','fa-wallet','#16a37b','#e2f5ee','خزينة عماد ناجي (المعلق)',fmt(sari),'درج المكتب: '+fmt(drawer)],
+        ['treasury','fa-wallet','#16a37b','#e2f5ee','معلق عماد ناجي',fmt(sari),'درج المكتب: '+fmt(drawer)],
         ['dailylog','fa-truck','#1f4b73','#e6eff7','مبيعات الشهر ده',fmt(salesVal),nfmt(bons.length)+' بون · '+nfmt(qty)+' م'],
         ['incomes','fa-hand-holding-dollar','#7457d9','#efebfc','تحصيلات الشهر ده',fmt(collM),'فلوس دخلت الخزينة'],
         ['expenses','fa-receipt','#e07a36','#fdeee3','مصروفات الشهر ده',fmt(expM),'السلف المستحقة: '+fmt(loans)],
@@ -7363,6 +7363,12 @@ function ensureWeeklyCustody(){
 }
 
 /* رجوع: أي عهدة اتحولت لمقدم ترجع مصروف تاني، والمستخلصات التجريبية تتشال (مرة واحدة) */
+/* محمد 2026-11-09: «خزينة عماد ناجي (المعلق)» اسمها بقى «معلق عماد ناجي» — بيتغير في كل البيانات */
+function renameSariAcc(){
+    let hit=false;
+    const walk=o=>{ if(!o || typeof o!=='object') return; for(const k of Object.keys(o)){ const v=o[k]; if(typeof v==='string'){ if(v.includes(OLD_SARI_ACC)){ o[k]=v.split(OLD_SARI_ACC).join(SARI_ACC); hit=true; } } else if(v && typeof v==='object') walk(v); } };
+    walk(db); if(hit) scheduleSave();
+}
 function revertCustodyAdvance(){
     if(!db.imports) db.imports = {};
     if(db.imports.custodyAdvanceRevert) return;
@@ -7953,7 +7959,7 @@ function dailySummaryText(d){
     const spent = ex.filter(x=>x.category!=='إيراد').reduce((a,x)=>a+(Number(x.paid!=null?x.paid:x.amount)||0),0);
     const journal = [];
     try{
-        [[SARI_ACC,'🏦 خزينة عماد ناجي'],[DRAWER_ACC,'🗄️ درج المكتب']].forEach(([acc,label])=>{
+        [[SARI_ACC,'🏦 معلق عماد ناجي'],[DRAWER_ACC,'🗄️ درج المكتب']].forEach(([acc,label])=>{
             const st = buildCashStatement(d, d, acc);
             journal.push('', `${label}`, `رصيد أول اليوم: ${mfmt(st.opening)}`);
             st.rows.forEach(r=>{ if(r.inflow) journal.push(`➕ ${mfmt(r.inflow)} — ${r.desc}`); if(r.outflow) journal.push(`➖ ${mfmt(r.outflow)} — ${r.desc}`); });
@@ -8969,7 +8975,7 @@ function exportCashJournalExcel(){
 }
 
 /* ---------- الخزن: خزينة عماد ناجي + درج المكتب ---------- */
-const SARI_ACC = 'خزينة عماد ناجي (المعلق)', DRAWER_ACC = 'درج المكتب';
+const SARI_ACC = 'معلق عماد ناجي', OLD_SARI_ACC = 'خزينة عماد ناجي (المعلق)', DRAWER_ACC = 'درج المكتب';
 function ensureTreasuries(){
     if(!db.accounts || !db.accounts.length) db.accounts = [{code:9501, name:'الخزينة النقدية', openingBalance:0}];
     if(!db.imports) db.imports = {};
@@ -10275,7 +10281,7 @@ function exportPartyExcel(){
     };
     const _initDropdowns = initDropdowns;
     initDropdowns = function(){
-        try{ ensureTreasuries(); revertCustodyAdvance(); ensureContractors(); ensureFuelSupplies(); ensureExpenseCatsV1(); ensureTractorsFromBons(); clearDriversV1(); }catch(err){ console.error(err); }
+        try{ renameSariAcc(); ensureTreasuries(); revertCustodyAdvance(); ensureContractors(); ensureFuelSupplies(); ensureExpenseCatsV1(); ensureTractorsFromBons(); clearDriversV1(); }catch(err){ console.error(err); }
         _initDropdowns.apply(this, arguments);
         try{ fillSelect('coll-account', db.accounts); }catch(err){}
         try{ initCrusherPaperUI(); }catch(err){ console.error(err); }
@@ -10500,7 +10506,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.30';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.31';
 
     /* تنبيهات */
     const alerts=[];
