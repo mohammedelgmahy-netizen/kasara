@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.33</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.34</span></p></div>
         </div>
     </aside>
 
@@ -5078,7 +5078,7 @@ function clientSheetHtml(name){
         <tr><td colspan="2" style="${B};font-weight:700">الفترة من ${D.from?dmy(D.from):'-'} حتى ${D.to?dmy(D.to):'-'}</td></tr></table>
       <table style="width:100%;border-collapse:collapse">${head}${rows.join('')}${totRow}${priceRow}${amtRow}</table>
       <div style="height:14px"></div>
-      <table style="width:100%;border-collapse:collapse">${sum}</table><div style="margin-top:18px;font-weight:800;font-size:14px;display:flex;justify-content:space-between;direction:rtl"><span>المسؤول / م. عماد ناجي</span><span>المحاسب / محمد الجميعي</span></div></div>`;
+      <table style="width:100%;border-collapse:collapse">${sum}</table><div class="sig-line" style="margin-top:18px;font-weight:800;font-size:14px;display:flex;justify-content:space-between;direction:rtl"><span>المسؤول / م. عماد ناجي</span><span>المحاسب / محمد الجميعي</span></div></div>`;
 }
 
 /* ---------- كشوفات العملاء المحفوظة: زي المستخلص، بالأسبوع، تتحفظ وتفتح تاني (محمد 2026-11-07) ---------- */
@@ -5486,20 +5486,26 @@ function fitBox(u, avail){
     // بنكبّر عرض الورقة ونصغّرها بـ zoom: العرض النهائي = عرض الصفحة، والطول ما يعدّيش صفحة
     let L=avail; u.style.width=L+'px'; L=Math.max(L, u.scrollWidth);
     for(let k=0;k<8;k++){ u.style.width=L+'px'; const H=u.scrollHeight, need=H*avail/L; if(need<=PRINT_H) break; L=Math.ceil(L*Math.min(need/PRINT_H, 3)*1.02); }
-    if(L<=avail){ u.style.width=''; return; }
-    u.style.width=L+'px'; u.style.zoom=avail/L; u.dataset.fitZoom='1';
+    if(L<=avail){ u.style.width=''; } else { u.style.width=L+'px'; u.style.zoom=avail/L; u.dataset.fitZoom='1'; }
+    sigToBottom(u, Number(u.style.zoom)||1);
+}
+/* الإمضاء ينزل تحت في آخر الصفحة حتى لو الورقة قصيرة */
+function sigToBottom(u, z){
+    const sig=u.querySelector('.sig-line'); if(!sig) return;
+    const room=PRINT_H - u.scrollHeight*z - 30; if(room<=0) return;
+    sig.dataset.oldMt=sig.style.marginTop; sig.style.marginTop=(18+room/z)+'px';
 }
 function fitPrintOnePage(){
     const t=document.querySelector('.print-target'); if(!t) return;
     const units=[...t.querySelectorAll(':scope > .rep-sec')];
     if(units.length){ fitBox(units[0], PRINT_W-40); return; } // الورقة الأولى (المستخلص/الكشف) بس، والمرفقات زي ما هي
     const old=t.style.cssText; t.style.boxSizing='border-box'; t.style.padding='20px'; t.style.maxWidth='none';
-    fitBox(t, PRINT_W); if(!t.dataset.fitZoom){ t.style.cssText=old; return; }
-    t.dataset.fitOld=old;
-    const h=Math.ceil(t.scrollHeight*Number(t.style.zoom))+20;
+    fitBox(t, PRINT_W); t.dataset.fitOld=old; t.dataset.fitZoom='1';
+    const h=Math.min(PRINT_H+40, Math.ceil(t.scrollHeight*(Number(t.style.zoom)||1))+20);
     [document.documentElement, document.body].forEach(e=>{ e.style.setProperty('height', h+'px', 'important'); e.style.setProperty('overflow','hidden','important'); });
 }
 function unfitPrint(){
+    document.querySelectorAll('.sig-line[data-old-mt]').forEach(g=>{ g.style.marginTop=g.dataset.oldMt; delete g.dataset.oldMt; });
     document.querySelectorAll('[data-fit-zoom]').forEach(u=>{ if(u.dataset.fitOld!=null){ u.style.cssText=u.dataset.fitOld; delete u.dataset.fitOld; } else { u.style.zoom=''; u.style.width=''; } delete u.dataset.fitZoom; });
     [document.documentElement, document.body].forEach(e=>{ e.style.removeProperty('height'); e.style.removeProperty('overflow'); });
 }
@@ -9517,7 +9523,7 @@ function contractorSheetHtml(name, from, to){
         <tr><td colspan="2" style="${B};font-weight:700">الفترة من ${from?dmy(from):'البداية'} حتى ${to?dmy(to):dmy(todayISO())}</td></tr></table>
       <table style="width:100%;border-collapse:collapse">${head}${openRow}${body.join('')}${totRow}</table>
       <div style="height:14px"></div>
-      <table style="width:100%;border-collapse:collapse">${sum}</table><div style="margin-top:18px;font-weight:800;font-size:14px;display:flex;justify-content:space-between;direction:rtl"><span>المسؤول / م. عماد ناجي</span><span>المحاسب / محمد الجميعي</span></div></div>`;
+      <table style="width:100%;border-collapse:collapse">${sum}</table><div class="sig-line" style="margin-top:18px;font-weight:800;font-size:14px;display:flex;justify-content:space-between;direction:rtl"><span>المسؤول / م. عماد ناجي</span><span>المحاسب / محمد الجميعي</span></div></div>`;
 }
 function renderContractorStmt(){
     const g = id=>document.getElementById(id), sel = g('cs2-name'); if(!sel) return;
@@ -10530,7 +10536,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.33';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.34';
 
     /* تنبيهات */
     const alerts=[];
