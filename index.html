@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.67</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.68</span></p></div>
         </div>
     </aside>
 
@@ -6118,7 +6118,9 @@ function addStockIssue(e){
     const item = document.getElementById('stock-item').value;
     const qty = Number(document.getElementById('stock-qty').value)||0;
     if(!item||!qty){ alert('اختر الصنف وأدخل الكمية'); return; }
-    const recipientRaw = document.getElementById('stock-name').value || '';
+    let recipientRaw = document.getElementById('stock-name').value || '';
+    /* معدات الكسارة = استهلاك الكسارة (تكلفة على الكسارة، من غير سعر) — محمد 2026-11-10 */
+    if(isCrusherCtr(recipientRaw.split('::').pop())){ recipientRaw=''; const pe=document.getElementById('stock-price'); if(pe) pe.value=''; }
     if(recipientRaw && !(Number(document.getElementById('stock-price').value)>0)){ alert('اكتب السعر عشان يتحسب على المستلم — أو اختار "استهلاك الكسارة".'); document.getElementById('stock-price').focus(); return; }
     const [typeCode, recipientName] = recipientRaw.includes('::') ? recipientRaw.split('::') : ['p', recipientRaw];
     const recipientType = typeCode==='a' ? 'asset' : typeCode==='v' ? 'vehicle' : typeCode==='c' ? 'contractor' : 'person';
@@ -10764,7 +10766,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.67';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.68';
 
     /* تنبيهات */
     const alerts=[];
