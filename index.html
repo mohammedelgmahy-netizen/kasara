@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.58</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.59</span></p></div>
         </div>
     </aside>
 
@@ -1758,7 +1758,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                 <h3 class="font-bold text-slate-900 mb-4"><i class="fa-solid fa-coins text-yellow-500"></i> تسجيل توزيع أرباح (دفع مباشر)</h3>
                 <form onsubmit="addProfitDistribution(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">المستثمر</label><select id="dist-investor" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">الشريك</label><select id="dist-investor" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div class="hidden"><label class="block text-xs font-bold text-slate-600 mb-1">المشروع</label><select id="dist-project" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">المبلغ الموزّع</label><input id="dist-amount" type="number" step="any" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="dist-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
@@ -1777,7 +1777,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 </div>
                 <div class="overflow-x-auto max-h-64">
                     <table class="w-full text-sm text-right">
-                        <thead class="bg-slate-100 sticky top-0"><tr><th class="p-3">المستثمر</th><th class="p-3">المشروع</th><th class="p-3 text-blue-700">إجمالي استثماره</th><th class="p-3">المبلغ الموزّع</th><th class="p-3">التاريخ</th><th class="p-3">ملاحظات</th><th class="p-3"></th></tr></thead>
+                        <thead class="bg-slate-100 sticky top-0"><tr><th class="p-3">الشريك</th><th class="p-3">المشروع</th><th class="p-3 text-blue-700">إجمالي تمويله</th><th class="p-3">المبلغ الموزّع</th><th class="p-3">التاريخ</th><th class="p-3">ملاحظات</th><th class="p-3"></th></tr></thead>
                         <tbody id="tbody-distributions"></tbody>
                     </table>
                 </div>
@@ -3443,7 +3443,7 @@ const MASTER_META = {
     suppliers:{label:'الموردين', color:'bg-purple-100 text-purple-800'},
     contractors:{label:'المقاولين (أصحاب المعدات)', color:'bg-violet-100 text-violet-800'},
     names:{label:'الأفراد (الموظفين)', color:'bg-indigo-100 text-indigo-800'},
-    investors:{label:'المستثمرين والممولين', color:'bg-orange-100 text-orange-800'},
+    investors:{label:'الشركاء', color:'bg-orange-100 text-orange-800'},
     accounts:{label:'الخزن والبنوك', color:'bg-teal-100 text-teal-800'},
     supplies:{label:'الأصناف', color:'bg-amber-100 text-amber-800'},
     expenses:{label:'التبويبات', color:'bg-emerald-100 text-emerald-800'},
@@ -3551,7 +3551,7 @@ function renderMasterData(){
     const cnt = c => catCount[c];
     let cur = window.__mdTab || 'clients';
     if(term && !cnt(cur)){ const f=GROUPS.find(([c])=>cnt(c)>0); if(f) cur=f[0]; }
-    const bar = `<div class="flex flex-wrap gap-2 mb-3">${GROUPS.map(([c,ic])=>`<button type="button" onclick="window.__mdTab='${c}'; renderMasterData()" class="px-3 py-2 rounded-xl text-sm font-bold border flex items-center gap-2 ${c===cur?'bg-slate-900 text-white border-slate-900':'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}">${ic} ${({contractors:'المقاولين',investors:'المستثمرين',expenses:'المصروفات',persons:'الأفراد'})[c]||MASTER_META[c].label} <span class="text-xs px-2 py-0.5 rounded-full ${c===cur?'bg-white/20':'bg-slate-100'}">${cnt(c)}</span></button>`).join('')}</div>`;
+    const bar = `<div class="flex flex-wrap gap-2 mb-3">${GROUPS.map(([c,ic])=>`<button type="button" onclick="window.__mdTab='${c}'; renderMasterData()" class="px-3 py-2 rounded-xl text-sm font-bold border flex items-center gap-2 ${c===cur?'bg-slate-900 text-white border-slate-900':'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}">${ic} ${({contractors:'المقاولين',investors:'الشركاء',expenses:'المصروفات',persons:'الأفراد'})[c]||MASTER_META[c].label} <span class="text-xs px-2 py-0.5 rounded-full ${c===cur?'bg-white/20':'bg-slate-100'}">${cnt(c)}</span></button>`).join('')}</div>`;
     const head = `<div class="flex items-center justify-between gap-2 mb-2"><div class="font-extrabold text-slate-900">${GROUPS.find(g=>g[0]===cur)[1]} ${cur==='expenses'?'المصروفات':cur==='persons'?'الأفراد':MASTER_META[cur].label}</div><button type="button" onclick="openAddMasterModal(); document.getElementById('master-type').value='${cur==='persons'?'names':cur}'; toggleMasterFields();" class="bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg text-sm font-bold">＋ إضافة</button></div>`;
     const content = catHtml[cur];
     container.innerHTML = bar + `<div class="bg-white border border-slate-200 rounded-xl p-3">${head}${content}</div>`;
@@ -10703,7 +10703,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.58';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.59';
 
     /* تنبيهات */
     const alerts=[];
