@@ -402,8 +402,8 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             <button onclick="switchTab('expenses')" id="btn-expenses" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
                 <i class="fa-solid fa-money-bill-wave nav-ic" style="--c:#10b981"></i><span>المصروفات</span>
             </button>
-            <button onclick="switchTab('commission')" id="btn-commission" style="display:none" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
-                <i class="fa-solid fa-handshake nav-ic" style="--c:#f59e0b"></i><span>العمولة</span>
+            <button onclick="switchTab('commission')" id="btn-commission" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
+                <i class="fa-solid fa-handshake nav-ic" style="--c:#f59e0b"></i><span>حساب عماد ناجي</span>
             </button>
                                     <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-4 mb-1 px-3">الدفاتر والتقارير</p>
             <button onclick="switchTab('cashday')" id="btn-cashday" style="display:none" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.59</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.60</span></p></div>
         </div>
     </aside>
 
@@ -909,10 +909,10 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         <!-- العمولة (عمولة جلب العملاء) -->
         <div id="tab-commission" class="tab-content flex-col gap-6">
             <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm w-full">
-                <h2 class="text-lg font-bold text-slate-900 border-b-2 border-slate-900 pb-3 mb-4"><i class="fa-solid fa-handshake text-amber-500"></i> عمولة جلب العملاء — <span id="com-person-title"></span></h2>
+                <h2 class="text-lg font-bold text-slate-900 border-b-2 border-slate-900 pb-3 mb-4"><i class="fa-solid fa-handshake text-amber-500"></i> بدل الإدارة والتشغيل (4 ج × المتر) — <span id="com-person-title"></span></h2>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <form onsubmit="addCommission(event)" class="border border-amber-200 bg-amber-50/40 rounded-lg p-4 grid grid-cols-2 gap-2 text-sm">
-                        <div class="col-span-2 font-bold text-amber-800">تسجيل عمولة (على متر السن)</div>
+                        <div class="col-span-2 font-bold text-amber-800">تسجيل مستحق (على متر السن)</div>
                         <label class="text-xs text-slate-600">من<input id="com-from" type="date" class="w-full bg-white border border-slate-300 rounded p-1.5"></label>
                         <label class="text-xs text-slate-600">إلى<input id="com-to" type="date" class="w-full bg-white border border-slate-300 rounded p-1.5" required></label>
                         <label class="text-xs text-slate-600">الأمتار<input id="com-qty" type="number" step="any" oninput="comCalc()" class="w-full bg-white border border-slate-300 rounded p-1.5" required></label>
@@ -921,7 +921,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                         <button class="col-span-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg py-2 font-bold">حفظ العمولة</button>
                     </form>
                     <form onsubmit="payCommission(event)" class="border border-emerald-200 bg-emerald-50/40 rounded-lg p-4 grid grid-cols-2 gap-2 text-sm">
-                        <div class="col-span-2 font-bold text-emerald-800">صرف عمولة (من الفلوس المحصلة)</div>
+                        <div class="col-span-2 font-bold text-emerald-800">صرف جزء من حصته</div>
                         <label class="text-xs text-slate-600">التاريخ<input id="com-pdate" type="date" class="w-full bg-white border border-slate-300 rounded p-1.5" required></label>
                         <label class="text-xs text-slate-600">المبلغ<input id="com-pamount" type="number" step="any" class="w-full bg-white border border-slate-300 rounded p-1.5" required></label>
                         <label class="text-xs text-slate-600">الخزينة<select id="com-paccount" class="w-full bg-white border border-slate-300 rounded p-1.5"></select></label>
@@ -10703,7 +10703,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.59';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.60';
 
     /* تنبيهات */
     const alerts=[];
