@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.48</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.49</span></p></div>
         </div>
     </aside>
 
@@ -4756,8 +4756,10 @@ function computePL(projectFilter, dateFrom, dateTo){
     // السولار والأصناف اللي اتصرفت لمقاولين ومعدات بسعر = بتترد من مستخلصاتهم → مش تكلفة على الكسارة
     const recovered = (db.stockIssues||[]).filter(s=>matchDate(s) && s.name && s.name!=='-' && (Number(s.price)||0)>0)
         .reduce((a,s)=>a+(Number(s.qty)||0)*(Number(s.price)||0),0);
+    /* مستخلصات قبل تاريخ الرصيد الافتتاحي للمقاول مش بتتحسب تاني — قيمتها جوه «شغل المقاولين القديم» (محمد 2026-11-10) */
+    const _ctrCut = x => { const c=(db.contractors||[]).find(k=>normName(k.name)===normName(x.name)); return c && c.openDate && ((Number(c.openTotal)||0)||(Number(c.openPaid)||0)||(Number(c.openBal)||0)) && (x.date||'')<c.openDate; };
     const extractsCost = (db.equipExtracts||[]).filter(x=>matchDate(x)).reduce((a,x)=>a+(Number(x.amount)||0),0)
-        + (db.ctrExtracts||[]).filter(x=>matchDate(x)).reduce((a,x)=>a+(Number(x.amount)||0),0);
+        + (db.ctrExtracts||[]).filter(x=>matchDate(x) && !_ctrCut(x)).reduce((a,x)=>a+(Number(x.amount)||0),0);
     // المخزون: اللي لسه في المخزن آخر المدة مش تكلفة — وأول المدة بيتضاف (بمتوسط سعر الشراء)
     const stockValueAt = (d) => {   // قيمة المخزون في آخر يوم d (أو قبل أي حاجة لو d فاضي = صفر)
         if(d==null) return 0;
@@ -4774,6 +4776,11 @@ function computePL(projectFilter, dateFrom, dateTo){
     const directLines = [];
     if(openStock) directLines.push({ num:num(), label:'مخزون أول المدة', value:Math.round(openStock*100)/100 });
     directLines.push({ num:num(), label:'مشتريات سولار وأصناف', value:materialsCost });
+    /* الفواتير القديمة من الرصيد الافتتاحي بتتحسب مشتريات في قائمة الدخل (محمد 2026-11-10: «اعتبرها مشتريات جديدة») */
+    { const oldInv=(db.suppliers||[]).filter(x=>x.openDate && matchDate({date:x.openDate})).reduce((a,x)=>a+(Number(x.openTotal)||0),0);
+      if(oldInv) directLines.push({ num:num(), label:'فواتير الموردين القديمة (رصيد افتتاحي)', value:oldInv });
+      const oldCtr=(db.contractors||[]).filter(x=>x.openDate && matchDate({date:x.openDate})).reduce((a,x)=>a+(Number(x.openTotal)||0),0);
+      if(oldCtr) directLines.push({ num:num(), label:'شغل المقاولين القديم (رصيد افتتاحي)', value:oldCtr }); }
     if(closeStock) directLines.push({ num:num(), label:'ناقص: مخزون آخر المدة (لسه ما اتصرفش)', value:-Math.round(closeStock*100)/100 });
     if(recovered) directLines.push({ num:num(), label:'ناقص: المصروف للمقاولين والمعدات (بيتخصم من مستخلصاتهم)', value:-recovered });
     directLines.push({ num:num(), label:'شغل المقاولين والمعدات (قيمة المستخلصات)', value:extractsCost });
@@ -10653,7 +10660,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.48';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.49';
 
     /* تنبيهات */
     const alerts=[];
