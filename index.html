@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.68</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.69</span></p></div>
         </div>
     </aside>
 
@@ -3109,8 +3109,11 @@ async function handleActivation(e){
 }
 
 /* ================= UTIL ================= */
+/* فواصل الأرقام واضحة: فاصلة عادية للآلاف (,) ونقطة للكسور (.) بدل ٬ و٫ اللي شبه بعض (محمد 2026-11-10) */
+const __sepFix = t => String(t).replace(/\u066C/g,',').replace(/\u066B/g,'.');
+{ const _tl=Number.prototype.toLocaleString; Number.prototype.toLocaleString=function(){ return __sepFix(_tl.apply(this,arguments)); }; }
 const __NFm = new Intl.NumberFormat('ar-EG');
-const fmt = n => __NFm.format(Math.round(Number(n)||0)) + ' ج.م';  // الفلوس من غير كسور
+const fmt = n => __sepFix(__NFm.format(Math.round(Number(n)||0))) + ' ج.م';  // الفلوس من غير كسور
 const esc = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const todayISO = () => new Date().toISOString().slice(0,10);
 
@@ -8275,8 +8278,8 @@ const AR_DAYS = ['الأحد','الاثنين','الثلاثاء','الأربع�
 const dmy = iso => iso ? String(iso).split('-').reverse().join('/') : '';
 const dayNameAr = iso => { const d = new Date(iso+'T12:00:00'); return isNaN(d) ? '' : AR_DAYS[d.getDay()]; };
 const __NF2 = new Intl.NumberFormat('ar-EG',{maximumFractionDigits:2}), __NF0 = new Intl.NumberFormat('ar-EG'); // فورمات واحد بدل ما يتعمل جديد كل رقم (كان مبطّأ التحميل)
-const nfmt = n => __NF2.format(Number(n)||0);
-const mfmt = n => __NF0.format(Math.round(Number(n)||0));  // مبالغ فلوس من غير كسور
+const nfmt = n => __sepFix(__NF2.format(Number(n)||0));
+const mfmt = n => __sepFix(__NF0.format(Math.round(Number(n)||0)));  // مبالغ فلوس من غير كسور
 let __idSeq = 0;
 const newId = () => Date.now()*1000 + ((__idSeq++ % 90)+1)*10;
 
@@ -10766,7 +10769,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.68';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.69';
 
     /* تنبيهات */
     const alerts=[];
