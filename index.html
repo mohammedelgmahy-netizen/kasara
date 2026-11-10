@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.66</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.67</span></p></div>
         </div>
     </aside>
 
@@ -556,10 +556,6 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     </div>
                 </div>
                 <div id="sites-list" class="flex flex-col gap-2"></div>
-            </div>
-            <div id="crusher-eq-card" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                <h3 class="font-bold text-lg text-slate-900 mb-3">معدات الكسارة</h3>
-                <div id="crusher-eq-list" class="flex flex-wrap items-center gap-1.5"></div>
             </div>
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                 <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3 flex-wrap gap-2">
@@ -3300,7 +3296,7 @@ function mergeSaadawiCars(){
 }
 function renderAll(){
     try{ mergeSaadawiCars(); }catch(e){}
-    try{ emadCleanAuto(); }catch(e){}
+    try{ emadCleanAuto(); }catch(e){} try{ ensureCrusherCode(); }catch(e){}
     try{ buyPaySync(); }catch(e){}
     try{ [['exp-src','exp-account'],['pay-src','pay-account']].forEach(([a,b])=>{ const S=document.getElementById(a), A=document.getElementById(b); if(S&&A&&!S.dataset.touched) S.value=A.value===SARI_ACC?'sari':'cash'; }); }catch(e){}
     try{ fixDupOps(); }catch(e){}
@@ -3444,7 +3440,7 @@ function switchTab(tabId){
     if(tabId==='purchases'){ try{ renderQuickPurchases(); renderPaymentsTable(); renderSupplierStmt(); }catch(e){ console.warn(e); } }
     if(tabId==='production'){ renderProductions(); updateProdTotalPreview(); }
     if(tabId==='fleet'){ renderVehicles(); renderTrips(); }
-    if(tabId==='masterdata'){ try{ renderMasterData(); }catch(e){} try{ renderCrusherEqCard(); }catch(e){} try{ renderVehicles(); }catch(e){} try{ renderSitesCard(); }catch(e){} }
+    if(tabId==='masterdata'){ try{ renderMasterData(); }catch(e){} try{ renderVehicles(); }catch(e){} try{ renderSitesCard(); }catch(e){} }
     if(tabId==='audit'){ renderAuditLog(); }
     if(tabId==='ledger'){ renderAccounts(); try{ renderClientStmts(); }catch(e){} try{ renderSupplierStmt(); }catch(e){} try{ renderContractorStmt(); }catch(e){} try{ fillEquipSelects(); renderEqStatement(); }catch(e){} }
     if(tabId==='balance'){ renderTrialBalance(); }
@@ -3478,7 +3474,8 @@ function renderMasterData(){
         let rows = items.map(it=>{
             let badge = '';
             let contractLine = '';
-            if(cat==='contractors') badge = `<span class="${it.sinOwner?'bg-amber-100 text-amber-800':'bg-sky-100 text-sky-800'} text-xs px-2 py-0.5 rounded-full font-bold shrink-0">${it.sinOwner?'صاحب سن':'معدة'}</span>` + (false?`<span class="bg-rose-100 text-rose-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">${nfmt(it.deductSin)} م قديم مش محسوب</span>`:'') + (it.done?`<span class="bg-rose-100 text-rose-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">⛔ متوقف</span>`:'')+(it.notStarted?`<span class="bg-slate-200 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">لسه مابدأش</span>`:it.startFrom?`<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">من ${dmy(it.startFrom)}</span>`:'') + `<span class="bg-sky-100 text-sky-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">${ctrKindLabel(it)}</span>` + ((it.equips||[]).length?`<span class="bg-amber-50 text-amber-900 border border-amber-200 text-xs px-2 py-0.5 rounded-lg font-bold whitespace-normal inline-block" style="min-width:180px">🚜 ${esc(it.equips.join('، '))}</span>`:'') + (isCrusherCtr(it.name)?'':`<span class="bg-violet-100 text-violet-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">${it.rate?nfmt(it.rate)+' ج/متر':'السعر بعدين'}</span>`);
+            if(cat==='contractors' && isCrusherCtr(it.name)) badge = `<span class="bg-teal-100 text-teal-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">معدات الكسارة</span>` + ((it.equips||[]).length?`<span class="bg-amber-50 text-amber-900 border border-amber-200 text-xs px-2 py-0.5 rounded-lg font-bold whitespace-normal inline-block">🔧 ${esc(it.equips.join('، '))}</span>`:'');
+            else if(cat==='contractors') badge = `<span class="${it.sinOwner?'bg-amber-100 text-amber-800':'bg-sky-100 text-sky-800'} text-xs px-2 py-0.5 rounded-full font-bold shrink-0">${it.sinOwner?'صاحب سن':'معدة'}</span>` + (false?`<span class="bg-rose-100 text-rose-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">${nfmt(it.deductSin)} م قديم مش محسوب</span>`:'') + (it.done?`<span class="bg-rose-100 text-rose-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">⛔ متوقف</span>`:'')+(it.notStarted?`<span class="bg-slate-200 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">لسه مابدأش</span>`:it.startFrom?`<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">من ${dmy(it.startFrom)}</span>`:'') + `<span class="bg-sky-100 text-sky-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">${ctrKindLabel(it)}</span>` + ((it.equips||[]).length?`<span class="bg-amber-50 text-amber-900 border border-amber-200 text-xs px-2 py-0.5 rounded-lg font-bold whitespace-normal inline-block" style="min-width:180px">🚜 ${esc(it.equips.join('، '))}</span>`:'') + (isCrusherCtr(it.name)?'':`<span class="bg-violet-100 text-violet-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">${it.rate?nfmt(it.rate)+' ج/متر':'السعر بعدين'}</span>`);
             if(cat==='supplies') badge = `<span class="bg-slate-200 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">${it.unit}</span>`;
             if(cat==='expenses') badge = '';
             if(cat==='clients' && it.contractValue){
@@ -4643,7 +4640,7 @@ function treasuryEvents(){
     // بيع السولار للمعدات: سطر وارد (بيع سولار) + سطر صادر (سولار ... لتر) بنفس القيمة — زي دفتر اليومية
     { const avg={}; const pr=x=>{ if(Number(x.price)>0) return Number(x.price); if(avg[x.item]===undefined){ const P=(db.procurements||[]).filter(p=>p.item===x.item); const q=P.reduce((a,p)=>a+(Number(p.qty)||0),0); avg[x.item]=q?P.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0)/q:0; if(!avg[x.item]){ const L=(db.stockIssues||[]).filter(i=>i.item===x.item&&Number(i.price)>0).sort((a,b)=>(a.date||'').localeCompare(b.date||'')); avg[x.item]=L.length?Number(L[L.length-1].price):0; } } return avg[x.item]; };
       (db.stockIssues||[]).forEach(x=>{
-        if(!x || !x.date || !(/سول|جاز|ديزل|بنزين|زيت|شحم/.test(x.item||'') || (x.name && x.name!=='-' && Number(x.price)>0))) return;
+        if(!x || !x.date || !(/سول|جاز|ديزل|بنزين|زيت|شحم/.test(x.item||'') || (!isCrusherIssue(x) && Number(x.price)>0))) return;
         const pu=pr(x), v=Math.round((Number(x.qty)||0)*pu); if(!(Number(x.qty)>0)) return; const qp=pu?`${nfmt(x.qty)} ${x.unit||'لتر'} × ${nfmt(Math.round(pu*100)/100)}`:`${nfmt(x.qty)} ${x.unit||'لتر'}`;
         const who=[x.equip, x.name&&x.name!=='-'?x.name:''].filter(Boolean).join(' ')||'الكسارة';
         events.push({ref:['stock',x.id], date:x.date, desc:`بيع ${x.item} ${who} ${qp}`, project:'-', account:defaultAccount, inflow:v, outflow:0, fuel:true});
@@ -4837,7 +4834,7 @@ function computePL(projectFilter, dateFrom, dateTo){
     // ب. تكاليف العقود (مواد + أي تصنيف "تكلفة مباشرة")
     const materialsCost = db.procurements.filter(p=>match(p)).reduce((s,p)=>s+(p.qty*p.price),0);
     // السولار والأصناف اللي اتصرفت لمقاولين ومعدات بسعر = بتترد من مستخلصاتهم → مش تكلفة على الكسارة
-    const recovered = (db.stockIssues||[]).filter(s=>matchDate(s) && s.name && s.name!=='-' && (Number(s.price)||0)>0)
+    const recovered = (db.stockIssues||[]).filter(s=>matchDate(s) && !isCrusherIssue(s) && (Number(s.price)||0)>0)
         .reduce((a,s)=>a+(Number(s.qty)||0)*(Number(s.price)||0),0);
     /* مستخلصات قبل تاريخ الرصيد الافتتاحي للمقاول مش بتتحسب تاني — قيمتها جوه «شغل المقاولين القديم» (محمد 2026-11-10) */
     const _ctrCut = x => { const c=(db.contractors||[]).find(k=>normName(k.name)===normName(x.name)); return c && c.openDate && ((Number(c.openTotal)||0)||(Number(c.openPaid)||0)||(Number(c.openBal)||0)) && (x.date||'')<c.openDate; };
@@ -6184,9 +6181,15 @@ function renderInventory(){
 function stockTotal(){ const el=document.getElementById('stock-total'); if(!el) return; const t=(Number(document.getElementById('stock-qty').value)||0)*(Number(document.getElementById('stock-price').value)||0); el.textContent = t ? fmt(t) : '—'; }
 document.addEventListener('change', e=>{ if(e.target && (e.target.id==='stock-item' || e.target.id==='stock-name')) setTimeout(()=>{ try{ stockTotal(); }catch(x){} },0); if(e.target && e.target.id==='stock-name') stockEquipOpts(); });
 const CRUSHER_DEF = ['مولد كبير','مولد صغير'];
-function ctrKindLabel(c){ if(!c||isCrusherCtr(c.name)) return 'معدات'; const T=[...new Set((c.equips||[]).map(e=>eqType(e)))]; const M={'السيارات':'سيارات','اللوادر':'لوادر','الحفارات':'حفارات'}; return T.length===1&&M[T[0]]?M[T[0]]:'معدات'; }
-function isCrusherCtr(n){ return String(n||'').replace(/\s+/g,' ').trim()==='الكسارة'; }
-function crusherEquips(){ const base = db.crusherEquips && db.crusherEquips.length ? db.crusherEquips : CRUSHER_DEF; const c=(db.contractors||[]).find(x=>isCrusherCtr(x.name)); return c&&c.equips&&c.equips.length ? [...new Set([...base, ...c.equips])] : base; }
+function ctrKindLabel(c){ if(!c||isCrusherCtr(c.name)) return 'معدات الكسارة'; const T=[...new Set((c.equips||[]).map(e=>eqType(e)))]; const M={'السيارات':'سيارات','اللوادر':'لوادر','الحفارات':'حفارات'}; return T.length===1&&M[T[0]]?M[T[0]]:'معدات'; }
+function isCrusherCtr(n){ const v=String(n||'').replace(/\s+/g,' ').trim(); return v==='الكسارة' || v===CRUSHER_CODE_NAME; }
+/* معدات الكسارة (المولدات) متكودة في دليل الأكواد زي عربيات المقاولين — عشان استهلاك السولار بس (محمد 2026-11-10) */
+const CRUSHER_CODE_NAME='معدات الكسارة';
+function isCrusherIssue(x){ return !x || !x.name || x.name==='-' || isCrusherCtr(x.name); }
+function ensureCrusherCode(){ try{ if(!db.contractors) db.contractors=[]; if(db.contractors.some(c=>isCrusherCtr(c.name))) return;
+    const base=db.crusherEquips && db.crusherEquips.length ? db.crusherEquips : CRUSHER_DEF;
+    db.contractors.push({code:nextCode('contractors'), name:CRUSHER_CODE_NAME, equips:[...base], crusher:true}); scheduleSave(); }catch(e){} }
+function crusherEquips(){ const base = db.crusherEquips && db.crusherEquips.length ? db.crusherEquips : CRUSHER_DEF; const c=(db.contractors||[]).find(x=>isCrusherCtr(x.name)); return c&&Array.isArray(c.equips)&&c.equips.length ? c.equips : base; }
 function addCrusherEquip(){ const el=document.getElementById('cc-new'); const v=(el.value||'').trim(); if(!v) return; const L=[...crusherEquips()]; if(!L.includes(v)) L.push(v); db.crusherEquips=L; el.value=''; scheduleSave(); stockEquipOpts(); renderCrusherCons(); try{ renderCrusherEqCard(); }catch(e){} }
 /* معدات الكسارة في دليل الأكواد (محمد 2026-11-10: «مش في المخزون») */
 function renderCrusherEqCard(){ const box=document.getElementById('crusher-eq-list'); if(!box) return;
@@ -6205,7 +6208,7 @@ function renderCrusherCons(){
     const box=document.getElementById('crusher-cons'); if(!box) return;
     const mEl=document.getElementById('cc-month'); if(!mEl.value) mEl.value=todayISO().slice(0,7);
     const m=mEl.value;
-    const L=(db.stockIssues||[]).filter(x=>(!x.name||x.name==='-') && String(x.date||'').startsWith(m));
+    const L=(db.stockIssues||[]).filter(x=>isCrusherIssue(x) && String(x.date||'').startsWith(m));
     const chips=''; /* معدات الكسارة اتنقلت للتكويد (محمد 2026-11-10) */
     if(!L.length){ box.innerHTML=chips+'<p class="text-sm text-slate-400 text-center py-2">—</p>'; return; }
     const avg={}; const pr=x=>{ if(Number(x.price)>0) return Number(x.price); if(avg[x.item]===undefined){ const P=(db.procurements||[]).filter(p=>p.item===x.item); const q=P.reduce((a,p)=>a+(Number(p.qty)||0),0); avg[x.item]=q?P.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0)/q:0; if(!avg[x.item]){ const L=(db.stockIssues||[]).filter(i=>i.item===x.item&&Number(i.price)>0).sort((a,b)=>(a.date||'').localeCompare(b.date||'')); avg[x.item]=L.length?Number(L[L.length-1].price):0; } } return avg[x.item]; };
@@ -6396,7 +6399,7 @@ function equipRecords(from, to){
     const inP=d=>(!from||d>=from)&&(!to||d<=to);
     const avg={}; const pr=x=>{ if(Number(x.price)>0) return Number(x.price); if(avg[x.item]===undefined){ const P=(db.procurements||[]).filter(p=>p.item===x.item); const q=P.reduce((a,p)=>a+(Number(p.qty)||0),0); avg[x.item]=q?P.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0)/q:0; if(!avg[x.item]){ const L=(db.stockIssues||[]).filter(i=>i.item===x.item&&Number(i.price)>0).sort((a,b)=>(a.date||'').localeCompare(b.date||'')); avg[x.item]=L.length?Number(L[L.length-1].price):0; } } return avg[x.item]; };
     const R=[];
-    (db.stockIssues||[]).forEach(x=>{ if(!inP(x.date||'')) return; const isC=!x.name||x.name==='-'; if(!isC && x.recipientType && x.recipientType!=='contractor') return;
+    (db.stockIssues||[]).forEach(x=>{ if(!inP(x.date||'')) return; const isC=isCrusherIssue(x); if(!isC && x.recipientType && x.recipientType!=='contractor') return;
         const owner=isC?'الكسارة':x.name; const equip=isC?(x.equip||'بدون تحديد'):eqNorm(x.equip);
         const pu=pr(x); R.push({kind:'stock', id:x.id, date:x.date, owner, equip, item:x.item, qty:Number(x.qty)||0, unit:x.unit||'', price:pu, notes:x.notes||'', value:(Number(x.qty)||0)*pu}); });
     (db.equipExpenses||[]).forEach(x=>{ if(!inP(x.date||'')) return; R.push({kind:'other', id:x.id, date:x.date, owner:x.owner, equip:x.equip, item:(x.desc||'مصروف')+(x.qty&&x.price?` ${nfmt(x.qty)} × ${nfmt(x.price)}`:''), base:eqeItem(x.desc)||String(x.desc||'مصروف').trim(), q:Number(x.qty)||0, pr:Number(x.price)||0, unit:(((db.supplies||[]).find(s=>s.name===eqeItem(x.desc))||{}).unit)||'', value:Number(x.amount)||0}); });
@@ -9408,7 +9411,7 @@ function contractorStmtRows(name){
     return {rows:evF, rate:shownRate, oldLeft, auto:ctrIsAuto(c)};
 }
 /* ---------- مستخلص مقاول ---------- */
-function extractableCtrs(){ return (db.contractors||[]).filter(c=>!ctrIsAuto(c) && !c.done); } // اللي خلص شغله مبيظهرش في المستخلصات (محمد 2026-11-10)
+function extractableCtrs(){ return (db.contractors||[]).filter(c=>!ctrIsAuto(c) && !c.done && !isCrusherCtr(c.name)); } // اللي خلص شغله مبيظهرش في المستخلصات (محمد 2026-11-10)
 function renderCtrExtracts(){
     const sel=document.getElementById('cx-name'); if(!sel) return;
     const pv=sel.value, L=extractableCtrs();
@@ -9549,7 +9552,7 @@ function openCtrExtractView(id){
 }
 /* إجمالي كل المقاولين: له (شغل + الحساب القديم) − المدفوع له = الباقي له (محمد 2026-11-10) */
 function allContractorsStmtData(){
-    const rows=(db.contractors||[]).map(c=>{ const R=contractorStmtRows(c.name).rows;
+    const rows=(db.contractors||[]).filter(c=>!isCrusherCtr(c.name)).map(c=>{ const R=contractorStmtRows(c.name).rows;
         const tot=R.reduce((s,r)=>s+(Number(r.credit)||0),0), paid=R.reduce((s,r)=>s+(Number(r.debit)||0),0);
         return {name:c.name, tot, paid, bal:tot-paid}; }).filter(r=>r.tot||r.paid)
         .sort((a,b)=>b.tot-a.tot);
@@ -10683,7 +10686,7 @@ function mgrCompute(F){
     const closeStock = stockValueAtDate(F.to||'');
     const purchases = (db.procurements||[]).filter(p=>inP(p.date));
     const purchasesCost = purchases.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0);
-    const recoveredRows = (db.stockIssues||[]).filter(s=>inP(s.date) && s.name && s.name!=='-' && Number(s.price)>0);
+    const recoveredRows = (db.stockIssues||[]).filter(s=>inP(s.date) && !isCrusherIssue(s) && Number(s.price)>0);
     const recovered = recoveredRows.reduce((a,s)=>a+(Number(s.qty)||0)*(Number(s.price)||0),0);
     const matCost = Math.round(openStock + purchasesCost - closeStock - recovered);
     if(purchases.length || openStock || closeStock || recovered){
@@ -10761,7 +10764,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.66';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.67';
 
     /* تنبيهات */
     const alerts=[];
