@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.45</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.46</span></p></div>
         </div>
     </aside>
 
@@ -1935,6 +1935,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <div class="grid grid-cols-2 gap-2">
                         <div><label class="block text-[11px] font-bold text-slate-600">إجمالي حسابه القديم (ليه)</label><input id="master-ctr-open-total" type="number" step="any" min="0" oninput="ctrOpenCalc()" placeholder="0" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div><label class="block text-[11px] font-bold text-slate-600">المدفوع له من القديم</label><input id="master-ctr-open-paid" type="number" step="any" min="0" oninput="ctrOpenCalc()" placeholder="0" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <div><label class="block text-[11px] font-bold text-slate-600">المدفوع اتدفع من خزنة</label><select id="master-ctr-open-acc" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="درج المكتب" selected>درج المكتب</option><option value="معلق عماد ناجي">معلق عماد ناجي</option></select></div>
                         <input id="master-ctr-open-date" type="date" class="hidden">
                     </div>
                     <div id="master-ctr-open-net" class="text-xs font-bold mt-1 text-slate-700"></div>
@@ -1999,6 +2000,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <div class="grid grid-cols-2 gap-2">
                         <div><label class="block text-[11px] font-bold text-slate-600">إجمالي فواتيره القديمة (له)</label><input id="master-sup-open-total" type="number" step="any" min="0" oninput="supOpenCalc()" placeholder="0" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div><label class="block text-[11px] font-bold text-slate-600">المدفوع له من القديم</label><input id="master-sup-open-paid" type="number" step="any" min="0" oninput="supOpenCalc()" placeholder="0" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <div><label class="block text-[11px] font-bold text-slate-600">المدفوع اتدفع من خزنة</label><select id="master-sup-open-acc" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="درج المكتب">درج المكتب</option><option value="معلق عماد ناجي" selected>معلق عماد ناجي</option></select></div>
                         <input id="master-sup-open-date" type="date" class="hidden">
                     </div>
                     <div id="master-sup-open-net" class="text-xs font-bold mt-1 text-slate-700"></div>
@@ -3578,8 +3580,8 @@ function openAddMasterModal(){
     document.getElementById('master-ctrkind').value = 'equip'; document.getElementById('master-autobill').checked = false; document.getElementById('master-ctr-equips').value = '';
     document.getElementById('master-notstarted').checked = false; document.getElementById('master-startfrom').value = '';
     document.getElementById('master-deductsin').value = '';
-    document.getElementById('master-ctr-open-total').value = ''; document.getElementById('master-ctr-open-paid').value = ''; document.getElementById('master-ctr-open-date').value = ''; ctrOpenCalc();
-    document.getElementById('master-sup-open-total').value = ''; document.getElementById('master-sup-open-paid').value = ''; document.getElementById('master-sup-open-date').value = ''; supOpenCalc();
+    document.getElementById('master-ctr-open-total').value = ''; document.getElementById('master-ctr-open-paid').value = ''; document.getElementById('master-ctr-open-date').value = ''; document.getElementById('master-ctr-open-acc').value = 'درج المكتب'; ctrOpenCalc();
+    document.getElementById('master-sup-open-total').value = ''; document.getElementById('master-sup-open-paid').value = ''; document.getElementById('master-sup-open-date').value = ''; document.getElementById('master-sup-open-acc').value = 'معلق عماد ناجي'; supOpenCalc();
     document.getElementById('master-contract').value = '';
     document.getElementById('master-prepaid').checked = false;
     document.getElementById('master-min-stock').value = ''; document.getElementById('master-open-qty').value = '';
@@ -3621,10 +3623,12 @@ function openEditMasterModal(cat, code){
     const _legacy = it => ({t: it.openTotal!=null ? it.openTotal : (Number(it.openBal)>0 ? it.openBal : ''), p: it.openPaid!=null ? it.openPaid : (Number(it.openBal)<0 ? -it.openBal : '')});
     const _co = cat==='contractors' && (item.openBal||item.openTotal||item.openPaid) ? _legacy(item) : {t:'',p:''};
     document.getElementById('master-ctr-open-total').value = _co.t; document.getElementById('master-ctr-open-paid').value = _co.p;
-    document.getElementById('master-ctr-open-date').value = cat==='contractors' ? (item.openDate||'') : ''; ctrOpenCalc();
+    document.getElementById('master-ctr-open-date').value = cat==='contractors' ? (item.openDate||'') : '';
+    document.getElementById('master-ctr-open-acc').value = (cat==='contractors' && item.openAcc) ? item.openAcc : 'درج المكتب'; ctrOpenCalc();
     const _so = cat==='suppliers' && (item.openBal||item.openTotal||item.openPaid) ? _legacy(item) : {t:'',p:''};
     document.getElementById('master-sup-open-total').value = _so.t; document.getElementById('master-sup-open-paid').value = _so.p;
-    document.getElementById('master-sup-open-date').value = cat==='suppliers' ? (item.openDate||'') : ''; supOpenCalc();
+    document.getElementById('master-sup-open-date').value = cat==='suppliers' ? (item.openDate||'') : '';
+    document.getElementById('master-sup-open-acc').value = (cat==='suppliers' && item.openAcc) ? item.openAcc : 'معلق عماد ناجي'; supOpenCalc();
     if(cat==='accounts' && document.getElementById('master-opening-balance')) document.getElementById('master-opening-balance').value = item.openingBalance || '';
     document.getElementById('add-master-modal').classList.remove('hidden');
     document.getElementById('add-master-modal').classList.add('flex');
@@ -3749,7 +3753,7 @@ function saveMasterItem(e){
         const checked = [...document.querySelectorAll('.supplier-item-check:checked')].map(cb=>cb.value);
         if(checked.length) item.items = checked;
         const ot = Number(document.getElementById('master-sup-open-total').value)||0, op = Number(document.getElementById('master-sup-open-paid').value)||0;
-        if(ot||op){ item.openTotal = ot; item.openPaid = op; item.openBal = ot - op; item.openDate = document.getElementById('master-sup-open-date').value || todayISO(); }
+        if(ot||op){ item.openTotal = ot; item.openPaid = op; item.openBal = ot - op; item.openDate = document.getElementById('master-sup-open-date').value || todayISO(); item.openAcc = document.getElementById('master-sup-open-acc').value; }
     }
     if(type==='activities'){
         const cats = [...document.querySelectorAll('.activity-cat-check:checked')].map(cb=>cb.value);
@@ -3769,7 +3773,7 @@ function saveMasterItem(e){
     }
     if(type==='contractors'){ const rt = Number(document.getElementById('master-rate').value)||0; if(rt>0) item.rate = rt; const eq = document.getElementById('master-equip').value.trim(); if(eq) item.equip = eq; const eqs = [...new Set(document.getElementById('master-ctr-equips').value.split(/[،,\n]+/).map(x=>x.trim()).filter(Boolean))]; if(eqs.length) item.equips = eqs; if(document.getElementById('master-ctrkind').value==='owner') item.sinOwner = true; else item.allSin = true;  if(document.getElementById('master-notstarted').checked) item.notStarted = true; const sf = document.getElementById('master-startfrom').value; if(sf) item.startFrom = sf; const ds = Number(document.getElementById('master-deductsin').value)||0; if(ds>0) item.deductSin = ds;
         const ot = Number(document.getElementById('master-ctr-open-total').value)||0, op = Number(document.getElementById('master-ctr-open-paid').value)||0;
-        if(ot||op){ item.openTotal = ot; item.openPaid = op; item.openBal = ot - op; item.openDate = document.getElementById('master-ctr-open-date').value || todayISO(); } }
+        if(ot||op){ item.openTotal = ot; item.openPaid = op; item.openBal = ot - op; item.openDate = document.getElementById('master-ctr-open-date').value || todayISO(); item.openAcc = document.getElementById('master-ctr-open-acc').value; } }
     if(type==='accounts'){
         const ob = Number(document.getElementById('master-opening-balance').value);
         item.openingBalance = ob || 0;
@@ -4574,10 +4578,11 @@ function treasuryEvents(){
         events.push({date:x.date, desc:`بيع ${x.desc||'مصروف'} ${who}${x.qty&&x.price?` ${nfmt(x.qty)} × ${nfmt(x.price)}`:''}`, project:'-', account:defaultAccount, inflow:v, outflow:0, fuel:true});
         events.push({date:x.date, desc:`${x.desc||'مصروف'} ${who}${x.qty&&x.price?` ${nfmt(x.qty)} × ${nfmt(x.price)}`:''}`, project:'-', account:defaultAccount, inflow:0, outflow:v, fuel:true}); });
     /* الأرصدة الافتتاحية من التكويد: المدفوع القديم للمقاول/المورد خرج فعلاً من درج المكتب يوم تسجيله (محمد 2026-11-10) */
-    { const openAcc = (db.accounts||[]).some(a=>a.name===DRAWER_ACC) ? DRAWER_ACC : defaultAccount;
-      [['contractors','المقاول'],['suppliers','المورد']].forEach(([k,lbl])=>(db[k]||[]).forEach(c=>{
+    { const acc = n => (db.accounts||[]).some(a=>a.name===n) ? n : defaultAccount;
+      /* مدفوع الموردين القديم من خزنة معلق عماد ناجي (محمد 2026-11-10)، والمقاولين من درج المكتب */
+      [['contractors','المقاول',DRAWER_ACC],['suppliers','المورد',SARI_ACC]].forEach(([k,lbl,defAcc])=>(db[k]||[]).forEach(c=>{
         const pd=Number(c.openPaid)||0; if(!(pd>0) || !c.openDate) return;
-        events.push({date:c.openDate, desc:`المدفوع من الحساب القديم — ${lbl} ${c.name}`, project:'-', account:openAcc, inflow:0, outflow:pd});
+        events.push({date:c.openDate, desc:`المدفوع من الحساب القديم — ${lbl} ${c.name}`, project:'-', account:acc(c.openAcc||defAcc), inflow:0, outflow:pd});
       })); }
     // البونات مش بتظهر سطر سطر: كل يوم سطر واحد للمبيعات النقدي وسطر للإكرامية
     const merged = {}, out = [];
@@ -10646,7 +10651,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.45';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.46';
 
     /* تنبيهات */
     const alerts=[];
