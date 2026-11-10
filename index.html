@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.44</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.45</span></p></div>
         </div>
     </aside>
 
@@ -1267,6 +1267,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             <div id="cx-card" class="bg-white rounded-xl border border-indigo-200 shadow-sm overflow-hidden">
                 <div class="p-4 border-b border-indigo-100 bg-indigo-50 flex flex-wrap justify-between items-center gap-2">
                     <h3 class="font-bold text-slate-900">📑 مستخلص مقاول</h3>
+                    <button type="button" onclick="openAllContractorsStmt()" class="bg-violet-600 hover:bg-violet-700 text-white px-3 py-1 rounded text-xs font-bold">📊 كل المقاولين (الإجمالي)</button>
                     
                 </div>
                 <div class="p-4 grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
@@ -9432,6 +9433,32 @@ function openCtrExtractView(id){
         <div id="cxv-body" style="overflow-x:auto;background:#fff;padding:6px">${body}</div></div>`;
     document.body.appendChild(m);
 }
+/* إجمالي كل المقاولين: له (شغل + الحساب القديم) − المدفوع له = الباقي له (محمد 2026-11-10) */
+function allContractorsStmtData(){
+    const rows=(db.contractors||[]).map(c=>{ const R=contractorStmtRows(c.name).rows;
+        const tot=R.reduce((s,r)=>s+(Number(r.credit)||0),0), paid=R.reduce((s,r)=>s+(Number(r.debit)||0),0);
+        return {name:c.name, tot, paid, bal:tot-paid}; }).filter(r=>r.tot||r.paid)
+        .sort((a,b)=>b.tot-a.tot);
+    const T=rows.reduce((t,r)=>({tot:t.tot+r.tot, paid:t.paid+r.paid, bal:t.bal+r.bal}),{tot:0,paid:0,bal:0});
+    return {rows, T};
+}
+function allContractorsTableHtml(){
+    const {rows, T}=allContractorsStmtData();
+    return `<table class="w-full text-sm text-right" style="border-collapse:collapse"><thead class="bg-slate-100"><tr><th class="p-2">المقاول</th><th class="p-2">إجمالي له</th><th class="p-2">المدفوع له</th><th class="p-2">الباقي له</th></tr></thead><tbody>
+        ${rows.map(r=>`<tr class="border-b border-slate-100"><td class="p-2 font-bold">${esc(r.name)}</td><td class="p-2 text-amber-700">${mfmt(r.tot)}</td><td class="p-2 text-emerald-700">${mfmt(r.paid)}</td><td class="p-2 font-bold${r.bal<0?' text-rose-700':''}">${mfmt(r.bal)}</td></tr>`).join('') || '<tr><td colspan="4" class="p-4 text-center text-slate-400">مفيش حركات</td></tr>'}
+        </tbody><tfoot><tr class="bg-rose-50 font-bold" style="border-top:2px solid #7c3aed"><td class="p-2">الإجمالي</td><td class="p-2">${mfmt(T.tot)}</td><td class="p-2">${mfmt(T.paid)}</td><td class="p-2">${mfmt(T.bal)}</td></tr></tfoot></table>`;
+}
+function openAllContractorsStmt(){
+    document.getElementById('cxv-modal')?.remove();
+    const m=document.createElement('div'); m.id='cxv-modal';
+    m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:12px';
+    m.onclick=e=>{ if(e.target===m) m.remove(); };
+    m.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:14px;max-width:760px;width:100%;padding:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:16px">📊 إجمالي حساب المقاولين</b>
+        <span style="display:flex;gap:6px"><button onclick="shareCard('cxv-body','إجمالي حساب المقاولين')" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px"><i class="fa-brands fa-whatsapp"></i> واتساب</button><button onclick="printHtml(document.getElementById('cxv-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="document.getElementById('cxv-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✕</button></span></div>
+        <div id="cxv-body" style="overflow-x:auto;background:#fff;padding:6px"><div class="rep-sec">${repHeadTxt('إجمالي حساب المقاولين','لحد '+dmy(todayISO()))}${allContractorsTableHtml()}</div></div></div>`;
+    document.body.appendChild(m);
+}
 function deleteCtrExtract(id){
     if(isRO()) return;
     const old=(db.ctrExtracts||[]).find(x=>x.id===id); if(!old || !confirm(`تحذف مستخلص ${old.name} (${mfmt(old.amount)})؟`)) return;
@@ -10619,7 +10646,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.44';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.45';
 
     /* تنبيهات */
     const alerts=[];
