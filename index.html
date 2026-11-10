@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.54</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.55</span></p></div>
         </div>
     </aside>
 
@@ -3801,7 +3801,12 @@ function saveMasterItem(e){
         /* حالة المقاول: خلص شغله = مفيش سن جديد + تقدير سن نهائي في كشفه (محمد 2026-11-10) */
         if(document.getElementById('master-ctr-status').value==='done'){ item.done=true; const fa=Number(document.getElementById('master-ctr-final').value)||0, fd=document.getElementById('master-ctr-final-date').value;
             if(fa){ item.finalSin=fa; item.finalSinDate=fd||todayISO(); } else { delete item.finalSin; delete item.finalSinDate; } }
-        else { delete item.done; delete item.finalSin; delete item.finalSinDate; } const sf = document.getElementById('master-startfrom').value; if(sf) item.startFrom = sf; const ds = Number(document.getElementById('master-deductsin').value)||0; if(ds>0) item.deductSin = ds;
+        else { delete item.done; delete item.finalSin; delete item.finalSinDate; }
+        /* التقدير بيتسجل «مستخلص نهائي» في قايمة المستخلصات (محمد 2026-11-10) */
+        { if(!db.ctrExtracts) db.ctrExtracts=[]; const fid='final-'+item.code, i=db.ctrExtracts.findIndex(x=>String(x.id)===fid);
+          if(item.finalSin){ const rec={id:fid, name:item.name, extra:true, final:true, equip:'مستخلص نهائي', date:item.finalSinDate, from:item.finalSinDate, to:item.finalSinDate, qty:1, rate:Number(item.finalSin), amount:Math.round(Number(item.finalSin)), notes:'تقدير السن النهائي — تسوية أخيرة'};
+            if(i>=0) db.ctrExtracts[i]=rec; else db.ctrExtracts.push(rec); }
+          else if(i>=0) db.ctrExtracts.splice(i,1); } const sf = document.getElementById('master-startfrom').value; if(sf) item.startFrom = sf; const ds = Number(document.getElementById('master-deductsin').value)||0; if(ds>0) item.deductSin = ds;
         const ot = Number(document.getElementById('master-ctr-open-total').value)||0, op = Number(document.getElementById('master-ctr-open-paid').value)||0;
         if(ot||op){ item.openTotal = ot; item.openPaid = op; item.openBal = ot - op; item.openDate = document.getElementById('master-ctr-open-date').value || todayISO(); item.openAcc = document.getElementById('master-ctr-open-acc').value; } }
     if(type==='accounts'){
@@ -4792,8 +4797,7 @@ function computePL(projectFilter, dateFrom, dateTo){
     /* مستخلصات قبل تاريخ الرصيد الافتتاحي للمقاول مش بتتحسب تاني — قيمتها جوه «شغل المقاولين القديم» (محمد 2026-11-10) */
     const _ctrCut = x => { const c=(db.contractors||[]).find(k=>normName(k.name)===normName(x.name)); return c && c.openDate && ((Number(c.openTotal)||0)||(Number(c.openPaid)||0)||(Number(c.openBal)||0)) && (x.date||'')<c.openDate; };
     const extractsCost = (db.equipExtracts||[]).filter(x=>matchDate(x)).reduce((a,x)=>a+(Number(x.amount)||0),0)
-        + (db.ctrExtracts||[]).filter(x=>matchDate(x) && !_ctrCut(x)).reduce((a,x)=>a+(Number(x.amount)||0),0)
-        + (db.contractors||[]).filter(c=>c.done && Number(c.finalSin) && matchDate({date:c.finalSinDate})).reduce((a,c)=>a+Math.round(Number(c.finalSin)),0); // تقدير السن النهائي للمقاول اللي خلص
+        + (db.ctrExtracts||[]).filter(x=>matchDate(x) && !_ctrCut(x)).reduce((a,x)=>a+(Number(x.amount)||0),0); // المستخلص النهائي جوه ctrExtracts
     // المخزون: اللي لسه في المخزن آخر المدة مش تكلفة — وأول المدة بيتضاف (بمتوسط سعر الشراء)
     const stockValueAt = (d) => {   // قيمة المخزون في آخر يوم d (أو قبل أي حاجة لو d فاضي = صفر)
         if(d==null) return 0;
@@ -9333,10 +9337,9 @@ function contractorStmtRows(name){
         days.forEach(d=>ev.push({date:d.date, ord:0, day:true, desc:`شغل اليوم — ${d.n} بون${d.old?` (${nfmt(d.old)} متر سن قديم مش محسوب)`:''}`, sin:d.net, n:d.n, old:d.old, price:rate, credit:Math.round(d.net*rate), debit:0}));
     } else {
         (db.ctrExtracts||[]).filter(x=>normName(x.name)===normName(name)).forEach(x=>ev.push(x.extra
-            ? {date:x.date, ord:0, desc:`عمل إضافي — ${x.equip}${x.from?' '+dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} × ${nfmt(x.rate)}${x.notes?' — '+x.notes:''}`, sin:0, credit:Number(x.amount)||0, debit:0}
+            ? {date:x.date, ord:0, desc: x.final ? 'مستخلص نهائي — تقدير السن (تسوية أخيرة)' : `عمل إضافي — ${x.equip}${x.from?' '+dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} × ${nfmt(x.rate)}${x.notes?' — '+x.notes:''}`, sin:0, credit:Number(x.amount)||0, debit:0}
             : {date:x.date, ord:0, desc:`مستخلص${(l=>l==='بدون معدة'?'':' '+l)(ctrEqLbl(name,x.equip))} ${x.from?dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} متر${x.notes?' — '+x.notes:''}`, sin:Number(x.qty)||0, credit:Number(x.amount)||0, debit:0}));
     }
-    if(c.done && Number(c.finalSin)) ev.push({date:c.finalSinDate||todayISO(), ord:0, desc:'تقدير السن النهائي (تسوية أخيرة)', sin:0, credit:Math.round(Number(c.finalSin)), debit:0});
     const ctrCats = (db.expenses||[]).filter(c=>c.nameType==='contractors').map(c=>c.name);
     (db.expensesData||[]).filter(x=>ctrCats.includes(x.category) && normName(x.name)===normName(name)).forEach(x=>ev.push({date:x.date, ord:1, desc:(x.payType==='settle'?'سداد — ':'عهدة — ')+(x.desc||x.notes||''), debit:Number(x.paid)||0, credit:0}));
     (db.stockIssues||[]).filter(s=>normName(s.name)===normName(name)).forEach(s=>ev.push({date:s.date, ord:2, item:s.item, qtyTxt:`${nfmt(Number(s.qty)||0)} ${s.unit||''}`, price:Number(s.price)||0, desc:`${s.item} ${nfmt(s.qty)} ${s.unit||''} × ${nfmt(s.price)}${s.equip?' — '+s.equip:''}${s.notes?' — '+s.notes:''}`, debit:Math.round((Number(s.qty)||0)*(Number(s.price)||0)), credit:0}));
@@ -10700,7 +10703,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.54';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.55';
 
     /* تنبيهات */
     const alerts=[];
