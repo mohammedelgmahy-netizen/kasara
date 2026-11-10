@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.51</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.52</span></p></div>
         </div>
     </aside>
 
@@ -4746,9 +4746,14 @@ function computePL(projectFilter, dateFrom, dateTo){
 
     // أ. الإيرادات — مبيعات البونات + فواتير البيع (عن طريق البونات المربوطة) + أي إيراد مسجل بمبلغ
     plBonsRevenue(projectFilter, dateFrom, dateTo); const SP = plBonsSplit.last;
-    const revenueLines = [SP.cash ? { num:num(), label:'مبيعات نقدي', value:SP.cash } : null, SP.credit ? { num:num(), label:'مبيعات آجل', value:SP.credit } : null].filter(Boolean).concat(Object.entries(catGroups).filter(([,v])=>v.plType==='revenue' && v.total)
-        .map(([k,v])=>({ num:num(), label: k==='إيراد' ? 'إيرادات أخرى مسجلة' : k, value:v.total })));
-    if(tipsIncome) revenueLines.push({ num:num(), label:'إيراد إكرامية الكسارة', value:tipsIncome });
+    /* «إيرادات أخرى مسجلة» (تصنيف إيراد من غير بون) بتنزل تحت في إيرادات ومصروفات أخرى مش في المبيعات (محمد 2026-11-10) */
+    const otherRev = (catGroups['إيراد'] && catGroups['إيراد'].plType==='revenue') ? catGroups['إيراد'].total : 0;
+    const revenueLines = [SP.cash ? { num:num(), label:'مبيعات نقدي', value:SP.cash } : null, SP.credit ? { num:num(), label:'مبيعات آجل', value:SP.credit } : null].filter(Boolean).concat(Object.entries(catGroups).filter(([k,v])=>v.plType==='revenue' && v.total && k!=='إيراد')
+        .map(([k,v])=>({ num:num(), label:k, value:v.total })));
+    /* إكرامية البونات اللي ملهاش حركة توريد بتظهر برضه كسطر إيراد إكرامية (محمد 2026-11-10) */
+    { const depIds=new Set((db.expensesData||[]).filter(x=>x.tipDeposit && x.tipBonId!=null).map(x=>String(x.tipBonId)));
+      const bonTips=(db.dailyLog||[]).filter(r=>matchDate(r) && (projectFilter==='ALL'||!projectFilter||!r.project||r.project===projectFilter) && !depIds.has(String(r.id))).reduce((a,r)=>a+(Number(r.tip)||0),0);
+      if(tipsIncome+bonTips) revenueLines.push({ num:num(), label:'إيراد إكرامية الكسارة', value:tipsIncome+bonTips }); }
     const revenueTotal = revenueLines.reduce((s,l)=>s+l.value,0);
 
     // ب. تكاليف العقود (مواد + أي تصنيف "تكلفة مباشرة")
@@ -4803,6 +4808,7 @@ function computePL(projectFilter, dateFrom, dateTo){
     // و. إيرادات ومصروفات أخرى
     const otherLines = Object.entries(catGroups).filter(([,v])=>v.plType==='other')
         .map(([k,v])=>({ num:num(), label:k, value:v.total }));
+    if(otherRev) otherLines.push({ num:num(), label: otherRev<0 ? 'خصومات وتسويات عملاء' : 'إيرادات أخرى مسجلة (بتزود الربح)', value: -otherRev });
     const otherTotal = otherLines.reduce((s,l)=>s+l.value,0);
 
     // ز. الربح قبل الضريبة
@@ -10664,7 +10670,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.51';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.52';
 
     /* تنبيهات */
     const alerts=[];
