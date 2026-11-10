@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.65</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.66</span></p></div>
         </div>
     </aside>
 
@@ -556,6 +556,10 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     </div>
                 </div>
                 <div id="sites-list" class="flex flex-col gap-2"></div>
+            </div>
+            <div id="crusher-eq-card" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                <h3 class="font-bold text-lg text-slate-900 mb-3">معدات الكسارة</h3>
+                <div id="crusher-eq-list" class="flex flex-wrap items-center gap-1.5"></div>
             </div>
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                 <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3 flex-wrap gap-2">
@@ -3440,7 +3444,7 @@ function switchTab(tabId){
     if(tabId==='purchases'){ try{ renderQuickPurchases(); renderPaymentsTable(); renderSupplierStmt(); }catch(e){ console.warn(e); } }
     if(tabId==='production'){ renderProductions(); updateProdTotalPreview(); }
     if(tabId==='fleet'){ renderVehicles(); renderTrips(); }
-    if(tabId==='masterdata'){ try{ renderMasterData(); }catch(e){} try{ renderVehicles(); }catch(e){} try{ renderSitesCard(); }catch(e){} }
+    if(tabId==='masterdata'){ try{ renderMasterData(); }catch(e){} try{ renderCrusherEqCard(); }catch(e){} try{ renderVehicles(); }catch(e){} try{ renderSitesCard(); }catch(e){} }
     if(tabId==='audit'){ renderAuditLog(); }
     if(tabId==='ledger'){ renderAccounts(); try{ renderClientStmts(); }catch(e){} try{ renderSupplierStmt(); }catch(e){} try{ renderContractorStmt(); }catch(e){} try{ fillEquipSelects(); renderEqStatement(); }catch(e){} }
     if(tabId==='balance'){ renderTrialBalance(); }
@@ -6183,8 +6187,12 @@ const CRUSHER_DEF = ['مولد كبير','مولد صغير'];
 function ctrKindLabel(c){ if(!c||isCrusherCtr(c.name)) return 'معدات'; const T=[...new Set((c.equips||[]).map(e=>eqType(e)))]; const M={'السيارات':'سيارات','اللوادر':'لوادر','الحفارات':'حفارات'}; return T.length===1&&M[T[0]]?M[T[0]]:'معدات'; }
 function isCrusherCtr(n){ return String(n||'').replace(/\s+/g,' ').trim()==='الكسارة'; }
 function crusherEquips(){ const base = db.crusherEquips && db.crusherEquips.length ? db.crusherEquips : CRUSHER_DEF; const c=(db.contractors||[]).find(x=>isCrusherCtr(x.name)); return c&&c.equips&&c.equips.length ? [...new Set([...base, ...c.equips])] : base; }
-function addCrusherEquip(){ const el=document.getElementById('cc-new'); const v=(el.value||'').trim(); if(!v) return; const L=[...crusherEquips()]; if(!L.includes(v)) L.push(v); db.crusherEquips=L; el.value=''; scheduleSave(); stockEquipOpts(); renderCrusherCons(); }
-function delCrusherEquip(i){ const L=[...crusherEquips()]; if(!confirm('تشيل '+L[i]+'؟')) return; L.splice(i,1); db.crusherEquips=L; scheduleSave(); stockEquipOpts(); renderCrusherCons(); }
+function addCrusherEquip(){ const el=document.getElementById('cc-new'); const v=(el.value||'').trim(); if(!v) return; const L=[...crusherEquips()]; if(!L.includes(v)) L.push(v); db.crusherEquips=L; el.value=''; scheduleSave(); stockEquipOpts(); renderCrusherCons(); try{ renderCrusherEqCard(); }catch(e){} }
+/* معدات الكسارة في دليل الأكواد (محمد 2026-11-10: «مش في المخزون») */
+function renderCrusherEqCard(){ const box=document.getElementById('crusher-eq-list'); if(!box) return;
+    box.innerHTML=crusherEquips().map((e,i)=>`<span class="bg-teal-50 border border-teal-200 text-teal-900 rounded-lg px-3 py-1.5 text-sm font-bold">${esc(e)} <button type="button" onclick="delCrusherEquip(${i})" class="text-rose-500 mr-1">✕</button></span>`).join('')
+      +`<input id="cc-new" placeholder="معدة جديدة" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm w-36"><button type="button" onclick="addCrusherEquip()" class="bg-teal-600 text-white rounded-lg px-3 py-1.5 text-sm font-bold">＋ إضافة</button>`; }
+function delCrusherEquip(i){ const L=[...crusherEquips()]; if(!confirm('تشيل '+L[i]+'؟')) return; L.splice(i,1); db.crusherEquips=L; scheduleSave(); stockEquipOpts(); renderCrusherCons(); try{ renderCrusherEqCard(); }catch(e){} }
 function stockEquipOpts(){
     const sel=document.getElementById('stock-equip'); if(!sel) return;
     const nm=String(document.getElementById('stock-name')?.value||'').split('::').pop();
@@ -6198,7 +6206,7 @@ function renderCrusherCons(){
     const mEl=document.getElementById('cc-month'); if(!mEl.value) mEl.value=todayISO().slice(0,7);
     const m=mEl.value;
     const L=(db.stockIssues||[]).filter(x=>(!x.name||x.name==='-') && String(x.date||'').startsWith(m));
-    const chips=`<div class="flex flex-wrap items-center gap-1.5 mb-3"><span class="text-xs font-bold text-slate-600">معدات الكسارة:</span>${crusherEquips().map((e,i)=>`<span class="bg-teal-50 border border-teal-200 text-teal-900 rounded-lg px-2 py-1 text-xs font-bold">${esc(e)} <button type="button" onclick="delCrusherEquip(${i})" class="text-rose-500 mr-1">✕</button></span>`).join('')}<input id="cc-new" placeholder="معدة جديدة" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs w-28"><button type="button" onclick="addCrusherEquip()" class="bg-teal-600 text-white rounded px-2 py-1 text-xs font-bold">＋</button></div>`;
+    const chips=''; /* معدات الكسارة اتنقلت للتكويد (محمد 2026-11-10) */
     if(!L.length){ box.innerHTML=chips+'<p class="text-sm text-slate-400 text-center py-2">—</p>'; return; }
     const avg={}; const pr=x=>{ if(Number(x.price)>0) return Number(x.price); if(avg[x.item]===undefined){ const P=(db.procurements||[]).filter(p=>p.item===x.item); const q=P.reduce((a,p)=>a+(Number(p.qty)||0),0); avg[x.item]=q?P.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0)/q:0; if(!avg[x.item]){ const L=(db.stockIssues||[]).filter(i=>i.item===x.item&&Number(i.price)>0).sort((a,b)=>(a.date||'').localeCompare(b.date||'')); avg[x.item]=L.length?Number(L[L.length-1].price):0; } } return avg[x.item]; };
     const items=[...new Set(L.map(x=>x.item))], unit={}; L.forEach(x=>{ if(!unit[x.item]) unit[x.item]=x.unit||''; });
@@ -10753,7 +10761,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.65';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.66';
 
     /* تنبيهات */
     const alerts=[];
