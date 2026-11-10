@@ -421,11 +421,11 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             <button onclick="switchTab('bs')" id="btn-bs" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
                 <i class="fa-solid fa-scale-balanced nav-ic" style="--c:#6366f1"></i><span>المركز المالي</span>
             </button>
+            <button onclick="switchTab('investors')" id="btn-investors" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
+                <i class="fa-solid fa-coins nav-ic" style="--c:#f97316"></i><span>توزيع الأرباح</span>
+            </button>
             <button onclick="switchTab('ledger')" id="btn-ledger" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
                 <i class="fa-solid fa-file-invoice nav-ic" style="--c:#6366f1"></i><span>كشف الحساب</span>
-            </button>
-            <button onclick="switchTab('investors')" id="btn-investors" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
-                <i class="fa-solid fa-handshake nav-ic" style="--c:#f97316"></i><span>الشركاء والتمويل</span>
             </button>
                         <button onclick="switchTab('audit')" id="btn-audit" style="display:none" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
                 <i class="fa-solid fa-clock-rotate-left nav-ic" style="--c:#94a3b8"></i><span>سجل التعديلات</span>
@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.56</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.57</span></p></div>
         </div>
     </aside>
 
@@ -10703,7 +10703,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.56';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.57';
 
     /* تنبيهات */
     const alerts=[];
