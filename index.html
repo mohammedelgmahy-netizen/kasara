@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.43</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.44</span></p></div>
         </div>
     </aside>
 
@@ -6709,8 +6709,13 @@ function allSuppliersStmtData(from, to){
         const pr = (db.procurements||[]).filter(p=>p.supplier===n && after(p.date)), pa = (db.payments||[]).filter(p=>p.supplier===n && after(p.date));
         const v = p=>Math.round((Number(p.qty)||0)*(Number(p.price)||0)), a = p=>Math.round(Number(p.amount)||0);
         let opening = pr.filter(p=>before(p.date)).reduce((t,p)=>t+v(p),0) - pa.filter(p=>before(p.date)).reduce((t,p)=>t+a(p),0);
-        if(sOB && sOD && (!to || sOD<=to)) opening += Math.round(sOB);
-        const buy = pr.filter(p=>inR(p.date)).reduce((t,p)=>t+v(p),0), paid = pa.filter(p=>inR(p.date)).reduce((t,p)=>t+a(p),0);
+        let buy = pr.filter(p=>inR(p.date)).reduce((t,p)=>t+v(p),0), paid = pa.filter(p=>inR(p.date)).reduce((t,p)=>t+a(p),0);
+        /* الحساب القديم: الإجمالي يظهر في المشتريات والمدفوع في المدفوع، مش رقم صافي مستخبي (محمد 2026-11-10) */
+        const _s=(db.suppliers||[]).find(x=>x.name===n)||{}, _oT=Number(_s.openTotal)||0, _oP=Number(_s.openPaid)||0;
+        if(sOD && (!to || sOD<=to)){
+            if(_oT||_oP){ if(before(sOD)) opening += Math.round(_oT-_oP); else { buy += Math.round(_oT); paid += Math.round(_oP); } }
+            else if(sOB) opening += Math.round(sOB);
+        }
         return {name:n, opening, buy, paid, closing: opening+buy-paid};
     }).filter(r=>r.opening||r.buy||r.paid);
     const T = rows.reduce((t,r)=>({opening:t.opening+r.opening, buy:t.buy+r.buy, paid:t.paid+r.paid, closing:t.closing+r.closing}), {opening:0,buy:0,paid:0,closing:0});
@@ -10614,7 +10619,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.43';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.44';
 
     /* تنبيهات */
     const alerts=[];
