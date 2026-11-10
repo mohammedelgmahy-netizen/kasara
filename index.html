@@ -947,6 +947,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <div id="exp-contract-info" class="hidden md:col-span-4 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 text-xs text-slate-700"></div>
                     <!-- حقل المبلغ الوحيد — يُستخدم دائماً -->
                     <div><label id="exp-paid-label" class="block text-xs font-bold text-slate-600 mb-1">المبلغ المدفوع</label><input id="exp-paid" type="number" step="any" required placeholder="المبلغ الفعلي" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                    <div id="exp-ctrdisc-wrap" style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">خصم (اختياري)</label><input id="exp-ctrdisc" type="number" step="any" min="0" placeholder="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="exp-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">الحساب</label><select id="exp-account" onchange="const s=document.getElementById('exp-src'); if(s){ s.value=this.value===SARI_ACC?'sari':'cash'; delete s.dataset.touched; }" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">الفلوس منين</label><select id="exp-src" onchange="this.dataset.touched=1" class="w-full bg-amber-50 border border-amber-200 rounded-lg p-2 text-sm font-bold"><option value="sari" selected>سلفة من عماد ناجي (وارد وصادر)</option><option value="cash">من الخزنة (صادر بس)</option></select></div>
@@ -1053,6 +1054,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                         <label class="block text-xs font-bold text-slate-600 mb-1">المورد</label>
                         <select id="pay-supplier" required onchange="showPaymentSupplierBalance()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select>
                     </div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">خصم (اختياري)</label><input id="pay-discount" type="number" step="any" min="0" placeholder="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">المبلغ المدفوع</label><input id="pay-amount" type="number" step="any" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div class="hidden"><label class="block text-xs font-bold text-slate-600 mb-1">المشروع (اختياري)</label><select id="pay-project" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="pay-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
@@ -4183,6 +4185,7 @@ function filterExpenseSubFields(){
     const wrap = document.getElementById('exp-name-wrap'), sel = document.getElementById('exp-name');
     wrap.style.display = nameType==='none' ? 'none' : '';
     const ptw = document.getElementById('exp-paytype-wrap'); if(ptw) ptw.style.display = nameType==='contractors' ? '' : 'none';
+    const cdw = document.getElementById('exp-ctrdisc-wrap'); if(cdw) cdw.style.display = nameType==='contractors' ? '' : 'none';
     sel.required = nameType!=='none';
     if(nameType==='none'){
         sel.innerHTML = '<option value=""></option>';
@@ -4300,7 +4303,13 @@ function showContractInfo(){
 function addPayment(e){
     e.preventDefault();
     const amount = Number(document.getElementById('pay-amount').value)||0;
-    if(amount<=0){ alert('أدخل مبلغ الدفعة'); return; }
+    /* خصم من المورد: فاتورة بالسالب — بتنزل من اللي عليك، ومش فلوس خارجة من الخزنة (محمد 2026-11-10) */
+    const pdisc = Number(document.getElementById('pay-discount')?.value)||0;
+    if(amount<=0 && !(pdisc>0)){ alert('أدخل مبلغ الدفعة'); return; }
+    if(pdisc>0){ if(!db.procurements) db.procurements=[]; const sup=document.getElementById('pay-supplier').value, dd=document.getElementById('pay-date').value || todayISO();
+        const pr={id:newId(), supplier:sup, item:'خصم', qty:1, unit:'', price:-pdisc, project:null, date:dd, notes:document.getElementById('pay-notes').value.trim(), discount:true};
+        db.procurements.push(pr); logAudit('create','خصم مورد',`${sup} - ${fmt(pdisc)}`,null,pr);
+        if(!(amount>0)){ e.target.reset(); document.getElementById('pay-date').value=todayISO(); scheduleSave(); renderAll(); return; } }
     const psrc=document.getElementById('pay-src'), pacc=document.getElementById('pay-account')?.value||''; const fromSari = false; if(psrc) delete psrc.dataset.touched;
     if(!fromSari && !checkCashAvailable(document.getElementById('pay-account')?.value || (db.accounts[0]&&db.accounts[0].name) || '', amount)) return;
     const rec = {
@@ -4465,7 +4474,14 @@ function addExpense(e){
         notes: document.getElementById('exp-notes').value.trim(),
         desc: document.getElementById('exp-notes').value.trim()
     };
-    if(((db.expenses||[]).find(c=>c.name===cat)||{}).nameType==='contractors') rec.payType = document.getElementById('exp-paytype').value;
+    if(((db.expenses||[]).find(c=>c.name===cat)||{}).nameType==='contractors'){ rec.payType = document.getElementById('exp-paytype').value;
+        /* خصم على المقاول: بينزل من اللي ليه، ومش فلوس خارجة من الخزنة (محمد 2026-11-10) */
+        const disc = Number(document.getElementById('exp-ctrdisc')?.value)||0;
+        if(disc>0){ if(!db.ctrExtracts) db.ctrExtracts=[];
+            const drec={id:String(newId()), name:rec.name, extra:true, discount:true, equip:'خصم', date:rec.date, from:rec.date, to:rec.date, qty:1, rate:-disc, amount:-disc, notes:rec.notes||''};
+            db.ctrExtracts.push(drec); logAudit('create','خصم مقاول',`${rec.name} - ${fmt(disc)}`,null,drec);
+            const de=document.getElementById('exp-ctrdisc'); if(de) de.value='';
+            if(!(paid>0)){ db.nextId.exp--; e.target.reset(); document.getElementById('exp-date').value=todayISO(); scheduleSave(); renderAll(); return; } } }
     const srcEl=document.getElementById('exp-src'); const fromSari = false;
     if(srcEl) delete srcEl.dataset.touched;
     if(cat!=='إيراد' && !fromSari && !checkCashAvailable(rec.account, rec.paid)) return;
@@ -9417,7 +9433,7 @@ function contractorStmtRows(name){
         days.forEach(d=>ev.push({date:d.date, ord:0, day:true, desc:`شغل اليوم — ${d.n} بون${d.old?` (${nfmt(d.old)} متر سن قديم مش محسوب)`:''}`, sin:d.net, n:d.n, old:d.old, price:rate, credit:Math.round(d.net*rate), debit:0}));
     } else {
         (db.ctrExtracts||[]).filter(x=>normName(x.name)===normName(name)).forEach(x=>ev.push(x.extra
-            ? {date:x.date, ord:0, desc: x.final ? 'مستخلص نهائي — تقدير السن (تسوية أخيرة)' : `عمل إضافي — ${x.equip}${x.from?' '+dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} × ${nfmt(x.rate)}${x.notes?' — '+x.notes:''}`, sin:0, credit:Number(x.amount)||0, debit:0}
+            ? (x.discount ? {date:x.date, ord:1, desc:'خصم'+(x.notes?' — '+x.notes:''), sin:0, credit:0, debit:-(Number(x.amount)||0)} : {date:x.date, ord:0, desc: x.final ? 'مستخلص نهائي — تقدير السن (تسوية أخيرة)' : `عمل إضافي — ${x.equip}${x.from?' '+dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} × ${nfmt(x.rate)}${x.notes?' — '+x.notes:''}`, sin:0, credit:Number(x.amount)||0, debit:0})
             : {date:x.date, ord:0, desc:`مستخلص${(l=>l==='بدون معدة'?'':' '+l)(ctrEqLbl(name,x.equip))} ${x.from?dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} متر${x.notes?' — '+x.notes:''}`, sin:Number(x.qty)||0, credit:Number(x.amount)||0, debit:0}));
     }
     const ctrCats = (db.expenses||[]).filter(c=>c.nameType==='contractors').map(c=>c.name);
