@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.50</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.51</span></p></div>
         </div>
     </aside>
 
@@ -6762,7 +6762,7 @@ function waAllSuppliersStmt(){
     const txt = [`📒 ${siteName()} — إجمالي حساب الموردين`, allSuppliersPeriodLbl(from,to), '',
         ...rows.map(r=>`• ${r.name}: مشتريات ${mfmt(r.buy)} — مدفوع ${mfmt(r.paid)} — الباقي ${mfmt(r.closing)}`), '',
         `رصيد أول المدة: ${mfmt(T.opening)} ج.م`, `إجمالي المشتريات: ${mfmt(T.buy)} ج.م`, `إجمالي المدفوع: ${mfmt(T.paid)} ج.م`, `إجمالي الباقي للموردين: ${mfmt(T.closing)} ج.م`].join('\n');
-    const a = document.createElement('a'); a.href = 'https://wa.me/?text='+encodeURIComponent(txt); a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove();
+    const a = document.createElement('a'); a.href = 'https://wa.me/?text='+encodeURIComponent(waSig(txt)); a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove();
 }
 
 /* ================= مستخلصات المعدات + كشف السولار ================= */
@@ -8087,7 +8087,7 @@ async function shareViaWhatsApp(day){
         <button onclick="document.getElementById('wa-modal').remove()" style="margin-top:8px;color:#64748b;font-weight:700;padding:6px">إلغاء</button>
     </div>`;
     document.body.appendChild(m);
-    const openText=()=>{ const w=document.createElement('a'); w.href='https://wa.me/?text='+encodeURIComponent(txt); w.target='_blank'; w.rel='noopener'; document.body.appendChild(w); w.click(); w.remove(); };
+    const openText=()=>{ const w=document.createElement('a'); w.href='https://wa.me/?text='+encodeURIComponent(waSig(txt)); w.target='_blank'; w.rel='noopener'; document.body.appendChild(w); w.click(); w.remove(); };
     let files=[]; try{ files = await reportImageFiles(d); }catch(e){ console.warn('report images', e); }
     const st=document.getElementById('wa-status'), btn=document.getElementById('wa-send'); if(!st) return;
     const canFiles = files.length && navigator.canShare && navigator.canShare({files});
@@ -8414,7 +8414,9 @@ async function elementToFile(el, name){
     c.querySelectorAll('label').forEach(l=>{ if(!l.querySelector('b')) l.remove(); });
     c.querySelectorAll('.pl-no-print-hide,button,.tab-brand').forEach(x=>x.remove()); c.style.boxShadow='none'; c.style.maxWidth='none';
     c.querySelectorAll('.overflow-x-auto,.overflow-y-auto').forEach(x=>{ x.style.overflow='visible'; x.style.maxHeight='none'; });
-    box.appendChild(c); document.body.appendChild(box);
+    box.appendChild(c);
+    if(!c.querySelector('.sig-line') && !/sig-line/.test(c.innerHTML)){ const sg=document.createElement('div'); sg.innerHTML=SIG_LINE; box.appendChild(sg.firstChild); } // الإمضا تحت أي صورة واتس (محمد 2026-11-10)
+    document.body.appendChild(box);
     try{ const canvas=await html2canvas(box,{backgroundColor:'#ffffff',scale:2}); const blob=await new Promise(r=>canvas.toBlob(r,'image/png')); return new File([blob], (name||'كشف').replace(/[\\/:*?"<>|]/g,'-')+'.png', {type:'image/png'}); }
     finally{ box.remove(); }
 }
@@ -8473,6 +8475,7 @@ function addShareButtons(root){
     });
 }
 document.addEventListener('DOMContentLoaded', ()=>{ try{ addShareButtons(); }catch(e){} });
+function waSig(t){ return /محمد الجميعي/.test(t) ? t : t+'\n\nالمحاسب / محمد الجميعي'; } // الإمضا تحت أي رسالة واتس (محمد 2026-11-10)
 function shareCard(id, title){ const el=document.getElementById(id); if(!el) return; shareImagesModal(title, elementToFile(el, title)); }
 
 /* ---- قفل الفترات ---- */
@@ -9717,7 +9720,8 @@ function printHtml(html){
     document.querySelectorAll('.print-target').forEach(el=>el.classList.remove('print-target'));
     const box = document.createElement('div');
     box.id = 'daily-report-print'; box.className = 'print-target'; box.style.background = '#fff';
-    box.innerHTML = html;
+    /* الإمضا تحت أي طباعة (محمد 2026-11-10) */
+    box.innerHTML = html.includes('sig-line') ? html : html + SIG_LINE;
     document.body.appendChild(box);
     const clean = ()=>{ box.remove(); window.removeEventListener('afterprint', clean); };
     window.addEventListener('afterprint', clean);
@@ -10660,7 +10664,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.50';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.51';
 
     /* تنبيهات */
     const alerts=[];
