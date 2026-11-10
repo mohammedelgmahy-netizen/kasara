@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.42</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.43</span></p></div>
         </div>
     </aside>
 
@@ -4572,6 +4572,12 @@ function treasuryEvents(){
     (()=>{ const G={}; return (db.equipExpenses||[]).reduce((out,x)=>{ if(x&&x.split){ const g0=G[x.split]; if(g0){ g0.amount=(Number(g0.amount)||0)+(Number(x.amount)||0); g0.qty=(Number(g0.qty)||0)+(Number(x.qty)||0); g0.equip+=' / '+x.equip; return out; } G[x.split]={...x}; out.push(G[x.split]); return out; } out.push(x); return out; },[]); })().forEach(x=>{ const v=Math.round(Number(x&&x.amount)||0); if(!x||!x.date||!v) return; const who=[x.equip,x.owner].filter(Boolean).join(' '); x={...x, desc:String(x.desc||'مصروف').replace(/^\s*بيع\s+/,'')||'مصروف'};
         events.push({date:x.date, desc:`بيع ${x.desc||'مصروف'} ${who}${x.qty&&x.price?` ${nfmt(x.qty)} × ${nfmt(x.price)}`:''}`, project:'-', account:defaultAccount, inflow:v, outflow:0, fuel:true});
         events.push({date:x.date, desc:`${x.desc||'مصروف'} ${who}${x.qty&&x.price?` ${nfmt(x.qty)} × ${nfmt(x.price)}`:''}`, project:'-', account:defaultAccount, inflow:0, outflow:v, fuel:true}); });
+    /* الأرصدة الافتتاحية من التكويد: المدفوع القديم للمقاول/المورد خرج فعلاً من درج المكتب يوم تسجيله (محمد 2026-11-10) */
+    { const openAcc = (db.accounts||[]).some(a=>a.name===DRAWER_ACC) ? DRAWER_ACC : defaultAccount;
+      [['contractors','المقاول'],['suppliers','المورد']].forEach(([k,lbl])=>(db[k]||[]).forEach(c=>{
+        const pd=Number(c.openPaid)||0; if(!(pd>0) || !c.openDate) return;
+        events.push({date:c.openDate, desc:`المدفوع من الحساب القديم — ${lbl} ${c.name}`, project:'-', account:openAcc, inflow:0, outflow:pd});
+      })); }
     // البونات مش بتظهر سطر سطر: كل يوم سطر واحد للمبيعات النقدي وسطر للإكرامية
     const merged = {}, out = [];
     events.forEach(e=>{
@@ -10608,7 +10614,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.42';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.43';
 
     /* تنبيهات */
     const alerts=[];
