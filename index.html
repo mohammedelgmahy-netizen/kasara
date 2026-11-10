@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.46</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.47</span></p></div>
         </div>
     </aside>
 
@@ -3355,11 +3355,14 @@ function homeKpisHtml(){
     const expM=(db.expensesData||[]).filter(x=>(x.date||'').startsWith(m) && x.category!=='إيراد' && !ctrCats.includes(x.category)).reduce((a,x)=>a+(Number(x.paid)||0),0);
     const collM=(db.expensesData||[]).filter(x=>(x.date||'').startsWith(m) && x.category==='إيراد').reduce((a,x)=>a+(Number(x.paid)||0),0);
     let sari=0, drawer=0, loans=0; try{ sari=accBalance(SARI_ACC); drawer=accBalance(DRAWER_ACC); loans=sariLoanRows().closing; }catch(e){}
+    /* درج المكتب والسلف كروت لوحدهم في الرئيسية (محمد 2026-11-10) */
     const K=[
-        ['treasury','fa-wallet','#16a37b','#e2f5ee','معلق عماد ناجي',fmt(sari),'درج المكتب: '+fmt(drawer)],
+        ['treasury','fa-wallet','#16a37b','#e2f5ee','معلق عماد ناجي',fmt(sari),'خزنة المعلق'],
+        ['treasury','fa-cash-register','#0284c7','#e0f2fe','درج المكتب',fmt(drawer),'خزنة الدرج'],
+        ['treasury','fa-hand-holding-dollar','#b45309','#fef3c7','السلف المستحقة',fmt(loans),'سلف عماد ناجي'],
         ['dailylog','fa-truck','#1f4b73','#e6eff7','مبيعات الشهر ده',fmt(salesVal),nfmt(bons.length)+' بون · '+nfmt(qty)+' م'],
         ['incomes','fa-hand-holding-dollar','#7457d9','#efebfc','تحصيلات الشهر ده',fmt(collM),'فلوس دخلت الخزينة'],
-        ['expenses','fa-receipt','#e07a36','#fdeee3','مصروفات الشهر ده',fmt(expM),'السلف المستحقة: '+fmt(loans)],
+        ['expenses','fa-receipt','#e07a36','#fdeee3','مصروفات الشهر ده',fmt(expM),'الشهر ده'],
     ].filter(k=>can(k[0]));
     if(!K.length) return '';
     return `<div class="home-kpis">${K.map(([t,ic,c,bg,l,v,h])=>`<button type="button" class="home-kpi" onclick="switchTab('${t}')"><span class="hk-ic" style="background:${bg};color:${c}"><i class="fa-solid ${ic}"></i></span><span class="hk-l">${esc(l)}</span><b class="hk-v">${v}</b><small class="hk-h">${esc(h)}</small></button>`).join('')}</div>`;
@@ -10651,7 +10654,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.46';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.47';
 
     /* تنبيهات */
     const alerts=[];
