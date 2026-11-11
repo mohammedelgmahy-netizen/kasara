@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.93</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.95</span></p></div>
         </div>
     </aside>
 
@@ -501,7 +501,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 </div>
                 <div onclick="openDashMoves('custody')" title="اضغط لعرض العهد" class="bg-white p-5 rounded-xl border border-violet-200 shadow-sm flex items-center justify-between cursor-pointer hover:ring-2 hover:ring-violet-300 transition">
                     <div>
-                        <p class="text-xs font-bold text-violet-600">إجمالي عهد المقاولين</p>
+                        <p class="text-xs font-bold text-violet-600">إجمالي عهد أصحاب المعدات</p>
                         <h3 id="kpi-custody-pending" class="text-2xl font-bold mt-1 text-violet-600">-</h3>
                     </div>
                     <div class="bg-violet-50 p-3 rounded-lg text-violet-500"><i class="fa-solid fa-hand-holding text-xl"></i></div>
@@ -527,7 +527,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                         <button data-dmf="drawer" onclick="setDashMoveFilter('drawer')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">درج المكتب</button>
                         <span id="dmf-others" class="contents"></span>
                         <button data-dmf="loans" onclick="setDashMoveFilter('loans')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">السلف</button>
-                        <button data-dmf="custody" onclick="setDashMoveFilter('custody')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">عهد المقاولين</button>
+                        <button data-dmf="custody" onclick="setDashMoveFilter('custody')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">عهد أصحاب المعدات</button>
                     </div>
                 </div>
                 <div class="overflow-x-auto max-h-[26rem]">
@@ -1043,7 +1043,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             </div>
 
 
-            <!-- مدفوعات الموردين (اتنقلت من تاب المدفوعات) -->
+            <!-- مدفوعات موردي قطع الغيار والسولار (اتنقلت من تاب المدفوعات) -->
 
             <!-- FORM -->
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
@@ -1267,7 +1267,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             <div id="cx-card" class="bg-white rounded-xl border border-indigo-200 shadow-sm overflow-hidden">
                 <div class="p-4 border-b border-indigo-100 bg-indigo-50 flex flex-wrap justify-between items-center gap-2">
                     <h3 class="font-bold text-slate-900">📑 مستخلص مقاول</h3>
-                    <button type="button" onclick="openAllContractorsStmt()" class="bg-violet-600 hover:bg-violet-700 text-white px-3 py-1 rounded text-xs font-bold">📊 كل المقاولين (الإجمالي)</button>
+                    <button type="button" onclick="openAllContractorsStmt()" class="bg-violet-600 hover:bg-violet-700 text-white px-3 py-1 rounded text-xs font-bold">📊 كل أصحاب المعدات (الإجمالي)</button>
                     
                 </div>
                 <div class="p-4 grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
@@ -1284,7 +1284,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <button type="button" onclick="saveCtrExtract()" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-2 font-bold">حفظ المستخلص</button>
                 </div>
                 <div id="cx-equip-acct" class="px-4 pb-4"></div>
-                <div class="px-4 pt-2 pb-2 flex flex-wrap items-center gap-2 border-t border-indigo-100"><span class="text-xs font-bold text-slate-600">المستخلصات المحفوظة:</span><select id="cx-filter" onchange="renderCtrExtracts()" class="bg-white border border-indigo-200 rounded px-2 py-1 text-xs font-bold min-w-[10rem]"><option value="">كل المقاولين</option></select><input id="cx-search" type="search" oninput="renderCtrExtracts()" placeholder="🔍 بحث: اسم أو تاريخ (مثلاً 22/10)" class="bg-white border border-indigo-200 rounded px-2 py-1 text-xs flex-1 min-w-[10rem]"></div>
+                <div class="px-4 pt-2 pb-2 flex flex-wrap items-center gap-2 border-t border-indigo-100"><span class="text-xs font-bold text-slate-600">المستخلصات المحفوظة:</span><select id="cx-filter" onchange="renderCtrExtracts()" class="bg-white border border-indigo-200 rounded px-2 py-1 text-xs font-bold min-w-[10rem]"><option value="">كل أصحاب المعدات</option></select><input id="cx-search" type="search" oninput="renderCtrExtracts()" placeholder="🔍 بحث: اسم أو تاريخ (مثلاً 22/10)" class="bg-white border border-indigo-200 rounded px-2 py-1 text-xs flex-1 min-w-[10rem]"></div>
                 <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100"><tr><th class="p-2">التاريخ</th><th class="p-2">يتحاسب مع</th><th class="p-2">المعدة</th><th class="p-2">الفترة</th><th class="p-2">الأمتار</th><th class="p-2 rate-col">السعر</th><th class="p-2">المبلغ</th><th class="p-2">ملاحظات</th><th class="p-2"></th></tr></thead><tbody id="tbody-cx"></tbody></table></div>
             </div>
             <div id="ctr-stmt-card" class="bg-white rounded-xl border border-violet-200 shadow-sm overflow-hidden" style="display:none"><!-- اتشال من الشاشة بطلب محمد 2026-11-07: الكشف بيظهر لما تدوس على المستخلص -->
@@ -1859,8 +1859,8 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 <label class="block text-xs font-bold text-slate-600 mb-1">المجموعة</label>
                 <select id="master-type" required onchange="toggleMasterFields()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm">
                     <option value="clients">العملاء</option>
-                    <option value="suppliers">الموردين</option>
-                    <option value="contractors">المقاولين (أصحاب المعدات)</option>
+                    <option value="suppliers">موردي قطع الغيار والسولار</option>
+                    <option value="contractors">أصحاب المعدات</option>
                     <option value="names">الأفراد (الموظفين)</option>
                     <option value="investors">المستثمرين والممولين</option>
                     <option value="accounts">الخزن والبنوك</option>
@@ -2319,7 +2319,7 @@ async function cloudSaveMerged(){
 }
 /* ===== طلبات الموافقة: تعديلات المستخدم بتستنى المدير ===== */
 const PENDING_KEY = 'kasara-pending';
-const COL_LABELS = {dailyLog:'البونات',sales:'المبيعات',expensesData:'المصروفات والتحصيلات',payments:'مدفوعات الموردين',procurements:'المشتريات',stockIssues:'صرف مخزون',equipExtracts:'المستخلصات',equipmentRepayments:'مديونيات المعدات',cashTransfers:'تحويلات الخزينة',ownerLoans:'السلف',custodies:'العهد',partyLedgers:'حسابات',clients:'العملاء',contractors:'المقاولين',vehicles:'العربيات',suppliers:'الموردين',supplies:'الأصناف',names:'الأفراد',expenses:'بنود المصروفات',assets:'الأصول',productions:'الإنتاج',prodLog:'الإنتاج اليومي',trips:'النقلات',investorFunding:'تمويل الشركاء',profitDistributions:'توزيعات الأرباح',investorLiabilities:'التزامات الشركاء',accounts:'الحسابات',taxes:'الضرائب',activities:'الأنشطة'};
+const COL_LABELS = {dailyLog:'البونات',sales:'المبيعات',expensesData:'المصروفات والتحصيلات',payments:'مدفوعات موردي قطع الغيار والسولار',procurements:'المشتريات',stockIssues:'صرف مخزون',equipExtracts:'المستخلصات',equipmentRepayments:'مديونيات المعدات',cashTransfers:'تحويلات الخزينة',ownerLoans:'السلف',custodies:'العهد',partyLedgers:'حسابات',clients:'العملاء',contractors:'أصحاب المعدات',vehicles:'العربيات',suppliers:'موردي قطع الغيار والسولار',supplies:'الأصناف',names:'الأفراد',expenses:'بنود المصروفات',assets:'الأصول',productions:'الإنتاج',prodLog:'الإنتاج اليومي',trips:'النقلات',investorFunding:'تمويل الشركاء',profitDistributions:'توزيعات الأرباح',investorLiabilities:'التزامات الشركاء',accounts:'الحسابات',taxes:'الضرائب',activities:'الأنشطة'};
 function diffDb(base, cur){
     const out={}; const idOf=x=>(x&&typeof x==='object'&&x.id!=null)?String(x.id):null;
     Object.keys(cur||{}).forEach(k=>{
@@ -3453,8 +3453,8 @@ function switchTab(tabId){
 /* ================= MASTER DATA ================= */
 const MASTER_META = {
     clients:{label:'العملاء', color:'bg-cyan-100 text-cyan-800'},
-    suppliers:{label:'الموردين', color:'bg-purple-100 text-purple-800'},
-    contractors:{label:'المقاولين (أصحاب المعدات)', color:'bg-violet-100 text-violet-800'},
+    suppliers:{label:'موردي قطع الغيار والسولار', color:'bg-purple-100 text-purple-800'},
+    contractors:{label:'أصحاب المعدات', color:'bg-violet-100 text-violet-800'},
     names:{label:'الأفراد (الموظفين)', color:'bg-indigo-100 text-indigo-800'},
     investors:{label:'الشركاء', color:'bg-orange-100 text-orange-800'},
     accounts:{label:'الخزن والبنوك', color:'bg-teal-100 text-teal-800'},
@@ -3515,7 +3515,7 @@ function renderMasterData(){
                 </td></tr>`;
         };
         const tbl = h => `<div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100 text-slate-600"><tr><th class="p-2 w-20">الكود</th><th class="p-2">الاسم</th><th class="p-2">التفاصيل</th><th class="p-2">الرصيد</th><th class="p-2 w-20"></th></tr></thead><tbody>${h}</tbody></table></div>`;
-        /* المقاولين المتوقفين في قائمة لوحدهم مقفولة تحت الشغالين (محمد 2026-11-11) */
+        /* أصحاب المعدات المتوقفين في قائمة لوحدهم مقفولة تحت الشغالين (محمد 2026-11-11) */
         const stopped = cat==='contractors' ? items.filter(it=>it.done) : [];
         const active = cat==='contractors' ? items.filter(it=>!it.done) : items;
         let rows = active.map(rowOf).join('');
@@ -3572,7 +3572,7 @@ function renderMasterData(){
     const cnt = c => catCount[c];
     let cur = window.__mdTab || 'clients';
     if(term && !cnt(cur)){ const f=GROUPS.find(([c])=>cnt(c)>0); if(f) cur=f[0]; }
-    const bar = `<div class="flex flex-wrap gap-2 mb-3">${GROUPS.map(([c,ic])=>`<button type="button" onclick="window.__mdTab='${c}'; renderMasterData()" class="px-3 py-2 rounded-xl text-sm font-bold border flex items-center gap-2 ${c===cur?'bg-slate-900 text-white border-slate-900':'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}">${ic} ${({contractors:'المقاولين',investors:'الشركاء',expenses:'المصروفات',persons:'الأفراد'})[c]||MASTER_META[c].label} <span class="text-xs px-2 py-0.5 rounded-full ${c===cur?'bg-white/20':'bg-slate-100'}">${cnt(c)}</span></button>`).join('')}</div>`;
+    const bar = `<div class="flex flex-wrap gap-2 mb-3">${GROUPS.map(([c,ic])=>`<button type="button" onclick="window.__mdTab='${c}'; renderMasterData()" class="px-3 py-2 rounded-xl text-sm font-bold border flex items-center gap-2 ${c===cur?'bg-slate-900 text-white border-slate-900':'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}">${ic} ${({contractors:'أصحاب المعدات',investors:'الشركاء',expenses:'المصروفات',persons:'الأفراد'})[c]||MASTER_META[c].label} <span class="text-xs px-2 py-0.5 rounded-full ${c===cur?'bg-white/20':'bg-slate-100'}">${cnt(c)}</span></button>`).join('')}</div>`;
     const head = `<div class="flex items-center justify-between gap-2 mb-2"><div class="font-extrabold text-slate-900">${GROUPS.find(g=>g[0]===cur)[1]} ${cur==='expenses'?'المصروفات':cur==='persons'?'الأفراد':MASTER_META[cur].label}</div><button type="button" onclick="openAddMasterModal(); document.getElementById('master-type').value='${cur==='persons'?'names':cur}'; toggleMasterFields();" class="bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg text-sm font-bold">＋ إضافة</button></div>`;
     const content = catHtml[cur];
     container.innerHTML = bar + `<div class="bg-white border border-slate-200 rounded-xl p-3">${head}${content}</div>`;
@@ -3937,7 +3937,7 @@ function initDropdowns(){
     if(document.getElementById('coll-date') && !document.getElementById('coll-date').value) document.getElementById('coll-date').value = todayISO();
     fillSelect('stock-item', db.supplies);
     fillSelect('buy-item', db.supplies); (()=>{ const s = document.getElementById('buy-supplier'); if(s){ const pv = s.value; s.innerHTML = '<option value="">— اختار المورد —</option>' + (db.suppliers||[]).map(x=>`<option value="${esc(x.name)}">${esc(x.name)}</option>`).join(''); if([...s.options].some(o=>o.value===pv)) s.value = pv; } })();
-    (()=>{ const s = document.getElementById('ss-supplier'); if(s){ const pv = s.value; s.innerHTML = ((db.suppliers||[]).length ? '<option value="__ALL__">📊 كل الموردين (الإجمالي)</option>' : '') + ((db.suppliers||[]).map(x=>`<option value="${esc(x.name)}">${esc(x.name)}</option>`).join('') || '<option value="">— ضيف مورد في دليل الأكواد —</option>'); if([...s.options].some(o=>o.value===pv)) s.value = pv; } })(); fillSelect('buy-account', db.accounts||[]);
+    (()=>{ const s = document.getElementById('ss-supplier'); if(s){ const pv = s.value; s.innerHTML = ((db.suppliers||[]).length ? '<option value="__ALL__">📊 كل موردي قطع الغيار والسولار (الإجمالي)</option>' : '') + ((db.suppliers||[]).map(x=>`<option value="${esc(x.name)}">${esc(x.name)}</option>`).join('') || '<option value="">— ضيف مورد في دليل الأكواد —</option>'); if([...s.options].some(o=>o.value===pv)) s.value = pv; } })(); fillSelect('buy-account', db.accounts||[]);
     fillStockRecipientSelect('stock-name');
     try{ stockEquipOpts(); }catch(e){}
     fillSelect('stock-project', db.projects, 'بدون مشروع محدد');
@@ -3968,7 +3968,7 @@ function initDropdowns(){
         if([...auditEntitySelect.options].some(o=>o.value===prev)) auditEntitySelect.value = prev;
     }
     if(document.getElementById('stock-date') && !document.getElementById('stock-date').value) document.getElementById('stock-date').value = todayISO();
-    fillSelect('filter-proc-supplier', db.suppliers, 'كل الموردين');
+    fillSelect('filter-proc-supplier', db.suppliers, 'كل موردي قطع الغيار والسولار');
     fillSelect('filter-proc-item', db.supplies, 'كل الأصناف');
 
     fillSelect('exp-category', db.expenses.filter(c=>c.name!=='إيراد'));
@@ -3981,7 +3981,7 @@ function initDropdowns(){
     fillSelect('pay-supplier', db.suppliers);
     fillSelect('pay-project', db.projects, 'بدون مشروع محدد');
     fillSelect('filter-pay-item', db.supplies, 'كل الأصناف');
-    fillSelect('search-payments', db.suppliers, 'كل الموردين');
+    fillSelect('search-payments', db.suppliers, 'كل موردي قطع الغيار والسولار');
 
     fillSelect('prod-project', db.projects);
     if(document.getElementById('prod-date') && !document.getElementById('prod-date').value) document.getElementById('prod-date').value = todayISO();
@@ -4295,7 +4295,7 @@ function showContractInfo(){
     }
 }
 
-/* ================= PAYMENTS (للموردين) ================= */
+/* ================= PAYMENTS (لموردي قطع الغيار والسولار) ================= */
 function addPayment(e){
     e.preventDefault();
     const amount = Number(document.getElementById('pay-amount').value)||0;
@@ -4674,7 +4674,7 @@ function treasuryEvents(){
         events.push({date:x.date, desc:`${x.desc||'مصروف'} ${who}${x.qty&&x.price?` ${nfmt(x.qty)} × ${nfmt(x.price)}`:''}`, project:'-', account:defaultAccount, inflow:0, outflow:v, fuel:true}); });
     /* الأرصدة الافتتاحية من التكويد: المدفوع القديم للمقاول/المورد خرج فعلاً من درج المكتب يوم تسجيله (محمد 2026-11-10) */
     { const acc = n => (db.accounts||[]).some(a=>a.name===n) ? n : defaultAccount;
-      /* مدفوع الموردين القديم من خزنة معلق عماد ناجي (محمد 2026-11-10)، والمقاولين من درج المكتب */
+      /* مدفوع موردي قطع الغيار والسولار القديم من خزنة معلق عماد ناجي (محمد 2026-11-10)، وأصحاب المعدات من درج المكتب */
       [['contractors','المقاول',SARI_ACC],['suppliers','المورد',SARI_ACC],['names','الموظف',SARI_ACC]].forEach(([k,lbl,defAcc])=>(db[k]||[]).forEach(c=>{
         const pd=Number(c.openPaid)||0; if(!(pd>0) || !c.openDate) return;
         events.push({date:c.openDate, desc:`المدفوع من الحساب القديم — ${lbl} ${c.name}`, project:'-', account:acc(c.openAcc||defAcc), inflow:0, outflow:pd});
@@ -4780,7 +4780,7 @@ function calculateKPIs(projectFilter){
     if(document.getElementById('kpi-ratio')) document.getElementById('kpi-ratio').textContent = inflow>0 ? ((outflow/inflow)*100).toFixed(1)+'%' : '-';
 
     // القيود اليومية المعلقة
-    // كل عهد المقاولين المسجلة في المصروفات (نوع الدفعة عهدة) — حتى اللي اتخصمت من مستخلص
+    // كل عهد أصحاب المعدات المسجلة في المصروفات (نوع الدفعة عهدة) — حتى اللي اتخصمت من مستخلص
     const ctrCats = (db.expenses||[]).filter(c=>c.nameType==='contractors').map(c=>c.name);
     const custodyPending = (db.expensesData||[]).filter(x=>ctrCats.includes(x.category) && x.payType!=='settle').reduce((s,x)=>s+(Number(x.paid)||0),0);
 
@@ -4823,7 +4823,7 @@ function computePL(projectFilter, dateFrom, dateTo){
     const num = () => ++n;
 
     // Group expensesData by category name
-    // دفعات المقاولين (عهد + سداد صافي) مش مصروف: دي سداد لقيمة المستخلص — المصروف هو المستخلص نفسه
+    // دفعات أصحاب المعدات (عهد + سداد صافي) مش مصروف: دي سداد لقيمة المستخلص — المصروف هو المستخلص نفسه
     const catGroups = {};
     let contractorPayments = 0, tipsIncome = 0;
     db.expensesData.filter(x=>match(x)).forEach(x=>{
@@ -4854,7 +4854,7 @@ function computePL(projectFilter, dateFrom, dateTo){
     // السولار والأصناف اللي اتصرفت لمقاولين ومعدات بسعر = بتترد من مستخلصاتهم → مش تكلفة على الكسارة
     const recovered = (db.stockIssues||[]).filter(s=>matchDate(s) && !isCrusherIssue(s) && (Number(s.price)||0)>0)
         .reduce((a,s)=>a+(Number(s.qty)||0)*(Number(s.price)||0),0);
-    /* مستخلصات قبل تاريخ الرصيد الافتتاحي للمقاول مش بتتحسب تاني — قيمتها جوه «شغل المقاولين القديم» (محمد 2026-11-10) */
+    /* مستخلصات قبل تاريخ الرصيد الافتتاحي للمقاول مش بتتحسب تاني — قيمتها جوه «شغل أصحاب المعدات القديم» (محمد 2026-11-10) */
     const _ctrCut = x => { const c=(db.contractors||[]).find(k=>normName(k.name)===normName(x.name)); return c && c.openDate && ((Number(c.openTotal)||0)||(Number(c.openPaid)||0)||(Number(c.openBal)||0)) && (x.date||'')<c.openDate; };
     const extractsCost = (db.equipExtracts||[]).filter(x=>matchDate(x)).reduce((a,x)=>a+(Number(x.amount)||0),0)
         + (db.ctrExtracts||[]).filter(x=>matchDate(x) && !_ctrCut(x)).reduce((a,x)=>a+(Number(x.amount)||0),0); // المستخلص النهائي جوه ctrExtracts
@@ -4876,12 +4876,12 @@ function computePL(projectFilter, dateFrom, dateTo){
     directLines.push({ num:num(), label:'مشتريات سولار وأصناف', value:materialsCost });
     /* الفواتير القديمة من الرصيد الافتتاحي بتتحسب مشتريات في قائمة الدخل (محمد 2026-11-10: «اعتبرها مشتريات جديدة») */
     { const oldInv=(db.suppliers||[]).filter(x=>x.openDate && matchDate({date:x.openDate})).reduce((a,x)=>a+(Number(x.openTotal)||0),0);
-      if(oldInv) directLines.push({ num:num(), label:'فواتير الموردين القديمة (رصيد افتتاحي)', value:oldInv });
+      if(oldInv) directLines.push({ num:num(), label:'فواتير موردي قطع الغيار والسولار القديمة (رصيد افتتاحي)', value:oldInv });
       const oldCtr=(db.contractors||[]).filter(x=>x.openDate && matchDate({date:x.openDate})).reduce((a,x)=>a+(Number(x.openTotal)||0),0);
-      if(oldCtr) directLines.push({ num:num(), label:'شغل المقاولين القديم (رصيد افتتاحي)', value:oldCtr }); }
+      if(oldCtr) directLines.push({ num:num(), label:'شغل أصحاب المعدات القديم (رصيد افتتاحي)', value:oldCtr }); }
     if(closeStock) directLines.push({ num:num(), label:'ناقص: مخزون آخر المدة (لسه ما اتصرفش)', value:-Math.round(closeStock*100)/100 });
-    if(recovered) directLines.push({ num:num(), label:'ناقص: المصروف للمقاولين والمعدات (بيتخصم من مستخلصاتهم)', value:-recovered });
-    directLines.push({ num:num(), label:'شغل المقاولين والمعدات (قيمة المستخلصات)', value:extractsCost });
+    if(recovered) directLines.push({ num:num(), label:'ناقص: المصروف لأصحاب المعدات والمعدات (بيتخصم من مستخلصاتهم)', value:-recovered });
+    directLines.push({ num:num(), label:'شغل أصحاب المعدات والمعدات (قيمة المستخلصات)', value:extractsCost });
     Object.entries(catGroups).filter(([,v])=>v.plType==='direct').forEach(([k,v])=>{
         directLines.push({ num:num(), label:k, value:v.total });
     });
@@ -5308,18 +5308,18 @@ function balanceSheetData(D){
     if(Math.round(inv)) A.push({g:'المخزون', name:'مخزون الأصناف (سولار وغيره)', v:inv}); }
     // مستحقات على أصحاب المعدات
     try{ let eq=0; Object.entries(equipmentDebtBalances()).filter(([k])=>!k.startsWith('contractor::')).forEach(([,t])=>{ const b=(t.supplied||0)-(t.repaid||0); if(b>0) eq+=b; }); if(Math.round(eq)) A.push({g:'مستحقات أخرى', name:'مستحقات على أصحاب المعدات', v:eq}); }catch(e){}
-    // المقاولين
+    // أصحاب المعدات
     let ctrOwe=0, ctrAdv=0;
     (db.contractors||[]).forEach(c=>{ try{ let b=0; contractorStmtRows(c.name).rows.forEach(r=>{ if(le(r.date)) b+=(r.credit||0)-(r.debit||0); }); if(b>0) ctrOwe+=b; else ctrAdv-=b; }catch(e){} });
-    if(Math.round(ctrAdv)) A.push({g:'مستحقات أخرى', name:'عهد ومقدمات عند المقاولين', v:ctrAdv});
+    if(Math.round(ctrAdv)) A.push({g:'مستحقات أخرى', name:'عهد ومقدمات عند أصحاب المعدات', v:ctrAdv});
     // الأصول الثابتة
     let fa=0; (db.assets||[]).filter(a=>a.status!=='sold' && le(a.date)).forEach(a=>{ fa+=assetBookValue(a); });
     if(Math.round(fa)) A.push({g:'أرض وتأمينات المحجر', name:'أرض وتأمينات المحجر', v:fa});
     // الخصوم
     let sup=0, supAdv=0; (db.suppliers||[]).forEach(x=>{ const {ob:sOB, od:sOD}=supOpen(x.name); const ok=p=>le(p.date) && (!sOD || (p.date||'')>=sOD); const i=(db.procurements||[]).filter(p=>p.supplier===x.name && ok(p)).reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0); const pd=(db.payments||[]).filter(p=>p.supplier===x.name && ok(p)).reduce((a,p)=>a+(Number(p.amount)||0),0); const b=(sOD && le(sOD)?sOB:0)+i-pd; if(b>0) sup+=b; else supAdv+=-b; });
-    if(Math.round(supAdv)) A.push({g:'مستحقات أخرى', name:'دفعات مقدمة للموردين', v:supAdv});
-    if(Math.round(sup)) L.push({name:'الموردين', v:sup});
-    if(Math.round(ctrOwe)) L.push({name:'مستحقات المقاولين', v:ctrOwe});
+    if(Math.round(supAdv)) A.push({g:'مستحقات أخرى', name:'دفعات مقدمة لموردي قطع الغيار والسولار', v:supAdv});
+    if(Math.round(sup)) L.push({name:'موردي قطع الغيار والسولار', v:sup});
+    if(Math.round(ctrOwe)) L.push({name:'مستحقات أصحاب المعدات', v:ctrOwe});
     if(Math.round(adv)) L.push({name:'دفعات مقدمة من العملاء', v:adv});
     // مصروفات مستحقة لسه ماتدفعتش (قيمة المصروف − المدفوع منه) — زي عمولة جلب العملاء
     try{ let acc=0, accM=0; (db.expensesData||[]).filter(x=>le(x.date) && !x.tipDeposit).forEach(x=>{ const c=(db.expenses||[]).find(e=>e.name===x.category); if(!c || c.nameType==='contractors' || c.plType==='revenue' || x.category==='إيراد') return; const rem=(Number(x.total)||0)-(Number(x.paid)||0); if(x.category===COM_CAT) accM+=rem; else acc+=rem; }); if(Math.round(accM)) L.push({name:'بدل إدارة وتشغيل مستحق — عماد ناجي', v:accM}); try{ const vSal=(db.names||[]).filter(x=>x.openDate && le(x.openDate)).reduce((a,x)=>a+((Number(x.openTotal)||0)-(Number(x.openPaid)||0)),0); if(Math.round(vSal)) L.push({name:'مرتبات مستحقة للموظفين (رصيد سابق)', v:vSal}); }catch(e){} if(Math.round(acc)>0) L.push({name:'مصروفات مستحقة (لم تُدفع)', v:acc}); else if(Math.round(acc)<0) A.push({g:'مستحقات أخرى', name:'مصروفات مدفوعة مقدماً', v:-acc}); }catch(e){}
@@ -5380,7 +5380,7 @@ function tbData(D){
     let P = null; try{ P = computePL('ALL','',D||''); }catch(e){}
     const rows = []; // {g, name, dr, cr}
     const put = (g, name, v, side) => { v = Number(v)||0; if(!Math.round(v)) return; if(side==='cr') v = -v; rows.push({g, name, dr: v>0?v:0, cr: v<0?-v:0}); };
-    // تفصيل العملاء والموردين والمقاولين بالاسم (نفس حساب المركز المالي)
+    // تفصيل العملاء وموردي قطع الغيار والسولار وأصحاب المعدات بالاسم (نفس حساب المركز المالي)
     const cl=[], su=[], ct=[];
     (db.clients||[]).forEach(c=>{ let b=0; try{ getClientAccountRowsAll(c.name).forEach(r=>{ if(le(r.date)) b+=(r.debit||0)-(r.credit||0); }); }catch(e){} if(Math.round(b)) cl.push({name:c.name, v:b}); });
     (db.suppliers||[]).forEach(x=>{ const {ob:sOB, od:sOD}=supOpen(x.name); const ok=p=>le(p.date) && (!sOD || (p.date||'')>=sOD); const i=(db.procurements||[]).filter(p=>p.supplier===x.name && ok(p)).reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0); const pd=(db.payments||[]).filter(p=>p.supplier===x.name && ok(p)).reduce((a,p)=>a+(Number(p.amount)||0),0); const b=(sOD && le(sOD)?sOB:0)+i-pd; if(Math.round(b)) su.push({name:x.name, v:b}); });
@@ -5389,23 +5389,23 @@ function tbData(D){
     const near = (a,b) => Math.abs(a-b) < 1;
     const aV = n => S.A.filter(x=>x.name===n).reduce((a,x)=>a+x.v,0), lV = n => S.L.filter(x=>x.name===n).reduce((a,x)=>a+x.v,0);
     const okC = near(sum(cl,x=>x.v>0), aV('مستحقات على العملاء')) && near(-sum(cl,x=>x.v<0), lV('دفعات مقدمة من العملاء'));
-    const okS = near(sum(su,x=>x.v>0), lV('الموردين')) && near(-sum(su,x=>x.v<0), aV('دفعات مقدمة للموردين'));
-    const okT = near(sum(ct,x=>x.v>0), lV('مستحقات المقاولين')) && near(-sum(ct,x=>x.v<0), aV('عهد ومقدمات عند المقاولين'));
+    const okS = near(sum(su,x=>x.v>0), lV('موردي قطع الغيار والسولار')) && near(-sum(su,x=>x.v<0), aV('دفعات مقدمة لموردي قطع الغيار والسولار'));
+    const okT = near(sum(ct,x=>x.v>0), lV('مستحقات أصحاب المعدات')) && near(-sum(ct,x=>x.v<0), aV('عهد ومقدمات عند أصحاب المعدات'));
     // الأصول (مدين)
     S.A.forEach(x=>{
         if(okC && x.name==='مستحقات على العملاء') return;
-        if(okS && x.name==='دفعات مقدمة للموردين') return;
-        if(okT && x.name==='عهد ومقدمات عند المقاولين') return;
+        if(okS && x.name==='دفعات مقدمة لموردي قطع الغيار والسولار') return;
+        if(okT && x.name==='عهد ومقدمات عند أصحاب المعدات') return;
         put(x.g || 'الأصول', x.name, x.v, 'dr');
     });
     if(okC) cl.forEach(x=>put('العملاء', x.name, x.v, 'dr'));
-    if(okS) su.forEach(x=>put('الموردين', x.name, x.v, 'cr'));
-    if(okT) ct.forEach(x=>put('المقاولين', x.name, x.v, 'cr'));
+    if(okS) su.forEach(x=>put('موردي قطع الغيار والسولار', x.name, x.v, 'cr'));
+    if(okT) ct.forEach(x=>put('أصحاب المعدات', x.name, x.v, 'cr'));
     // الخصوم (دائن)
     S.L.forEach(x=>{
         if(okC && x.name==='دفعات مقدمة من العملاء') return;
-        if(okS && x.name==='الموردين') return;
-        if(okT && x.name==='مستحقات المقاولين') return;
+        if(okS && x.name==='موردي قطع الغيار والسولار') return;
+        if(okT && x.name==='مستحقات أصحاب المعدات') return;
         put('الخصوم', x.name, x.v, 'cr');
     });
     // حقوق الملكية (دائن) — من غير سطور الربح لأن الإيرادات والمصروفات ظاهرة لوحدها تحت
@@ -5628,8 +5628,8 @@ function exportPaymentsExcel(){
     const ws = XLSX.utils.aoa_to_sheet(data);
     ws['!cols'] = [{wch:18},{wch:14},{wch:18},{wch:12},{wch:24}];
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'مدفوعات الموردين');
-    XLSX.writeFile(wb, `مدفوعات-الموردين-${todayISO()}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, 'مدفوعات موردي الغيار والسولار');
+    XLSX.writeFile(wb, `مدفوعات-موردي قطع الغيار والسولار-${todayISO()}.xlsx`);
 }
 
 /* ================= PRINT ================= */
@@ -6206,7 +6206,7 @@ document.addEventListener('change', e=>{ if(e.target && (e.target.id==='stock-it
 const CRUSHER_DEF = ['مولد كبير','مولد صغير'];
 function ctrKindLabel(c){ if(!c||isCrusherCtr(c.name)) return 'معدات الكسارة'; const T=[...new Set((c.equips||[]).map(e=>eqType(e)))]; const M={'السيارات':'سيارات','اللوادر':'لوادر','الحفارات':'حفارات'}; return T.length===1&&M[T[0]]?M[T[0]]:'معدات'; }
 function isCrusherCtr(n){ const v=String(n||'').replace(/\s+/g,' ').trim(); return v==='الكسارة' || v===CRUSHER_CODE_NAME; }
-/* معدات الكسارة (المولدات) متكودة في دليل الأكواد زي عربيات المقاولين — عشان استهلاك السولار بس (محمد 2026-11-10) */
+/* معدات الكسارة (المولدات) متكودة في دليل الأكواد زي عربيات أصحاب المعدات — عشان استهلاك السولار بس (محمد 2026-11-10) */
 const CRUSHER_CODE_NAME='معدات الكسارة';
 function isCrusherIssue(x){ return !x || !x.name || x.name==='-' || isCrusherCtr(x.name); }
 function ensureCrusherCode(){ try{ if(!db.contractors) db.contractors=[]; if(db.contractors.some(c=>isCrusherCtr(c.name))) return;
@@ -6832,7 +6832,7 @@ function renderSupplierStmt(){
     g('ss-items').innerHTML = Object.keys(items).length ? `<div class="text-xs font-bold text-slate-700 mb-1">الأصناف اللي اتشرت منه في الفترة:</div><div class="flex flex-wrap gap-2">${Object.entries(items).map(([k,o])=>`<span class="bg-amber-50 border border-amber-200 rounded-full px-3 py-1 text-xs font-bold">${esc(k)}: ${nfmt(o.q)} ${esc(o.u||'')} = ${fmt(o.v)}</span>`).join('')}</div>` : '';
 }
 
-/* إجمالي كل الموردين للفترة: لكل مورد رصيد أول المدة + مشتريات − مدفوع = الباقي له */
+/* إجمالي كل موردي قطع الغيار والسولار للفترة: لكل مورد رصيد أول المدة + مشتريات − مدفوع = الباقي له */
 function allSuppliersStmtData(from, to){
     const names = [...new Set([...(db.suppliers||[]).map(x=>x.name), ...(db.procurements||[]).map(p=>p.supplier), ...(db.payments||[]).map(p=>p.supplier)].filter(Boolean))];
     const inR = d=>(!from || (d||'')>=from) && (!to || (d||'')<=to), before = d=>from && (d||'')<from;
@@ -6866,19 +6866,19 @@ function renderAllSuppliersStmt(from, to){
     g('ss-summary').innerHTML = `<div class="bg-slate-50 rounded p-2"><div class="text-[11px] font-bold text-slate-600">رصيد أول المدة</div><div class="font-bold">${fmt(T.opening)}</div></div>
         <div class="bg-amber-50 rounded p-2"><div class="text-[11px] font-bold text-amber-700">إجمالي المشتريات</div><div class="font-bold">${fmt(T.buy)}</div></div>
         <div class="bg-emerald-50 rounded p-2"><div class="text-[11px] font-bold text-emerald-700">إجمالي المدفوع</div><div class="font-bold">${fmt(T.paid)}</div></div>
-        <div class="bg-rose-50 rounded p-2 border border-rose-200"><div class="text-[11px] font-bold text-rose-700">إجمالي الباقي للموردين</div><div class="font-bold text-lg">${fmt(T.closing)}</div></div>`;
+        <div class="bg-rose-50 rounded p-2 border border-rose-200"><div class="text-[11px] font-bold text-rose-700">إجمالي الباقي لموردي قطع الغيار والسولار</div><div class="font-bold text-lg">${fmt(T.closing)}</div></div>`;
     g('ss-items').innerHTML = `<div class="flex flex-wrap gap-2 mb-2"><button onclick="printAllSuppliersStmt()" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1 rounded text-xs font-bold"><i class="fa-solid fa-print"></i> طباعة</button><button onclick="waAllSuppliersStmt()" class="bg-[#25D366] text-white px-3 py-1 rounded text-xs font-bold"><i class="fa-brands fa-whatsapp"></i> واتساب</button></div><div class="overflow-x-auto">${allSuppliersTableHtml(from, to)}</div>`;
 }
 function printAllSuppliersStmt(){
     const from = document.getElementById('ss-from').value, to = document.getElementById('ss-to').value;
-    printHtml(`<div class="rep-sec">${repHeadTxt('إجمالي كشف حساب الموردين', allSuppliersPeriodLbl(from,to))}${allSuppliersTableHtml(from, to)}</div>`);
+    printHtml(`<div class="rep-sec">${repHeadTxt('إجمالي كشف حساب موردي قطع الغيار والسولار', allSuppliersPeriodLbl(from,to))}${allSuppliersTableHtml(from, to)}</div>`);
 }
 function waAllSuppliersStmt(){
     const from = document.getElementById('ss-from').value, to = document.getElementById('ss-to').value;
     const {rows, T} = allSuppliersStmtData(from, to);
-    const txt = [`📒 ${siteName()} — إجمالي حساب الموردين`, allSuppliersPeriodLbl(from,to), '',
+    const txt = [`📒 ${siteName()} — إجمالي حساب موردي قطع الغيار والسولار`, allSuppliersPeriodLbl(from,to), '',
         ...rows.map(r=>`• ${r.name}: مشتريات ${mfmt(r.buy)} — مدفوع ${mfmt(r.paid)} — الباقي ${mfmt(r.closing)}`), '',
-        `رصيد أول المدة: ${mfmt(T.opening)} ج.م`, `إجمالي المشتريات: ${mfmt(T.buy)} ج.م`, `إجمالي المدفوع: ${mfmt(T.paid)} ج.م`, `إجمالي الباقي للموردين: ${mfmt(T.closing)} ج.م`].join('\n');
+        `رصيد أول المدة: ${mfmt(T.opening)} ج.م`, `إجمالي المشتريات: ${mfmt(T.buy)} ج.م`, `إجمالي المدفوع: ${mfmt(T.paid)} ج.م`, `إجمالي الباقي لموردي قطع الغيار والسولار: ${mfmt(T.closing)} ج.م`].join('\n');
     const a = document.createElement('a'); a.href = 'https://wa.me/?text='+encodeURIComponent(waSig(txt)); a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove();
 }
 
@@ -8698,7 +8698,7 @@ function quickSearch(){
     box.innerHTML = `<div style="background:#fff;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.25);overflow:hidden;max-height:340px;overflow-y:auto">${R.length?R.map(([t,l,on])=>`<button type="button" onclick="${esc(on)}" style="display:flex;gap:8px;align-items:center;width:100%;text-align:right;padding:10px 12px;border-bottom:1px solid #f1f5f9;color:#0f172a"><span style="font-size:11px;font-weight:800;background:#e0f2fe;color:#0369a1;border-radius:999px;padding:1px 8px">${t}</span><span style="font-weight:700">${esc(l)}</span></button>`).join(''):'<div style="padding:10px 12px;color:#94a3b8">—</div>'}</div>`;
 }
 
-/* كشف الحساب = العملاء والموردين، كشف المعدة في تاب المعدات، وكشف حساب المقاول فضل في تاب المستخلصات (محمد 2026-11-07) */
+/* كشف الحساب = العملاء وموردي قطع الغيار والسولار، كشف المعدة في تاب المعدات، وكشف حساب المقاول فضل في تاب المستخلصات (محمد 2026-11-07) */
 document.addEventListener('DOMContentLoaded',()=>{ const L=document.getElementById('tab-ledger'); if(!L) return;
     /* كشف المورد فضل في تاب المشتريات (محمد 2026-11-07) */ });
 function qsGo(kind, v){
@@ -9383,7 +9383,7 @@ function contractorBons(name){
     if(c && c.notStarted) return [];
     return (db.dailyLog||[]).filter(r=> (!c || !c.startFrom || (r.date||'') >= c.startFrom) && (c && c.allSin ? (!Array.isArray(r.shares) || r.shares.some(n=>normName(n)===normName(c.name))) : normName(r.worker)===normName(name)));
 }
-/* اختيار مين يتحاسب على البون (للمقاولين اللي بيتحاسبوا على كل السن) — بيفتكر آخر اختيار */
+/* اختيار مين يتحاسب على البون (لأصحاب المعدات اللي بيتحاسبوا على كل السن) — بيفتكر آخر اختيار */
 function sharedContractors(){ return (db.contractors||[]).filter(c=>c.allSin); }
 function dlSharesChecked(){ return [...document.querySelectorAll('#dl-shares input[data-share]:checked')].map(i=>i.dataset.share); }
 function renderShares(sel){
@@ -9443,7 +9443,7 @@ function renderCtrExtracts(){
     if([...sel.options].some(o=>o.value===pv)) sel.value=pv; else cxDefaults();
     if(!document.getElementById('cx-from').value) cxDefaults();
     const fs=document.getElementById('cx-filter'), fv=fs?fs.value:'';
-    if(fs){ const N=[...new Set((db.ctrExtracts||[]).map(x=>x.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar')); fs.innerHTML='<option value="">كل المقاولين</option>'+N.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join(''); fs.value=N.includes(fv)?fv:''; }
+    if(fs){ const N=[...new Set((db.ctrExtracts||[]).map(x=>x.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar')); fs.innerHTML='<option value="">كل أصحاب المعدات</option>'+N.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join(''); fs.value=N.includes(fv)?fv:''; }
     const qv=String(document.getElementById('cx-search')?.value||'').trim().replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)), qm=x=>!qv || [x.name, x.notes, x.equip?ctrEqName(x.name,x.equip):'', dmy(x.date), dmy(x.from), dmy(x.to)].join(' ').includes(qv) || [dmy(x.date),dmy(x.from),dmy(x.to)].some(d=>String(d||'').replace(/\b0(\d)/g,'$1').includes(qv.replace(/\b0(\d)/g,'$1')));
     const X=(db.ctrExtracts||[]).filter(x=>(!fs||!fs.value||x.name===fs.value) && qm(x)).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||String(b.id).localeCompare(String(a.id)));
     const LIM=10, XA=X; const cut=!qv && !(fs&&fs.value) && XA.length>LIM; const X2=cut?XA.slice(0,LIM):XA; // القايمة قصيرة: آخر 10 بس، والباقي بالبحث (محمد 2026-11-07)
@@ -9574,7 +9574,7 @@ function openCtrExtractView(id){
         <div id="cxv-body" style="overflow-x:auto;background:#fff;padding:6px">${body}</div></div>`;
     document.body.appendChild(m);
 }
-/* إجمالي كل المقاولين: له (شغل + الحساب القديم) − المدفوع له = الباقي له (محمد 2026-11-10) */
+/* إجمالي كل أصحاب المعدات: له (شغل + الحساب القديم) − المدفوع له = الباقي له (محمد 2026-11-10) */
 function allContractorsStmtData(){
     const rows=(db.contractors||[]).filter(c=>!isCrusherCtr(c.name)).map(c=>{ const R=contractorStmtRows(c.name).rows;
         const tot=R.reduce((s,r)=>s+(Number(r.credit)||0),0), paid=R.reduce((s,r)=>s+(Number(r.debit)||0),0);
@@ -9595,9 +9595,9 @@ function openAllContractorsStmt(){
     m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:12px';
     m.onclick=e=>{ if(e.target===m) m.remove(); };
     m.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:14px;max-width:760px;width:100%;padding:14px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:16px">📊 إجمالي حساب المقاولين</b>
-        <span style="display:flex;gap:6px"><button onclick="shareCard('cxv-body','إجمالي حساب المقاولين')" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px"><i class="fa-brands fa-whatsapp"></i> واتساب</button><button onclick="printHtml(document.getElementById('cxv-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="document.getElementById('cxv-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✕</button></span></div>
-        <div id="cxv-body" style="overflow-x:auto;background:#fff;padding:6px"><div class="rep-sec">${repHeadTxt('إجمالي حساب المقاولين','لحد '+dmy(todayISO()))}${allContractorsTableHtml()}</div></div></div>`;
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:16px">📊 إجمالي حساب أصحاب المعدات</b>
+        <span style="display:flex;gap:6px"><button onclick="shareCard('cxv-body','إجمالي حساب أصحاب المعدات')" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px"><i class="fa-brands fa-whatsapp"></i> واتساب</button><button onclick="printHtml(document.getElementById('cxv-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="document.getElementById('cxv-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✕</button></span></div>
+        <div id="cxv-body" style="overflow-x:auto;background:#fff;padding:6px"><div class="rep-sec">${repHeadTxt('إجمالي حساب أصحاب المعدات','لحد '+dmy(todayISO()))}${allContractorsTableHtml()}</div></div></div>`;
     document.body.appendChild(m);
 }
 function deleteCtrExtract(id){
@@ -9655,7 +9655,7 @@ function saveQuickExtracts(){
     logAudit('create','مستخلص سريع', `${n} مقاول`, null, null);
     document.getElementById('qx-modal').remove(); scheduleSave(); renderAll();
 }
-/* ---------- التقرير الأسبوعي (خميس → أربعاء) لكل المقاولين ---------- */
+/* ---------- التقرير الأسبوعي (خميس → أربعاء) لكل أصحاب المعدات ---------- */
 function weekStart(d){ const x=new Date((d||todayISO())+'T12:00:00'); const back=(x.getDay()+3)%7; x.setDate(x.getDate()-back); return x.toISOString().slice(0,10); }
 function addDays(d,n){ const x=new Date(d+'T12:00:00'); x.setDate(x.getDate()+n); return x.toISOString().slice(0,10); }
 function weekShift(n){ const el=document.getElementById('wk-from'); el.value=addDays(weekStart(el.value),n); renderWeeklyReport(); }
@@ -10594,7 +10594,7 @@ function exportPartyExcel(){
 function brandLogoSrc(){ return document.querySelector('header img')?.src || ''; }
 /* ================= التقرير الإداري للأداء والتكلفة والربحية ================= */
 /* كل رقم في التقرير جاي من حركات مسجلة فعلاً: البونات (dailyLog)، سطور الفواتير (sales)، الإيرادات والمصروفات (expensesData)،
-   مستحقات المقاولين (كشف المقاول)، المشتريات والمخزون (procurements/stockIssues)، والإنتاج اليومي (prodLog). مفيش أرقام ثابتة. */
+   مستحقات أصحاب المعدات (كشف المقاول)، المشتريات والمخزون (procurements/stockIssues)، والإنتاج اليومي (prodLog). مفيش أرقام ثابتة. */
 const MGR_BUCKETS = {prod:'تكلفة إنتاج', trans:'تكلفة نقل', admin:'مصروفات إدارية وأخرى', skip:'خارج التقرير'};
 function mgrMap(){ if(!db.meta) db.meta={}; if(!db.meta.mgrMap || typeof db.meta.mgrMap!=='object') db.meta.mgrMap={}; return db.meta.mgrMap; }
 /* التصنيف الافتراضي لكل مصدر تكلفة — قابل للتغيير من الشاشة وبيتحفظ في db.meta.mgrMap */
@@ -10686,7 +10686,7 @@ function mgrCompute(F){
     const byCat = {};
     (db.expensesData||[]).filter(x=>inP(x.date)).forEach(x=>{
         if(x.category==='إيراد' || x.tipDeposit) return;
-        if(ctrCats.has(x.category)) return;               // عهد وسداد المقاولين = تسوية لمستحقاتهم، المصروف هو المستحق نفسه
+        if(ctrCats.has(x.category)) return;               // عهد وسداد أصحاب المعدات = تسوية لمستحقاتهم، المصروف هو المستحق نفسه
         if(x.category===ADV_CAT) return;                  // سلفة موظف بتتخصم من راتبه
         if(isAdvRec(x) && salaried.has(x.name)) return;   // أجور لموظف ليه راتب شهري = سلفة على الراتب
         const o = byCat[x.category] || (byCat[x.category]={amount:0, rows:[]});
@@ -10716,7 +10716,7 @@ function mgrCompute(F){
     const recovered = recoveredRows.reduce((a,s)=>a+(Number(s.qty)||0)*(Number(s.price)||0),0);
     const matCost = Math.round(openStock + purchasesCost - closeStock - recovered);
     if(purchases.length || openStock || closeStock || recovered){
-        sources.push({key:'stock', kind:'stock', label:'سولار وزيوت وأصناف مستهلكة (مشتريات ± مخزون − المحمّل على المقاولين)', amount:matCost, bucket:mgrBucketOf('stock',{kind:'stock'}),
+        sources.push({key:'stock', kind:'stock', label:'سولار وزيوت وأصناف مستهلكة (مشتريات ± مخزون − المحمّل على أصحاب المعدات)', amount:matCost, bucket:mgrBucketOf('stock',{kind:'stock'}),
             rows:[ ...(openStock?[{date:F.from, desc:'مخزون أول المدة', amount:Math.round(openStock)}]:[]),
                 ...purchases.map(p=>({date:p.date, desc:`شراء ${p.item} ${nfmt(p.qty)} ${p.unit||''} × ${nfmt(p.price)}${p.supplier?' — '+p.supplier:''}`, amount:(Number(p.qty)||0)*(Number(p.price)||0)})),
                 ...(closeStock?[{date:F.to||todayISO(), desc:'ناقص: مخزون آخر المدة (لسه ما اتصرفش)', amount:-Math.round(closeStock)}]:[]),
@@ -10790,7 +10790,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.93';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.95';
 
     /* تنبيهات */
     const alerts=[];
