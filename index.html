@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.78</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.80</span></p></div>
         </div>
     </aside>
 
@@ -3408,17 +3408,14 @@ let __fromPop=false;
 /* Phone back button / edge swipe: close whatever is on top (a dialog, the edit banner) first and stay on the same screen; only when nothing is open go back to home. */
 window.addEventListener('popstate',()=>{
     let closed=false; try{ closed=closeTopLayer(); }catch(e){}
-    if(closed){ try{ history.pushState({tab:activeTab,layer:1},''); }catch(e){} return; }
-    if(activeTab!=='home'){ __fromPop=true; switchTab('home'); __fromPop=false; }
+    /* خطوة رجوع واحدة بس متسجلة مهما فتحت تابات: رجوع = الرئيسية، ورجوع من الرئيسية = خروج (محمد 2026-11-11) */
+    if(history.state && history.state.guard) return;
+    if(closed){ try{ history.pushState({guard:1},''); }catch(e){} return; }
+    if(activeTab!=='home'){ __fromPop=true; switchTab('home'); __fromPop=false; try{ history.pushState({guard:1},''); }catch(e){} return; }
+    try{ history.back(); }catch(e){}
 });
-try{ if(!history.state) history.replaceState({tab:'home',base:1},''); history.pushState({tab:'home',layer:1},''); }catch(e){}
+try{ if(!(history.state && history.state.guard)){ history.replaceState({base:1},''); history.pushState({guard:1},''); } }catch(e){}
 function switchTab(tabId){
-    try{
-        if(!__fromPop){
-            if(tabId!=='home' && activeTab==='home') history.pushState({tab:tabId},'');
-            else if(tabId==='home' && activeTab!=='home' && history.state && history.state.tab) { __fromPop=true; history.back(); __fromPop=false; }
-        }
-    }catch(e){}
     if(tabId==='home') renderHomeGrid();
     else if(tabPerm(tabId)==='none') return;
     if(tabId==='users'){ setTimeout(renderUsersTab,0); renderPending(); renderJoins(); renderLockCard(); }
@@ -10784,7 +10781,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.78';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.80';
 
     /* تنبيهات */
     const alerts=[];
