@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.70</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.71</span></p></div>
         </div>
     </aside>
 
@@ -1529,6 +1529,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                             <tbody id="pl-content"></tbody>
                         </table>
                     </div>
+                    <div id="pl-sig"></div>
                 </div>
             </div>
 
@@ -4962,6 +4963,7 @@ function deleteTaxRow(idx){
 }
 
 function renderPL(){
+    try{ const sg=document.getElementById('pl-sig'); if(sg && !sg.innerHTML) sg.innerHTML=SIG_LINE; }catch(e){}
     return renderPLInner();
 }
 function renderPLInner(){
@@ -6711,7 +6713,7 @@ function renderPayroll(){
         return `<tr class="border-b border-slate-50"><td class="p-2 font-bold">${esc(n.name)}</td><td class="p-2">${salaryLabel(n,m)}</td><td class="p-2 font-bold ${cr<0?'text-rose-700':cr>0?'text-emerald-700':''}">${cr?nfmt(cr)+(cr<0?' عليه':' ليه'):'—'}</td><td class="p-2">${a?nfmt(a):'—'}</td><td class="p-2">${h?nfmt(h):'—'}</td>
             <td class="p-2 text-rose-700">${ded?nfmt(ded):'—'}</td><td class="p-2 text-rose-700">${adv?nfmt(adv):'—'}</td><td class="p-2">${paid?nfmt(paid):'—'}</td>
             <td class="p-2 font-extrabold ${net<0?'text-rose-700':'text-emerald-700'}">${nfmt(net)}</td>
-            <td class="p-2 pl-no-print-hide whitespace-nowrap"><button onclick="shareSlip(${nm}, '${m}')" title="واتساب للموظف" class="bg-green-600 text-white px-2 py-1 rounded-lg text-xs font-bold ml-1"><i class="fa-brands fa-whatsapp"></i></button>${net>0?`<button onclick="paySalary(${nm}, ${net}, '${m}')" class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-bold">صرف</button>`:''}</td></tr>`;
+            <td class="p-2 pl-no-print-hide whitespace-nowrap"><button onclick="shareSlip(${nm}, '${m}')" title="واتساب للموظف" class="bg-green-600 text-white px-2 py-1 rounded-lg text-xs font-bold ml-1"><i class="fa-brands fa-whatsapp"></i></button></td></tr>`;
     });
     tb.innerHTML = rows.length ? rows.join('') + `<tr class="bg-slate-100 font-bold"><td class="p-2">الإجمالي</td><td class="p-2">${nfmt(T.s)}</td><td class="p-2">${T.cr?nfmt(T.cr):''}</td><td></td><td></td><td class="p-2">${nfmt(T.ded)}</td><td class="p-2">${nfmt(T.adv)}</td><td class="p-2">${nfmt(T.paid)}</td><td class="p-2">${nfmt(T.net)}</td><td></td></tr>`
         : '<tr><td colspan="10" class="p-4 text-center text-slate-400">—</td></tr>';
@@ -10769,7 +10771,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.70';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.71';
 
     /* تنبيهات */
     const alerts=[];
