@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.80</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.83</span></p></div>
         </div>
     </aside>
 
@@ -1940,6 +1940,8 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 </div>
                 <label class="block text-xs font-bold text-slate-600 mb-1">سعر المتر اللي بنحاسبه بيه (ج.م)</label>
                 <input id="master-rate" type="number" step="any" min="0" placeholder="مثال: 53" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm">
+                <label class="block text-xs font-bold text-slate-600 mb-1 mt-2">السعر التاني — لمتر الأتربة (اختياري)</label>
+                <input id="master-rate2" type="number" step="any" min="0" placeholder="مثال: 8.75" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm">
                 <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 mt-3">
                     <label class="block text-xs font-bold text-amber-800 mb-1">رصيد افتتاحي (اختياري) — بيتسجل بتاريخ اليوم، وأي حركات قديمة قبله مش بتتحسب</label>
                     <div class="grid grid-cols-2 gap-2">
@@ -3666,6 +3668,7 @@ function openEditMasterModal(cat, code){
     document.getElementById('master-prepaid').checked = cat==='clients' && !!item.prepaid;
     document.getElementById('master-salary').value = cat==='names' ? (item.salary || '') : '';
     document.getElementById('master-rate').value = cat==='contractors' ? (item.rate || '') : '';
+    document.getElementById('master-rate2').value = cat==='contractors' ? (item.rate2 || '') : '';
     document.getElementById('master-equip').value = cat==='contractors' ? (item.equip || '') : '';
     try{ renderCtrEqQuick(); }catch(e){}
     document.getElementById('master-ctr-equips').value = cat==='contractors' ? (item.equips || []).join('، ') : '';
@@ -3840,7 +3843,7 @@ function saveMasterItem(e){
             if(editCode){ const old=(db.names||[]).find(it=>it.code===Number(editCode)); if(old && Number(old.perMeter)>0 && !item.perMeter) item.perMeter=old.perMeter; } }
         if(type==='names') saveEmadOpen(item);
     }
-    if(type==='contractors'){ const rt = Number(document.getElementById('master-rate').value)||0; if(rt>0) item.rate = rt; const eq = document.getElementById('master-equip').value.trim(); if(eq) item.equip = eq; const eqs = [...new Set(document.getElementById('master-ctr-equips').value.split(/[،,\n]+/).map(x=>x.trim()).filter(Boolean))]; if(eqs.length) item.equips = eqs; if(document.getElementById('master-ctrkind').value==='owner') item.sinOwner = true; else item.allSin = true;  if(document.getElementById('master-notstarted').checked) item.notStarted = true;
+    if(type==='contractors'){ const rt = Number(document.getElementById('master-rate').value)||0; if(rt>0) item.rate = rt; { const r2=Number(document.getElementById('master-rate2').value)||0; if(r2>0) item.rate2=r2; } const eq = document.getElementById('master-equip').value.trim(); if(eq) item.equip = eq; const eqs = [...new Set(document.getElementById('master-ctr-equips').value.split(/[،,\n]+/).map(x=>x.trim()).filter(Boolean))]; if(eqs.length) item.equips = eqs; if(document.getElementById('master-ctrkind').value==='owner') item.sinOwner = true; else item.allSin = true;  if(document.getElementById('master-notstarted').checked) item.notStarted = true;
         /* حالة المقاول: خلص شغله = مفيش سن جديد + تقدير سن نهائي في كشفه (محمد 2026-11-10) */
         if(document.getElementById('master-ctr-status').value==='done'){ item.done=true; const fa=Number(document.getElementById('master-ctr-final').value)||0, fd=document.getElementById('master-ctr-final-date').value;
             if(fa){ item.finalSin=fa; item.finalSinDate=fd||todayISO(); } else { delete item.finalSin; delete item.finalSinDate; } }
@@ -9397,7 +9400,7 @@ function ctrSinIn(name, from, to){ const {days}=ctrSinDays(name); const D=days.f
 /* ميزان الأمتار: المستحق فعلاً − اللي اتحاسب عليه في المستخلصات */
 function ctrMeterBalance(name){
     const {days, oldLeft}=ctrSinDays(name);
-    const due=days.reduce((a,d)=>a+d.net,0), billed=(db.ctrExtracts||[]).filter(x=>normName(x.name)===normName(name)).reduce((a,x)=>a+(Number(x.qty)||0),0);
+    const due=days.reduce((a,d)=>a+d.net,0), billed=(db.ctrExtracts||[]).filter(x=>!x.turab && normName(x.name)===normName(name)).reduce((a,x)=>a+(Number(x.qty)||0),0);
     return {produced:days.reduce((a,d)=>a+d.raw,0), oldUsed:days.reduce((a,d)=>a+d.old,0), oldLeft, due, billed, diff:due-billed};
 }
 function contractorStmtRows(name){
@@ -9407,7 +9410,7 @@ function contractorStmtRows(name){
         days.forEach(d=>ev.push({date:d.date, ord:0, day:true, desc:`شغل اليوم — ${d.n} بون${d.old?` (${nfmt(d.old)} متر سن قديم مش محسوب)`:''}`, sin:d.net, n:d.n, old:d.old, price:rate, credit:Math.round(d.net*rate), debit:0}));
     } else {
         (db.ctrExtracts||[]).filter(x=>normName(x.name)===normName(name)).forEach(x=>ev.push(x.extra
-            ? {date:x.date, ord:0, desc: x.final ? 'مستخلص نهائي — تقدير السن (تسوية أخيرة)' : `عمل إضافي — ${x.equip}${x.from?' '+dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} × ${nfmt(x.rate)}${x.notes?' — '+x.notes:''}`, sin:0, credit:Number(x.amount)||0, debit:0}
+            ? {date:x.date, ord:0, desc: x.final ? 'مستخلص نهائي — تقدير السن (تسوية أخيرة)' : x.turab ? `مستخلص ${x.equip} ${x.from?dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} متر${x.notes?' — '+x.notes:''}` : `عمل إضافي — ${x.equip}${x.from?' '+dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} × ${nfmt(x.rate)}${x.notes?' — '+x.notes:''}`, sin:0, credit:Number(x.amount)||0, debit:0}
             : {date:x.date, ord:0, desc:`مستخلص${(l=>l==='بدون معدة'?'':' '+l)(ctrEqLbl(name,x.equip))} ${x.from?dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} متر${x.notes?' — '+x.notes:''}`, sin:Number(x.qty)||0, credit:Number(x.amount)||0, debit:0}));
     }
     const ctrCats = (db.expenses||[]).filter(c=>c.nameType==='contractors').map(c=>c.name);
@@ -9461,6 +9464,7 @@ function ctrKind(name){ const n=String(name||''); return /حفار/.test(n)?'ح�
 function ctrEqName(name,e){ const l=ctrEqLbl(name,e); return l==='بدون معدة' ? ctrKind(name) : l; }
 function codedRate(name, eq){ const c=(db.contractors||[]).find(x=>x.name===name); if(!c) return 0; const er=c.equipRates||{}; const k=Object.keys(er).find(k=>eqNorm(k)===eqNorm(eq)); return Number(k!=null?er[k]:c.rate)||0; } // السعر المكود في دليل الأكواد (محمد 2026-11-07)
 function cxLastRate(name, eq){ const cr=codedRate(name,eq); if(cr) return cr; const L=(db.ctrExtracts||[]).filter(x=>x.name===name && x.equip===eq && x.rate).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||String(a.id).localeCompare(String(b.id))); return L.length ? L[L.length-1].rate : (workerRate(name)||''); }
+function ctrRate2(name){ const c=(db.contractors||[]).find(x=>x.name===name); return Number(c&&c.rate2)||0; }
 function cxDefaults(){
     const name=document.getElementById('cx-name').value; if(!name) return;
     const last=(db.ctrExtracts||[]).filter(x=>x.name===name && x.to).map(x=>x.to).sort().pop();
@@ -9469,7 +9473,12 @@ function cxDefaults(){
     document.getElementById('cx-rows').innerHTML = ctrEquips(name).map((e,i)=>`<tr class="border-t border-slate-100"><td class="p-2 font-bold">${esc(ctrEqName(name,e))}</td>
         <td class="p-2"><input id="cx-q-${i}" type="number" step="any" min="0" oninput="cxPreview()" class="w-28 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
         <td class="p-2${codedRate(name,e)?' rate-col':''}"><input id="cx-r-${i}" type="number" step="any" min="0" value="${cxLastRate(name,e)}" oninput="cxPreview()" class="w-24 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
-        <td class="p-2 font-extrabold text-emerald-700" id="cx-a-${i}">—</td></tr>`).join('');
+        <td class="p-2 font-extrabold text-emerald-700" id="cx-a-${i}">—</td></tr>`).join('')
+        /* سعر تاني لمتر التراب (محمد 2026-11-11): سطر «تراب» بسعره المكود */
+        + (ctrRate2(name) ? `<tr class="border-t border-slate-100 bg-amber-50/50"><td class="p-2 font-bold">${ctrHasGround(name)?'لودر أرضية — أتربة':'أتربة'}</td>
+        <td class="p-2"><input id="cx-q-t" type="number" step="any" min="0" oninput="cxPreview()" class="w-28 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
+        <td class="p-2 rate-col"></td>
+        <td class="p-2 font-extrabold text-emerald-700" id="cx-a-t">—</td></tr>` : '');
     { const th=document.getElementById('cx-rate-th'); if(th) th.classList.toggle('rate-col', ctrEquips(name).every(e=>codedRate(name,e))); }
     cxPreview(true);
 }
@@ -9478,11 +9487,14 @@ function cxPreview(resetQty){
     let tq=0, ta=0;
     /* الأمتار بتيجي من البونات (صافي السن في الفترة) — محمد 2026-11-07 */
     if(resetQty){ const E=ctrEquips(name); E.forEach((e,i)=>{ const qe=g('cx-q-'+i); if(qe) qe.value=''; });
+        { const qt=g('cx-q-t'); if(qt){ qt.value=''; const f=g('cx-from').value, t=g('cx-to').value; /* أمتار الأتربة من البونات (صنف «أتربة») في الفترة */
+            if(f && t){ const v=Math.round(contractorBons(name).filter(r=>(r.date||'')>=f && (r.date||'')<=t).reduce((a,r)=>a+(Number((r.q||{}).xatraba)||0),0)*100)/100; if(v>0) qt.value=v; } } }
         const q0=g('cx-q-0'), f=g('cx-from').value, t=g('cx-to').value;
         if(q0 && f && t && !(codedRate(name,E[0])>=200)){ const r=ctrSinIn(name,f,t); const v=Math.round(r.net*100)/100; if(v>0) q0.value=v; } }
     ctrEquips(name).forEach((e,i)=>{ const qe=g('cx-q-'+i); if(!qe) return;
         const q=Number(qe.value)||0, rt=Number(g('cx-r-'+i).value)||0; tq+=q; ta+=q*rt;
         g('cx-a-'+i).textContent = q&&rt ? mfmt(q*rt) : '—'; });
+    { const qt=g('cx-q-t'); if(qt){ const q=Number(qt.value)||0, rt=ctrRate2(name); tq+=q; ta+=q*rt; g('cx-a-t').textContent = q&&rt ? mfmt(q*rt) : '—'; } }
     g('cx-tq').textContent = tq ? nfmt(tq) : '—';
     g('cx-amount').textContent = ta ? mfmt(ta) : '—';
     const tot=(db.ctrExtracts||[]).filter(x=>x.name===name).reduce((a,x)=>a+(Number(x.qty)||0),0);
@@ -9524,6 +9536,7 @@ function saveCtrExtract(){
     const g=id=>document.getElementById(id), name=g('cx-name').value;
     const L=ctrEquips(name).map((e,i)=>({e, q:Number(g('cx-q-'+i)?.value)||0, rt:Number(g('cx-r-'+i)?.value)||0, i})).filter(x=>x.q>0);
     const EXall=cxExtras(), EX=EXall.filter(x=>x.d && x.q>0 && x.rt>0);
+    { const tqv=Number(g('cx-q-t')?.value)||0, r2=ctrRate2(name); if(tqv>0 && r2>0) EX.push({d:(ctrHasGround(name)?'لودر أرضية — أتربة':'أتربة'), q:tqv, rt:r2, turab:true}); }
     const half=EXall.find(x=>(x.d||x.q>0||x.rt>0) && !(x.d && x.q>0 && x.rt>0));
     if(half){ alert('اكمل بيانات العمل الإضافي: الوصف والكمية والسعر'); half.el.focus(); return; }
     if(!name || (!L.length && !EX.length)){ alert('اختار المقاول واكتب الأمتار أو عمل إضافي'); return; }
@@ -9537,7 +9550,7 @@ function saveCtrExtract(){
     L.forEach(x=>{ const rec={id:String(newId()), name, equip:x.e, date:todayISO(), from, to, qty:x.q, rate:x.rt, amount:Math.round(x.q*x.rt), notes};
         if(!firstId) firstId=rec.id;
         db.ctrExtracts.push(rec); addMgmtFee(rec); logAudit('create','مستخلص مقاول',`${name} ${x.e} ${x.q}×${x.rt}`,null,rec); });
-    EX.forEach(x=>{ const rec={id:String(newId()), name, extra:true, equip:x.d, date:todayISO(), from, to, qty:x.q, rate:x.rt, amount:Math.round(x.q*x.rt*100)/100, notes};
+    EX.forEach(x=>{ const rec={id:String(newId()), name, extra:true, ...(x.turab?{turab:true}:{}), equip:x.d, date:todayISO(), from, to, qty:x.q, rate:x.rt, amount:Math.round(x.q*x.rt*100)/100, notes};
         if(!firstId) firstId=rec.id;
         db.ctrExtracts.push(rec); logAudit('create','عمل إضافي مقاول',`${name} ${x.d} ${x.q}×${x.rt}`,null,rec); }); // من غير بدل إدارة لأنه مش أمتار سن
     g('cx-notes').value=''; cxExtraClear(); scheduleSave(); renderAll(); cxDefaults();
@@ -10781,7 +10794,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.80';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.83';
 
     /* تنبيهات */
     const alerts=[];
