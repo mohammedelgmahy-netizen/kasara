@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.69</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.70</span></p></div>
         </div>
     </aside>
 
@@ -1953,7 +1953,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 <label class="block text-xs font-bold text-slate-600 mb-1">الراتب الشهري (ج.م)</label>
                 <input id="master-salary" type="number" step="any" min="0" placeholder="للموظف بس — الفرد سيبها فاضية" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm">
                 <div id="master-emad-wrap" class="hidden bg-violet-50 border border-violet-200 rounded-lg p-2 mt-2">
-                    <label class="block text-xs font-bold text-violet-800 mb-1">حساب عماد ناجي القديم</label>
+                    <label id="master-emad-title" class="block text-xs font-bold text-violet-800 mb-1">الحساب القديم</label>
                     <div class="grid grid-cols-2 gap-2">
                         <div><label class="block text-[11px] font-bold text-slate-600">كان ليه (إجمالي القديم)</label><input id="master-emad-open-total" type="number" step="any" min="0" oninput="emadOpenCalc()" placeholder="0" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div><label class="block text-[11px] font-bold text-slate-600">اللي اتصرف له من القديم</label><input id="master-emad-open-paid" type="number" step="any" min="0" oninput="emadOpenCalc()" placeholder="0" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm"></div>
@@ -3677,9 +3677,9 @@ function openEditMasterModal(cat, code){
     document.getElementById('master-ctr-open-date').value = cat==='contractors' ? (item.openDate||'') : '';
     document.getElementById('master-ctr-open-acc').value = (cat==='contractors' && item.openAcc) ? item.openAcc : 'درج المكتب'; ctrOpenCalc();
     /* حساب عماد ناجي القديم — بيظهر بس في تكويد حفارات عماد (محمد 2026-11-10) */
-    { const isEmad = cat==='names' && item.name===COM_PERSON;
+    { const isEmad = cat==='names' && (item.name===COM_PERSON || /مجد[يى]/.test(item.name||'') || !!(Number(item.openTotal)||Number(item.openPaid))); /* الحساب القديم لعماد ناجي ومجدي عبد الغني بس (محمد 2026-11-11) */
       document.getElementById('master-emad-wrap').classList.toggle('hidden', !isEmad);
-      if(isEmad){
+      if(isEmad){ document.getElementById('master-emad-title').textContent='حساب '+item.name+' القديم';
         document.getElementById('master-emad-open-total').value = item.openTotal||'';
         document.getElementById('master-emad-open-paid').value = item.openPaid||'';
         document.getElementById('master-emad-open-acc').value = item.openAcc||SARI_ACC;
@@ -4879,7 +4879,7 @@ function computePL(projectFilter, dateFrom, dateTo){
     const operatingLines = Object.entries(catGroups).filter(([,v])=>v.plType==='operating')
         .map(([k,v])=>({ num:num(), label:k, value:v.total }));
     /* مرتب عماد ناجي القديم (رصيد افتتاحي من التكويد) — القديم كله يعتبر جديد (محمد 2026-11-10) */
-    try{ const oldSal=(db.names||[]).filter(x=>x.openDate && matchDate({date:x.openDate})).reduce((a,x)=>a+(Number(x.openTotal)||0),0); if(oldSal) operatingLines.push({ num:num(), label:'مرتب عماد ناجي القديم (رصيد افتتاحي)', value:oldSal }); }catch(e){}
+    try{ const oldSal=(db.names||[]).filter(x=>x.openDate && matchDate({date:x.openDate})).reduce((a,x)=>a+(Number(x.openTotal)||0),0); if(oldSal) operatingLines.push({ num:num(), label:'مرتبات الموظفين القديمة (رصيد افتتاحي)', value:oldSal }); }catch(e){}
     const operatingTotal = operatingLines.reduce((s,l)=>s+l.value,0);
 
     // هـ. صافي الربح التشغيلي
@@ -5306,7 +5306,7 @@ function balanceSheetData(D){
     if(Math.round(ctrOwe)) L.push({name:'مستحقات المقاولين', v:ctrOwe});
     if(Math.round(adv)) L.push({name:'دفعات مقدمة من العملاء', v:adv});
     // مصروفات مستحقة لسه ماتدفعتش (قيمة المصروف − المدفوع منه) — زي عمولة جلب العملاء
-    try{ let acc=0, accM=0; (db.expensesData||[]).filter(x=>le(x.date) && !x.tipDeposit).forEach(x=>{ const c=(db.expenses||[]).find(e=>e.name===x.category); if(!c || c.nameType==='contractors' || c.plType==='revenue' || x.category==='إيراد') return; const rem=(Number(x.total)||0)-(Number(x.paid)||0); if(x.category===COM_CAT) accM+=rem; else acc+=rem; }); if(Math.round(accM)) L.push({name:'بدل إدارة وتشغيل مستحق — عماد ناجي', v:accM}); try{ const vSal=(db.names||[]).filter(x=>x.openDate && le(x.openDate)).reduce((a,x)=>a+((Number(x.openTotal)||0)-(Number(x.openPaid)||0)),0); if(Math.round(vSal)) L.push({name:'مرتب عماد ناجي المستحق (رصيد سابق)', v:vSal}); }catch(e){} if(Math.round(acc)>0) L.push({name:'مصروفات مستحقة (لم تُدفع)', v:acc}); else if(Math.round(acc)<0) A.push({g:'مستحقات أخرى', name:'مصروفات مدفوعة مقدماً', v:-acc}); }catch(e){}
+    try{ let acc=0, accM=0; (db.expensesData||[]).filter(x=>le(x.date) && !x.tipDeposit).forEach(x=>{ const c=(db.expenses||[]).find(e=>e.name===x.category); if(!c || c.nameType==='contractors' || c.plType==='revenue' || x.category==='إيراد') return; const rem=(Number(x.total)||0)-(Number(x.paid)||0); if(x.category===COM_CAT) accM+=rem; else acc+=rem; }); if(Math.round(accM)) L.push({name:'بدل إدارة وتشغيل مستحق — عماد ناجي', v:accM}); try{ const vSal=(db.names||[]).filter(x=>x.openDate && le(x.openDate)).reduce((a,x)=>a+((Number(x.openTotal)||0)-(Number(x.openPaid)||0)),0); if(Math.round(vSal)) L.push({name:'مرتبات مستحقة للموظفين (رصيد سابق)', v:vSal}); }catch(e){} if(Math.round(acc)>0) L.push({name:'مصروفات مستحقة (لم تُدفع)', v:acc}); else if(Math.round(acc)<0) A.push({g:'مستحقات أخرى', name:'مصروفات مدفوعة مقدماً', v:-acc}); }catch(e){}
     const __capE=[]; // سلف شريك اتعتبرت رأس مال (مش دين على الكسارة)
     try{ const s0=db.sariSettings||{}; const bals={'عماد ناجي':Number(s0.loanOpening)||0}; (db.ownerLoans||[]).filter(l=>le(l.date)).forEach(l=>{ const w=loanLender(l); bals[w]=(bals[w]||0)+(l.type==='in'?1:-1)*(Number(l.amount)||0); }); const capL=db.capitalLenders||[]; Object.entries(bals).forEach(([w,v])=>{ if(!Math.round(v)) return; if(capL.includes(w)) __capE.push({name:'رأس مال '+w+' (باقي حصته في شراء الكسارة)', v}); else L.push({name:'سلف '+w, v}); }); }catch(e){}
     // حقوق الملكية
@@ -10769,7 +10769,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.69';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.70';
 
     /* تنبيهات */
     const alerts=[];
