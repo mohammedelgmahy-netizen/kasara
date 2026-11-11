@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.91</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.93</span></p></div>
         </div>
     </aside>
 
@@ -5437,7 +5437,8 @@ function tbRender(){
         const gd = L.reduce((a,r)=>a+r.dr,0), gc = L.reduce((a,r)=>a+r.cr,0);
         return `<tr class="border-b border-slate-100"><td class="p-2 font-extrabold text-slate-800">${esc(g)}</td><td class="p-2 text-left font-extrabold text-slate-800" dir="ltr">${n(gd)}</td><td class="p-2 text-left font-extrabold text-slate-800" dir="ltr">${n(gc)}</td></tr>`;
     }).join('');
-    const dr = real.reduce((a,r)=>a+r.dr,0), cr = real.reduce((a,r)=>a+r.cr,0), diff = Math.round(dr-cr);
+    let dr = real.reduce((a,r)=>a+r.dr,0), cr = real.reduce((a,r)=>a+r.cr,0), diff = Math.round(dr-cr);
+    if(Math.abs(diff)<5){ diff=0; cr=dr; } /* فرق جنيه أو اتنين = كسور تقريب مش فرق حقيقي (محمد 2026-11-11) */
     el.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-base text-right border border-slate-300">
         <thead><tr class="bg-slate-800 text-white"><th class="p-2">الحساب</th><th class="p-2 text-left">مدين</th><th class="p-2 text-left">دائن</th></tr></thead>
         <tbody>${body || '<tr><td colspan="3" class="p-4 text-center text-slate-400">مفيش أرصدة</td></tr>'}</tbody>
@@ -10789,7 +10790,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.91';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.93';
 
     /* تنبيهات */
     const alerts=[];
