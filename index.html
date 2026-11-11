@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.98</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.99</span></p></div>
         </div>
     </aside>
 
@@ -4210,7 +4210,7 @@ function filterExpenseSubFields(){
 function fixDupOps(){ if(db.dupOps1) return; const main=(db.expenses||[]).find(e=>/^تشغيل الكسارة \(/.test(e.name)); const dup=(db.expenses||[]).find(e=>String(e.name).trim()==='تشغيل الكسارة');
     if(main && dup){ (db.expensesData||[]).forEach(x=>{ if(x.category===dup.name) x.category=main.name; }); db.expenses=db.expenses.filter(e=>e!==dup); }
     db.dupOps1=true; if(main && dup){ scheduleSave(); try{ initDropdowns(); }catch(e){} } }
-function isWageCat(c){ return !!c && (c.nameType==='names' || /أجور|اجور|عمالة|مرتب|رواتب|سلف موظفين/.test(c.name)); }
+function isWageCat(c){ if(c && c.code===4012) return false; /* «مصروف أجور ومرتبات» بند مصروف عادي بالإجمالي (محمد 2026-11-11) */ return !!c && (c.nameType==='names' || /أجور|اجور|عمالة|مرتب|رواتب|سلف موظفين/.test(c.name)); }
 function expTypes(){ try{ fixDupOps(); }catch(e){} return (db.expenses||[]).filter(c=>c.name!=='إيراد' && !isWageCat(c)).sort((x,y)=>x.code-y.code); }
 function renderExpQuick(){
     const box=document.getElementById('exp-quick'); if(!box) return;
@@ -6920,7 +6920,7 @@ function ensureExpenseCatsV1(){
     if(!(db.expenses||[]).some(c=>c.name==='مقاولين')) db.expenses.push({code:nextCode('expenses'), name:'مقاولين', plType:'operating', plBucket:'other_operating', nameType:'contractors'});
     (db.expenses||[]).forEach(c=>{
         if(c.plType==='revenue') return;
-        c.nameType = /أجور|اجور/.test(c.name) ? 'names' : c.name==='مقاولين' ? 'contractors' : 'none';
+        c.nameType = c.code===4012 ? 'none' : /أجور|اجور/.test(c.name) ? 'names' : c.name==='مقاولين' ? 'contractors' : 'none';
     });
     db.imports.expenseCatsV1 = true;
     scheduleSave();
@@ -10807,7 +10807,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.98';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.99';
 
     /* تنبيهات */
     const alerts=[];
