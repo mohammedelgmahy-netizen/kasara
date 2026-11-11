@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.87</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.89</span></p></div>
         </div>
     </aside>
 
@@ -3799,6 +3799,14 @@ function saveMasterItem(e){
     const name = document.getElementById('master-name').value.trim();
     if(!name){ alert('من فضلك أدخل الاسم'); return; }
     const editCode = document.getElementById('master-edit-code').value;
+    /* الخزنة ما تصرفش بالسالب: المدفوع القديم لازم يكون موجود في الخزنة المختارة (محمد 2026-11-11) */
+    try{ const pre = type==='contractors' ? 'master-ctr-open' : type==='suppliers' ? 'master-sup-open' : '';
+        if(pre){ const op=Number(document.getElementById(pre+'-paid').value)||0, acc=document.getElementById(pre+'-acc').value;
+            const old=editCode ? (db[type]||[]).find(x=>String(x.code)===String(editCode)) : null;
+            const oldSame = old && (old.openAcc||SARI_ACC)===acc ? (Number(old.openPaid)||0) : 0;
+            const same = old && (old.openAcc||SARI_ACC)===acc && (Number(old.openPaid)||0)===op; /* من غير تغيير = يتحفظ عادي */
+            if(!same && op>0 && acc && op > accBalance(acc)+oldSame+0.5){ const other = acc===SARI_ACC ? DRAWER_ACC : SARI_ACC;
+                alert(`❌ مينفعش: «${acc}» فيها ${fmt(accBalance(acc)+oldSame)} بس، والمدفوع ${fmt(op)}.\nاختار «${other}» في خانة «المدفوع اتدفع من خزنة» أو راجع المبلغ.`); return; } } }catch(err){}
 
     // تأكد إن المصفوفة موجودة
     if(!db[type]) db[type] = [];
@@ -10781,7 +10789,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.87';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.89';
 
     /* تنبيهات */
     const alerts=[];
