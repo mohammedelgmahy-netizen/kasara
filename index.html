@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.85</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.87</span></p></div>
         </div>
     </aside>
 
@@ -1945,7 +1945,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <div class="grid grid-cols-2 gap-2">
                         <div><label class="block text-[11px] font-bold text-slate-600">إجمالي حسابه القديم (ليه)</label><input id="master-ctr-open-total" type="number" step="any" min="0" oninput="ctrOpenCalc()" placeholder="0" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div><label class="block text-[11px] font-bold text-slate-600">المدفوع له من القديم</label><input id="master-ctr-open-paid" type="number" step="any" min="0" oninput="ctrOpenCalc()" placeholder="0" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm"></div>
-                        <div><label class="block text-[11px] font-bold text-slate-600">المدفوع اتدفع من خزنة</label><select id="master-ctr-open-acc" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="درج المكتب" selected>درج المكتب</option><option value="معلق عماد ناجي">معلق عماد ناجي</option></select></div>
+                        <div><label class="block text-[11px] font-bold text-slate-600">المدفوع اتدفع من خزنة</label><select id="master-ctr-open-acc" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="درج المكتب">درج المكتب</option><option value="معلق عماد ناجي">معلق عماد ناجي</option></select></div>
                         <input id="master-ctr-open-date" type="date" class="hidden">
                     </div>
                     <div id="master-ctr-open-net" class="text-xs font-bold mt-1 text-slate-700"></div>
@@ -3633,7 +3633,7 @@ function openAddMasterModal(){
     document.getElementById('master-notstarted').checked = false; document.getElementById('master-startfrom').value = '';
     document.getElementById('master-ctr-status').value=''; document.getElementById('master-ctr-final').value=''; document.getElementById('master-ctr-final-date').value=''; ctrStatusTgl();
     document.getElementById('master-deductsin').value = '';
-    document.getElementById('master-ctr-open-total').value = ''; document.getElementById('master-ctr-open-paid').value = ''; document.getElementById('master-ctr-open-date').value = ''; document.getElementById('master-ctr-open-acc').value = 'درج المكتب'; ctrOpenCalc();
+    document.getElementById('master-ctr-open-total').value = ''; document.getElementById('master-ctr-open-paid').value = ''; document.getElementById('master-ctr-open-date').value = ''; document.getElementById('master-ctr-open-acc').value = 'معلق عماد ناجي'; ctrOpenCalc();
     document.getElementById('master-emad-wrap').classList.add('hidden'); document.getElementById('master-emad-open-total').value=''; document.getElementById('master-emad-open-paid').value='';
     document.getElementById('master-sup-open-total').value = ''; document.getElementById('master-sup-open-paid').value = ''; document.getElementById('master-sup-open-date').value = ''; document.getElementById('master-sup-open-acc').value = 'معلق عماد ناجي'; supOpenCalc();
     document.getElementById('master-contract').value = '';
@@ -3681,7 +3681,7 @@ function openEditMasterModal(cat, code){
     const _co = cat==='contractors' && (item.openBal||item.openTotal||item.openPaid) ? _legacy(item) : {t:'',p:''};
     document.getElementById('master-ctr-open-total').value = _co.t; document.getElementById('master-ctr-open-paid').value = _co.p;
     document.getElementById('master-ctr-open-date').value = cat==='contractors' ? (item.openDate||'') : '';
-    document.getElementById('master-ctr-open-acc').value = (cat==='contractors' && item.openAcc) ? item.openAcc : 'درج المكتب'; ctrOpenCalc();
+    document.getElementById('master-ctr-open-acc').value = (cat==='contractors' && item.openAcc) ? item.openAcc : 'معلق عماد ناجي'; ctrOpenCalc();
     /* حساب عماد ناجي القديم — بيظهر بس في تكويد حفارات عماد (محمد 2026-11-10) */
     { const isEmad = cat==='names' && (item.name===COM_PERSON || /مجد[يى]/.test(item.name||'') || !!(Number(item.openTotal)||Number(item.openPaid))); /* الحساب القديم لعماد ناجي ومجدي عبد الغني بس (محمد 2026-11-11) */
       document.getElementById('master-emad-wrap').classList.toggle('hidden', !isEmad);
@@ -4667,7 +4667,7 @@ function treasuryEvents(){
     /* الأرصدة الافتتاحية من التكويد: المدفوع القديم للمقاول/المورد خرج فعلاً من درج المكتب يوم تسجيله (محمد 2026-11-10) */
     { const acc = n => (db.accounts||[]).some(a=>a.name===n) ? n : defaultAccount;
       /* مدفوع الموردين القديم من خزنة معلق عماد ناجي (محمد 2026-11-10)، والمقاولين من درج المكتب */
-      [['contractors','المقاول',DRAWER_ACC],['suppliers','المورد',SARI_ACC],['names','الموظف',SARI_ACC]].forEach(([k,lbl,defAcc])=>(db[k]||[]).forEach(c=>{
+      [['contractors','المقاول',SARI_ACC],['suppliers','المورد',SARI_ACC],['names','الموظف',SARI_ACC]].forEach(([k,lbl,defAcc])=>(db[k]||[]).forEach(c=>{
         const pd=Number(c.openPaid)||0; if(!(pd>0) || !c.openDate) return;
         events.push({date:c.openDate, desc:`المدفوع من الحساب القديم — ${lbl} ${c.name}`, project:'-', account:acc(c.openAcc||defAcc), inflow:0, outflow:pd});
       })); }
@@ -10781,7 +10781,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.85';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.87';
 
     /* تنبيهات */
     const alerts=[];
