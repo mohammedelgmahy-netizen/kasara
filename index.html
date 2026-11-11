@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 255.4</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 255.5</span></p></div>
         </div>
     </aside>
 
@@ -5359,8 +5359,9 @@ function balanceSheetData(D){
     E.push({name:'صافي الربح (من قائمة الدخل)', v:profit, part:true});
     E.push({name:'(−) أرباح المساهمين (توزيعات'+(Math.round(approved)?' مصروفة ومعتمدة':'')+')', v:-dividends, part:true});
     E.push({name:'الأرباح المحتجزة', v:retained});
-    E.push({name:'رأس المال وأرصدة أول المدة', v:tA-tL2-fund-capSum-retained, note:true});
-    const tE=E.filter(x=>!x.part).reduce((a,x)=>a+x.v,0);
+    const __plug=tA-tL2-fund-capSum-retained;   // فرق أقل من 5 جنيه = كسور تقريب، ما يظهرش كسطر
+    if(Math.abs(__plug)>=5) E.push({name:'رأس المال وأرصدة أول المدة', v:__plug, note:true});
+    const tE=E.filter(x=>!x.part).reduce((a,x)=>a+x.v,0)+(Math.abs(__plug)<5?__plug:0);
     return {A,L,E,tA,tL:tL2,tE};
 }
 function renderFinPosition(){
@@ -10808,7 +10809,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 255.4';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 255.5';
 
     /* تنبيهات */
     const alerts=[];
