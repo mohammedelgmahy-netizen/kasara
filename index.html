@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.71</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.72</span></p></div>
         </div>
     </aside>
 
@@ -1579,6 +1579,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     </div>
                 </div>
                 <div id="bs-content"></div>
+                <div id="bs-sig"></div>
             </div>
         </div>
 
@@ -4963,7 +4964,7 @@ function deleteTaxRow(idx){
 }
 
 function renderPL(){
-    try{ const sg=document.getElementById('pl-sig'); if(sg && !sg.innerHTML) sg.innerHTML=SIG_LINE; }catch(e){}
+    try{ const sg=document.getElementById('pl-sig'); if(sg && !sg.innerHTML) sg.innerHTML=SIG_ACC; }catch(e){}
     return renderPLInner();
 }
 function renderPLInner(){
@@ -5332,6 +5333,7 @@ function balanceSheetData(D){
     return {A,L,E,tA,tL:tL2,tE};
 }
 function renderFinPosition(){
+    try{ const sg=document.getElementById('bs-sig'); if(sg && !sg.innerHTML) sg.innerHTML=SIG_ACC; }catch(e){}
     const el=document.getElementById('bs-content'); if(!el) return;
     const dI=document.getElementById('bs-date'); if(dI && !dI.value) dI.value=todayISO();
     const D=dI?dI.value:'';
@@ -9719,6 +9721,8 @@ function stockBreakdown(name, from, to){
     return `<div class="text-[10.5px] font-semibold mt-1 leading-5 text-rose-800">` + Object.entries(by).map(([k,o])=>{ const [e,it,u]=k.split('||'); return `${esc(e)}: ${esc(it)} ${nfmt(o.q)} ${esc(u)} (${mfmt(o.v)})`; }).join('<br>') + `</div>`;
 }
 /* ---------- مستخلص المقاول بالتفصيل (نفس شكل كشف حساب العميل) ---------- */
+/* قائمة الدخل والميزانية: المحاسب بس — عماد ناجي في المستخلصات وكشوف الحساب بس (محمد 2026-11-11) */
+const SIG_ACC='<div class="sig-line" style="margin-top:18px;font-weight:800;font-size:14px;display:flex;justify-content:flex-end;direction:rtl"><span>المحاسب / محمد الجميعي</span></div>';
 const SIG_LINE='<div class="sig-line" style="margin-top:18px;font-weight:800;font-size:14px;display:flex;justify-content:space-between;direction:rtl"><span>المسؤول / م. عماد ناجي</span><span>المحاسب / محمد الجميعي</span></div>';
 function contractorSheetHtml(name, from, to){
     const {rows, rate} = contractorStmtRows(name);
@@ -10771,7 +10775,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.71';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.72';
 
     /* تنبيهات */
     const alerts=[];
