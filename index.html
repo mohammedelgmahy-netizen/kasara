@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.89</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.91</span></p></div>
         </div>
     </aside>
 
@@ -1945,7 +1945,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <div class="grid grid-cols-2 gap-2">
                         <div><label class="block text-[11px] font-bold text-slate-600">إجمالي حسابه القديم (ليه)</label><input id="master-ctr-open-total" type="number" step="any" min="0" oninput="ctrOpenCalc()" placeholder="0" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div><label class="block text-[11px] font-bold text-slate-600">المدفوع له من القديم</label><input id="master-ctr-open-paid" type="number" step="any" min="0" oninput="ctrOpenCalc()" placeholder="0" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm"></div>
-                        <div><label class="block text-[11px] font-bold text-slate-600">المدفوع اتدفع من خزنة</label><select id="master-ctr-open-acc" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="درج المكتب">درج المكتب</option><option value="معلق عماد ناجي">معلق عماد ناجي</option></select></div>
+                        <div><label class="block text-[11px] font-bold text-slate-600">المدفوع اتدفع من خزنة</label><select id="master-ctr-open-acc" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="معلق عماد ناجي">معلق عماد ناجي</option><option value="درج المكتب">درج المكتب</option></select></div>
                         <input id="master-ctr-open-date" type="date" class="hidden">
                     </div>
                     <div id="master-ctr-open-net" class="text-xs font-bold mt-1 text-slate-700"></div>
@@ -10789,7 +10789,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.89';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.91';
 
     /* تنبيهات */
     const alerts=[];
