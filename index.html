@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 255.1</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 255.2</span></p></div>
         </div>
     </aside>
 
@@ -4912,7 +4912,7 @@ function computePL(projectFilter, dateFrom, dateTo){
         .map(([k,v])=>({ num:num(), label:k, value:v.total }));
     /* مرتب عماد ناجي القديم (رصيد افتتاحي من التكويد) — القديم كله يعتبر جديد (محمد 2026-11-10) */
     /* كل موظف سطر لوحده، وعماد ناجي اسمه «عمولة عماد ناجي» (محمد 2026-11-11) */
-    try{ (db.names||[]).filter(x=>x.openDate && matchDate({date:x.openDate}) && (Number(x.openTotal)||0)).forEach(x=>operatingLines.push({ num:num(), label: x.name===COM_PERSON ? 'عمولة عماد ناجي' : 'مرتب '+x.name, value:Number(x.openTotal)||0 })); }catch(e){}
+    try{ (db.names||[]).filter(x=>x.openDate && matchDate({date:x.openDate}) && (Number(x.openTotal)||0)).forEach(x=>operatingLines.push({ num:num(), label: x.name===COM_PERSON ? 'عمولة عماد ناجي' : /مجد[يى]/.test(x.name) ? 'مرتب مجدي عبد الغني الميكانيكي' : 'مرتب '+x.name, value:Number(x.openTotal)||0 })); }catch(e){}
     const operatingTotal = operatingLines.reduce((s,l)=>s+l.value,0);
 
     // هـ. صافي الربح التشغيلي
@@ -10808,7 +10808,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 255.1';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 255.2';
 
     /* تنبيهات */
     const alerts=[];
