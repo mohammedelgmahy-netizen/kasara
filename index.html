@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 255.6</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 255.7</span></p></div>
         </div>
     </aside>
 
@@ -2082,7 +2082,7 @@ function seedDb(){
             {code:4002,name:'أجور وعمالة',plType:'operating',plBucket:'admin',nameType:'names'},
             {code:4003,name:'إيراد',plType:'revenue',nameType:'clients'},
             {code:4004,name:'مصروفات أخرى',plType:'other',nameType:'none'},
-            {code:4005,name:'مصروف مياه',plType:'operating',plBucket:'admin',nameType:'none'},
+            {code:4005,name:'سيارة المياه',plType:'operating',plBucket:'admin',nameType:'none'},
             {code:4006,name:'مصروف إعاشة',plType:'operating',plBucket:'admin',nameType:'none'},
             {code:4007,name:'نقل وشحن للعملاء',plType:'direct',nameType:'none'},
             {code:4008,name:'صيانة المعدات الثقيلة',plType:'operating',plBucket:'other_operating',nameType:'none'},
@@ -6913,7 +6913,7 @@ function ensureExpenseCatsV1(){
     const renames = [];
     (db.expenses||[]).forEach(c=>{
         let nn = null;
-        if(c.code===4005 || /إيجار|ايجار|مرافق/.test(c.name)) nn = 'مصروف مياه';
+        if(c.code===4005 || /إيجار|ايجار|مرافق/.test(c.name)) nn = 'سيارة المياه';
         else if(c.code===4006 || /استهلاك/.test(c.name)) nn = 'مصروف إعاشة';
         else if(c.code===4004 || c.name==='أخرى') nn = 'مصروفات أخرى';
         if(nn && c.name!==nn && !(db.expenses||[]).some(x=>x!==c && x.name===nn)){ renames.push([c.name,nn]); c.name = nn; }
@@ -10812,7 +10812,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 255.6';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 255.7';
 
     /* تنبيهات */
     const alerts=[];
