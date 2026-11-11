@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.95</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.97</span></p></div>
         </div>
     </aside>
 
@@ -3800,7 +3800,8 @@ function saveMasterItem(e){
     if(!name){ alert('من فضلك أدخل الاسم'); return; }
     const editCode = document.getElementById('master-edit-code').value;
     /* الخزنة ما تصرفش بالسالب: المدفوع القديم لازم يكون موجود في الخزنة المختارة (محمد 2026-11-11) */
-    try{ const pre = type==='contractors' ? 'master-ctr-open' : type==='suppliers' ? 'master-sup-open' : '';
+    try{ const empOpen = type==='names' && !document.getElementById('master-emad-wrap').classList.contains('hidden');
+        const pre = type==='contractors' ? 'master-ctr-open' : type==='suppliers' ? 'master-sup-open' : empOpen ? 'master-emad-open' : '';
         if(pre){ const op=Number(document.getElementById(pre+'-paid').value)||0, acc=document.getElementById(pre+'-acc').value;
             const old=editCode ? (db[type]||[]).find(x=>String(x.code)===String(editCode)) : null;
             const oldSame = old && (old.openAcc||SARI_ACC)===acc ? (Number(old.openPaid)||0) : 0;
@@ -9220,7 +9221,7 @@ function checkCashAvailable(account, amount){
     if(!account || !(amount>0)) return true;
     const bal = accBalance(account);
     if(amount > bal + 0.0001){
-        alert(`❌ مينفعش: رصيد "${account}" الفعلي ${fmt(bal)} بس، والمطلوب ${fmt(amount)}.\nلو الخزينة عاجزة، سجّل سلفة الأول.`);
+        alert(`❌ مينفعش: رصيد "${account}" الفعلي ${fmt(bal)} بس، والمطلوب ${fmt(amount)}.\nسجّل الفلوس اللي دخلت الخزنة الأول أو اختار الخزنة التانية.`);
         return false;
     }
     return true;
@@ -10790,7 +10791,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.95';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.97';
 
     /* تنبيهات */
     const alerts=[];
