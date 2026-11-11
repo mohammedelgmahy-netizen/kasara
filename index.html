@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 255.3</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 255.4</span></p></div>
         </div>
     </aside>
 
@@ -5161,7 +5161,7 @@ function renderAccountStatement(){
     const sheetEl=document.getElementById('acct-sheet'), wrapEl=document.getElementById('acct-table-wrap');
     { const sb=document.getElementById('cst-save-btn'); if(sb) sb.style.display = type==='client' ? '' : 'none'; }
     if(type==='client'){
-        if(!__acctWeekInit){ __acctWeekInit=true; const a=document.getElementById('acct-from'), b=document.getElementById('acct-to'); if(a && b && !a.value && !b.value){ const [f,t]=acctWeekRange(0); a.value=f; b.value=t; } }
+        /* الكشف بيفتح على الحساب كله من غير أسبوع جاهز (محمد 2026-11-11) */
         titleEl.textContent=''; legendEl.textContent=''; sumEl.innerHTML=''; foot.innerHTML=''; tbody.innerHTML='';
         if(wrapEl) wrapEl.style.display='none';
         if(sheetEl){ sheetEl.style.display=''; sheetEl.innerHTML=clientSheetHtml(name); }
@@ -10808,7 +10808,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 255.3';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 255.4';
 
     /* تنبيهات */
     const alerts=[];
