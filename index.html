@@ -436,7 +436,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.74</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 254.75</span></p></div>
         </div>
     </aside>
 
@@ -7249,9 +7249,9 @@ function editVehicleTrailer(plate){
     logAudit('update','مقطورة جرار', `${plate}: ${v.trailer||'بدون'}`); scheduleSave(); renderVehicles();
 }
 /* إكرامية الكسارة لكل عربية — وبيتورد لدرج المكتب على طول */
-function vehTipShare(v){ return v ? (v.tipShare!=null ? Number(v.tipShare)||0 : (vehKind(v)==='trailer' ? 50 : 0)) : 0; }
+function vehTipShare(v){ return v ? (v.tipShare!=null ? Number(v.tipShare)||0 : 50) : 0; } // كل جرار عليه 50 (محمد 2026-11-11)
 /* إكرامية الكسارة: المبلغ المكتوب في تكويد العربية — بيدخل درج المكتب كإيراد مع كل بون */
-function bonTipShare(r){ const v = codedVehicle(r.tractor); return v ? Math.round(vehTipShare(v)) : 0; }
+function bonTipShare(r){ const v = codedVehicle(r.tractor); return v ? Math.round(vehTipShare(v)) : (String(r.tractor||'').trim() ? 50 : 0); }
 function editVehicleTip(plate){
     const v = codedVehicle(plate); if(!v) return;
     const n = prompt(`إكرامية الكسارة للعربية ${plate} (ج.م):`, vehTipShare(v)); if(n===null) return;
@@ -7357,7 +7357,7 @@ function dlTractorFill(){
     if(prevCube && prevCube!==newCube) DL_SIZES.forEach(sz=>{ const q=document.getElementById('dl-q-'+sz.key); if(q && Number(q.value)===prevCube) q.value = newCube ? newCube : ''; });
     const tl = document.getElementById('dl-trailer');
     if(tl){ if(v){ tl.value = vehKind(v)==='head' ? '' : (v.trailer || ''); tl.dataset.auto='1'; } else if(tl.dataset.auto){ tl.value=''; delete tl.dataset.auto; } }
-    const tp = document.getElementById('dl-tip'); if(tp && !tp.dataset.touched) tp.value = v && vehTipShare(v) ? vehTipShare(v) : '';
+    const tp = document.getElementById('dl-tip'); if(tp && !tp.dataset.touched) tp.value = v ? (vehTipShare(v) || '') : 50;
     try{ renderSizeBtns(); }catch(e){}
     el.style.borderColor = (!el.value.trim() || v) ? '' : '#e11d48';
 }
@@ -10777,7 +10777,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.74';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 254.75';
 
     /* تنبيهات */
     const alerts=[];
