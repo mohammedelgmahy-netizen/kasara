@@ -463,7 +463,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 257.8</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 257.9</span></p></div>
         </div>
     </aside>
 
@@ -5361,7 +5361,7 @@ function clientSheetHtml(name){
     const n0=v=>(v?nfmt(Math.round(v*100)/100):''), nb=v=>v?nfmt(Math.round(v*100)/100):'';
     const sz=D.sizes;
     const head=`<tr><th style="${B}">سيارة</th><th style="${B}">مقطورة</th><th style="${B}">العدد</th><th style="${B}">التكعيب</th>${sz.map(x=>`<th style="${B}">${esc(x.label)}</th>`).join('')}</tr>`;
-    const rows=D.cars.map(c=>`<tr><td style="${B}">${esc(c.tractor)}</td><td style="${B}">${esc(c.trailer)}</td><td style="${B}">${nfmt(c.n)}</td><td style="${B}">${nb(c.n?c.qty/c.n:0)}</td>${sz.map(x=>`<td style="${B}">${nb(c.q[x.key])}</td>`).join('')}</tr>`);
+    const rows=D.cars.map((c,ci)=>`<tr style="cursor:pointer" title="دوس لتعديل كميات بونات العربية" onclick="csCarBons(${ci})"><td style="${B}">${esc(c.tractor)}</td><td style="${B}">${esc(c.trailer)}</td><td style="${B}">${nfmt(c.n)}</td><td style="${B}">${nb(c.n?c.qty/c.n:0)}</td>${sz.map(x=>`<td style="${B}">${nb(c.q[x.key])}</td>`).join('')}</tr>`);
     while(rows.length<4) rows.push(`<tr>${('<td style="'+B+'height:30px"></td>').repeat(4+sz.length)}</tr>`);
     const totRow=`<tr style="font-weight:800"><td style="${B}" colspan="2">الإجمالي</td><td style="${B}">${D.n?nfmt(D.n):''}</td><td style="${B}"></td>${sz.map(x=>`<td style="${B}">${n0(D.tot[x.key])}</td>`).join('')}</tr>`;
     const qAll=sz.reduce((t,x)=>t+(Number(D.tot[x.key])||0),0);
@@ -5407,6 +5407,38 @@ function csEditPrice(key){
     const after=list.reduce((a,r)=>a+(Number(bonValue(r))||0),0);
     logAudit('update','تعديل سعر من كشف الحساب', `${name} — ${sz.label} — ${list.length} بون — ${nfmt(pr)}`, {total:before, prices:cur}, {total:after, price:pr, from, to});
     scheduleSave(); renderAll(); try{ renderAccountStatement(); }catch(e){}
+}
+/* تعديل كمية بون من كشف حساب العميل: دوسة على سطر العربية تفتح بوناتها في الفترة (محمد 2026-11-12) */
+function csCarBons(ci){
+    const g=id=>document.getElementById(id); if(g('acct-type').value!=='client') return;
+    const name=g('acct-name').value, from=g('acct-from').value, to=g('acct-to').value; if(!name) return;
+    const car=clientSheetData(name).cars[ci]; if(!car) return;
+    const list=clientBons(name, from, to).filter(r=>(r.tractor||'-')===car.tractor && (r.trailer||'-')===car.trailer);
+    document.getElementById('csq-modal')?.remove();
+    const box=document.createElement('div'); box.id='csq-modal';
+    box.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:16px';
+    box.onclick=e=>{ if(e.target===box) box.remove(); };
+    const ro=isRO();
+    box.innerHTML=`<div dir="rtl" style="background:#fff;color:#0f172a;border-radius:14px;max-width:640px;width:100%;padding:18px">
+        <h3 style="font-weight:800;font-size:18px;margin-bottom:4px">بونات العربية ${esc(car.tractor)}${car.trailer&&car.trailer!=='-'?' / '+esc(car.trailer):''} — ${esc(name)}</h3>
+        <p style="font-size:13px;color:#475569;margin-bottom:10px">عدّل الكمية في البون اللي عاوزه ودوس حفظ.</p>
+        <div style="overflow-x:auto"><table style="width:100%;font-size:15px;border-collapse:collapse">
+        <thead><tr style="background:#f1f5f9"><th style="padding:6px;text-align:right">التاريخ</th><th style="padding:6px;text-align:right">رقم البون</th><th style="padding:6px;text-align:right">المقاس</th><th style="padding:6px;text-align:right">الكمية</th></tr></thead>
+        <tbody>${list.map(r=>DL_SIZES.filter(z=>(Number((r.q||{})[z.key])||0)>0).map(z=>`<tr style="border-bottom:1px solid #e2e8f0"><td style="padding:6px">${dmy(r.date)}</td><td style="padding:6px;font-weight:800">${esc(r.bon||'')}</td><td style="padding:6px">${esc(z.label)}</td><td style="padding:6px"><input type="number" step="any" min="0" ${ro?'disabled':''} data-id="${esc(String(r.id))}" data-k="${z.key}" data-old="${Number(r.q[z.key])}" value="${Number(r.q[z.key])}" style="width:6.5rem;border:1px solid #cbd5e1;border-radius:8px;padding:6px;font-weight:800;font-size:15px"></td></tr>`).join('')).join('')}</tbody></table></div>
+        <div style="display:flex;gap:8px;margin-top:14px">${ro?'':'<button type="button" onclick="csCarBonsSave()" style="flex:1;background:#d97706;color:#fff;font-weight:800;border-radius:10px;padding:10px">حفظ</button>'}<button type="button" onclick="document.getElementById('csq-modal').remove()" style="flex:1;background:#e2e8f0;color:#0f172a;font-weight:800;border-radius:10px;padding:10px">إغلاق</button></div></div>`;
+    document.body.appendChild(box);
+}
+function csCarBonsSave(){
+    if(isRO()) return;
+    const box=document.getElementById('csq-modal'); if(!box) return;
+    const ch=[...box.querySelectorAll('input[data-id]')].map(i=>({id:i.dataset.id, k:i.dataset.k, old:Number(i.dataset.old)||0, v:Number(i.value)||0})).filter(c=>c.v!==c.old);
+    if(!ch.length){ box.remove(); return; }
+    if(ch.some(c=>!(c.v>0))){ alert('الكمية لازم تكون أكبر من صفر. لو البون ملغي الغيه من سجل البونات.'); return; }
+    const done=[];
+    ch.forEach(c=>{ const r=(db.dailyLog||[]).find(x=>String(x.id)===c.id); if(!r || r.saleGroupId) return; r.q=r.q||{}; r.q[c.k]=c.v; delete r.total; done.push(`بون ${r.bon}: ${c.old} ← ${c.v}`); });
+    if(done.length){ logAudit('update','تعديل كمية من كشف الحساب', done.join(' ، '), null, ch); scheduleSave(); renderAll(); }
+    box.remove(); try{ renderAccountStatement(); }catch(e){}
+    if(done.length<ch.length) alert('فيه بونات مربوطة بفاتورة ما اتغيرتش؛ عدلها من الفاتورة.');
 }
 /* ---------- كشوفات العملاء المحفوظة: زي المستخلص، بالأسبوع، تتحفظ وتفتح تاني (محمد 2026-11-07) ---------- */
 function withAcctRange(from, to, fn){ const f=document.getElementById('acct-from'), t=document.getElementById('acct-to'); const fv=f?f.value:'', tv=t?t.value:''; if(f) f.value=from||''; if(t) t.value=to||''; try{ return fn(); } finally{ if(f) f.value=fv; if(t) t.value=tv; } }
@@ -10962,7 +10994,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 257.8';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 257.9';
 
     /* تنبيهات */
     const alerts=[];
