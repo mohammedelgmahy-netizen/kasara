@@ -463,7 +463,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 258.0</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 258.1</span></p></div>
         </div>
     </aside>
 
@@ -4100,7 +4100,7 @@ function initDropdowns(){
 
     fillSelect('filter-coll-client', db.clients, 'كل العملاء');
 
-    fillSelect('pay-supplier', db.suppliers);
+    fillSelect('pay-supplier', db.suppliers); try{ showPaymentSupplierBalance(); }catch(e){}
     fillSelect('pay-project', db.projects, 'بدون مشروع محدد');
     fillSelect('filter-pay-item', db.supplies, 'كل الأصناف');
     fillSelect('search-payments', db.suppliers, 'كل موردي قطع الغيار والسولار');
@@ -4465,7 +4465,12 @@ function textMatch(fields, term){
 function showPaymentSupplierBalance(){
     const name = document.getElementById('pay-supplier').value;
     if(!name){ document.getElementById('pay-supplier-balance-info').style.display='none'; return; }
-    const { totalInvoices, totalPaid, remaining } = supplierBalance(name);
+    /* نفس حساب الميزانية: الرصيد الافتتاحي من التكويد + الفواتير والدفعات من بعده (عرض بس — محمد 2026-11-12) */
+    const sup=(db.suppliers||[]).find(x=>x.name===name)||{}, {ob:sOB, od:sOD}=supOpen(name), okD=p=>!sOD || (p.date||'')>=sOD;
+    const inv=(db.procurements||[]).filter(p=>p.supplier===name && okD(p)).reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0);
+    const pd=(db.payments||[]).filter(p=>p.supplier===name && okD(p)).reduce((a,p)=>a+(Number(p.amount)||0),0);
+    const oT=Number(sup.openTotal)||0, oP=Number(sup.openPaid)||0;
+    const totalInvoices=(sOD?(oT||Math.max(sOB,0)):0)+inv, totalPaid=(sOD?oP:0)+pd, remaining=(sOD?sOB:0)+inv-pd;
     document.getElementById('pay-info-invoices').textContent = fmt(totalInvoices);
     document.getElementById('pay-info-paid').textContent = fmt(totalPaid);
     document.getElementById('pay-info-remaining').textContent = fmt(remaining);
@@ -11005,7 +11010,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 258.0';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 258.1';
 
     /* تنبيهات */
     const alerts=[];
