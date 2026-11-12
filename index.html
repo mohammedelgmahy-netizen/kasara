@@ -8567,7 +8567,7 @@ function addDailyLog(e){
     const client = g('dl-client').value;
     if(!client){ alert('اختر العميل'); return; }
     const q = {}; DL_SIZES.forEach(s=>{ q[s.key] = Number(g('dl-q-'+s.key).value)||0; });
-    if(!Object.values(q).some(v=>v>0)){ alert('اكتب الكمية في خانة مقاس واحد على الأقل'); return; }
+    if(!Object.values(q).some(v=>v>0)){ const picked=[...(window.__dlSel||[])]; if(picked.length){ alert('اكتب الكمية في المقاس اللي اخترته'); try{ g('dl-q-'+picked[0]).focus(); }catch(e){} } else alert('اكتب الكمية في خانة مقاس واحد على الأقل'); return; }
     const EB = (__editSnap && window.__editBon) ? window.__editBon : null;
     if(!EB && window.__manualBon){
         const mn=bonNum({bon:g('dl-bon').value}); if(!isFinite(mn)){ alert('اكتب رقم البون'); g('dl-bon').focus(); return; }
