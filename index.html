@@ -466,7 +466,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 258.7</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 258.8</span></p></div>
         </div>
     </aside>
 
@@ -1006,7 +1006,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <div id="exp-quick" class="md:col-span-4 flex flex-wrap gap-2"></div>
                     <div class="hidden"><label class="block text-xs font-bold text-slate-600 mb-1">التبويب</label><select id="exp-category" onchange="filterExpenseSubFields(); renderExpQuick()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div id="exp-paytype-wrap" style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">نوع الدفعة</label><select id="exp-paytype" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="advance">عهدة (تتخصم من المستخلص)</option><option value="settle">سداد صافي مستخلص</option></select></div>
-                    <div id="exp-name-wrap"><label id="exp-name-label" class="block text-xs font-bold text-slate-600 mb-1">المستفيد</label><select id="exp-name" required onchange="filterActivitiesByName()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
+                    <div id="exp-name-wrap"><label id="exp-name-label" class="block text-xs font-bold text-slate-600 mb-1">المستفيد</label><select id="exp-name" required onchange="expPayeeNew();filterActivitiesByName()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div class="hidden"><label class="block text-xs font-bold text-slate-600 mb-1">النشاط</label><select id="exp-activity" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div class="hidden"><label class="block text-xs font-bold text-slate-600 mb-1">المشروع</label><select id="exp-project" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div id="exp-contract-info" class="hidden md:col-span-4 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 text-xs text-slate-700"></div>
@@ -4123,7 +4123,7 @@ function initDropdowns(){
     fillSelect('exp-category', db.expenses.filter(c=>c.name!=='إيراد'));
     fillSelect('exp-project', db.projects);
     fillSelect('filter-exp-category', db.expenses.filter(c=>c.name!=='إيراد'), 'كل التبويبات');
-    fillSelect('filter-exp-name', [...db.names, ...db.clients], 'كل الأسماء');
+    fillSelect('filter-exp-name', [...db.names, ...acctNames('person').filter(n=>!db.names.some(x=>x.name===n)).map(n=>({code:'',name:n})), ...db.clients], 'كل الأسماء');
 
     fillSelect('filter-coll-client', db.clients, 'كل العملاء');
 
@@ -4320,6 +4320,13 @@ function printPurchaseInvoice(groupId){
     printSection('invoice-print-template');
 }
 
+function catPayees(c){ if(!c) return null; if(Array.isArray(c.payees)) return c.payees; return c.code===4011 ? ['موالي الصريحي'] : null; }
+function expPayeeNew(){ const sel=document.getElementById('exp-name'); if(!sel || sel.value!=='__new') return;
+    const c=(db.expenses||[]).find(x=>x.name===document.getElementById('exp-category').value); const list=catPayees(c);
+    const nm=(prompt('اسم المستفيد الجديد:')||'').trim();
+    if(!nm || !c || !list){ sel.selectedIndex=0; return; }
+    if(!list.includes(nm)){ c.payees=[...list, nm]; scheduleSave(); }
+    filterExpenseSubFields(); sel.value=nm; }
 function filterExpenseSubFields(){
     const cat = document.getElementById('exp-category').value;
     const catDef = db.expenses.find(c=>c.name===cat);
@@ -4333,7 +4340,13 @@ function filterExpenseSubFields(){
     const ptw = document.getElementById('exp-paytype-wrap'); if(ptw) ptw.style.display = nameType==='contractors' ? '' : 'none';
     const cdw = document.getElementById('exp-ctrdisc-wrap'); if(cdw) cdw.style.display = nameType==='contractors' ? '' : 'none';
     sel.required = nameType!=='none';
-    if(nameType==='none'){
+    const payees = catPayees(catDef);
+    if(payees){ /* بند ليه مستفيد باسمه (غفرة وحراسة) عشان يطلع له كشف في «حسابات الأفراد» — محمد 2026-11-12 */
+        wrap.style.display=''; sel.required=true; label.textContent='المستفيد';
+        const prev=sel.value;
+        sel.innerHTML = payees.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('') + '<option value="__new">➕ اسم جديد…</option>';
+        if(payees.includes(prev)) sel.value=prev;
+    } else if(nameType==='none'){
         sel.innerHTML = '<option value=""></option>';
     } else if(nameType==='contractors'){
         fillSelect('exp-name', db.contractors||[]);
@@ -5294,7 +5307,7 @@ function acctTotals(rows){
     const debit = rows.reduce((a,r)=>a+(r.debit||0),0), credit = rows.reduce((a,r)=>a+(r.credit||0),0);
     return { debit, credit, balance: debit-credit };
 }
-function acctNames(type){ return (type==='person' ? (db.names||[]) : (db.clients||[])).map(x=>x.name); }
+function acctNames(type){ if(type!=='person') return (db.clients||[]).map(x=>x.name); const l=(db.names||[]).map(x=>x.name); (db.expenses||[]).forEach(c=>(catPayees(c)||[]).forEach(n=>{ if(!l.includes(n)) l.push(n); })); return l; }
 function acctFillNames(){
     const sel = document.getElementById('acct-name'); if(!sel) return;
     const type = document.getElementById('acct-type').value;
@@ -11071,7 +11084,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 258.7';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 258.8';
 
     /* تنبيهات */
     const alerts=[];
