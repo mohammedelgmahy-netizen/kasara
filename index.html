@@ -447,7 +447,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 257.3</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 257.4</span></p></div>
         </div>
     </aside>
 
@@ -7483,6 +7483,8 @@ function dlTractorFill(){
     cubeEl.value = v ? (v.cube||'') : '';
     // الكمية اللي اتملت من تكعيب العربية القديمة تتغير مع العربية الجديدة (أو تتمسح لو مش متكودة)
     if(prevCube && prevCube!==newCube) DL_SIZES.forEach(sz=>{ const q=document.getElementById('dl-q-'+sz.key); if(q && Number(q.value)===prevCube) q.value = newCube ? newCube : ''; });
+    /* المقاس متختار قبل الجرار: أول ما التكعيب ييجي الكمية تتملى لوحدها (محمد 2026-11-12) */
+    try{ const sel=[...(window.__dlSel||[])]; if(newCube && sel.length===1){ const q=document.getElementById('dl-q-'+sel[0]); if(q && !q.value) q.value=newCube; } }catch(x){}
     const tl = document.getElementById('dl-trailer');
     if(tl){ if(v){ tl.value = vehKind(v)==='head' ? '' : (v.trailer || ''); tl.dataset.auto='1'; } else if(tl.dataset.auto){ tl.value=''; delete tl.dataset.auto; } }
     const tp = document.getElementById('dl-tip'); /* الإكرامية بيكتبها محمد بإيده في كل بون لأنها مش ثابتة (2026-11-11) — مفيش ملء تلقائي */
@@ -8581,6 +8583,8 @@ function addDailyLog(e){
     if(!g('dl-worker').value){ alert('اختار الشغل تبع مين من فوق الأول'); g('dl-worker').focus(); return; }
     const client = g('dl-client').value;
     if(!client){ alert('اختر العميل'); return; }
+    /* مقاس واحد متختار والكمية فاضية: تتملى من التكعيب من غير رسالة (محمد 2026-11-12) */
+    try{ const sel=[...(window.__dlSel||[])], cube=dlCubeNum(); if(cube && sel.length===1 && !DL_SIZES.some(s=>Number(g('dl-q-'+s.key).value)>0)) g('dl-q-'+sel[0]).value=cube; }catch(x){}
     const q = {}; DL_SIZES.forEach(s=>{ q[s.key] = Number(g('dl-q-'+s.key).value)||0; });
     if(!Object.values(q).some(v=>v>0)){ const picked=[...(window.__dlSel||[])]; if(picked.length){ alert('اكتب الكمية في المقاس اللي اخترته'); try{ g('dl-q-'+picked[0]).focus(); }catch(e){} } else alert('اكتب الكمية في خانة مقاس واحد على الأقل'); return; }
     const EB = (__editSnap && window.__editBon) ? window.__editBon : null;
@@ -10905,7 +10909,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 257.3';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 257.4';
 
     /* تنبيهات */
     const alerts=[];
