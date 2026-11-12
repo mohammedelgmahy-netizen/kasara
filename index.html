@@ -466,7 +466,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 259.1</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 259.2</span></p></div>
         </div>
     </aside>
 
@@ -2440,7 +2440,18 @@ async function cloudSaveMerged(){
     const out = JSON.stringify(db);
     await store.set(STORAGE_KEY, out);
     __lastSynced = out; __dirty = false; rememberSynced(); __stampBase = snapIds();
+    hourlyBackup(remote && remote.length>100000 ? remote : out);
 }
+/* نسخة احتياطية كل ساعة على السحابة (آخر 72 ساعة شغل) — محمد 2026-11-12: «مش عاوز البيانات تروح ف اي وقت» */
+async function hourlyBackup(val){ try{ if(!SUPABASE_URL || !val || val.length<100000) return;
+    const d=new Date(), p2=n=>String(n).padStart(2,'0'), hr=d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+'-'+p2(d.getHours()), mark='kasara-lasthr::'+STORAGE_KEY;
+    if(localStorage.getItem(mark)===hr) return; localStorage.setItem(mark, hr);
+    const pre='kasara-hourly::'+STORAGE_KEY+'::', H=sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'});
+    const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:H, body: JSON.stringify({key:pre+hr, value:val, updated_at:new Date().toISOString()})});
+    if(!res.ok){ localStorage.removeItem(mark); return; }
+    const r=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?key=like.${encodeURIComponent(pre)}*&select=key&order=key.desc`, { headers: sbHeaders() });
+    if(r.ok){ const old=(await r.json()).map(x=>x.key).slice(72); for(const k of old) await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?key=eq.${encodeURIComponent(k)}`, { method:'DELETE', headers: sbHeaders() }); }
+  }catch(e){ console.warn('hourly backup', e); } }
 /* إنقاذ: أي جهاز عنده نسخة محلية كبيرة بيرفعها مرة لمفتاح جانبي (مش بيلمس البيانات الأساسية) */
 const __rescueRaw = (()=>{ try{ return [localStorage.getItem(STORAGE_KEY), localStorage.getItem('kasara-synced::'+STORAGE_KEY)]; }catch(e){ return []; } })();
 async function rescueUpload(){ try{ if(!SUPABASE_URL || window.__rescued) return; let dev=localStorage.getItem('kasara-dev-id'); if(!dev){ dev=Math.random().toString(36).slice(2,8); localStorage.setItem('kasara-dev-id',dev); }
@@ -11096,7 +11107,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 259.1';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 259.2';
 
     /* تنبيهات */
     const alerts=[];
