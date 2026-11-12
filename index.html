@@ -442,11 +442,11 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 256.1</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 256.2</span></p></div>
         </div>
     </aside>
 
-    <main class="flex-1 p-6 overflow-y-auto">
+    <main class="flex-1 px-6 pt-2 pb-6 overflow-y-auto">
 
         <!-- DASHBOARD -->
         <div id="tab-home" class="tab-content active flex-col gap-4"><div id="home-grid"></div></div>
@@ -728,6 +728,11 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
 
         <!-- EQUIPMENT -->
         <div id="tab-equipment" class="tab-content flex-col gap-4">
+            <div class="subnav-bar">
+                <button type="button" id="subnav-equipment-form" class="subnav-btn active" onclick="switchSub('equipment','form')">🔧 مصروف معدة</button>
+                <button type="button" id="subnav-equipment-log" class="subnav-btn" onclick="switchSub('equipment','log')">📋 كشف حساب المعدات</button>
+            </div>
+            <div id="sub-equipment-form" class="subpage active">
             <div class="bg-white p-4 rounded-xl border border-amber-200 shadow-sm">
                 <h3 class="font-bold text-slate-900 mb-3">🔧 مصروف تاني على معدة</h3>
                 <div class="grid grid-cols-2 md:grid-cols-7 gap-3 items-end">
@@ -741,6 +746,8 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <button type="button" id="eqe-save" onclick="saveEquipExpense()" class="bg-amber-600 hover:bg-amber-700 text-white rounded-lg p-2 font-bold">حفظ</button>
                 </div>
             </div>
+            </div><!-- /sub-equipment-form -->
+            <div id="sub-equipment-log" class="subpage">
             <div id="eqs-card" class="bg-white rounded-xl border border-amber-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-amber-50 border-b border-amber-200 flex flex-wrap items-center gap-2">
                     <h3 class="font-bold text-slate-900 ml-2">📋 كشف حساب معدة</h3>
@@ -766,6 +773,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 <div id="eq-summary" class="p-3"></div>
                 <div id="eq-detail" class="px-3 pb-3"></div>
             </div>
+            </div><!-- /sub-equipment-log -->
         </div>
         <!-- INCOMES -->
         <div id="tab-incomes" class="tab-content flex-col gap-4">
@@ -793,7 +801,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             </div>
 
             <!-- سجل تحصيلات العملاء -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div id="coll-log-card" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3">
                     <span class="font-bold text-slate-800"><i class="fa-solid fa-list-check text-cyan-600"></i> سجل حركات التحصيل</span>
                     <div class="flex flex-wrap gap-2">
@@ -879,6 +887,11 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <!-- PAYROLL -->
         <div id="tab-payroll" class="tab-content flex-col gap-4">
+            <div class="subnav-bar">
+                <button type="button" id="subnav-payroll-form" class="subnav-btn active" onclick="switchSub('payroll','form')">📝 الحضور والسلف</button>
+                <button type="button" id="subnav-payroll-log" class="subnav-btn" onclick="switchSub('payroll','log')">💰 كشف الرواتب</button>
+            </div>
+            <div id="sub-payroll-form" class="subpage active">
             <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-3">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <h3 class="font-bold text-slate-900">🗓️ الحضور</h3>
@@ -897,6 +910,8 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <button type="submit" class="col-span-2 md:col-span-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-2 font-bold">تسجيل السلفة</button>
                 </form>
             </div>
+            </div><!-- /sub-payroll-form -->
+            <div id="sub-payroll-log" class="subpage">
             <div id="payroll-card" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-indigo-50 border-b border-indigo-100 flex flex-wrap justify-between items-center gap-2">
                     <h3 class="font-bold text-slate-900">💰 كشف الرواتب</h3>
@@ -917,6 +932,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 <div class="p-4 border-b border-slate-100 font-bold">سلف الشهر</div>
                 <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100"><tr><th class="p-2">التاريخ</th><th class="p-2">الموظف</th><th class="p-2">المبلغ</th><th class="p-2">ملاحظات</th><th class="p-2"></th></tr></thead><tbody id="tbody-advances"></tbody></table></div>
             </div>
+            </div><!-- /sub-payroll-log -->
         </div>
 
         <!-- EXPENSES -->
@@ -3466,7 +3482,7 @@ window.addEventListener('popstate',()=>{
     try{ history.back(); }catch(e){}
 });
 try{ if(!(history.state && history.state.guard)){ history.replaceState({base:1},''); history.pushState({guard:1},''); } }catch(e){}
-const SUBPAGE_TABS = ['dailylog','purchases','inventory','expenses','extracts'];
+const SUBPAGE_TABS = ['dailylog','purchases','inventory','expenses','extracts','equipment','payroll'];
 function switchSub(tab, which){
     const panel = document.getElementById('tab-'+tab); if(!panel) return;
     panel.querySelectorAll(':scope > .subpage').forEach(p=>p.classList.remove('active'));
@@ -6637,13 +6653,13 @@ function renderEqStatement(){
 /* ================= الإيرادات ================= */
 const INCOME_DEF = ['بيع خردة','إيجار معدات','إيرادات أخرى'];
 function incomeTypes(){ return db.incomeTypes && db.incomeTypes.length ? db.incomeTypes : INCOME_DEF; }
-const INC_SECS=[['coll','💰','تحصيل عميل','coll-amount'],['inc','💵','إيراد','inc-types'],['loan','💼','سلف','sari-amount'],['xfer','🔁','تحويل بين الخزن','xfer-card'],['cc','🧮','جرد الخزينة','cc-card'],['open','⚙️','أرصدة افتتاحية','open-card']];
+const INC_SECS=[['coll','💰','تحصيل عميل','coll-amount'],['collog','📒','سجل التحصيل','coll-log-card'],['inc','💵','إيراد','inc-types'],['loan','💼','سلف','sari-amount'],['xfer','🔁','تحويل بين الخزن','xfer-card'],['cc','🧮','جرد الخزينة','cc-card'],['open','⚙️','أرصدة افتتاحية','open-card']];
 function showIncSec(k){
     const tab=document.getElementById('tab-incomes'); if(!tab) return;
     k = k || window.__incSec || 'coll'; window.__incSec = k;
     const kids=[...tab.children];
     kids.forEach(c=>{ if(c.id==='inc-bar' || c.dataset.brand!==undefined) return; c.dataset.incsec=''; });
-    INC_SECS.forEach(([key,,,id])=>{ const el=document.getElementById(id); if(!el) return; const top=kids.find(c=>c===el||c.contains(el)); if(top){ top.dataset.incsec=key; if(key==='coll'){ let n=top.nextElementSibling; if(n && !INC_SECS.some(x=>{const e=document.getElementById(x[3]); return e&&(n===e||n.contains(e));})) n.dataset.incsec='coll'; } } });
+    INC_SECS.forEach(([key,,,id])=>{ const el=document.getElementById(id); if(!el) return; const top=kids.find(c=>c===el||c.contains(el)); if(top){ top.dataset.incsec=key; } });
     kids.forEach(c=>{ if(c.dataset.incsec!==undefined && c.dataset.incsec!=='') c.style.display = c.dataset.incsec===k ? '' : 'none'; });
     const bar=document.getElementById('inc-bar');
     if(bar) bar.innerHTML=INC_SECS.map(([key,ic,lb])=>`<button type="button" onclick="showIncSec('${key}')" class="flex flex-col items-center justify-center gap-1 py-3 rounded-xl border font-bold text-sm ${key===k?'bg-emerald-600 text-white border-emerald-600 shadow':'bg-white text-slate-700 border-slate-200 hover:bg-emerald-50'}"><span style="font-size:22px">${ic}</span><span>${lb}</span></button>`).join('');
@@ -10874,7 +10890,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 256.1';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 256.2';
 
     /* تنبيهات */
     const alerts=[];
