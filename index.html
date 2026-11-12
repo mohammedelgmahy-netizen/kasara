@@ -463,7 +463,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 258.2</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 258.3</span></p></div>
         </div>
     </aside>
 
@@ -923,11 +923,12 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                 <h3 class="font-bold text-slate-900 mb-3">💵 سلفة موظف</h3>
                 <form onsubmit="addSalaryAdvance(event)" class="grid grid-cols-2 md:grid-cols-5 gap-3 items-end">
-                    <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-600 mb-1">الموظف</label><select id="adv-name" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
+                    <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-600 mb-1">الموظف</label><select id="adv-name" required onchange="advPartyBal()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">المبلغ</label><input id="adv-amount" type="number" step="any" min="0" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="adv-date" type="date" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">الحساب</label><select id="adv-account" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">ملاحظات</label><input id="adv-notes" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                    <div id="adv-bal-info" style="display:none" class="col-span-2 md:col-span-5"></div>
                     <button type="submit" class="col-span-2 md:col-span-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-2 font-bold">تسجيل السلفة</button>
                 </form>
             </div>
@@ -1001,6 +1002,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <div class="hidden"><label class="block text-xs font-bold text-slate-600 mb-1">النشاط</label><select id="exp-activity" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div class="hidden"><label class="block text-xs font-bold text-slate-600 mb-1">المشروع</label><select id="exp-project" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div id="exp-contract-info" class="hidden md:col-span-4 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 text-xs text-slate-700"></div>
+                    <div id="exp-bal-info" style="display:none" class="md:col-span-4"></div>
                     <!-- حقل المبلغ الوحيد — يُستخدم دائماً -->
                     <div><label id="exp-paid-label" class="block text-xs font-bold text-slate-600 mb-1">المبلغ المدفوع</label><input id="exp-paid" type="number" step="any" required placeholder="المبلغ الفعلي" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div id="exp-ctrdisc-wrap" style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">خصم (اختياري)</label><input id="exp-ctrdisc" type="number" step="any" min="0" placeholder="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
@@ -4053,7 +4055,7 @@ function initDropdowns(){
         if(cashOpt) saleClientEl.value = cashOpt.value;
     }
 
-    fillSelect('coll-client', db.clients);
+    fillSelect('coll-client', db.clients); try{ showClientCollectionBalance(); }catch(e){}
     fillSelect('coll-project', db.projects, 'بدون مشروع محدد');
     fillSelect('search-client-accounts', db.clients, 'كل العملاء');
     if(document.getElementById('coll-date') && !document.getElementById('coll-date').value) document.getElementById('coll-date').value = todayISO();
@@ -4344,6 +4346,7 @@ function pickExpType(code){
     document.getElementById('exp-paid')?.focus();
 }
 function filterActivitiesByName(){
+    try{ expPartyBal(); }catch(e){}
     try{ const cat=document.getElementById('exp-category').value, nm=document.getElementById('exp-name').value, box=document.getElementById('exp-contract-info');
         const n=(db.names||[]).find(x=>x.name===nm), c=(db.expenses||[]).find(e=>e.name===cat);
         if(box && n && Number(n.salary)>0 && c && isAdvRec({category:cat,name:nm})){ const m=todayISO().slice(0,7);
@@ -4393,6 +4396,20 @@ function filterActivitiesByName(){
 
 // دالة قديمة محتاجينها للتوافق
 function filterExpenseNames(){ filterActivitiesByName(); }
+/* شريط «ليه إيه وعليه إيه» وقت تسجيل أي دفعة — زي شريط المورد (محمد 2026-11-12). عرض بس */
+function balBarHtml(a,b,c){ const sp=(l,v,cls)=>`<span>${l}: <b class="${cls}">${fmt(v)}</b></span>`;
+    return `<div class="bg-cyan-50 border border-cyan-200 rounded-lg px-4 py-2 text-sm flex flex-wrap gap-4">${sp(a[0],a[1],'text-slate-800')}${sp(b[0],b[1],'text-emerald-700')}${sp(c[0],Math.abs(c[1]),c[2]||'text-rose-700')}</div>`; }
+function ctrBalBar(name){ let cr=0, dr=0; contractorStmtRows(name).rows.forEach(r=>{ cr+=Number(r.credit)||0; dr+=Number(r.debit)||0; }); const b=cr-dr;
+    return balBarHtml(['📋 إجمالي له',cr],['✅ المدفوع له',dr], b>0.5?['🔴 الباقي له',b,'text-rose-700']:b<-0.5?['🟢 لينا عنده',b,'text-emerald-700']:['⚪ خالص',0,'text-slate-600']); }
+function empBalBar(name){ const n=(db.names||[]).find(x=>x.name===name); if(!n) return ''; const m=todayISO().slice(0,7), sal=salaryOf(n,m);
+    const used=(db.expensesData||[]).filter(x=>x.name===name && isAdvRec(x) && (x.date||'').startsWith(m)).reduce((a,x)=>a+(Number(x.paid)||0),0);
+    const old=n.openDate ? (Number(n.openTotal)||0)-(Number(n.openPaid)||0) : 0;
+    return balBarHtml(['📋 مرتب الشهر',sal],['✅ اتصرف له الشهر ده',used],['🔴 الباقي له'+(Math.round(old)?' (شامل رصيد سابق '+fmt(old)+')':''),sal-used+old, (sal-used+old)<0?'text-emerald-700':'text-rose-700']); }
+function expPartyBal(){ const box=document.getElementById('exp-bal-info'); if(!box) return; let h='';
+    try{ const cat=document.getElementById('exp-category').value, nm=document.getElementById('exp-name').value, c=(db.expenses||[]).find(e=>e.name===cat)||{};
+        if(nm && c.nameType==='contractors') h=ctrBalBar(nm); else if(nm && c.nameType==='names') h=empBalBar(nm); }catch(e){}
+    box.innerHTML=h; box.style.display=h?'':'none'; }
+function advPartyBal(){ const box=document.getElementById('adv-bal-info'); if(!box) return; let h=''; try{ const nm=document.getElementById('adv-name').value; if(nm) h=empBalBar(nm); }catch(e){} box.innerHTML=h; box.style.display=h?'':'none'; }
 function showContractInfo(){
     const cat = document.getElementById('exp-category').value;
     const name = document.getElementById('exp-name').value;
@@ -6821,7 +6838,7 @@ function ensurePayCat(name){
 function renderPayrollTab(){
     const ad=document.getElementById('att-date'); if(ad && !ad.value) ad.value=todayISO();
     const dd=document.getElementById('adv-date'); if(dd && !dd.value) dd.value=todayISO();
-    fillSelect('adv-name', payrollPeople()); fillSelect('adv-account', db.accounts||[]);
+    fillSelect('adv-name', payrollPeople()); fillSelect('adv-account', db.accounts||[]); try{ advPartyBal(); }catch(e){}
     renderAttendance(); renderPayroll();
 }
 function renderAttendance(){
@@ -11020,7 +11037,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 258.2';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 258.3';
 
     /* تنبيهات */
     const alerts=[];
