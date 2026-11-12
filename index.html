@@ -466,7 +466,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 259.0</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 259.1</span></p></div>
         </div>
     </aside>
 
@@ -2432,10 +2432,22 @@ async function cloudSaveMerged(){
         try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
         try{ renderAll(); }catch(e){}
     }
+    /* حماية (2026-11-12): جهاز فتح فاضي (التحميل فشل) كان بيرفع نسخة فاضية فوق البيانات. ممنوع رفع نسخة أصغر بكتير من اللي على السحابة إلا بمسح/استرجاع صريح */
+    if(!window.__allowShrink && remote){ try{ const rj=JSON.parse(remote), cnt=o=>((o&&o.dailyLog)||[]).length+((o&&o.expensesData)||[]).length, rn=cnt(rj), ln=cnt(db);
+        if(rn>=50 && ln<rn*0.7){ console.warn('رفض رفع نسخة ناقصة', ln, rn); db=rj; try{ applyTombstones(); }catch(e){} __lastSynced=remote; __dirty=false; rememberSynced(); __stampBase=snapIds();
+            try{ localStorage.setItem(STORAGE_KEY, remote); }catch(e){} try{ initDropdowns(); }catch(e){} try{ renderAll(); }catch(e){} return; } }catch(e){} }
+    window.__allowShrink = false;
     const out = JSON.stringify(db);
     await store.set(STORAGE_KEY, out);
     __lastSynced = out; __dirty = false; rememberSynced(); __stampBase = snapIds();
 }
+/* إنقاذ: أي جهاز عنده نسخة محلية كبيرة بيرفعها مرة لمفتاح جانبي (مش بيلمس البيانات الأساسية) */
+const __rescueRaw = (()=>{ try{ return [localStorage.getItem(STORAGE_KEY), localStorage.getItem('kasara-synced::'+STORAGE_KEY)]; }catch(e){ return []; } })();
+async function rescueUpload(){ try{ if(!SUPABASE_URL || window.__rescued) return; let dev=localStorage.getItem('kasara-dev-id'); if(!dev){ dev=Math.random().toString(36).slice(2,8); localStorage.setItem('kasara-dev-id',dev); }
+    if(localStorage.getItem('kasara-rescued-1112')){ window.__rescued=1; return; }
+    let n=0; for(const [i,v] of __rescueRaw.entries()){ if(!v || v.length<100000) continue; const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers: sbHeaders({'Prefer':'resolution=merge-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-rescue::'+dev+'::'+(i?'base':'local'), value:v, updated_at:new Date().toISOString()})}); if(!res.ok) throw new Error('rescue '+res.status); n++; }
+    window.__rescued=1; localStorage.setItem('kasara-rescued-1112', String(n)); }catch(e){} }
+setTimeout(rescueUpload, 8000); setTimeout(rescueUpload, 40000);
 /* ===== طلبات الموافقة: تعديلات المستخدم بتستنى المدير ===== */
 const PENDING_KEY = 'kasara-pending';
 const COL_LABELS = {dailyLog:'البونات',sales:'المبيعات',expensesData:'المصروفات والتحصيلات',payments:'مدفوعات موردي قطع الغيار والسولار',procurements:'المشتريات',stockIssues:'صرف مخزون',equipExtracts:'المستخلصات',equipmentRepayments:'مديونيات المعدات',cashTransfers:'تحويلات الخزينة',ownerLoans:'السلف',custodies:'العهد',partyLedgers:'حسابات',clients:'العملاء',contractors:'أصحاب المعدات',vehicles:'العربيات',suppliers:'موردي قطع الغيار والسولار',supplies:'الأصناف',names:'الأفراد',expenses:'بنود المصروفات',assets:'الأصول',productions:'الإنتاج',prodLog:'الإنتاج اليومي',trips:'النقلات',investorFunding:'تمويل الشركاء',profitDistributions:'توزيعات الأرباح',investorLiabilities:'التزامات الشركاء',accounts:'الحسابات',taxes:'الضرائب',activities:'الأنشطة'};
@@ -2560,7 +2572,7 @@ async function restoreBackupDay(d){
         const v = await __sbGetRaw(BK_PREFIX + d); if(!v) return alert('النسخة مش موجودة.');
         await store.set(BK_PREFIX + todayISO() + '-before-restore', JSON.stringify(db));
         __lastSynced = await __sbGetRaw(STORAGE_KEY);
-        db = JSON.parse(v); logAudit('update','استرجاع نسخة يوم', d, null, null);
+        db = JSON.parse(v); window.__allowShrink = true; logAudit('update','استرجاع نسخة يوم', d, null, null);
         scheduleSave(); renderAll(); alert('✅ رجعت لنسخة يوم '+(dmy(d)||d));
     }catch(e){ alert('مفيش اتصال.'); }
 }
@@ -2596,7 +2608,7 @@ async function freshStartOnce(){
         const old = k===STORAGE_KEY ? JSON.stringify(db) : await __sbGetRaw(k);
         if(old) await store.set('kasara-backup::' + k + '::' + day + '-before-fresh', old);
         const fresh = seedDb(); fresh.imports = {paperSep2026:true, custodyWeekly:true, custodyAdvanceRevert:true};
-        if(k===STORAGE_KEY){ __lastSynced = await __sbGetRaw(STORAGE_KEY); db = fresh; }
+        if(k===STORAGE_KEY){ __lastSynced = await __sbGetRaw(STORAGE_KEY); db = fresh; window.__allowShrink = true; }
         else { await store.set(k, JSON.stringify(fresh)); try{ localStorage.removeItem(k); }catch(e){} }
     }
     try{ localStorage.setItem('kasara-lastbk::' + STORAGE_KEY, day); }catch(e){}
@@ -2613,7 +2625,7 @@ async function wipeAllData(){
             try{ localStorage.setItem('kasara-lastbk::' + STORAGE_KEY, todayISO()); }catch(e){}
             __lastSynced = await __sbGetRaw(STORAGE_KEY);
         }
-        db = seedDb(); db.imports = {paperSep2026:true, custodyWeekly:true, custodyAdvanceRevert:true};
+        db = seedDb(); db.imports = {paperSep2026:true, custodyWeekly:true, custodyAdvanceRevert:true}; window.__allowShrink = true;
         scheduleSave(); renderAll(); switchTab('home'); alert('✅ اتمسحت. النسخة القديمة محفوظة في النسخ الاحتياطية باسم النهارده.');
     }catch(e){ alert('مفيش اتصال.'); }
 }
@@ -11084,7 +11096,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 259.0';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 259.1';
 
     /* تنبيهات */
     const alerts=[];
