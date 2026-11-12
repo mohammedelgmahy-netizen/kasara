@@ -466,7 +466,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 259.2</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 259.3</span></p></div>
         </div>
     </aside>
 
@@ -9394,6 +9394,29 @@ function renderDailyLog(){
         <tr class="bg-amber-50"><td class="p-2 text-amber-900" colspan="15">🪨 صافي السن المطلع: <b class="text-lg">${nfmt(pureAcc+tabSin)}</b>
             <span class="text-xs text-slate-600 mr-2">(${DL_SIZES.filter(isSinSize).map(s=>`${s.label}: ${nfmt(sums[s.key]||0)}`).join(' + ')} + السن اللي في الطبقة: ${nfmt(tabSin)})</span></td></tr>` : '';
 }
+/* تصدير كل البرنامج في ملف إكسيل واحد (محمد 2026-11-12) */
+function exportAllExcel(){
+    if(typeof XLSX==='undefined'){ alert('مكتبة الإكسيل لسه بتحمّل — جرّب تاني بعد ثواني'); return; }
+    const wb = XLSX.utils.book_new(), r2=v=>Math.round((Number(v)||0)*100)/100;
+    const add=(name,aoa)=>{ if(aoa.length<2) return; const ws=XLSX.utils.aoa_to_sheet(aoa); ws['!cols']=aoa[0].map(()=>({wch:16})); if(!wb.Workbook) wb.Workbook={Views:[{RTL:true}]}; XLSX.utils.book_append_sheet(wb, ws, name.slice(0,31)); };
+    /* البونات */
+    { const aoa=[['التاريخ','رقم البون','العميل','الجرار','المقطورة',...DL_SIZES.map(s=>s.label),'إجمالي الكمية','السعر','القيمة','نقدي','إكرامية','ملاحظات']];
+      (db.dailyLog||[]).slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||((Number(a.bon)||0)-(Number(b.bon)||0))).forEach(r=>aoa.push([r.date||'', r.bon||'', r.client||'', r.tractor||'', r.trailer||'', ...DL_SIZES.map(s=>(r.q||{})[s.key]||''), r2(bonQtyTotal(r)), r.price||'', r2(bonValue(r)), r.paidCash?'نقدي':'', r.tip||'', r.notes||'']));
+      add('البونات', aoa); }
+    add('بونات ملغية', [['رقم البون','التاريخ','ملاحظة'], ...(db.cancelledBons||[]).map(c=>[c.n, c.date||'', c.note||''])]);
+    /* المصروفات والتحصيلات */
+    add('المصروفات', [['التاريخ','البند','النشاط','الاسم','المبلغ','الخزنة','البيان'], ...(db.expensesData||[]).filter(x=>x.category!=='إيراد').sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))).map(x=>[x.date||'', catLabel(x.category||''), x.activity||'', x.name||'', r2(x.paid||x.total), catLabel(x.account||''), x.notes||x.desc||''])]);
+    add('التحصيلات', [['التاريخ','العميل','المبلغ','الخزنة','البيان'], ...(db.expensesData||[]).filter(x=>x.category==='إيراد').sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))).map(x=>[x.date||'', x.name||'', r2(x.paid), catLabel(x.account||''), x.notes||x.desc||''])]);
+    /* أرصدة العملاء */
+    try{ const aoa=[['العميل','إجمالي المبيعات','المحصّل','الباقي عليه']]; (db.clients||[]).forEach(c=>{ const t=acctTotals(getClientAccountRows(c.name)); if(t.debit||t.credit) aoa.push([c.name, r2(t.debit), r2(t.credit), r2(t.balance)]); }); add('أرصدة العملاء', aoa); }catch(e){}
+    /* حركة الخزينة */
+    try{ const st=buildCashStatement('','','ALL'); add('حركة الخزينة', [['التاريخ','البيان','الخزنة','وارد','منصرف','الرصيد'], ...st.rows.map(e=>[e.date||'', String(e.desc||'').replace(/معلق عماد ناجي/g,'البنك'), catLabel(e.account||''), e.inflow||'', e.outflow||'', r2(e.balance)])]); }catch(e){}
+    /* باقي الجداول زي ما هي */
+    const generic=(name,arr)=>{ arr=(arr||[]).filter(x=>x&&typeof x==='object'); if(!arr.length) return; const keys=[]; arr.forEach(x=>Object.keys(x).forEach(k=>{ if(!keys.includes(k) && k[0]!=='_') keys.push(k); }));
+        add(name, [keys, ...arr.map(x=>keys.map(k=>{ const v=x[k]; return v==null?'':(typeof v==='object'?JSON.stringify(v):v); }))]); };
+    [['العملاء','clients'],['موردي قطع الغيار والسولار','suppliers'],['أصحاب المعدات','contractors'],['الموظفين','names'],['المشتريات','procurements'],['دفعات الموردين','payments'],['مستخلصات أصحاب المعدات','ctrExtracts'],['صرف المخزون','stockIssues'],['تحويلات الخزن','cashTransfers'],['إيرادات أخرى','incomes'],['السلف','ownerLoans'],['العربيات','vehicles'],['بنود المصروفات','expenses'],['الخزن','accounts']].forEach(([n,k])=>generic(n, db[k]));
+    XLSX.writeFile(wb, `كسارة-الديار-كل-البيانات-${todayISO()}.xlsx`);
+}
 function exportDailyLogExcel(){
     const rows = dlRows();
     const aoa = [['التاريخ','رقم البون','اسم العميل','رقم الجرار','رقم المقطورة',...DL_SIZES.map(s=>s.label),'نسبة السن في الطبقة','سن الطبقة','إكرامية','سعر الوحدة','القيمة']];
@@ -11107,7 +11130,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 259.2';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 259.3';
 
     /* تنبيهات */
     const alerts=[];
@@ -11339,6 +11362,7 @@ function toggleMoreMenu(){
         ...(currentRole==='admin'?[['fa-solid fa-users-gear','#0f766e','المستخدمين'+(window.__pendingN?' ('+window.__pendingN+')':''),"switchTab('users')"]]:[]),
         ...(window.__isStandalone?[]:[['fa-solid fa-mobile-screen-button','#16a34a','تثبيت التطبيق على الجهاز','installApp()']]),
         ['fa-solid fa-file-export','#2563eb','تصدير نسخة احتياطية','exportData()'],
+        ['fa-solid fa-file-excel','#059669','تصدير كل البيانات إكسيل','exportAllExcel()'],
         ...(currentRole==='admin'?[['fa-solid fa-file-import','#475569','استرجاع نسخة',"document.getElementById('restore-input').click()"]]:[]),
         ['fa-solid fa-right-from-bracket','#dc2626','خروج ('+roleLabel()+')','logoutUser()']
     ];
