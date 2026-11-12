@@ -277,6 +277,21 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
 /* زر التثبيت العائم */
 #installBtn{background:var(--gold) !important;color:#1b1206 !important}
 /* الطباعة: نرجع الألوان العادية */
+/* شاشة تسجيل البون ثابتة على اللابتوب: الفورم كله يبان من غير طلوع ونزول (محمد 2026-11-12) */
+@media screen and (min-width:901px){
+#tab-dailylog:has(> #sub-dailylog-form.active){gap:.5rem !important}
+#tab-dailylog:has(> #sub-dailylog-form.active) > .tab-brand{display:none !important}
+#tab-dailylog:has(> #sub-dailylog-form.active) > .subnav-bar .subnav-btn{padding:.35rem 1rem}
+#dl-form-card{padding:.7rem 1rem !important}
+#dl-form-card > h3{display:none !important}
+#dl-form-card > div.bg-violet-50{padding:.35rem .75rem !important;margin-bottom:.5rem !important}
+#dl-form-card form{gap:.5rem !important}
+#dl-form-card form .grid{gap:.45rem .6rem !important}
+#dl-form-card form label.block{margin-bottom:1px !important}
+#dl-row1{grid-template-columns:1.35fr 1.1fr 1fr 1fr 1fr 1fr 1fr !important}
+#dl-size-btns{gap:.35rem !important}
+#dl-size-btns button{padding:.25rem .6rem !important}
+}
 /* تاب كشف الحساب: خط أكبر على الشاشة (محمد 2026-11-12) */
 @media screen{#sub-ledger-log table th,#sub-ledger-log table td{font-size:1.15rem !important}#sub-ledger-log table td .text-\[10px\]{font-size:.85rem !important}#sub-ledger-log h3{font-size:1.25rem}#acct-table-wrap table th,#acct-table-wrap table td{font-size:1.1rem !important}#acct-title{font-size:1.2rem}#acct-summary{font-size:1.1rem !important}}
 /* طباعة قوائم تاب كشف الحساب: خط كبير ومن غير تصغير لصفحة واحدة (محمد 2026-11-12) */
@@ -447,7 +462,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 257.4</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 257.5</span></p></div>
         </div>
     </aside>
 
@@ -624,7 +639,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 <button type="button" id="subnav-dailylog-log" class="subnav-btn" onclick="switchSub('dailylog','log')">📒 سجل البونات</button>
             </div>
             <div id="sub-dailylog-form" class="subpage active">
-            <div class="bg-white p-5 rounded-xl border border-amber-100 shadow-sm">
+            <div id="dl-form-card" class="bg-white p-5 rounded-xl border border-amber-100 shadow-sm">
                 <h3 class="font-bold text-slate-900 mb-1"><i class="fa-solid fa-book text-amber-600"></i> السجل اليومي — بونات التحميل</h3>
                 
                 <div class="flex flex-wrap items-center gap-3 mb-3 p-3 rounded-lg bg-violet-50 border-2 border-violet-200">
@@ -636,7 +651,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <button id="price-bons-btn" type="button" onclick="openPriceBons()" style="display:none" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3 py-2 rounded-lg"></button>
                 </div>
                 <form onsubmit="addDailyLog(event)" class="flex flex-col gap-3">
-                    <div class="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
+                    <div id="dl-row1" class="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="dl-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">رقم البون</label><div class="flex gap-1"><input id="dl-bon" type="text" readonly class="w-full bg-slate-100 border border-slate-200 rounded-lg p-2 text-sm font-extrabold text-slate-800"><button type="button" id="dl-bon-manual" onclick="toggleManualBon()" title="رقم بون نسيته" class="shrink-0 bg-amber-100 border border-amber-300 text-amber-900 rounded-lg px-2 text-xs font-bold whitespace-nowrap">بون فات</button></div></div>
                         <div class="col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">اسم العميل</label><select id="dl-client" required onchange="dlClientPrice(); dlClientBal()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select><div id="dl-client-bal" class="text-xs font-bold mt-1"></div></div>
@@ -3496,12 +3511,23 @@ window.addEventListener('popstate',()=>{
 });
 try{ if(!(history.state && history.state.guard)){ history.replaceState({base:1},''); history.pushState({guard:1},''); } }catch(e){}
 const SUBPAGE_TABS = ['dailylog','purchases','inventory','expenses','extracts','equipment','payroll','ledger'];
+/* لو فورم البون لسه أطول من الشاشة على اللابتوب: يتصغر سنة بـ zoom لحد ما يبان كله */
+function fitBonForm(){
+    try{ const c=document.getElementById('dl-form-card'); if(!c) return; c.style.zoom='';
+        if(innerWidth<901 || !c.offsetParent) return;
+        const m=document.querySelector('main'); if(m) m.scrollTop=0;
+        const top=c.getBoundingClientRect().top, h=c.offsetHeight, avail=innerHeight-top-10;
+        if(h>avail && avail>200) c.style.zoom=Math.max(0.7, avail/h).toFixed(3);
+    }catch(e){}
+}
+window.addEventListener('resize', ()=>{ try{ fitBonForm(); }catch(e){} });
 function switchSub(tab, which){
     const panel = document.getElementById('tab-'+tab); if(!panel) return;
     panel.querySelectorAll(':scope > .subpage').forEach(p=>p.classList.remove('active'));
     panel.querySelector('#sub-'+tab+'-'+which)?.classList.add('active');
     panel.querySelectorAll('.subnav-btn').forEach(b=>b.classList.remove('active'));
     panel.querySelector('#subnav-'+tab+'-'+which)?.classList.add('active');
+    if(tab==='dailylog') setTimeout(fitBonForm,0);
     try{ if(db && !db.meta) db.meta={}; if(db && db.meta){ db.meta.subPage = db.meta.subPage||{}; db.meta.subPage[tab]=which; } }catch(e){}
 }
 function switchTab(tabId){
@@ -3516,6 +3542,7 @@ function switchTab(tabId){
         const saved = (db && db.meta && db.meta.subPage && db.meta.subPage[tabId]) || 'form';
         if(!tabEl.querySelector(':scope > .subpage.active')) switchSub(tabId, saved);
     }
+    if(tabId==='dailylog') setTimeout(fitBonForm,0);
     document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
     document.getElementById('btn-'+tabId)?.classList.add('active');
     if(tabId==='pl'){ renderTaxTable(); renderPL(); }
@@ -7405,6 +7432,7 @@ function renderSizeBtns(){
         /* محمد 2026-11-08: مربع الكمية يظهر بس للصنف المختار */
         const wrap=el.parentElement; if(wrap){ wrap.style.display=''; wrap.classList.toggle('dlq-on', __dlSel.has(sz.key)); } } });
     box.innerHTML = `<span class="text-xs font-bold text-slate-600">${cube?`الحمولة (${nfmt(cube)} م):`:'الصنف:'}</span>` + DL_SIZES.map(sz=>{ const on=__dlSel.has(sz.key); return `<button type="button" onclick="dlPickSize('${sz.key}')" class="px-3 py-1.5 rounded-lg text-sm font-bold border-2 ${on?'bg-emerald-600 border-emerald-600 text-white':'bg-white border-slate-300 text-slate-700'}">${on?'✓ ':''}${esc(sz.label)}</button>`; }).join('');
+    try{ fitBonForm(); }catch(e){}
 }
 document.addEventListener('input', e=>{ if(e.target && e.target.id && e.target.id.startsWith('dl-q-')) try{
     /* صنفين في نفس العربية (الجرار صنف والمقطورة صنف): تكتب كمية واحد، والتاني ياخد باقي التكعيب */
@@ -10909,7 +10937,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 257.4';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 257.5';
 
     /* تنبيهات */
     const alerts=[];
