@@ -463,7 +463,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 258.3</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 258.4</span></p></div>
         </div>
     </aside>
 
@@ -4407,9 +4407,9 @@ function empBalBar(name){ const n=(db.names||[]).find(x=>x.name===name); if(!n) 
     return balBarHtml(['📋 مرتب الشهر',sal],['✅ اتصرف له الشهر ده',used],['🔴 الباقي له'+(Math.round(old)?' (شامل رصيد سابق '+fmt(old)+')':''),sal-used+old, (sal-used+old)<0?'text-emerald-700':'text-rose-700']); }
 function expPartyBal(){ const box=document.getElementById('exp-bal-info'); if(!box) return; let h='';
     try{ const cat=document.getElementById('exp-category').value, nm=document.getElementById('exp-name').value, c=(db.expenses||[]).find(e=>e.name===cat)||{};
-        if(nm && c.nameType==='contractors') h=ctrBalBar(nm); else if(nm && c.nameType==='names') h=empBalBar(nm); }catch(e){}
+        if(nm && c.nameType==='contractors') h=ctrBalBar(nm); /* شريط الموظفين اتشال بطلب محمد 2026-11-12 */ }catch(e){}
     box.innerHTML=h; box.style.display=h?'':'none'; }
-function advPartyBal(){ const box=document.getElementById('adv-bal-info'); if(!box) return; let h=''; try{ const nm=document.getElementById('adv-name').value; if(nm) h=empBalBar(nm); }catch(e){} box.innerHTML=h; box.style.display=h?'':'none'; }
+function advPartyBal(){ const box=document.getElementById('adv-bal-info'); if(!box) return; let h=''; /* اتشال بطلب محمد 2026-11-12 */ box.innerHTML=h; box.style.display=h?'':'none'; }
 function showContractInfo(){
     const cat = document.getElementById('exp-category').value;
     const name = document.getElementById('exp-name').value;
@@ -11037,7 +11037,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 258.3';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 258.4';
 
     /* تنبيهات */
     const alerts=[];
