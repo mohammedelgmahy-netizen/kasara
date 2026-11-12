@@ -442,7 +442,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 256.5</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 256.6</span></p></div>
         </div>
     </aside>
 
@@ -3186,12 +3186,13 @@ const fmt = n => __sepFix(__NFm.format(Math.round(Number(n)||0))) + ' ج.م';  /
 const esc = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const todayISO = () => new Date().toISOString().slice(0,10);
 
+function catLabel(n){ return n==='مقاولين' ? 'أصحاب المعدات' : n; } // اسم العرض بس، البيانات زي ما هي
 function fillSelect(id, items, allLabel){
     const el = document.getElementById(id);
     if(!el) return;
     const prev = el.value;
     let html = allLabel ? `<option value="ALL">${allLabel}</option>` : '';
-    items.forEach(it => html += `<option value="${esc(it.name)}">${it.code} - ${esc(it.name)}</option>`);
+    items.forEach(it => html += `<option value="${esc(it.name)}">${it.code} - ${esc(catLabel(it.name))}</option>`);
     el.innerHTML = html;
     if([...el.options].some(o=>o.value===prev)) el.value = prev;
 }
@@ -3203,7 +3204,7 @@ function fillStockRecipientSelect(id, allLabel){
     const prev = el.value;
     let html = allLabel ? `<option value="ALL">${allLabel}</option>` : '<option value="">استهلاك الكسارة</option>';
     if((db.contractors||[]).length){
-        html += `<optgroup label="مقاولين / أصحاب معدات">` + db.contractors.map(c=>`<option value="c::${esc(c.name)}">${esc(c.name)}${c.equip?' - '+esc(c.equip):''}</option>`).join('') + `</optgroup>`;
+        html += `<optgroup label="أصحاب المعدات">` + db.contractors.map(c=>`<option value="c::${esc(c.name)}">${esc(c.name)}${c.equip?' - '+esc(c.equip):''}</option>`).join('') + `</optgroup>`;
     }
     if((db.names||[]).length){
         html += `<optgroup label="أفراد">` + db.names.map(n=>`<option value="p::${esc(n.name)}">${esc(n.name)}</option>`).join('') + `</optgroup>`;
@@ -3226,7 +3227,7 @@ function fillEquipmentRecipientSelect(id, allLabel){
     const prev = el.value;
     let html = allLabel ? `<option value="ALL">${allLabel}</option>` : '';
     if((db.contractors||[]).length){
-        html += `<optgroup label="مقاولين / أصحاب معدات">` + db.contractors.map(c=>`<option value="c::${esc(c.name)}">${esc(c.name)}${c.equip?' - '+esc(c.equip):''}</option>`).join('') + `</optgroup>`;
+        html += `<optgroup label="أصحاب المعدات">` + db.contractors.map(c=>`<option value="c::${esc(c.name)}">${esc(c.name)}${c.equip?' - '+esc(c.equip):''}</option>`).join('') + `</optgroup>`;
     }
     if((db.assets||[]).length){
         html += `<optgroup label="معدات">` + db.assets.filter(a=>a.status!=='sold').map(a=>`<option value="a::${esc(a.name)}">${esc(a.name)}</option>`).join('') + `</optgroup>`;
@@ -4269,7 +4270,7 @@ function filterExpenseSubFields(){
         sel.innerHTML = '<option value=""></option>';
     } else if(nameType==='contractors'){
         fillSelect('exp-name', db.contractors||[]);
-        label.textContent = 'المقاول';
+        label.textContent = 'صاحب المعدة';
     } else if(nameType==='clients'){
         fillSelect('exp-name', db.clients);
         label.textContent = 'العميل';
@@ -4295,7 +4296,7 @@ function renderExpQuick(){
     const selC=document.getElementById('exp-category'); let cur=selC?.value||'';
     if(selC && !__editSnap && !expTypes().some(c=>c.name===cur) && expTypes().length){ selC.value=expTypes()[0].name; cur=selC.value; try{ filterExpenseSubFields(); }catch(e){} }
     box.innerHTML=`<span class="text-xs font-bold text-slate-600 self-center">نوع المصروف:</span>`+expTypes().map(c=>{ const on=c.name===cur;
-        return `<button type="button" onclick="pickExpType(${c.code})" class="px-3 py-2 rounded-xl text-sm font-bold border ${on?'bg-emerald-600 text-white border-emerald-600':'bg-white text-slate-700 border-slate-200 hover:bg-emerald-50'}">${esc(c.name)}</button>`; }).join('');
+        return `<button type="button" onclick="pickExpType(${c.code})" class="px-3 py-2 rounded-xl text-sm font-bold border ${on?'bg-emerald-600 text-white border-emerald-600':'bg-white text-slate-700 border-slate-200 hover:bg-emerald-50'}">${esc(catLabel(c.name))}</button>`; }).join('');
 }
 function pickExpType(code){
     const c=(db.expenses||[]).find(x=>x.code===code); if(!c) return;
@@ -4655,7 +4656,7 @@ function renderExpensesTable(){
     document.getElementById('tbody-expenses').innerHTML =
         rows.map(x=>`
         <tr class="border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onclick="if(!event.target.closest('button')) this.nextElementSibling.classList.toggle('hidden')">
-            <td class="p-3">${esc(x.category)}</td>
+            <td class="p-3">${esc(catLabel(x.category))}</td>
             <td class="p-3">${esc(x.name)}</td>
             <td class="p-3 font-bold">${x.executedValue ? fmt(x.executedValue) : fmt(x.paid)}</td>
             <td class="p-3">${fmt(x.paid)}</td>
@@ -7045,7 +7046,7 @@ function deleteContractor(n){
 function renderContractors(){
     const el = document.getElementById('ctr-list'); if(!el) return;
     el.innerHTML = (db.contractors||[]).map(c=>`<span class="bg-violet-50 border border-violet-200 text-violet-800 rounded-full px-3 py-1 text-xs font-bold">${esc(c.name)}${c.equip?' <span class="font-normal text-violet-500">('+esc(c.equip)+')</span>':''} <button onclick="deleteContractor('${esc(c.name).replace(/'/g,"\\'")}')" class="text-red-400 hover:text-red-600 mr-1">✕</button></span>`).join('')
-        || '<span class="text-xs text-slate-400">لسه مفيش مقاولين</span>';
+        || '<span class="text-xs text-slate-400">لسه مفيش أصحاب معدات</span>';
 }
 /* عهد المقاول اللي لسه ما اتخصمتش من مستخلص (مصروفات تبويب "مقاولين" نوعها سلفة) */
 function contractorOpenAdvances(name){
@@ -9448,7 +9449,7 @@ function renderDashMoves(){
     const th = cols => document.getElementById('dm-head').innerHTML = cols.map(c=>`<th class="p-2">${c}</th>`).join('');
     let rows;
     if(f==='custody'){
-        th(['التاريخ','المقاول','المبلغ','الخزينة','الحالة','ملاحظات']);
+        th(['التاريخ','صاحب المعدة','المبلغ','الخزينة','الحالة','ملاحظات']);
         const ctrCats = (db.expenses||[]).filter(c=>c.nameType==='contractors').map(c=>c.name);
         const list = (db.expensesData||[]).filter(x=>ctrCats.includes(x.category) && x.payType!=='settle').sort((a,b)=>(b.date||'').localeCompare(a.date||''));
         const total = list.reduce((s,x)=>s+(Number(x.paid)||0),0);
@@ -9685,7 +9686,7 @@ function allContractorsStmtData(){
 }
 function allContractorsTableHtml(){
     const {rows, T}=allContractorsStmtData();
-    return `<table class="w-full text-sm text-right" style="border-collapse:collapse"><thead class="bg-slate-100"><tr><th class="p-2">المقاول</th><th class="p-2">إجمالي له</th><th class="p-2">المدفوع له</th><th class="p-2">الباقي له</th></tr></thead><tbody>
+    return `<table class="w-full text-sm text-right" style="border-collapse:collapse"><thead class="bg-slate-100"><tr><th class="p-2">صاحب المعدة</th><th class="p-2">إجمالي له</th><th class="p-2">المدفوع له</th><th class="p-2">الباقي له</th></tr></thead><tbody>
         ${rows.map(r=>`<tr class="border-b border-slate-100"><td class="p-2 font-bold">${esc(r.name)}</td><td class="p-2 text-amber-700">${mfmt(r.tot)}</td><td class="p-2 text-emerald-700">${mfmt(r.paid)}</td><td class="p-2 font-bold${r.bal<0?' text-rose-700':''}">${mfmt(r.bal)}</td></tr>`).join('') || '<tr><td colspan="4" class="p-4 text-center text-slate-400">مفيش حركات</td></tr>'}
         </tbody><tfoot><tr class="bg-rose-50 font-bold" style="border-top:2px solid #7c3aed"><td class="p-2">الإجمالي</td><td class="p-2">${mfmt(T.tot)}</td><td class="p-2">${mfmt(T.paid)}</td><td class="p-2">${mfmt(T.bal)}</td></tr></tfoot></table>`;
 }
@@ -9721,7 +9722,7 @@ function selSearch(id, ph){ const sel=document.getElementById(id); if(!sel || se
 /* محمد 2026-11-07: عاوز قايمة عادية (دروب ليست) مش خانة كتابة */
 function openQuickExtracts(){
     if(isRO()) return;
-    const L=extractableCtrs(); if(!L.length){ alert('مفيش مقاولين بيتحاسبوا بمستخلص'); return; }
+    const L=extractableCtrs(); if(!L.length){ alert('مفيش أصحاب معدات بيتحاسبوا بمستخلص'); return; }
     const from=weekStart(todayISO()), to=addDays(from,6);
     const rows=L.map((c,i)=>ctrEquips(c.name).map((e,k,A)=>`<tr style="border-bottom:1px solid ${k===A.length-1?'#94a3b8':'#e2e8f0'}">${k===0?`<td rowspan="${A.length}" style="padding:6px;font-weight:800;vertical-align:top">${esc(c.name)}</td>`:''}
         <td style="padding:6px;font-weight:700">${esc(ctrEqName(c.name,e))}</td>
@@ -10890,14 +10891,14 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 256.5';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 256.6';
 
     /* تنبيهات */
     const alerts=[];
     if(R.entityFilter) alerts.push(['sky','🔎 الفلاتر (منتج/عميل/جرار/مستلم) بتفلتر المبيعات والنقلات بس. التكاليف وقائمة الدخل على مستوى الكسارة كلها.']);
     if(!R.hasProd) alerts.push(['amber','⚠️ مفيش إنتاج مسجل في الفترة دي. تكلفة المتر محسوبة على الكمية المباعة، وكل تكلفة الإنتاج اتحملت على الفترة (مفيش ترحيل للمخزون). سجّل الإنتاج اليومي من آخر الشاشة.']);
     if(R.unpriced) alerts.push(['rose',`⚠️ فيه ${nfmt(R.unpriced)} بون من غير سعر في الفترة — قيمتهم مش داخلة في المبيعات. حط السعر من تاب المبيعات.`]);
-    if(R.noRate.length) alerts.push(['rose',`⚠️ مقاولين ليهم شغل في الفترة من غير سعر متر (مش محسوبين في التكلفة): ${esc(R.noRate.join('، '))}. حدد السعر من دليل الأكواد.`]);
+    if(R.noRate.length) alerts.push(['rose',`⚠️ أصحاب معدات ليهم شغل في الفترة من غير سعر متر (مش محسوبين في التكلفة): ${esc(R.noRate.join('، '))}. حدد السعر من دليل الأكواد.`]);
     if(Math.abs(R.revenueGap)>=1) alerts.push(['slate',`ℹ️ إيرادات قائمة الدخل ${mfmt(R.revenue)} بتفرق عن مجموع سطور الفواتير ${mfmt(R.salesValueAll)} بـ ${mfmt(R.revenueGap)} (قيود إيراد قديمة أو يدوية). التقرير بيعتمد رقم قائمة الدخل.`]);
     const AC={sky:['#f0f9ff','#bae6fd','#075985'],amber:['#fffbeb','#fde68a','#92400e'],rose:['#fff1f2','#fecdd3','#9f1239'],slate:['#f8fafc','#e2e8f0','#334155']};
     g('mgr-alerts').innerHTML = alerts.map(([c,t])=>{ const [bg,bd,fg]=AC[c]; return `<div class="mgr-alert" style="background:${bg};border:1px solid ${bd};color:${fg}">${t}</div>`; }).join('');
