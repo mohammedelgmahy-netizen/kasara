@@ -442,7 +442,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 256.8</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 256.9</span></p></div>
         </div>
     </aside>
 
@@ -1652,6 +1652,11 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
 
         <!-- LEDGER -->
         <div id="tab-ledger" class="tab-content flex-col gap-6">
+            <div class="subnav-bar">
+                <button type="button" id="subnav-ledger-form" class="subnav-btn active" onclick="switchSub('ledger','form')">📄 كشف حساب</button>
+                <button type="button" id="subnav-ledger-log" class="subnav-btn" onclick="switchSub('ledger','log')">👥 أرصدة العملاء</button>
+            </div>
+            <div id="sub-ledger-form" class="subpage active">
             <div id="acct-card" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                 <div class="flex flex-wrap justify-between items-center gap-3 mb-4 border-b border-slate-100 pb-3">
                     <h3 class="font-bold text-lg text-slate-900"><i class="fa-solid fa-file-invoice text-indigo-500"></i> كشف الحساب</h3>
@@ -1689,20 +1694,21 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 <div class="px-4 pt-3 pb-2 flex flex-wrap items-center gap-2 bg-cyan-50 border-b border-cyan-100"><span class="text-xs font-bold text-slate-700">كشوفات العملاء المحفوظة:</span><select id="cst-filter" onchange="renderClientStmts()" class="bg-white border border-cyan-200 rounded px-2 py-1 text-xs font-bold min-w-[10rem]"><option value="">كل العملاء</option></select><input id="cst-search" type="search" oninput="renderClientStmts()" placeholder="🔍 بحث: اسم أو تاريخ (مثلاً 22/10)" class="bg-white border border-cyan-200 rounded px-2 py-1 text-xs flex-1 min-w-[10rem]"></div>
                 <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100"><tr><th class="p-2">التاريخ</th><th class="p-2">العميل</th><th class="p-2">الفترة</th><th class="p-2">البونات</th><th class="p-2">السن</th><th class="p-2">المطلوب</th><th class="p-2">المحصّل</th><th class="p-2">الرصيد</th><th class="p-2"></th></tr></thead><tbody id="tbody-cst"></tbody></table></div>
             </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            </div>
+            <div id="sub-ledger-log" class="subpage">
+            <div class="grid grid-cols-1 gap-6">
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="p-4 bg-cyan-50 border-b border-cyan-100">
                         <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="font-bold text-slate-900"><i class="fa-solid fa-user-tie text-cyan-600"></i> حسابات العملاء </h3>
                         <select id="acct-clients-status" onchange="renderAccounts()" class="bg-white border border-cyan-200 rounded px-2 py-1 text-xs font-bold"><option value="ALL">كل العملاء</option><option value="ON">عليهم فلوس</option><option value="FOR">ليهم (مقدم)</option><option value="ZERO">خالص</option></select></div>
                     </div>
-                    <div class="overflow-x-auto max-h-72"><table class="w-full text-sm text-right"><thead class="bg-slate-100 sticky top-0"><tr><th class="p-3">العميل</th><th class="p-3">إجمالي المبيعات</th><th class="p-3">المحصّل</th><th class="p-3">الرصيد</th></tr></thead><tbody id="tbody-acct-clients"></tbody></table></div>
+                    <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100 sticky top-0"><tr><th class="p-3">العميل</th><th class="p-3">إجمالي المبيعات</th><th class="p-3">المحصّل</th><th class="p-3">الرصيد</th></tr></thead><tbody id="tbody-acct-clients"></tbody></table></div>
                 </div>
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="p-4 bg-indigo-50 border-b border-indigo-100">
                         <h3 class="font-bold text-slate-900"><i class="fa-solid fa-users text-indigo-600"></i> حسابات الأفراد </h3>
                     </div>
-                    <div class="overflow-x-auto max-h-72"><table class="w-full text-sm text-right"><thead class="bg-slate-100 sticky top-0"><tr><th class="p-3">الفرد</th><th class="p-3">المصروف له</th><th class="p-3">المردود / المسوّى</th><th class="p-3">الصافي</th></tr></thead><tbody id="tbody-acct-persons"></tbody></table></div>
+                    <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100 sticky top-0"><tr><th class="p-3">الفرد</th><th class="p-3">المصروف له</th><th class="p-3">المردود / المسوّى</th><th class="p-3">الصافي</th></tr></thead><tbody id="tbody-acct-persons"></tbody></table></div>
                 </div>
             </div>
             <div id="dl-followup-card" class="bg-white rounded-xl border border-cyan-100 shadow-sm overflow-hidden" style="display:none"><!-- اتشالت: مكررة مع كشف حساب العميل + حسابات العملاء -->
@@ -1728,6 +1734,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     </table>
                 </div>
                 <div id="dl-fu-summary" class="p-4 flex flex-wrap gap-4 text-sm border-t border-cyan-100"></div>
+            </div>
             </div>
         </div>
 
@@ -3483,7 +3490,7 @@ window.addEventListener('popstate',()=>{
     try{ history.back(); }catch(e){}
 });
 try{ if(!(history.state && history.state.guard)){ history.replaceState({base:1},''); history.pushState({guard:1},''); } }catch(e){}
-const SUBPAGE_TABS = ['dailylog','purchases','inventory','expenses','extracts','equipment','payroll'];
+const SUBPAGE_TABS = ['dailylog','purchases','inventory','expenses','extracts','equipment','payroll','ledger'];
 function switchSub(tab, which){
     const panel = document.getElementById('tab-'+tab); if(!panel) return;
     panel.querySelectorAll(':scope > .subpage').forEach(p=>p.classList.remove('active'));
@@ -5218,7 +5225,7 @@ function acctFillNames(){
     if(names.includes(prev)) sel.value = prev;
 }
 function onAcctTypeChange(){ renderAccounts(); }
-function openAcct(type, name){
+function openAcct(type, name){ try{ switchSub('ledger','form'); }catch(e){}
     const t = document.getElementById('acct-type'), q = document.getElementById('acct-search');
     if(!t) return;
     t.value = type; if(q) q.value = '';
@@ -10893,7 +10900,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 256.8';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 256.9';
 
     /* تنبيهات */
     const alerts=[];
