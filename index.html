@@ -292,6 +292,7 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
 #dl-size-btns{gap:.35rem !important}
 #dl-size-btns button{padding:.25rem .6rem !important}
 }
+@media screen{.cs-price{color:#1d4ed8;text-decoration:underline dotted}}
 /* تاب كشف الحساب: خط أكبر على الشاشة (محمد 2026-11-12) */
 @media screen{#sub-ledger-log table th,#sub-ledger-log table td{font-size:1.15rem !important}#sub-ledger-log table td .text-\[10px\]{font-size:.85rem !important}#sub-ledger-log h3{font-size:1.25rem}#acct-table-wrap table th,#acct-table-wrap table td{font-size:1.1rem !important}#acct-title{font-size:1.2rem}#acct-summary{font-size:1.1rem !important}}
 /* طباعة قوائم تاب كشف الحساب: خط كبير ومن غير تصغير لصفحة واحدة (محمد 2026-11-12) */
@@ -462,7 +463,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 257.7</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 257.8</span></p></div>
         </div>
     </aside>
 
@@ -5365,7 +5366,7 @@ function clientSheetHtml(name){
     const totRow=`<tr style="font-weight:800"><td style="${B}" colspan="2">الإجمالي</td><td style="${B}">${D.n?nfmt(D.n):''}</td><td style="${B}"></td>${sz.map(x=>`<td style="${B}">${n0(D.tot[x.key])}</td>`).join('')}</tr>`;
     const qAll=sz.reduce((t,x)=>t+(Number(D.tot[x.key])||0),0);
     const qtyRow=`<tr style="font-weight:800;background:#f1f5f9"><td style="${B}" colspan="4">إجمالي الكميات (متر)</td><td style="${B};font-size:1.1em" colspan="${sz.length||1}">${n0(qAll)}</td></tr>`;
-    const priceRow=`<tr><td style="${B};font-weight:800" colspan="4">السعر</td>${sz.map(x=>`<td style="${B}">${n0(D.priceOf(x.key))}</td>`).join('')}</tr>`;
+    const priceRow=`<tr><td style="${B};font-weight:800" colspan="4">السعر</td>${sz.map(x=>D.tot[x.key]?`<td style="${B};cursor:pointer" class="cs-price" title="دوس لتعديل السعر" onclick="csEditPrice('${x.key}')">${n0(D.priceOf(x.key))||'—'}</td>`:`<td style="${B}"></td>`).join('')}</tr>`;
     const amtRow=`<tr style="font-weight:800"><td style="${B}" colspan="4">إجمالي المبلغ</td>${sz.map(x=>`<td style="${B}">${n0(D.amt[x.key])}</td>`).join('')}</tr>`;
     const req=D.bonsTotal+D.otherDebit, totalReq=req+D.prev;
     const sl=(l,v,bold)=>`<tr${bold?' style="font-weight:800"':''}><td style="${B};width:55%">${l}</td><td style="${B}">${Math.round(v)?nfmt(Math.round(v)):''}</td></tr>`;
@@ -5385,6 +5386,28 @@ function clientSheetHtml(name){
       <table style="width:100%;border-collapse:collapse">${sum}</table>${SIG_LINE}</div>`;
 }
 
+/* تعديل سعر المتر من كشف حساب العميل: محمد بيدوس على السعر تحت المقاس ويكتب السعر الجديد، وبيتطبق على بونات العميل في الفترة للمقاس ده (محمد 2026-11-12) */
+function csEditPrice(key){
+    if(isRO()) return;
+    const g=id=>document.getElementById(id); if(g('acct-type').value!=='client') return;
+    const name=g('acct-name').value, from=g('acct-from').value, to=g('acct-to').value; if(!name) return;
+    const sz=DL_SIZES.find(x=>x.key===key)||{label:key};
+    const all=clientBons(name, from, to).filter(r=>(Number((r.q||{})[key])||0)>0);
+    const list=all.filter(r=>!r.saleGroupId), skip=all.length-list.length;
+    if(!list.length){ alert(skip?'البونات دي مربوطة بفواتير، سعرها بيتعدل من الفاتورة.':'مفيش بونات للمقاس ده في الفترة.'); return; }
+    const cur=[...new Set(list.map(r=>Number(r.price)||0))];
+    const raw=prompt(`سعر المتر الجديد لـ «${sz.label}» — ${name}\n(${list.length} بون${from||to?' من '+(from?dmy(from):'الأول')+' لـ '+(to?dmy(to):'الآخر'):''})\nالسعر الحالي: ${cur.map(v=>nfmt(v)).join(' ، ')}`, cur.length===1&&cur[0]?cur[0]:'');
+    if(raw==null) return;
+    const pr=Number(String(raw).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(',','.').replace(/[^0-9.]/g,''));
+    if(!(pr>0)){ alert('اكتب سعر صحيح'); return; }
+    const multi=list.filter(r=>Object.values(r.q||{}).filter(v=>Number(v)>0).length>1).length;
+    if(!confirm(`هيتغير سعر ${list.length} بون للعميل «${name}» (${sz.label}) لـ ${nfmt(pr)} للمتر.`+(multi?`\n⚠️ ${multi} بون منهم فيه أكتر من مقاس، والسعر بيتغير للبون كله.`:'')+(skip?`\n(${skip} بون مربوط بفاتورة مش هيتغير)`:'')+'\n\nتمام؟')) return;
+    const before=list.reduce((a,r)=>a+(Number(bonValue(r))||0),0);
+    list.forEach(r=>{ r.price=pr; delete r.total; });
+    const after=list.reduce((a,r)=>a+(Number(bonValue(r))||0),0);
+    logAudit('update','تعديل سعر من كشف الحساب', `${name} — ${sz.label} — ${list.length} بون — ${nfmt(pr)}`, {total:before, prices:cur}, {total:after, price:pr, from, to});
+    scheduleSave(); renderAll(); try{ renderAccountStatement(); }catch(e){}
+}
 /* ---------- كشوفات العملاء المحفوظة: زي المستخلص، بالأسبوع، تتحفظ وتفتح تاني (محمد 2026-11-07) ---------- */
 function withAcctRange(from, to, fn){ const f=document.getElementById('acct-from'), t=document.getElementById('acct-to'); const fv=f?f.value:'', tv=t?t.value:''; if(f) f.value=from||''; if(t) t.value=to||''; try{ return fn(); } finally{ if(f) f.value=fv; if(t) t.value=tv; } }
 function clientStmtSnap(name, from, to){ return withAcctRange(from, to, ()=>{ const D=clientSheetData(name); const bons=clientBons(name, from, to); const sin=bons.reduce((a,r)=>a+bonNetSin(r),0), qty=bons.reduce((a,r)=>a+bonQtyTotal(r),0); const req=D.bonsTotal+D.otherDebit+D.prev, col=D.credits.reduce((a,c)=>a+c.credit,0); return {n:D.n, sin, qty, req:D.bonsTotal+D.otherDebit, prev:D.prev, col, bal:req-col}; }); }
@@ -10939,7 +10962,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 257.7';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 257.8';
 
     /* تنبيهات */
     const alerts=[];
