@@ -463,7 +463,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 258.4</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 258.5</span></p></div>
         </div>
     </aside>
 
@@ -909,11 +909,11 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         <!-- PAYROLL -->
         <div id="tab-payroll" class="tab-content flex-col gap-4">
             <div class="subnav-bar">
-                <button type="button" id="subnav-payroll-form" class="subnav-btn active" onclick="switchSub('payroll','form')">📝 الحضور والسلف</button>
+                <button type="button" id="subnav-payroll-form" class="subnav-btn active" onclick="switchSub('payroll','form')">📝 سلف الموظفين</button>
                 <button type="button" id="subnav-payroll-log" class="subnav-btn" onclick="switchSub('payroll','log')">💰 كشف الرواتب</button>
             </div>
             <div id="sub-payroll-form" class="subpage active">
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-3">
+            <div id="att-card" style="display:none !important" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-3"><!-- قائمة حضور الموظفين اتخفت بطلب محمد 2026-11-12: «ملهمش لازمة هنا» -->
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <h3 class="font-bold text-slate-900">🗓️ الحضور</h3>
                     <input id="att-date" type="date" onchange="renderAttendance()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm">
@@ -931,6 +931,11 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <div id="adv-bal-info" style="display:none" class="col-span-2 md:col-span-5"></div>
                     <button type="submit" class="col-span-2 md:col-span-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-2 font-bold">تسجيل السلفة</button>
                 </form>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto"><table class="w-full text-right" style="font-size:1.05rem">
+                    <thead class="bg-slate-800 text-white"><tr><th class="p-3">الموظف</th><th class="p-3">مرتبه</th><th class="p-3">واخد</th><th class="p-3">فاضل</th></tr></thead>
+                    <tbody id="tbody-adv-sum"></tbody></table></div>
             </div>
             </div><!-- /sub-payroll-form -->
             <div id="sub-payroll-log" class="subpage">
@@ -6839,7 +6844,15 @@ function renderPayrollTab(){
     const ad=document.getElementById('att-date'); if(ad && !ad.value) ad.value=todayISO();
     const dd=document.getElementById('adv-date'); if(dd && !dd.value) dd.value=todayISO();
     fillSelect('adv-name', payrollPeople()); fillSelect('adv-account', db.accounts||[]); try{ advPartyBal(); }catch(e){}
-    renderAttendance(); renderPayroll();
+    renderAttendance(); renderPayroll(); renderAdvSummary();
+}
+/* تحت تسجيل السلفة: كل موظف مرتبه كام وواخد كام وفاضل كام (الشهر الحالي، نفس حساب كشف الرواتب) — محمد 2026-11-12 */
+function renderAdvSummary(){
+    const tb=document.getElementById('tbody-adv-sum'); if(!tb) return;
+    const m=todayISO().slice(0,7); let S=0,K=0,R=0;
+    const rows=payrollPeople().map(n=>{ const {ded,adv,paid}=payMonth(n,m), cr=payCarry(n,m), sal=salaryOf(n,m), took=adv+paid, rem=sal+cr-ded-took; S+=sal; K+=took; R+=rem;
+        return `<tr class="border-b border-slate-100"><td class="p-3 font-bold text-slate-900">${esc(n.name)}</td><td class="p-3 font-bold">${fmt(sal)}</td><td class="p-3 font-bold text-rose-700">${took?fmt(took):'—'}</td><td class="p-3 font-extrabold ${rem<0?'text-rose-700':'text-emerald-700'}">${fmt(Math.abs(rem))}${rem<0?' عليه':''}</td></tr>`; });
+    tb.innerHTML = rows.length ? rows.join('')+`<tr class="bg-indigo-50 font-extrabold"><td class="p-3">الإجمالي</td><td class="p-3">${fmt(S)}</td><td class="p-3 text-rose-700">${fmt(K)}</td><td class="p-3">${fmt(R)}</td></tr>` : '<tr><td colspan="4" class="p-4 text-center text-slate-400">—</td></tr>';
 }
 function renderAttendance(){
     const box=document.getElementById('att-list'); if(!box) return;
@@ -11037,7 +11050,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 258.4';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 258.5';
 
     /* تنبيهات */
     const alerts=[];
