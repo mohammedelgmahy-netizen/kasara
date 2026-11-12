@@ -460,10 +460,13 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             <button onclick="switchTab('users')" id="btn-users" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300">
                 <i class="fa-solid fa-users-gear nav-ic" style="--c:#0f766e"></i><span>المستخدمين</span>
             </button>
+            <button onclick="switchTab('zakat')" id="btn-zakat" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
+                <i class="fa-solid fa-hand-holding-heart nav-ic" style="--c:#059669"></i><span>زكاة المال</span>
+            </button>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 258.5</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 258.6</span></p></div>
         </div>
     </aside>
 
@@ -1593,6 +1596,20 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     </div>
                 </div>
                 <div id="tb-content"></div>
+            </div>
+        </div>
+
+        <div id="tab-zakat" class="tab-content flex-col gap-6">
+            <div id="zakat-card" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm w-full">
+                <div class="flex flex-wrap justify-between items-center border-b-2 border-slate-900 pb-4 mb-4 gap-2">
+                    <h2 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-hand-holding-heart text-emerald-600"></i> زكاة المال</h2>
+                    <div class="pl-no-print-hide flex flex-wrap items-center gap-2">
+                        <span class="text-xs text-slate-500">في تاريخ</span>
+                        <input id="zakat-date" type="date" onchange="zakatRender()" class="bg-slate-100 border border-slate-300 rounded px-2 py-1 text-xs">
+                        <button type="button" onclick="printSection('zakat-card')" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة</span></button>
+                    </div>
+                </div>
+                <div id="zakat-content"></div>
             </div>
         </div>
 
@@ -2938,6 +2955,7 @@ function permObj(u, tab){
     let x = u && u.perms ? u.perms[tab] : null;
     if(x==null && tab==='bs' && u && u.perms) x = u.perms.pl;
     if(x==null && tab==='tb' && u && u.perms) x = u.perms.pl; // ميزان المراجعة ياخد صلاحية قائمة الدخل
+    if(x==null && tab==='zakat' && u && u.perms) x = u.perms.pl;
     if(x==null && tab==='commission' && u && u.perms) x = u.perms.expenses; // العمولة تاخد صلاحية المصروفات // المركز المالي ياخد نفس صلاحية قائمة الدخل
     if(x==='edit') return {v:true,e:true,d:!(u&&u.noDelete)};
     if(x==='view') return {v:true,e:false,d:false};
@@ -3427,6 +3445,7 @@ function renderAll(){
     try{ renderPL(); }catch(e){ console.warn(e); }
     try{ if(activeTab==='bs') renderFinPosition(); }catch(e){ console.warn(e); }
     try{ if(activeTab==='tb') tbRender(); }catch(e){ console.warn(e); }
+    try{ if(activeTab==='zakat') zakatRender(); }catch(e){ console.warn(e); }
     try{ if(activeTab==='commission') renderCommission(); }catch(e){ console.warn(e); }
     try{ renderTaxTable(); }catch(e){ console.warn(e); }
     try{ renderAccounts(); }catch(e){ console.warn(e); }
@@ -3555,6 +3574,7 @@ function switchTab(tabId){
     document.getElementById('btn-'+tabId)?.classList.add('active');
     if(tabId==='pl'){ renderTaxTable(); renderPL(); }
     if(tabId==='tb'){ try{ tbRender(); }catch(e){ console.warn(e); } }
+    if(tabId==='zakat'){ try{ zakatRender(); }catch(e){ console.warn(e); } }
     if(tabId==='bs'){ try{ renderFinPosition(); }catch(e){ console.warn(e); } }
     if(tabId==='commission'){ try{ renderCommission(); }catch(e){ console.warn(e); } }
     if(tabId==='treasury'||tabId==='incomes'){ try{ renderCashCount(); }catch(e){ console.warn(e); } }
@@ -5589,8 +5609,9 @@ function renderFinPosition(){
         <table class="w-full text-base text-right border border-slate-300">${assets}</table>
         <table class="w-full text-base text-right border border-slate-300">${liab}${eq}</table>
       </div>
-      ${zakatHtml(S, D)}`;
+      `;
 }
+function zakatRender(){ const el=document.getElementById('zakat-content'); if(!el) return; const dI=document.getElementById('zakat-date'); if(dI && !dI.value) dI.value=todayISO(); const D=dI?dI.value:''; try{ el.innerHTML=`<div class="text-base font-bold text-slate-800 mb-1">كسارة الديار — زكاة المال في ${dmy(D)}</div>`+zakatHtml(balanceSheetData(D), D); }catch(e){ el.innerHTML='<div class="text-rose-700">تعذر الحساب</div>'; } }
 /* زكاة المال: بتتحسب لوحدها 2.5% على (الخزن + المخزون + اللي لينا بره) − اللي علينا، في تاريخ الميزانية (محمد 2026-11-12). عرض بس، ما بتغيرش أي حساب */
 function zakatHtml(S, D){
     try{
@@ -5598,7 +5619,7 @@ function zakatHtml(S, D){
         const assets=S.tA-fixed, base=assets-S.tL, due=base>0?base*0.025:0;
         const paid=(db.expensesData||[]).filter(x=>x.category==='زكاة المال' && (!D || (x.date||'')<=D)).reduce((a,x)=>a+(Number(x.paid)||0),0);
         const r=(l,v,b)=>`<tr class="border-b border-emerald-100 ${b?'font-extrabold text-lg':'font-bold'}"><td class="p-2">${l}</td><td class="p-2 text-left" dir="ltr">${nfmt(Math.round(v))}</td></tr>`;
-        return `<div class="pl-no-print-hide mt-4 border-2 border-emerald-300 rounded-xl overflow-hidden"><div class="bg-emerald-600 text-white font-extrabold p-2 text-lg">🕌 زكاة المال (2.5%)</div>
+        return `<div class="mt-4 border-2 border-emerald-300 rounded-xl overflow-hidden"><div class="bg-emerald-600 text-white font-extrabold p-2 text-lg">🕌 زكاة المال (2.5%)</div>
           <table class="w-full text-base text-right bg-emerald-50 text-slate-900">${r('الخزن + المخزون + اللي لينا بره',assets)}${r('ناقص: اللي علينا',S.tL)}${r('وعاء الزكاة',base>0?base:0)}${r('الزكاة المستحقة 2.5%',due,true)}${paid?r('اتدفع (بند «زكاة المال»)',paid)+r('الباقي',Math.max(0,due-paid),true):''}</table></div>`;
     }catch(e){ return ''; }
 }
@@ -11050,7 +11071,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 258.5';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 258.6';
 
     /* تنبيهات */
     const alerts=[];
