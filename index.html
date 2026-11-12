@@ -442,7 +442,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 256.4</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 256.5</span></p></div>
         </div>
     </aside>
 
@@ -4888,7 +4888,7 @@ function calculateKPIs(projectFilter){
 function plBonsRevenue(projectFilter, from, to){
     const inP = d => (!from || (d||'')>=from) && (!to || (d||'')<=to);
     const pj = r => !projectFilter || projectFilter==='ALL' || !r.project || r.project===projectFilter;
-    const bons = (db.dailyLog||[]).filter(r=>inP(r.date) && pj(r));
+    const bons = (db.dailyLog||[]).filter(r=>inP(r.date) && pj(r) && !r.noCashIn); // بون نقدي إيراده متسجل قبل كدا: ما يتحسبش إيراد تاني
     const linked = new Set((db.dailyLog||[]).map(r=>r.saleGroupId).filter(Boolean));
     const ids = new Set((db.dailyLog||[]).map(r=>r.id));
     const U = (db.sales||[]).filter(x=>inP(x.date) && pj(x) && !linked.has(x.groupId||x.id) && !(x.dailyLogId!=null && ids.has(x.dailyLogId)));
@@ -10890,7 +10890,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 256.4';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 256.5';
 
     /* تنبيهات */
     const alerts=[];
