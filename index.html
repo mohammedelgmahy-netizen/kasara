@@ -462,7 +462,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 257.5</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 257.6</span></p></div>
         </div>
     </aside>
 
@@ -8401,7 +8401,7 @@ function refreshSizes(){
 function sinFactor(key, date){ const d=String(date||''); 
     if(key==='tmix') return d && d<'2026-09-10' ? 0.5 : 0.4;
     if(key==='xturba') return d && d<'2026-10-15' ? 0.25 : 0.1;
-    if(key==='xatraba') return 0; // أتربة = تراب خالص بدون سن (محمد 2026-11-09)
+    if(key==='xatraba') return (d>='2026-11-05' && d<='2026-11-07') ? 0.2 : 0; // أتربة = تراب خالص بدون سن (محمد 2026-11-09)؛ أيام 5 و6 و7 نوفمبر 20% (محمد 2026-11-12)
     if(key==='xbalanfa') return 0.4;
     if(key==='xmix') return 0.5; // مخلوط = النص زي معادلة الملف
     if(key==='simsim') return 0;
@@ -10937,7 +10937,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 257.5';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 257.6';
 
     /* تنبيهات */
     const alerts=[];
