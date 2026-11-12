@@ -280,6 +280,7 @@ main input:focus,main select:focus,main textarea:focus{border-color:var(--od) !i
 /* تاب كشف الحساب: خط أكبر على الشاشة (محمد 2026-11-12) */
 @media screen{#sub-ledger-log table th,#sub-ledger-log table td{font-size:1.15rem !important}#sub-ledger-log table td .text-\[10px\]{font-size:.85rem !important}#sub-ledger-log h3{font-size:1.25rem}#acct-table-wrap table th,#acct-table-wrap table td{font-size:1.1rem !important}#acct-title{font-size:1.2rem}#acct-summary{font-size:1.1rem !important}}
 @media print{.cs-sheet{font-size:14px !important;font-weight:400 !important}}
+@media print{#sub-ledger-log table th,#sub-ledger-log table td{font-size:15pt !important;font-weight:700 !important;color:#000 !important;padding:7px 8px !important}#sub-ledger-log table td *{font-size:inherit !important;color:#000 !important}#sub-ledger-log table td .text-\[10px\]{font-size:10pt !important}#sub-ledger-log h3{font-size:18pt !important}#sub-ledger-log .overflow-x-auto{overflow:visible !important;max-height:none !important}}
 @media print{aside#sidebar{display:none !important}html{font-size:16px}}
 
 /* خط أكبر وأغمق في كل البرنامج (طلب محمد 2026-11-06) */
@@ -445,7 +446,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 257.0</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 257.1</span></p></div>
         </div>
     </aside>
 
@@ -10903,7 +10904,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 257.0';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 257.1';
 
     /* تنبيهات */
     const alerts=[];
