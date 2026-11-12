@@ -466,7 +466,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 258.9</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 259.0</span></p></div>
         </div>
     </aside>
 
@@ -553,7 +553,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <h3 class="font-bold text-slate-900">سجل حركات الخزينة <button onclick="document.getElementById('dash-moves-card').style.display='none'" class="pl-no-print-hide text-xs text-slate-400 hover:text-slate-700 mr-2">✕ إخفاء</button></h3>
                     <div class="flex flex-wrap gap-2 pl-no-print-hide">
                         <button data-dmf="ALL" onclick="setDashMoveFilter('ALL')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">الكل</button>
-                        <button data-dmf="sari" onclick="setDashMoveFilter('sari')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">المعلقات (عماد ناجي)</button>
+                        <button data-dmf="sari" onclick="setDashMoveFilter('sari')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">البنك</button>
                         <button data-dmf="drawer" onclick="setDashMoveFilter('drawer')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">درج المكتب</button>
                         <span id="dmf-others" class="contents"></span>
                         <button data-dmf="loans" onclick="setDashMoveFilter('loans')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">السلف</button>
@@ -3239,7 +3239,7 @@ const fmt = n => __sepFix(__NFm.format(Math.round(Number(n)||0))) + ' ج.م';  /
 const esc = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const todayISO = () => new Date().toISOString().slice(0,10);
 
-function catLabel(n){ return n==='مقاولين' ? 'أصحاب المعدات' : n; } // اسم العرض بس، البيانات زي ما هي
+function catLabel(n){ return n==='مقاولين' ? 'أصحاب المعدات' : n==='معلق عماد ناجي' ? 'البنك' : n; } // اسم العرض بس، البيانات زي ما هي
 function fillSelect(id, items, allLabel){
     const el = document.getElementById(id);
     if(!el) return;
@@ -3504,8 +3504,8 @@ function homeKpisHtml(){
     /* درج المكتب والسلف كروت لوحدهم في الرئيسية (محمد 2026-11-10) */
     const K=[
         ['treasury','fa-money-bill-wave','#16a37b','#e2f5ee','الكاش',fmt(drawer),'في درج المكتب'],
-        ['treasury','fa-building-columns','#0284c7','#e0f2fe','البنك',fmt(sari),'في الحساب البنكي (معلق عماد ناجي)'],
-        ['treasury','fa-sack-dollar','#7c3aed','#f3e8ff','إجمالي الخزنتين',fmt(sari+drawer),'الدرج + المعلق'],
+        ['treasury','fa-building-columns','#0284c7','#e0f2fe','البنك',fmt(sari),'في الحساب البنكي'],
+        ['treasury','fa-sack-dollar','#7c3aed','#f3e8ff','إجمالي الخزنتين',fmt(sari+drawer),'الدرج + البنك'],
         ['treasury','fa-hand-holding-dollar','#b45309','#fef3c7','السلف المستحقة',fmt(loans),'سلف عماد ناجي'],
         ['dailylog','fa-truck','#1f4b73','#e6eff7','مبيعات الشهر ده',fmt(salesVal),nfmt(bons.length)+' بون · '+nfmt(qty)+' م'],
         ['incomes','fa-hand-holding-dollar','#7457d9','#efebfc','تحصيلات الشهر ده',fmt(collM),'فلوس دخلت الخزينة'],
@@ -11084,7 +11084,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 258.9';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 259.0';
 
     /* تنبيهات */
     const alerts=[];
@@ -11401,6 +11401,15 @@ async function installApp(){
     document.body.appendChild(m);
 }
 try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
+
+/* محمد 2026-11-12: خزنة «معلق عماد ناجي» تتعرض باسم «البنك» — عرض بس، الاسم في البيانات زي ما هو */
+(function(){ const RE=/معلق عماد ناجي/g, T='البنك';
+    function fix(n){ if(!n) return; if(n.nodeType===3){ if(n.nodeValue && n.nodeValue.indexOf('معلق عماد ناجي')>=0) n.nodeValue=n.nodeValue.replace(RE,T); return; }
+        if(n.nodeType!==1 || n.tagName==='SCRIPT' || n.tagName==='STYLE' || n.tagName==='TEXTAREA') return;
+        const w=document.createTreeWalker(n, NodeFilter.SHOW_TEXT); let t; while((t=w.nextNode())){ const pt=t.parentNode&&t.parentNode.tagName; if(pt==='SCRIPT'||pt==='STYLE'||pt==='TEXTAREA') continue; if(t.nodeValue.indexOf('معلق عماد ناجي')>=0) t.nodeValue=t.nodeValue.replace(RE,T); } }
+    function start(){ fix(document.body); new MutationObserver(ms=>{ for(const m of ms){ if(m.type==='characterData') fix(m.target); else m.addedNodes.forEach(fix); } }).observe(document.body,{childList:true,subtree:true,characterData:true}); }
+    if(document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
 </script>
 </body>
 </html>
