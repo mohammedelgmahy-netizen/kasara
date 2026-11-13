@@ -466,7 +466,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 260.1</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 260.2</span></p></div>
         </div>
     </aside>
 
@@ -1686,6 +1686,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <div class="pl-no-print-hide flex flex-wrap items-center gap-2">
                         <span class="text-xs text-slate-500">في تاريخ</span>
                         <input id="bs-date" type="date" onchange="renderFinPosition()" class="bg-slate-100 border border-slate-300 rounded px-2 py-1 text-xs">
+                        <button type="button" onclick="stockAddMashoon()" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-plus"></i><span>إضافة على السن المشون</span></button>
                         <button type="button" onclick="printSection('bs-card')" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة</span></button>
                         <button type="button" onclick="exportBalanceSheetExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
                     </div>
@@ -5029,7 +5030,7 @@ function plRevenueTotal(projectFilter, from, to){
 }
 // جرد المخزون الفعلي (سولار في التنك + سن في المشون): آخر جرد تاريخه ≤ d هو اللي بيتحسب في الميزانية وقائمة الدخل
 function stockCountAt(d){
-    const C=(db.stockCounts||[]).filter(x=>x && x.date && (!d || x.date<=d));
+    const C=(db.stockCounts||[]).filter(x=>x && x.date && !x.add && (!d || x.date<=d));
     if(!C.length) return null;
     const last=C.map(x=>x.date).sort().pop();
     /* محمد 2026-11-13: مخزون السولار والأصناف بيتحرك من بعد الجرد = كمية الجرد + المشتريات بعده − المصروف بعده (بمتوسط السعر). السن المشون يفضل على الجرد */
@@ -5041,6 +5042,9 @@ function stockCountAt(d){
         if(!pq && !out) return x;
         const q0=Number(x.qty)||0, v0=Number(x.value)||0, avg=(q0+pq)>0?(v0+pv)/(q0+pq):0, q=Math.max(q0+pq-out,0);
         return Object.assign({}, x, {qty:Math.round(q*100)/100, value:Math.round(q*avg), moved:true}); });
+    /* إضافات على الجرد (محمد 2026-11-13: لو المهندس قدّر المشون أكتر، يكتب الزيادة فتتجمع على اللي موجود) */
+    (db.stockCounts||[]).filter(x=>x && x.add && (x.date||'')>=last && (!d || x.date<=d)).forEach(x=>{ const i=items.findIndex(y=>y.item===x.item);
+        if(i>=0) items[i]=Object.assign({}, items[i], {qty:(Number(items[i].qty)||0)+(Number(x.qty)||0), value:(Number(items[i].value)||0)+(Number(x.value)||0)}); else items.push(Object.assign({}, x)); });
     return { date:last, items, total:items.reduce((a,x)=>a+(Number(x.value)||0),0) };
 }
 function computePL(projectFilter, dateFrom, dateTo){
@@ -5645,6 +5649,22 @@ function balanceSheetData(D){
     E.push({name:'رأس المال وأرصدة أول المدة', v:0, note:true});
     const tE=E.filter(x=>!x.part).reduce((a,x)=>a+x.v,0);
     return {A,L,E,tA,tL:tL2,tE};
+}
+/* إضافة (أو تنزيل بالسالب) على مخزون السن المشون — محمد بيكتب الكمية والقيمة بإيده */
+function stockAddMashoon(){
+    if(isRO() || currentRole!=='admin') return;
+    const num=r=>Number(String(r).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/,/g,'').replace(/[^0-9.\-]/g,''));
+    const cur=(stockCountAt('')||{items:[]}).items.find(x=>x.item==='سن مشون')||{qty:0,value:0,unit:'متر'};
+    const rq=prompt(`السن المشون دلوقتي: ${nfmt(cur.qty)} متر بقيمة ${nfmt(cur.value)}\n\nاكتب الكمية اللي هتزود (متر) — ولو هتنقّص اكتبها بالسالب:`,''); if(rq==null) return;
+    const q=num(rq); if(!q){ alert('اكتب كمية صحيحة'); return; }
+    const per=cur.qty?cur.value/cur.qty:0;
+    const rv=prompt(`قيمة الـ ${nfmt(q)} متر دي بالجنيه:`, Math.round(q*per)||''); if(rv==null) return;
+    const v=num(rv); if(!isFinite(v)){ alert('اكتب قيمة صحيحة'); return; }
+    if(!confirm(`هيتضاف على السن المشون ${nfmt(q)} متر بقيمة ${nfmt(v)}\nويبقى الإجمالي ${nfmt(cur.qty+q)} متر بقيمة ${nfmt(cur.value+v)}\nتمام؟`)) return;
+    if(!db.stockCounts) db.stockCounts=[];
+    const rec={id:newId(), add:true, item:'سن مشون', unit:'متر', qty:q, value:v, date:todayISO(), notes:'إضافة على الجرد'};
+    db.stockCounts.push(rec); logAudit('create','إضافة على السن المشون',`${q} متر — ${v}`,null,rec);
+    scheduleSave(); renderAll();
 }
 function renderFinPosition(){
     try{ const sg=document.getElementById('bs-sig'); if(sg && !sg.innerHTML) sg.innerHTML=SIG_ACC; }catch(e){}
@@ -11152,7 +11172,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 260.1';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 260.2';
 
     /* تنبيهات */
     const alerts=[];
