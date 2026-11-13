@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 262.5</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 262.6</span></p></div>
         </div>
     </aside>
 
@@ -5736,6 +5736,8 @@ function balanceSheetData(D){
     let ctrOwe=0, ctrAdv=0;
     (db.contractors||[]).forEach(c=>{ try{ let b=0; contractorStmtRows(c.name).rows.forEach(r=>{ if(le(r.date)) b+=(r.credit||0)-(r.debit||0); }); if(b>0) ctrOwe+=b; else ctrAdv-=b; }catch(e){} });
     if(Math.round(ctrAdv)) A.push({g:'مستحقات أخرى', name:'عهد ومقدمات عند أصحاب المعدات', v:ctrAdv});
+    /* سلف الموظفين: فلوس طلعت من الخزنة ولسه هتتخصم من المرتب — أصل لينا عند الموظفين، عشان الميزان يتزن ومن غير ما تدخل الربح (محمد 2026-11-13) */
+    { const empAdv=(db.expensesData||[]).filter(x=>x.category===ADV_CAT && le(x.date)).reduce((a,x)=>a+(Number(x.paid)||0),0); if(Math.round(empAdv)) A.push({g:'مستحقات أخرى', name:'سلف موظفين', v:empAdv}); }
     // الأصول الثابتة
     let fa=0; (db.assets||[]).filter(a=>a.status!=='sold' && le(a.date)).forEach(a=>{ fa+=assetBookValue(a); });
     if(Math.round(fa)) A.push({g:'أرض وتأمينات المحجر', name:'أرض وتأمينات المحجر', v:fa});
@@ -11441,7 +11443,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 262.5';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 262.6';
 
     /* تنبيهات */
     const alerts=[];
