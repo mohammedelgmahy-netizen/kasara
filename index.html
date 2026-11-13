@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 265.0</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 265.1</span></p></div>
         </div>
     </aside>
 
@@ -1467,7 +1467,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <div class="col-span-2 md:col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">يتحاسب مع</label><select id="cx-name" onchange="cxDefaults()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"></select></div>
                     <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">من</label><input id="cx-from" type="date" onchange="cxPreview(true)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">إلى</label><input id="cx-to" type="date" onchange="cxPreview(true)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
-                    <div class="col-span-2 md:col-span-6 overflow-x-auto"><table class="w-full text-sm text-right border border-slate-200 rounded-lg"><thead class="bg-slate-100"><tr><th class="p-2">المعدة</th><th class="p-2">عدد الأمتار</th><th class="p-2" id="cx-rate-th">سعر المتر</th><th class="p-2">المبلغ</th></tr></thead><tbody id="cx-rows"></tbody><tbody><tr class="bg-indigo-50 font-extrabold"><td class="p-2">الإجمالي</td><td class="p-2" id="cx-tq">—</td><td></td><td class="p-2 text-emerald-700" id="cx-amount">—</td></tr></tbody><tbody id="cx-ded"></tbody></table></div>
+                    <div class="col-span-2 md:col-span-6 overflow-x-auto"><table class="w-full text-sm text-right border border-slate-200 rounded-lg"><thead class="bg-slate-100"><tr><th class="p-2">المعدة</th><th class="p-2">عدد الأمتار</th><th class="p-2" id="cx-rate-th">سعر المتر</th><th class="p-2">المبلغ</th></tr></thead><tbody id="cx-rows"></tbody><tbody id="cx-tot-body"><tr class="bg-indigo-50 font-extrabold"><td class="p-2">الإجمالي</td><td class="p-2" id="cx-tq">—</td><td></td><td class="p-2 text-emerald-700" id="cx-amount">—</td></tr></tbody><tbody id="cx-ded"></tbody></table></div>
                     <div class="col-span-2 md:col-span-6">
                         <div class="flex items-center gap-2 mb-1"><span class="text-xs font-bold text-slate-600">أعمال إضافية (حفر بالساعة، شغل خاص...):</span><button type="button" onclick="cxAddExtra()" class="bg-amber-500 hover:bg-amber-600 text-white rounded px-2.5 py-1 text-xs font-bold">＋ عمل إضافي</button></div>
                         <table class="w-full text-sm text-right border border-amber-200 rounded-lg" id="cx-extra-tbl" style="display:none"><thead class="bg-amber-50"><tr><th class="p-2">البيان</th><th class="p-2">الكمية</th><th class="p-2">السعر</th><th class="p-2">الإجمالي</th><th class="p-2"></th></tr></thead><tbody id="cx-extra-rows"></tbody></table>
@@ -10203,6 +10203,7 @@ function cxPreview(resetQty){
         const q=Number(qe.value)||0, rt=Number(g('cx-r-'+i).value)||0; tq+=q; ta+=q*rt;
         g('cx-a-'+i).textContent = q&&rt ? mfmt(q*rt) : '—'; });
     { const lq=Number(g('cx-lq')?.value)||0, lr=Number(g('cx-lr')?.value)||0; if(g('cx-la')) g('cx-la').textContent = lq&&lr ? mfmt(lq*lr) : '—'; ta+=lq*lr; }
+    { const tb=g('cx-tot-body'); if(tb) tb.style.display = (ctrEquips(name).length>1 || g('cx-lq')) ? '' : 'none'; } /* سطر واحد = الإجمالي تكرار ليه فبيتخفي (محمد 2026-11-13) */
     g('cx-tq').textContent = (Number(g('cx-lq')?.value)||0) ? '' : (tq ? nfmt(tq) : '—'); /* لو فيه سطر تكعيب الكميتين مش من نفس النوع فخانة الكمية في الإجمالي تفضل فاضية */
     g('cx-amount').textContent = ta ? mfmt(ta) : '—';
     const tot=(db.ctrExtracts||[]).filter(x=>x.name===name).reduce((a,x)=>a+(Number(x.qty)||0),0);
@@ -11598,7 +11599,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 265.0';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 265.1';
 
     /* تنبيهات */
     const alerts=[];
