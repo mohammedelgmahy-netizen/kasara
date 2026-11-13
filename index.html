@@ -179,7 +179,7 @@ input:focus,select:focus{outline:none;box-shadow:0 0 0 3px rgba(37,99,235,.15);b
 }
 </style>
 
-<style id="sanam-theme">.rate-col{display:none!important}
+<style id="sanam-theme">
 /* ===== ثيم سنام: شريط علوي بنفسجي، قائمة جانبية فاتحة دايمًا ظاهرة، كروت بيضا بظل خفيف ===== */
 :root{--od:#1f4b73;--od-2:#143553;--od-3:#2f6a9c;--od-t:#e6eff7;--gold:#e07a36;--bg:#eef2f7;--card:#fff;--card-2:#f6f8fb;--line:#e3e8ef;--line-2:#d3dbe6;--fg:#0b1520;--fg-2:#1f2b38;--muted:#4a5767;--side:#f9fafb;--shadow:0 1px 2px rgba(15,39,66,.05),0 6px 20px rgba(15,39,66,.06)}
 html{font-size:18.5px}
@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 263.6</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 263.7</span></p></div>
         </div>
     </aside>
 
@@ -10067,8 +10067,8 @@ function contractorStmtRows(name){
         days.forEach(d=>ev.push({date:d.date, ord:0, day:true, desc:`شغل اليوم — ${d.n} بون${d.old?` (${nfmt(d.old)} متر سن قديم مش محسوب)`:''}`, sin:d.net, n:d.n, old:d.old, price:rate, credit:Math.round(d.net*rate), debit:0}));
     } else {
         (db.ctrExtracts||[]).filter(x=>normName(x.name)===normName(name)).forEach(x=>ev.push(x.extra
-            ? (x.discount ? {date:x.date, ord:1, desc:'خصم'+(x.notes?' — '+x.notes:''), sin:0, credit:0, debit:-(Number(x.amount)||0)} : {date:x.date, ord:0, desc: x.final ? 'مستخلص نهائي — تقدير السن (تسوية أخيرة)' : `عمل إضافي — ${x.equip}${x.from?' '+dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} × ${nfmt(x.rate)}${x.notes?' — '+x.notes:''}`, sin:0, credit:Number(x.amount)||0, debit:0})
-            : {date:x.date, ord:0, desc:`مستخلص${(l=>l==='بدون معدة'?'':' '+l)(ctrEqLbl(name,x.equip))} ${x.from?dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} متر${x.notes?' — '+x.notes:''}`, sin:Number(x.qty)||0, credit:Number(x.amount)||0, debit:0}));
+            ? (x.discount ? {date:x.date, ord:1, desc:'خصم'+(x.notes?' — '+x.notes:''), sin:0, credit:0, debit:-(Number(x.amount)||0)} : {date:x.date, ord:0, desc: x.final ? 'مستخلص نهائي — تقدير السن (تسوية أخيرة)' : `عمل إضافي — ${x.equip}${x.from?' '+dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} × ${nfmt(x.rate)}${x.notes?' — '+x.notes:''}`, sin:0, xqty:(x.final?0:Number(x.qty)||0), xprice:(x.final?0:Number(x.rate)||0), credit:Number(x.amount)||0, debit:0})
+            : {date:x.date, ord:0, desc:`مستخلص${(l=>l==='بدون معدة'?'':' '+l)(ctrEqLbl(name,x.equip))} ${x.from?dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} متر${x.notes?' — '+x.notes:''}`, sin:Number(x.qty)||0, xprice:Number(x.rate)||0, credit:Number(x.amount)||0, debit:0}));
     }
     const ctrCats = (db.expenses||[]).filter(c=>c.nameType==='contractors').map(c=>c.name);
     (db.expensesData||[]).filter(x=>ctrCats.includes(x.category) && normName(x.name)===normName(name)).forEach(x=>ev.push({date:x.date, ord:1, desc:(x.payType==='settle'?'سداد — ':'عهدة — ')+(x.desc||x.notes||''), debit:Number(x.paid)||0, credit:0}));
@@ -10428,7 +10428,7 @@ function contractorSheetHtml(name, from, to){
         let what, qty='', price='';
         if(r.day){ const it=dayItems(r.date); what=`طلع له سن من الكسارة${it?' — '+it:''} (${nfmt(r.n)} بون)${r.old?` — منهم ${nfmt(r.old)} متر سن قديم`:''}`; qty=nfmt(Math.round(r.sin*100)/100)+' متر'; price=r.price?nfmt(r.price):''; }
         else if(r.item){ what='خد '+r.item; qty=r.qtyTxt; price=nfmt(r.price); byItem[r.item]=(byItem[r.item]||0)+(r.debit||0); }
-        else { what=r.desc; if(r.sin) qty=nfmt(r.sin)+' متر'; if(/^سداد/.test(r.desc)) settle+=r.debit||0; else if(/^عهدة/.test(r.desc)) adv+=r.debit||0; }
+        else { what=r.desc; if(r.sin) qty=nfmt(r.sin)+' متر'; else if(r.xqty) qty=nfmt(r.xqty); if(r.xprice) price=nfmt(r.xprice); /* السعر ظاهر لكل سطر (محمد 2026-11-13) */ if(/^سداد/.test(r.desc)) settle+=r.debit||0; else if(/^عهدة/.test(r.desc)) adv+=r.debit||0; }
         return `<tr><td style="${B};white-space:nowrap">${dmy(r.date)}</td><td style="${B};text-align:right">${esc(what)}</td><td style="${B};white-space:nowrap">${qty}</td><td style="${B}">${price}</td><td style="${B}">${m(r.credit)}</td><td style="${B}">${m(r.debit)}</td><td style="${B}">${nfmt(Math.abs(Math.round(r.bal)))}${r.bal<-0.5?' عليه':''}</td></tr>`;
     });
     if(!body.length) body.push(`<tr><td style="${B};height:34px;color:#888" colspan="7">مفيش حركات في الفترة دي</td></tr>`);
@@ -11470,7 +11470,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 263.6';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 263.7';
 
     /* تنبيهات */
     const alerts=[];
