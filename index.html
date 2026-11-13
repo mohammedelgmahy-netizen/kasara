@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 264.3</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 264.4</span></p></div>
         </div>
     </aside>
 
@@ -1832,7 +1832,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                         <button type="button" onclick="acctWeek(0)" class="bg-cyan-50 border border-cyan-200 text-cyan-800 px-2.5 py-1.5 rounded-lg text-xs font-bold">آخر أسبوع</button>
                         <button type="button" onclick="acctWeek(-1)" class="bg-slate-50 border border-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-bold">الأسبوع اللي قبله</button>
                         <select id="acct-name" onchange="renderAccountStatement()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs min-w-[11rem]"></select>
-                        <button type="button" onclick="csMarkStmt();shareCard('acct-card','كشف حساب '+(document.getElementById('acct-name').value||''))" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i><span>واتساب</span></button>
+                        <button type="button" onclick="csMarkStmt();shareCard('acct-card','كشف حساب '+((v=>v===ALL_BONS?'كل البونات':v)(document.getElementById('acct-name').value||'')))" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i><span>واتساب</span></button>
                         <button onclick="csMarkStmt();printSection('acct-card')" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة الكشف</span></button>
                         <button onclick="exportAccountStatementExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
                     </div>
@@ -5487,14 +5487,34 @@ function acctTotals(rows){
     return { debit, credit, balance: debit-credit };
 }
 function acctNames(type){ if(type!=='person') return visClients().map(x=>x.name); const l=(db.names||[]).map(x=>x.name); (db.expenses||[]).forEach(c=>(catPayees(c)||[]).forEach(n=>{ if(!l.includes(n)) l.push(n); })); return l; }
+/* كشف كل البونات نقدي + آجل مع بعض بإجمالي الكميات (محمد 2026-11-13) — عرض بس */
+const ALL_BONS='__ALLBONS__';
+function allBonsSheetHtml(from, to){
+    const B='border:1px solid #111;padding:6px 8px;text-align:center;', TH=B+'background:#f1f5f9;font-weight:800;';
+    const L=(db.dailyLog||[]).filter(r=>(!from||(r.date||'')>=from) && (!to||(r.date||'')<=to));
+    const Z=DL_SIZES.filter(z=>L.some(r=>Number((r.q||{})[z.key])||0));
+    const mk=()=>({n:0,q:{},cub:0,net:0,val:0});
+    const add=(o,r)=>{ o.n++; Z.forEach(z=>{ const v=Number((r.q||{})[z.key])||0; o.q[z.key]=(o.q[z.key]||0)+v; o.cub+=v; }); o.net+=bonNetSin(r); o.val+=bonValue(r)||0; };
+    const G={cash:{}, credit:{}}, T={cash:mk(), credit:mk(), all:mk()};
+    L.forEach(r=>{ const k=r.paidCash?'cash':'credit', c=r.client||'—'; add(G[k][c]||(G[k][c]=mk()), r); add(T[k], r); add(T.all, r); });
+    const q2=v=>v?nfmt(Math.round(v*100)/100):'';
+    const row=(lbl,o,st)=>`<tr style="${st||''}"><td style="${B}text-align:right">${lbl}</td><td style="${B}">${nfmt(o.n)}</td>${Z.map(z=>`<td style="${B}">${q2(o.q[z.key])}</td>`).join('')}<td style="${B}font-weight:800">${q2(o.cub)}</td><td style="${B}">${q2(o.net)}</td><td style="${B}">${nfmt(Math.round(o.val))}</td></tr>`;
+    const grp=(k,title,bg)=>{ const N=Object.keys(G[k]).sort((a,b)=>a.localeCompare(b,'ar')); if(!N.length) return '';
+        return `<tr><td colspan="${Z.length+5}" style="${B}text-align:right;font-weight:800;background:${bg}">${title}</td></tr>` + N.map(c=>row(esc(c),G[k][c])).join('') + row('إجمالي '+title, T[k], 'font-weight:800;background:'+bg); };
+    return `<div style="direction:rtl;color:#111;font-size:14px;min-width:600px">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:-1px"><tr><td style="${B}font-size:18px;font-weight:800;padding:12px">كشف كل البونات — نقدي + آجل</td><td style="${B}width:24%;font-weight:800">كسارة الديار</td></tr>
+      <tr><td colspan="2" style="${B}font-weight:700">الفترة من ${from?dmy(from):'البداية'} حتى ${to?dmy(to):dmy(todayISO())}</td></tr></table>
+      <table style="width:100%;border-collapse:collapse"><tr><th style="${TH}">العميل</th><th style="${TH}">عدد البونات</th>${Z.map(z=>`<th style="${TH}">${esc(z.label)}</th>`).join('')}<th style="${TH}">إجمالي التكعيب</th><th style="${TH}">صافي السن</th><th style="${TH}">القيمة</th></tr>
+      ${L.length ? grp('cash','النقدي','#ecfdf5')+grp('credit','الآجل','#eff6ff')+row('الإجمالي العام (نقدي + آجل)', T.all, 'font-weight:800;background:#fef9c3;font-size:15px') : `<tr><td colspan="${Z.length+5}" style="${B}color:#666">مفيش بونات في الفترة دي</td></tr>`}</table>${SIG_LINE}</div>`;
+}
 function acctFillNames(){
     const sel = document.getElementById('acct-name'); if(!sel) return;
     const type = document.getElementById('acct-type').value;
     const term = document.getElementById('acct-search')?.value || '';
     const prev = sel.value;
     const names = acctNames(type).filter(n=>textMatch([n], term));
-    sel.innerHTML = names.length ? names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('') : '<option value="">— لا توجد نتائج —</option>';
-    if(names.includes(prev)) sel.value = prev;
+    sel.innerHTML = (type==='client' && !term && names.length ? `<option value="${ALL_BONS}">📋 كل البونات (نقدي + آجل)</option>` : '') + (names.length ? names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('') : '<option value="">— لا توجد نتائج —</option>');
+    if(names.includes(prev) || prev===ALL_BONS) sel.value = prev; else if(names.length) sel.value = names[0];
 }
 function onAcctTypeChange(){ renderAccounts(); }
 function openAcct(type, name){ try{ switchSub('ledger','form'); }catch(e){}
@@ -5526,6 +5546,9 @@ function renderAccountStatement(){
     if(type==='client'){
         /* الكشف بيفتح على الحساب كله من غير أسبوع جاهز (محمد 2026-11-11) */
         titleEl.textContent=''; legendEl.textContent=''; sumEl.innerHTML=''; foot.innerHTML=''; tbody.innerHTML='';
+        if(name===ALL_BONS){ const fa=document.getElementById('acct-from'), ta=document.getElementById('acct-to'); if(window.__csLastName!==name){ window.__csLastName=name; if(fa && ta && !fa.value && !ta.value){ const [f,t]=acctWeekRange(0); fa.value=f; ta.value=t; } }
+            { const sb=document.getElementById('cst-save-btn'); if(sb) sb.style.display='none'; }
+            if(wrapEl) wrapEl.style.display='none'; if(sheetEl){ sheetEl.style.display=''; sheetEl.innerHTML=allBonsSheetHtml(fa?fa.value:'', ta?ta.value:''); } return; }
         /* محمد 2026-11-13: الكشف بيفتح على آخر أسبوع عشان «المسحوب خلال الفترة» يبقى بتاع الأسبوع مش الحساب كله (بيتعمل مرة واحدة؛ لو فضّى التاريخ بيطلع الحساب كله) */
         /* محمد 2026-11-13: «المسحوب» = اللي سحبه بعد آخر كشف اتبعت/اتطبع له. أول ما يختار العميل: من = اليوم اللي بعد آخر كشف، إلى = فاضي (لحد النهارده) */
         if(window.__csLastName!==name){ window.__csLastName=name; const ls=csLastStmt(name); if(ls){ __acctWeekInit=true; const fa=document.getElementById('acct-from'), ta=document.getElementById('acct-to'); const d=new Date(ls+'T12:00:00'); d.setDate(d.getDate()+1); if(fa) fa.value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); if(ta) ta.value=''; } }
@@ -5551,7 +5574,7 @@ function renderAccountStatement(){
 }
 /* آخر كشف اتبعت/اتطبع لكل عميل (تاريخ نهايته) — علامة بس، مش حركة حسابات */
 function csLastStmt(name){ let d=(db.stmtLast||{})[name]||''; (db.clientStmts||[]).forEach(x=>{ if(x.name===name && x.to && x.to>d) d=x.to; }); return d; }
-function csMarkStmt(){ try{ const g=id=>document.getElementById(id); if(g('acct-type').value!=='client' || isRO()) return; const name=g('acct-name').value; if(!name) return;
+function csMarkStmt(){ try{ const g=id=>document.getElementById(id); if(g('acct-name').value===ALL_BONS) return; if(g('acct-type').value!=='client' || isRO()) return; const name=g('acct-name').value; if(!name) return;
     const to=g('acct-to').value||todayISO(); if(!db.stmtLast) db.stmtLast={}; if((db.stmtLast[name]||'')>=to) return; db.stmtLast[name]=to; scheduleSave(); }catch(e){} }
 /* كشف حساب العميل بشكل الورقة: جدول لكل عربية بالأصناف، ثم السعر والمبلغ، ثم الرصيد السابق والتحصيلات */
 /* أسبوع الكشف: من الخميس للأربع — افتراضياً آخر أسبوع خلص يوم الأربع */
@@ -11551,7 +11574,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 264.3';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 264.4';
 
     /* تنبيهات */
     const alerts=[];
