@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 261.9</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 262.0</span></p></div>
         </div>
     </aside>
 
@@ -7188,8 +7188,11 @@ function advBtns(x){ return isRO()?'':`<button onclick="startEdit('exp', ${x.id}
 function renderAdvRecent(){
     const tb=document.getElementById('tbody-adv-recent'); if(!tb) return;
     const m=todayISO().slice(0,7);
-    const L=(db.expensesData||[]).map((x,i)=>[x,i]).filter(p=>isAdvRec(p[0]) && (p[0].date||'').startsWith(m)).sort((A,B)=>String(B[0]._at||'').localeCompare(String(A[0]._at||'')) || B[1]-A[1]).map(p=>p[0]);
-    tb.innerHTML = L.length ? L.map(x=>`<tr class="border-b border-slate-100"><td class="p-3 font-bold">${esc(x.name)}</td><td class="p-3 font-bold text-rose-700">${fmt(x.paid)}</td><td class="p-3">${esc(x.date||'')}</td><td class="p-3">${esc(x.notes||'')}</td><td class="p-3 whitespace-nowrap">${x.category===ADV_CAT?advBtns(x):`<button onclick="startEdit('exp', ${x.id})" class="text-blue-500 ml-3" title="تعديل">✏️</button><button onclick="deleteByRef('exp', ${x.id})" style="color:#dc2626" title="حذف"><i class="fa-solid fa-trash"></i></button>`}</td></tr>`).join('') : '<tr><td colspan="5" class="p-4 text-center text-slate-400">مفيش سلف الشهر ده</td></tr>';
+    /* بعد تسجيل صرف المرتبات (بند الأجور والمرتبات من غير اسم = الكل، أو راتب باسم موظف = هو بس) السلف اللي قبله بتختفي من القايمة دي بس — الحركات نفسها زي ما هي في الحسابات (محمد 2026-11-13) */
+    const E=db.expensesData||[]; let cutAll=-1; const cutBy={};
+    E.forEach((x,i)=>{ if(!x || !Number(x.paid)) return; if(x.category===SAL_CAT && x.name){ cutBy[x.name]=i; return; } if(!x.name && /أجور|اجور|مرتب|رواتب/.test(x.category||'')) cutAll=i; });
+    const L=E.map((x,i)=>[x,i]).filter(p=>isAdvRec(p[0]) && (p[0].date||'').startsWith(m) && p[1]>cutAll && !(cutBy[p[0].name]>p[1])).sort((A,B)=>String(B[0]._at||'').localeCompare(String(A[0]._at||'')) || B[1]-A[1]).map(p=>p[0]);
+    tb.innerHTML = L.length ? L.map(x=>`<tr class="border-b border-slate-100"><td class="p-3 font-bold">${esc(x.name)}</td><td class="p-3 font-bold text-rose-700">${fmt(x.paid)}</td><td class="p-3">${esc(x.date||'')}</td><td class="p-3">${esc(x.notes||'')}</td><td class="p-3 whitespace-nowrap">${x.category===ADV_CAT?advBtns(x):`<button onclick="startEdit('exp', ${x.id})" class="text-blue-500 ml-3" title="تعديل">✏️</button><button onclick="deleteByRef('exp', ${x.id})" style="color:#dc2626" title="حذف"><i class="fa-solid fa-trash"></i></button>`}</td></tr>`).join('') : '<tr><td colspan="5" class="p-4 text-center text-slate-400">مفيش سلف مفتوحة</td></tr>';
 }
 /* تحت تسجيل السلفة: كل موظف مرتبه كام وواخد كام وفاضل كام (الشهر الحالي، نفس حساب كشف الرواتب) — محمد 2026-11-12 */
 function renderAdvSummary(){
@@ -11426,7 +11429,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 261.9';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 262.0';
 
     /* تنبيهات */
     const alerts=[];
