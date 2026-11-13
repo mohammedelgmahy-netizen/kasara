@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1007</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1008</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1831,7 +1831,9 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             <div class="subnav-bar">
                 <button type="button" id="subnav-ledger-form" class="subnav-btn active" onclick="switchSub('ledger','form')">📄 كشف حساب</button>
                 <button type="button" id="subnav-ledger-log" class="subnav-btn" onclick="switchSub('ledger','log')">👥 أرصدة العملاء</button>
+                <button type="button" id="subnav-ledger-eq" class="subnav-btn" onclick="switchSub('ledger','eq')">🚜 كشف حساب المعدات</button>
             </div>
+            <div id="sub-ledger-eq" class="subpage"><div id="sub-ledger-eq-in" class="flex flex-col gap-4"></div></div>
             <div id="sub-ledger-form" class="subpage active">
             <div id="acct-card" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                 <div class="flex flex-wrap justify-between items-center gap-3 mb-4 border-b border-slate-100 pb-3">
@@ -3130,7 +3132,7 @@ function applyTabVisibility(){
     const isUser = currentRole==='user' || (currentRole==='viewer' && !!SUPABASE_URL);
     document.querySelectorAll('aside#sidebar .tab-btn').forEach(b=>{
         const t = b.id.replace('btn-','');
-        if(t==='cashday'||t==='audit'||t==='collections') return; if(t==='commission'){ b.style.display='none'; return; } // تاب العمولة اتشال (محمد 2026-11-07)
+        if(t==='cashday'||t==='audit'||t==='collections') return; if(t==='commission'||t==='equipment'){ b.style.display='none'; return; } // تاب العمولة اتشال (محمد 2026-11-07)
         b.style.display = (t==='users' ? currentRole==='admin' : (!isUser || tabPerm(t)!=='none')) ? '' : 'none';
     });
     const ub = document.getElementById('users-btn'); if(ub) ub.style.display = currentRole==='admin' ? '' : 'none';
@@ -3608,7 +3610,7 @@ function renderAll(){
     try{ renderCollectionsLog(); }catch(e){ console.warn(e); }
     try{ renderExpensesTable(); }catch(e){ console.warn(e); }
     try{ if(activeTab==='payroll') renderPayrollTab(); }catch(e){ console.warn(e); }
-    try{ if(activeTab==='equipment') renderEquipmentTab(); }catch(e){ console.warn(e); }
+    try{ if(activeTab==='ledger' && document.getElementById('sub-ledger-eq')?.classList.contains('active')) renderEquipmentTab(); }catch(e){ console.warn(e); }
     try{ if(activeTab==='extracts'){ renderWeeklyReport(); renderCtrExtracts(); } }catch(e){ console.warn(e); }
     try{ renderPaymentsTable(); }catch(e){ console.warn(e); }
     try{ renderSupplierAccounts(); }catch(e){ console.warn(e); }
@@ -3719,7 +3721,7 @@ function fitBonForm(){
     }catch(e){}
 }
 window.addEventListener('resize', ()=>{ try{ fitBonForm(); }catch(e){} });
-function switchSub(tab, which){ if(tab==='equipment') which='log'; /* محمد 2026-11-13: تاب المعدات = كشف حساب المعدات بس، الصرف من المخزون */ try{ if(tab==='dailylog' && which==='coll'){ renderCollectionsLog(); showClientCollectionBalance(); const cd=document.getElementById('coll-date'); if(cd && !cd.value) cd.value=todayISO(); } }catch(e){} try{ if(tab==='inventory') renderMashoon(); }catch(e){}
+function switchSub(tab, which){ if(tab==='ledger' && which==='eq'){ try{ eqMoveToLedger(); renderEquipmentTab(); }catch(e){ console.warn(e); } } /* محمد 2026-11-13: كشف حساب المعدات جوه تاب كشف الحساب، والصرف من المخزون */ try{ if(tab==='dailylog' && which==='coll'){ renderCollectionsLog(); showClientCollectionBalance(); const cd=document.getElementById('coll-date'); if(cd && !cd.value) cd.value=todayISO(); } }catch(e){} try{ if(tab==='inventory') renderMashoon(); }catch(e){}
     const panel = document.getElementById('tab-'+tab); if(!panel) return;
     panel.querySelectorAll(':scope > .subpage').forEach(p=>p.classList.remove('active'));
     panel.querySelector('#sub-'+tab+'-'+which)?.classList.add('active');
@@ -7052,6 +7054,7 @@ const ADV_CAT='سلف موظفين', SAL_CAT='رواتب موظفين';
 function isAdvRec(x){ if(!x) return false; if(x.category===ADV_CAT) return true; if(x.category===SAL_CAT || !x.name) return false;
     const c=(db.expenses||[]).find(e=>e.name===x.category); return !!c && (c.nameType==='names' || /أجور|اجور|عمالة|مرتب/.test(c.name)); }
 /* ================= المعدات ================= */
+function eqMoveToLedger(){ const C=document.getElementById('sub-ledger-eq-in'); if(!C) return; ['eqs-card','eq-card'].forEach(id=>{ const el=document.getElementById(id); if(el && el.parentNode!==C) C.appendChild(el); }); }
 function equipOwners(){
     const L=[{owner:'الكسارة', equips:crusherEquips()}];
     const CC=(db.contractors||[]).filter(c=>!isCrusherCtr(c.name)), C=CC.filter(c=>c.equips&&c.equips.length);
@@ -11520,6 +11523,7 @@ function exportPartyExcel(){
         if(tabId==='cashday'){ _switchTab.call(this,'treasury'); setTreasuryView('journal'); return; }
         if(tabId==='sales'){ tabId='dailylog'; arguments[0]='dailylog'; }
         if(tabId==='dailylog'){ try{ if(document.getElementById('sub-dailylog-coll')?.classList.contains('active')) switchSub('dailylog','form'); }catch(e){} }
+        if(tabId==='equipment'){ _switchTab.call(this,'ledger'); try{ switchSub('ledger','eq'); }catch(e){} return; }
         if(tabId==='collections'){ _switchTab.call(this,'dailylog'); try{ switchSub('dailylog','coll'); renderCollectionsLog(); showClientCollectionBalance(); }catch(e){} return; }
         _switchTab.apply(this, arguments);
         try{
