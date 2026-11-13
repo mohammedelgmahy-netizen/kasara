@@ -466,7 +466,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 259.5</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 259.6</span></p></div>
         </div>
     </aside>
 
@@ -5457,10 +5457,10 @@ function clientSheetHtml(name){
     /* ملخص مختصر (محمد 2026-11-13): إجمالي اللي عليه + المسحوب − المحصل = المتبقي */
     const paid=D.credits.reduce((a,c)=>a+(Number(c.credit)||0),0), bal=totalReq-paid;
     const sl2=(l,v,sign,bold)=>`<tr${bold?' style="font-weight:800;background:#f1f5f9"':''}><td style="${B};width:55%">${l}</td><td style="${B}">${sign||''}${nfmt(Math.round(Math.abs(v)))}</td></tr>`;
-    let sum=sl2(D.prev<0?'ليه حساب سابق':'إجمالي اللي عليه (حساب سابق)',D.prev,D.prev<0?'− ':'');
-    sum+=sl2('المسحوب',req,'+ ');
+    let sum=sl2(D.prev<0?'المتبقي (ليه)':'المتبقي',D.prev,D.prev<0?'− ':'');
+    sum+=sl2('المسحوب خلال الفترة',req,'+ ');
     sum+=sl2('المحصّل',paid,'− ');
-    sum+=sl2(bal<0?'المتبقي ليه':'المتبقي عليه',bal,'',true);
+    sum+=sl2(bal<0?'المتبقي (ليه)':'المتبقي',bal,'',true);
     return `<div class="cs-sheet" style="direction:rtl;color:#111;font-size:18px;font-weight:700;min-width:560px">
       <table style="width:100%;border-collapse:collapse;margin-bottom:-1px"><tr>
         <td style="${B};font-size:22px;font-weight:800;padding:14px">${/نقدي/.test(name)?'':'السيد/ '}${esc(name)}</td>
@@ -11135,7 +11135,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 259.5';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 259.6';
 
     /* تنبيهات */
     const alerts=[];
