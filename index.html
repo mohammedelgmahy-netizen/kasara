@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 264.5</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 264.6</span></p></div>
         </div>
     </aside>
 
@@ -796,7 +796,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                         <select id="dl-days-list" onchange="if(this.value){ document.getElementById('dl-view-mode').value='DAY'; document.getElementById('dl-view-date').value=this.value; dlModeChanged(); }" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs font-bold"></select>
                         <span id="dl-range-wrap" style="display:inline-flex" class="items-center gap-1 text-xs font-bold text-slate-600">من <input id="dl-view-from" type="date" onchange="dlRangeChanged()" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs"> إلى <input id="dl-view-to" type="date" onchange="dlRangeChanged()" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs"></span>
                         <input id="dl-client-search" type="search" oninput="renderDailyLog()" placeholder="اكتب اسم العميل — كل بوناته من البداية" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs font-bold w-56">
-                        <button type="button" id="dl-pay-kind" value="AJAL" onclick="this.value=this.value==='CASH'?'AJAL':'CASH'; this.classList.toggle('bg-amber-500',this.value==='CASH'); this.classList.toggle('text-white',this.value==='CASH'); renderDailyLog()" class="bg-white border border-amber-500 text-amber-700 rounded px-3 py-1 text-xs font-bold">💵 نقدي</button>
+                        <button type="button" id="dl-pay-kind" value="ALL" onclick="dlPayKindNext(this)" class="bg-white border border-amber-500 text-amber-700 rounded px-3 py-1 text-xs font-bold">نقدي + آجل (الكل)</button>
                         <select id="dl-filter-client" onchange="renderDailyLog()" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs"></select>
                         <button onclick="printSinBreakdown()" title="طباعة صافي السن" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة</span></button>
                         <button onclick="exportDailyLogExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
@@ -9634,10 +9634,12 @@ function dlRows(){
     const fc = document.getElementById('dl-filter-client')?.value || 'ALL';
     const qs = dlClientQuery();
     const inView = r => qs || mode==='ALL' || (mode==='RANGE' ? ((!from || r.date>=from) && (!to || r.date<=to)) : r.date===day);
-    const pk = document.getElementById('dl-pay-kind')?.value || 'AJAL';
-    return (db.dailyLog||[]).filter(r=>inView(r)&&((pk==='CASH')===!!r.paidCash)&&(fc==='ALL'||r.client===fc)&&(!qs||(r.client||'').replace(/\s+/g,' ').includes(qs)))
+    const pk = document.getElementById('dl-pay-kind')?.value || 'ALL';
+    return (db.dailyLog||[]).filter(r=>inView(r)&&(pk==='ALL' || (pk==='CASH')===!!r.paidCash)&&(fc==='ALL'||r.client===fc)&&(!qs||(r.client||'').replace(/\s+/g,' ').includes(qs)))
         .slice().sort(bonOrder);
 }
+/* السجل بيعرض النقدي والآجل مع بعض افتراضياً (محمد 2026-11-13: «كله مع بعض علشان أحسب الكمية»)؛ الزرار بيلف: الكل ← نقدي بس ← آجل بس */
+function dlPayKindNext(b){ const nx={ALL:'CASH',CASH:'AJAL',AJAL:'ALL'}[b.value]||'ALL'; b.value=nx; b.textContent={ALL:'نقدي + آجل (الكل)',CASH:'💵 نقدي بس',AJAL:'آجل بس'}[nx]; b.classList.toggle('bg-amber-500',nx!=='ALL'); b.classList.toggle('text-white',nx!=='ALL'); renderDailyLog(); }
 function renderDailyLog(){
     try{ fillNextBon(); }catch(e){}
     try{ calcBons(); }catch(e){}
@@ -11586,7 +11588,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 264.5';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 264.6';
 
     /* تنبيهات */
     const alerts=[];
