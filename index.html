@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 265.5</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 265.6</span></p></div>
         </div>
     </aside>
 
@@ -11614,7 +11614,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 265.5';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 265.6';
 
     /* تنبيهات */
     const alerts=[];
@@ -12012,6 +12012,18 @@ try{ navigator.storage && navigator.storage.persist && navigator.storage.persist
     function start(){ fix(document.body); new MutationObserver(ms=>{ for(const m of ms){ if(m.type==='characterData') fix(m.target); else m.addedNodes.forEach(fix); } }).observe(document.body,{childList:true,subtree:true,characterData:true}); }
     if(document.body) start(); else document.addEventListener('DOMContentLoaded', start);
 })();
+
+/* تنبيه نسخة قديمة (محمد 2026-11-13: جهاز فضل فاتح على 256.1): كل 5 دقايق ولما الشاشة ترجع، يقارن رقم الإصدار باللي على النت ويطلع شريط «حدّث البرنامج». مش بيعمل تحديث لوحده عشان مايقطعش تسجيل */
+(function(){ const cur=()=>{ const m=(document.getElementById('app-version-lbl')?.textContent||'').match(/(\d+(?:\.\d+)?)/); return m?m[1]:''; };
+  const num=v=>{ const a=String(v).split('.'); return (Number(a[0])||0)*1000+(Number((a[1]||'0').padEnd(2,'0').slice(0,3))||0); };
+  let busy=false; async function chk(){ if(busy||!navigator.onLine||location.protocol==='file:') return; busy=true;
+    try{ const r=await fetch(location.pathname+'?vchk='+Date.now(),{cache:'no-store'}); if(r.ok){ const t=await r.text(); const m=t.match(/id="app-version-lbl"[^>]*>[^<]*?(\d+(?:\.\d+)?)/); const c=cur();
+        if(m && c && m[1]!==c && num(m[1])>num(c) && !document.getElementById('upd-bar')){ const b=document.createElement('button'); b.id='upd-bar'; b.type='button';
+          b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:#fff;font-weight:800;font-size:16px;padding:12px;text-align:center;border:0';
+          b.textContent='⚠ البرنامج عندك نسخة قديمة ('+c+') — دوس هنا عشان تفتح آخر نسخة ('+m[1]+')';
+          b.onclick=async()=>{ try{ if(typeof cloudSaveMerged==='function') await cloudSaveMerged(); }catch(e){} try{ const ks=await caches.keys(); await Promise.all(ks.filter(k=>/shell/.test(k)).map(k=>caches.delete(k))); }catch(e){} location.reload(); };
+          document.body.appendChild(b); } } }catch(e){} busy=false; }
+  setTimeout(chk,20000); setInterval(chk,300000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) chk(); }); })();
 </script>
 </body>
 </html>
