@@ -315,44 +315,27 @@ main .text-gray-400,main .text-gray-500,main .text-gray-600{color:#334155 !impor
 aside#sidebar .tab-btn{font-weight:700 !important;color:#1e293b !important}
 </style>
 <style id="sap-theme">
-/* ===== ثيم ساب (v260.6): ألوان وحدود وجداول بس، من غير أي تغيير في المنطق ===== */
-:root{--od:#354a5f;--od-2:#2a3c4e;--od-3:#46607a;--od-t:#e8f2fc;--gold:#0a6ed1;--bg:#eef1f5;--card:#fff;--card-2:#f2f6fb;--line:#c5cbd3;--line-2:#89919a;--fg:#1d2d3e;--fg-2:#32363a;--muted:#556b82;--side:#fff;--shadow:none}
-body,body *{font-family:Tahoma,"Noto Naskh Arabic","DejaVu Sans",Arial,sans-serif}
-body i.fa-solid,body i.fa-regular,body i[class*="fa-"]{font-family:"Font Awesome 6 Free" !important}
-body > header{box-shadow:none !important;border-bottom:1px solid #2a3c4e !important}
-body > header #install-btn{background:#0a6ed1 !important;color:#fff !important}
-aside#sidebar{border-left:1px solid #c5cbd3 !important}
-aside#sidebar p.tracking-wider{background:#e5eaf0;margin:0 -12px !important;padding:6px 14px !important;font-size:13px !important;color:#556b82 !important}
-aside#sidebar .tab-btn{border-radius:0 !important;border-bottom:1px solid #eef1f5}
-aside#sidebar .tab-btn .nav-ic{border-radius:3px !important;background:transparent !important;color:#354a5f !important}
-aside#sidebar .tab-btn.active{background:#e8f2fc !important;color:#0a6ed1 !important}
-aside#sidebar .tab-btn.active .nav-ic{background:transparent !important;color:#0a6ed1 !important}
-aside#sidebar .tab-btn.active::before{background:#0a6ed1 !important;top:0;bottom:0;width:5px;border-radius:0}
-main .bg-white.rounded-xl,main .bg-white.rounded-2xl,main .bg-white.p-5,main .mgr-card,main .mgr-kpi,main .mgr-filters,main .home-tile,main .tab-brand,.home-kpi,main .rounded-xl,main .rounded-2xl,main .rounded-lg{border-radius:3px !important;box-shadow:none !important;border-color:#c5cbd3 !important}
-main h3.font-bold.text-slate-900,main h3.font-extrabold{background:#e5eaf0;margin:-20px -20px 14px !important;padding:9px 14px;border-bottom:1px solid #c5cbd3;color:#32363a !important;font-size:17px}
+/* ===== نظام ساب (v260.6) بألوان الثيم القديم (v261.1: محمد طلب الألوان القديمة ترجع — كل الألوان هنا من متغيرات sanam-theme، من غير ألوان جديدة) ===== */
+body > header{box-shadow:none !important}
+aside#sidebar{border-left:1px solid var(--line) !important}
+aside#sidebar p.tracking-wider{background:var(--card-2);margin:0 -12px !important;padding:6px 14px !important;font-size:13px !important}
+aside#sidebar .tab-btn{border-radius:0 !important;border-bottom:1px solid var(--line)}
+aside#sidebar .tab-btn.active::before{top:0;bottom:0;width:5px;border-radius:0}
+main .bg-white.rounded-xl,main .bg-white.rounded-2xl,main .bg-white.p-5,main .mgr-card,main .mgr-kpi,main .mgr-filters,main .home-tile,main .tab-brand,.home-kpi,main .rounded-xl,main .rounded-2xl,main .rounded-lg{border-radius:3px !important;box-shadow:none !important;border-color:var(--line) !important}
+main h3.font-bold.text-slate-900,main h3.font-extrabold{background:var(--card-2);margin:-20px -20px 14px !important;padding:9px 14px;border-bottom:1px solid var(--line);font-size:17px}
 main h3.font-bold.text-slate-900::before,main h3.font-extrabold::before{display:none !important}
 main button,main label.cursor-pointer{border-radius:4px !important;box-shadow:none !important}
-main button.bg-slate-900,main button.bg-slate-800,main button.bg-blue-600,main button.bg-indigo-600,main button.bg-emerald-600,main button.bg-green-600,main .tab-brand .tb-print,.mgr-seg button.on{background:#0a6ed1 !important;color:#fff !important;box-shadow:none !important}
 main .subnav button,main [class*="subnav"] button{border-radius:4px !important}
 main table{border-collapse:collapse !important}
-main table thead th{background:#e5eaf0 !important;color:#32363a !important;font-size:14px !important;border:1px solid #c5cbd3 !important}
-main table td{border:1px solid #e1e5ea !important}
-main table tbody tr:nth-child(even) td{background:#fafbfc}
-main table tbody tr:hover td{background:#e8f2fc !important}
-main table tfoot td{background:#fff8d6 !important;border-top:2px solid #354a5f !important;font-weight:bold}
-main input:not([type=checkbox]):not([type=radio]),main select,main textarea{border-radius:3px !important;border:1px solid #89919a !important;background:#fff !important;box-shadow:none !important}
-main input[required],main select[required]{background:#fffbe6 !important;border-color:#c9a400 !important}
-main input:focus,main select:focus,main textarea:focus{border-color:#0a6ed1 !important;box-shadow:0 0 0 2px #cfe4f8 !important}
-main label{color:#556b82 !important}
-.home-hero,.mgr-hero{background:#354a5f !important;border-radius:3px !important}
-.home-hero::after,.mgr-hero::after{display:none}
-.mgr-hero .mh-big b{color:#fff}
+main table thead th{font-size:14px !important;border:1px solid var(--line-2) !important}
+main table td{border:1px solid var(--line) !important}
+main table tfoot td{border-top:2px solid var(--od) !important;font-weight:bold}
+main input:not([type=checkbox]):not([type=radio]),main select,main textarea{border-radius:3px !important;border:1px solid var(--line-2) !important}
+.home-hero,.mgr-hero{border-radius:3px !important}
 .home-tile{border-radius:4px !important}.home-tile .nav-ic{box-shadow:none !important;border-radius:4px !important}
-.mgr-pl .pl-tot.final.good{background:#354a5f !important}
-.subnav-bar{border-radius:3px !important;box-shadow:none !important;border-color:#c5cbd3 !important;background:#f7f8fa !important}
+.subnav-bar{border-radius:3px !important;box-shadow:none !important;border-color:var(--line) !important}
 .subnav-btn{border-radius:3px !important}
-.subnav-btn.active{background:#0a6ed1 !important;box-shadow:none !important;color:#fff !important}
-main button.bg-amber-600,main button.bg-amber-500,main button.bg-orange-600,main button.bg-sky-600,main button.bg-purple-600,main button.bg-violet-600{background:#0a6ed1 !important;color:#fff !important}
+.subnav-btn.active{box-shadow:none !important}
 body > header .hdr-actions > button,body > header .hdr-actions > label{border-radius:4px !important}
 @media (min-width:901px){
   aside#sidebar{overflow:hidden !important}
@@ -364,12 +347,11 @@ body > header .hdr-actions > button,body > header .hdr-actions > label{border-ra
   aside#sidebar > div:last-child .w-8{width:24px !important;height:24px !important}
 }
 /* شاشة المصروفات بنمط ساب (v260.8) */
-.exp-sap-tb{display:flex;gap:10px;background:#f7f8fa;border:1px solid #d9dde3;padding:8px 12px;margin-bottom:14px}
+.exp-sap-tb{display:flex;gap:10px;background:var(--card-2);border:1px solid var(--line);padding:8px 12px;margin-bottom:14px}
 .exp-sap-tb button{padding:7px 22px !important;font-size:17px !important;border-radius:4px !important}
-.exp-sap-tb .exp-sap-b2{background:#fff !important;color:#0a6ed1 !important;border:1px solid #0a6ed1 !important;font-weight:700}
-.exp-sap-code,.exp-sap-val{border:1px solid #c5cbd3;background:#f2f4f7;border-radius:3px;padding:7px 12px;min-height:42px;font-weight:700;color:#32363a}
-.exp-sap-code{font-family:monospace;text-align:center;min-width:80px;background:#fffbe6;border-color:#c9a400}
-#exp-sap-line{color:#107e3e;font-weight:700;font-size:16px;margin-top:14px;padding-top:10px;border-top:1px solid #e1e5ea}
+.exp-sap-tb .exp-sap-b2{background:#fff !important;color:var(--od) !important;border:1px solid var(--od) !important;font-weight:700}
+.exp-sap-val{border:1px solid var(--line);background:var(--card-2);border-radius:3px;padding:7px 12px;min-height:42px;font-weight:700}
+#exp-sap-line{color:var(--od);font-weight:700;font-size:16px;margin-top:14px;padding-top:10px;border-top:1px solid var(--line)}
 #exp-sap-day table{width:100%;font-size:17px}#exp-sap-day td,#exp-sap-day th{padding:9px 10px !important}
 #exp-sap-day .num{text-align:left;direction:ltr;white-space:nowrap;font-weight:700}
 #exp-form > #exp-save-wrap{display:none !important}
@@ -377,7 +359,7 @@ body > header .hdr-actions > button,body > header .hdr-actions > label{border-ra
   #exp-form{display:grid !important;grid-template-columns:1fr 1fr !important;gap:11px 40px !important;align-items:center !important}
   #exp-form > #exp-quick,#exp-form > #exp-contract-info,#exp-form > #exp-bal-info,#exp-form > #exp-notes-wrap{grid-column:1 / 3 !important}
   #exp-form > div:not(#exp-quick):not(#exp-contract-info):not(#exp-bal-info):not(.hidden){display:flex;align-items:center;gap:10px}
-  #exp-form > div > label{width:150px;flex:none;text-align:left;margin:0 !important;font-size:17px !important}
+  #exp-form > div > label{width:125px;flex:none;text-align:left;margin:0 !important;font-size:17px !important}
   #exp-form > div > input,#exp-form > div > select,#exp-form .exp-sap-val{flex:1;min-height:42px;font-size:17px !important}
   #exp-form > #exp-quick{order:0}#exp-form > #exp-date-wrap{order:1}#exp-form > #exp-paytype-wrap{order:2}#exp-form > #exp-sap-item{order:3}#exp-form > #exp-account-wrap{order:4}
   #exp-form > #exp-name-wrap{order:5}#exp-form > #exp-paid-wrap{order:6}#exp-form > #exp-ctrdisc-wrap{order:7}#exp-form > #exp-notes-wrap{order:8}#exp-form > #exp-contract-info,#exp-form > #exp-bal-info{order:9}
@@ -387,7 +369,7 @@ body > header .hdr-actions > button,body > header .hdr-actions > label{border-ra
 /* v260.9: بنود المصروف قايمة منسدلة + الشاشة ثابتة من غير تمرير يمين/شمال */
 #exp-form > #exp-quick{display:none !important}
 #exp-sap-day{height:128px;overflow-y:auto}
-@media screen and (min-width:901px){ html,body{overflow-y:hidden} }
+@media screen and (min-width:901px) and (pointer:fine){ html,body{overflow-y:hidden} }
 @media (min-width:901px){ #sub-expenses-form > .bg-white:first-child > h3{display:none !important} #sub-expenses-form #exp-sap-day-h{margin-bottom:6px !important} }
 html,body{overflow-x:hidden !important;max-width:100vw}
 main{overflow-x:hidden !important}
@@ -402,6 +384,14 @@ main table{max-width:100%}
   main h3.font-bold.text-slate-900,main h3.font-extrabold{margin:-14px -14px 10px !important;padding:7px 12px !important}
   .subnav-bar{padding:4px !important}
 }
+/* v261.1: المصروفات عمود واحد على الشاشات الضيقة + حقول الموبايل 16px عشان المتصفح ما يكبرش الشاشة */
+@media (min-width:901px) and (max-width:1150px){ #exp-form{grid-template-columns:1fr !important} #exp-form > #exp-quick,#exp-form > #exp-contract-info,#exp-form > #exp-bal-info,#exp-form > #exp-notes-wrap{grid-column:1 !important} }
+@media (max-width:900px){ main input:not([type=checkbox]):not([type=radio]),main select,main textarea{font-size:16px !important} #exp-sap-day{height:auto !important;max-height:none !important} }
+/* v261.1: شاشة ثابتة زي أي أبليكيشن: مفيش سحب يمين/شمال، الجزء الداخلي بس بيتمرر لتحت */
+html,body{overscroll-behavior:none}
+main{touch-action:pan-y;overscroll-behavior:contain}
+main .overflow-x-auto{touch-action:pan-x pan-y}
+@media (max-width:900px){ main .tab-brand{flex-wrap:wrap !important;gap:6px !important} main .tab-brand > *{min-width:0} main > .tab-content{max-width:100% !important;min-width:0} }
 </style>
 <style>/* فورم البون: مربعات الكميات مستخبية لحد ما الصنف يتختار (محمد 2026-11-08) */
 div:has(> input[id^="dl-q-"]){display:none}
@@ -555,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 261.0</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 261.1</span></p></div>
         </div>
     </aside>
 
@@ -1096,7 +1086,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 <div class="exp-sap-tb"><button type="submit" form="exp-form" class="bg-emerald-600 text-white font-bold rounded-lg">💾 حفظ</button><button type="button" onclick="expSapNew()" class="exp-sap-b2">جديد</button><button type="button" onclick="switchSub('expenses','log')" class="exp-sap-b2">السجل</button></div>
                 <form id="exp-form" onsubmit="addExpense(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     <div id="exp-quick" class="md:col-span-4 flex flex-wrap gap-2"></div>
-                    <div id="exp-sap-item" class="exp-sap-ro"><label class="block text-xs font-bold text-slate-600 mb-1">البند (مدين)</label><span id="exp-sap-code" class="exp-sap-code"></span><select id="exp-sap-sel" onchange="pickExpType(Number(this.value))" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"></select></div>
+                    <div id="exp-sap-item" class="exp-sap-ro"><label class="block text-xs font-bold text-slate-600 mb-1">بند المصروف</label><span id="exp-sap-code" style="display:none"></span><select id="exp-sap-sel" onchange="pickExpType(Number(this.value))" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"></select></div>
                     <div class="hidden"><label class="block text-xs font-bold text-slate-600 mb-1">التبويب</label><select id="exp-category" onchange="filterExpenseSubFields(); renderExpQuick()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div id="exp-paytype-wrap" style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">نوع الدفعة</label><select id="exp-paytype" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="advance">عهدة (تتخصم من المستخلص)</option><option value="settle">سداد صافي مستخلص</option></select></div>
                     <div id="exp-name-wrap"><label id="exp-name-label" class="block text-xs font-bold text-slate-600 mb-1">المستفيد</label><select id="exp-name" required onchange="expPayeeNew();filterActivitiesByName()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
@@ -5938,13 +5928,13 @@ function jrRender(){
         g('jr-cash').innerHTML='<option value="">كل الخزن</option>'+(db.accounts||[]).map(a=>`<option>${esc(catLabel(a.name))}</option>`).join(''); }
     let L; try{ L=jrFiltered(); }catch(err){ console.error(err); el.innerHTML='<div class="text-rose-700">تعذر عرض القيود: '+esc(err.message)+'</div>'; return; }
     const tot=L.reduce((a,e)=>a+e.v,0), n=v=>nfmt(Math.round(v*100)/100), MAX=1500, S=L.slice(0,MAX);
-    const c='padding:7px 9px;border:1px solid #d5dbe3', num=c+';text-align:left;direction:ltr;white-space:nowrap;font-weight:700';
+    const c='padding:7px 9px;border:1px solid var(--line)', num=c+';text-align:left;direction:ltr;white-space:nowrap;font-weight:700';
     el.innerHTML=`<div class="overflow-x-auto"><table class="w-full text-right" style="font-size:17px;border-collapse:collapse">
       <thead><tr><th style="${c}">رقم القيد</th><th style="${c}">التاريخ</th><th style="${c}">النوع</th><th style="${c}">الحساب</th><th style="${c}">البيان</th><th style="${c}">مدين</th><th style="${c}">دائن</th></tr></thead>
-      <tbody>${S.map(e=>`<tr style="border-top:2px solid #8fa9c4"><td style="${c};color:#0a6ed1;font-weight:800">${e.no}</td><td style="${c};white-space:nowrap">${dmy(e.date)}</td><td style="${c}">${e.type}</td><td style="${c};font-weight:800">من حـ/ ${esc(e.dr)}</td><td style="${c}">${esc(e.desc)}</td><td style="${num}">${n(e.v)}</td><td style="${c}"></td></tr>
+      <tbody>${S.map(e=>`<tr style="border-top:2px solid var(--line-2)"><td style="${c};color:var(--od);font-weight:800">${e.no}</td><td style="${c};white-space:nowrap">${dmy(e.date)}</td><td style="${c}">${e.type}</td><td style="${c};font-weight:800">من حـ/ ${esc(e.dr)}</td><td style="${c}">${esc(e.desc)}</td><td style="${num}">${n(e.v)}</td><td style="${c}"></td></tr>
         <tr><td style="${c}"></td><td style="${c}"></td><td style="${c}"></td><td style="${c};padding-right:34px">إلى حـ/ ${esc(e.cr)}</td><td style="${c}"></td><td style="${c}"></td><td style="${num}">${n(e.v)}</td></tr>`).join('') || '<tr><td colspan="7" class="p-4 text-center text-slate-400">مفيش قيود في الفترة دي</td></tr>'}</tbody>
       <tfoot><tr><td colspan="5" style="${c};font-size:19px">الإجمالي (${L.length} قيد)</td><td style="${num};font-size:19px">${n(tot)}</td><td style="${num};font-size:19px">${n(tot)}</td></tr></tfoot></table></div>
-      <div style="color:#107e3e;font-weight:700;margin-top:8px">✔ القيود متزنة: إجمالي المدين = إجمالي الدائن</div>
+      <div style="color:var(--od);font-weight:700;margin-top:8px">✔ القيود متزنة: إجمالي المدين = إجمالي الدائن</div>
       ${L.length>MAX?`<div class="text-slate-500 mt-1">معروض أول ${MAX} قيد بس، صغّر الفترة أو صدّر إكسيل عشان تشوف الباقي.</div>`:''}`;
 }
 function jrExportExcel(){ const L=jrFiltered(), aoa=[['دفتر القيود اليومية — كسارة الديار'],[],['رقم القيد','التاريخ','النوع','الحساب','البيان','مدين','دائن']];
@@ -5955,7 +5945,7 @@ function expSapNew(){ const g=id=>document.getElementById(id); ['exp-paid','exp-
 function expSapRender(){ try{ const g=id=>document.getElementById(id); if(!g('exp-sap-line')) return;
     const cat=g('exp-category')?.value||'', c=(typeof expTypes==='function'?expTypes():[]).find(x=>x.name===cat), accN=g('exp-account')?.value||'', acc=(db.accounts||[]).find(a=>a.name===accN);
     const nm=(g('exp-name-wrap')&&g('exp-name-wrap').offsetParent!==null)?(g('exp-name')?.value||''):'', amt=Number(g('exp-paid')?.value)||0, d=g('exp-date')?.value||todayISO();
-    g('exp-sap-code').textContent=c?c.code:''; { const sel=g('exp-sap-sel'), T=expTypes(), sig=T.map(x=>x.code+x.name).join('|'); if(sel){ if(sel.dataset.sig!==sig){ sel.dataset.sig=sig; sel.innerHTML=T.map(x=>`<option value="${x.code}">${x.code} - ${esc(catLabel(x.name))}</option>`).join(''); } if(c && document.activeElement!==sel) sel.value=String(c.code); } }
+    g('exp-sap-code').textContent=c?c.code:''; { const sel=g('exp-sap-sel'), T=expTypes(), sig=T.map(x=>x.code+x.name).join('|'); if(sel){ if(sel.dataset.sig!==sig){ sel.dataset.sig=sig; sel.innerHTML=T.map(x=>`<option value="${x.code}">${esc(catLabel(x.name))} - ${x.code}</option>`).join(''); } if(c && document.activeElement!==sel) sel.value=String(c.code); } }
     const drN=catLabel(cat)+(nm&&nm!=='__new'?' / '+nm:'');
     g('exp-sap-line').innerHTML = amt>0 ? `✔ القيد: من حـ/ ${esc(drN)} <span dir="ltr">${nfmt(amt)}</span> &nbsp; إلى حـ/ ${esc(catLabel(accN))} <span dir="ltr">${nfmt(amt)}</span>` : `القيد: من حـ/ ${esc(drN)} &nbsp; إلى حـ/ ${esc(catLabel(accN))}`;
     const L=(db.expensesData||[]).filter(x=>x.category!=='إيراد' && x.date===d), tot=L.reduce((a,x)=>a+(Number(x.paid)||0),0), code=n=>{ const k=(db.expenses||[]).find(z=>z.name===n); return k?k.code:''; }, accCode=n=>{ const a=(db.accounts||[]).find(z=>z.name===n); return a?a.code:''; };
@@ -5968,7 +5958,7 @@ document.addEventListener('DOMContentLoaded', ()=>{ const f=document.getElementB
 /* ===== v260.9: كل شاشة تسجيل تدخل في الشاشة من غير تمرير (زي فورم البون) — الكشوف الطويلة بس هي اللي بتتمرر لتحت ===== */
 function fitPage(){ try{ const m=document.querySelector('main'), t=document.querySelector('main .tab-content.active')||document.getElementById('tab-'+activeTab); if(!m||!t) return;
     const dc=document.getElementById('exp-sap-day-card'), box=document.getElementById('exp-sap-day');
-    if(innerWidth<901 || activeTab==='dailylog'){ t.style.zoom=''; m.style.overflowY=''; if(dc) dc.style.display=''; if(box) box.style.height=''; return; }
+    if(innerWidth<901 || activeTab==='dailylog' || (window.matchMedia && matchMedia('(pointer:coarse)').matches)){ t.style.zoom=''; m.style.overflowY=''; if(dc) dc.style.display=''; if(box) box.style.height=''; return; }
     /* الحجم بيتثبت لكل شاشة: يصغر لو احتاج، وعمره ما يكبر تاني وانت شغال فيها؛ ولو الشاشة دخلت كلها التمرير بيتقفل خالص (محمد 2026-11-13) */
     const F=window.__fitZ||(window.__fitZ={}), sub=t.querySelector(':scope > .subpage.active'), key=activeTab+'|'+(sub?sub.id:'')+'|'+innerWidth+'x'+innerHeight, prev=F[key]||1, st=m.scrollTop;
     const fits=()=>m.scrollHeight<=m.clientHeight, useDay=!!(dc && box && activeTab==='expenses' && sub && sub.id==='sub-expenses-form');
@@ -11381,7 +11371,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 261.0';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 261.1';
 
     /* تنبيهات */
     const alerts=[];
