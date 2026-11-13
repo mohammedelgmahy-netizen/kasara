@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 264.2</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 264.3</span></p></div>
         </div>
     </aside>
 
@@ -10148,7 +10148,12 @@ function cxDefaults(){
     const name=document.getElementById('cx-name').value; if(!name) return;
     const last=(db.ctrExtracts||[]).filter(x=>x.name===name && x.to).map(x=>x.to).sort().pop();
     const nf = last ? addDays(last,1) : ''; const wf = weekStart(nf && nf<=todayISO() ? nf : todayISO());
-    document.getElementById('cx-from').value = wf; document.getElementById('cx-to').value = addDays(wf,6); // من الخميس للأربع
+    let wf2 = wf;
+    /* لو الأسبوع ده لسه مفيهوش بونات: افتح على آخر أسبوع فيه بونات ولسه متعملوش مستخلص، عشان الأمتار تتملى لوحدها (محمد 2026-11-13) */
+    try{ const has=(f,t)=>contractorBons(name).some(r=>(r.date||'')>=f && (r.date||'')<=t);
+        if(!has(wf, addDays(wf,6))){ const lastBon=contractorBons(name).map(r=>r.date||'').filter(d=>d && d<=todayISO()).sort().pop();
+            if(lastBon){ const w=weekStart(lastBon), wt=addDays(w,6); const done=(db.ctrExtracts||[]).some(x=>x.name===name && !x.extra && x.from && x.to && x.from<=wt && x.to>=w); if(!done && (!last || w>last)) wf2=w; } } }catch(e){}
+    document.getElementById('cx-from').value = wf2; document.getElementById('cx-to').value = addDays(wf2,6); // من الخميس للأربع
     const LR0=ctrLowRule(name); /* سطر أساسي أوتوماتيك للأصناف قليلة السن (محمد 2026-11-13) — «عمل إضافي» للساعات وغيرها بإيده بس */
     document.getElementById('cx-rows').innerHTML = ctrEquips(name).map((e,i)=>`<tr class="border-t border-slate-100"><td class="p-2 font-bold">${esc(ctrEqName(name,e))}</td>
         <td class="p-2"><input id="cx-q-${i}" type="number" step="any" min="0" oninput="cxPreview()" class="w-28 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
@@ -11546,7 +11551,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 264.2';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 264.3';
 
     /* تنبيهات */
     const alerts=[];
