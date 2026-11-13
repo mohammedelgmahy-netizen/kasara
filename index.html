@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 261.4</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 261.5</span></p></div>
         </div>
     </aside>
 
@@ -1282,6 +1282,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             <div class="subnav-bar">
                 <button type="button" id="subnav-inventory-form" class="subnav-btn active" onclick="switchSub('inventory','form')">📤 صرف من المخزن</button>
                 <button type="button" id="subnav-inventory-log" class="subnav-btn" onclick="switchSub('inventory','log')">📊 الأرصدة والكشوف</button>
+                <button type="button" id="subnav-inventory-mv" class="subnav-btn" onclick="switchSub('inventory','mv')">📒 كشف حركة صنف (وارد وصادر)</button>
             </div>
 
             <div id="sub-inventory-form" class="subpage active">
@@ -1399,20 +1400,22 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 </div>
             </div>
 
+            </div><!-- /sub-inventory-log -->
+            <div id="sub-inventory-mv" class="subpage">
             <!-- كشف حركة صنف تفصيلي -->
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-teal-50 border-b border-teal-100 flex flex-wrap justify-between items-center gap-2">
                     <h3 class="font-bold text-slate-900"><i class="fa-solid fa-clipboard-list text-teal-600"></i> كشف حركة صنف (تفصيلي)</h3>
                     <div class="flex flex-wrap gap-2 items-center">
-                        <select id="imv-item" onchange="renderItemMovement()" class="bg-white border border-teal-200 rounded px-2 py-1 text-xs min-w-[10rem]"></select>
+                        <select id="imv-item" onchange="renderItemMovement()" class="bg-white border border-teal-200 rounded px-2 py-1 text-base font-bold min-w-[10rem]"></select><span class="text-sm">من</span><input id="imv-from" type="date" onchange="renderItemMovement()" class="bg-white border border-teal-200 rounded px-2 py-1 text-sm"><span class="text-sm">إلى</span><input id="imv-to" type="date" onchange="renderItemMovement()" class="bg-white border border-teal-200 rounded px-2 py-1 text-sm">
                         <button onclick="printSection('imv-print-area')" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة</span></button>
                         <button onclick="exportItemMovementExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
                     </div>
                 </div>
                 <div id="imv-print-area">
                     <h2 class="hidden print:block text-lg font-bold text-slate-900 border-b-2 border-slate-900 pb-3 mb-3 px-4 pt-4" id="imv-print-title"></h2>
-                    <div class="overflow-x-auto max-h-96">
-                        <table class="w-full text-sm text-right">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-base text-right">
                             <thead class="bg-slate-100 sticky top-0"><tr>
                                 <th class="p-3">التاريخ</th><th class="p-3">نوع الحركة</th><th class="p-3">البيان</th><th class="p-3">وارد</th><th class="p-3">منصرف</th><th class="p-3 text-teal-700">الرصيد</th>
                             </tr></thead>
@@ -1421,7 +1424,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     </div>
                 </div>
             </div>
-            </div><!-- /sub-inventory-log -->
+            </div><!-- /sub-inventory-mv -->
 
 </div>
 
@@ -6908,32 +6911,42 @@ function renderEquipmentRepayments(){
 }
 
 /* ================= كشف حركة صنف (وارد / منصرف / رصيد) ================= */
-function itemMovementRows(item){
+function itemMovementRows(item, from, to){
+    /* v261.5: الكشف بيبدأ من آخر جرد للصنف (زي المركز المالي) + المشتريات بعده − الصرف بعده، وفلتر الفترة بيجيب رصيد أول المدة */
     const rows = [];
-    (db.procurements||[]).filter(p=>p.item===item).forEach(p=>rows.push({date:p.date, kind:'شراء', desc:`${p.supplier||''}${p.notes?' — '+p.notes:''}`, inQ:Number(p.qty)||0, outQ:0}));
-    (db.productions||[]).forEach(o=>{
-        (o.outputs||[]).filter(x=>x.item===item).forEach(x=>rows.push({date:o.date, kind:'إنتاج', desc:'أمر إنتاج', inQ:Number(x.qty)||0, outQ:0}));
-        (o.materials||[]).filter(x=>x.item===item).forEach(x=>rows.push({date:o.date, kind:'استهلاك إنتاج', desc:'أمر إنتاج', inQ:0, outQ:Number(x.qty)||0}));
+    const C=(db.stockCounts||[]).filter(x=>x && x.item===item && x.date && !x.add), last=C.length?C.map(x=>x.date).sort().pop():'';
+    const after=d=>!last || (d||'')>last;
+    if(last){ const q=C.filter(x=>x.date===last).reduce((a,x)=>a+(Number(x.qty)||0),0); rows.push({date:last, kind:'جرد', desc:'رصيد الجرد', inQ:q, outQ:0, ord:0}); }
+    (db.stockCounts||[]).filter(x=>x && x.item===item && x.add && x.date).forEach(x=>rows.push({date:x.date, kind:'إضافة', desc:x.notes||'إضافة على المخزون', inQ:Math.max(Number(x.qty)||0,0), outQ:Math.max(-(Number(x.qty)||0),0), ord:1}));
+    (db.procurements||[]).filter(p=>p.item===item && after(p.date)).forEach(p=>rows.push({date:p.date, kind:'وارد (شراء)', desc:`${p.supplier||''}${p.notes?' — '+p.notes:''}`, inQ:Number(p.qty)||0, outQ:0, ord:1}));
+    (db.productions||[]).forEach(o=>{ if(!after(o.date)) return;
+        (o.outputs||[]).filter(x=>x.item===item).forEach(x=>rows.push({date:o.date, kind:'إنتاج', desc:'أمر إنتاج', inQ:Number(x.qty)||0, outQ:0, ord:1}));
+        (o.materials||[]).filter(x=>x.item===item).forEach(x=>rows.push({date:o.date, kind:'استهلاك إنتاج', desc:'أمر إنتاج', inQ:0, outQ:Number(x.qty)||0, ord:2}));
     });
-    (db.stockIssues||[]).filter(x=>x.item===item).forEach(x=>rows.push({date:x.date, kind:'صرف', desc:`${x.name||''}${x.notes?' — '+x.notes:''}`, inQ:0, outQ:Number(x.qty)||0}));
-    rows.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    (db.stockIssues||[]).filter(x=>x.item===item && after(x.date)).forEach(x=>rows.push({date:x.date, kind:'صادر (صرف)', desc:`${isCrusherIssue(x)?(x.equip||'الكسارة'):(x.name||'')}${x.notes?' — '+x.notes:''}`, inQ:0, outQ:Number(x.qty)||0, ord:2}));
+    try{ (db.equipExpenses||[]).filter(e=>e && Number(e.qty)>0 && after(e.date) && eqeItem(e.desc)===item).forEach(e=>rows.push({date:e.date, kind:'صادر (صرف)', desc:[e.equip,e.owner].filter(Boolean).join(' '), inQ:0, outQ:Number(e.qty)||0, ord:2})); }catch(e){}
+    rows.sort((a,b)=>(a.date||'').localeCompare(b.date||'') || a.ord-b.ord);
     let bal = 0; rows.forEach(r=>{ bal += r.inQ - r.outQ; r.bal = bal; });
-    return rows;
+    if(!from && !to) return rows;
+    const before=rows.filter(r=>from && (r.date||'')<from), inP=rows.filter(r=>(!from||(r.date||'')>=from) && (!to||(r.date||'')<=to));
+    return (before.length ? [{date:from, kind:'رصيد أول المدة', desc:'', inQ:0, outQ:0, bal:before[before.length-1].bal, open:true}] : []).concat(inP);
 }
 function renderItemMovement(){
     const tb = document.getElementById('tbody-item-movement'); if(!tb) return;
     const item = document.getElementById('imv-item')?.value || '';
     const t = document.getElementById('imv-print-title'); if(t) t.textContent = 'كشف حركة صنف: ' + item;
-    const rows = itemMovementRows(item);
+    const rows = itemMovementRows(item, document.getElementById('imv-from')?.value||'', document.getElementById('imv-to')?.value||'');
+    const tin=rows.reduce((a,r)=>a+(r.kind==='جرد'?0:r.inQ),0), tout=rows.reduce((a,r)=>a+r.outQ,0);
     tb.innerHTML = rows.map(r=>`<tr class="border-b border-slate-50">
         <td class="p-3 text-xs text-slate-500">${dmy(r.date)}</td><td class="p-3 font-bold ${r.inQ?'text-emerald-700':'text-rose-700'}">${r.kind}</td><td class="p-3">${esc(r.desc)}</td>
         <td class="p-3 text-emerald-700">${r.inQ?nfmt(r.inQ):''}</td><td class="p-3 text-rose-700">${r.outQ?nfmt(r.outQ):''}</td>
         <td class="p-3 font-bold ${r.bal<0?'text-rose-700':'text-teal-700'}">${nfmt(r.bal)}</td></tr>`).join('')
         || '<tr><td colspan="6" class="p-4 text-center text-slate-400">لا توجد حركات للصنف ده</td></tr>';
+    if(rows.length) tb.innerHTML += `<tr class="font-bold bg-slate-100"><td class="p-3" colspan="3">الإجمالي (الوارد من غير رصيد الجرد)</td><td class="p-3 text-emerald-700">${nfmt(tin)}</td><td class="p-3 text-rose-700">${nfmt(tout)}</td><td class="p-3 text-teal-700">${nfmt(rows[rows.length-1].bal)}</td></tr>`;
 }
 function exportItemMovementExcel(){
     const item = document.getElementById('imv-item')?.value || '';
-    const data = [['التاريخ','نوع الحركة','البيان','وارد','منصرف','الرصيد'], ...itemMovementRows(item).map(r=>[r.date,r.kind,r.desc,r.inQ||'',r.outQ||'',r.bal])];
+    const data = [['التاريخ','نوع الحركة','البيان','وارد','منصرف','الرصيد'], ...itemMovementRows(item, document.getElementById('imv-from')?.value||'', document.getElementById('imv-to')?.value||'').map(r=>[r.date,r.kind,r.desc,r.inQ||'',r.outQ||'',r.bal])];
     const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'حركة صنف');
     XLSX.writeFile(wb, `حركة-${item}-${todayISO()}.xlsx`);
@@ -11374,7 +11387,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 261.4';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 261.5';
 
     /* تنبيهات */
     const alerts=[];
