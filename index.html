@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 266.1</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 266.2</span></p></div>
         </div>
     </aside>
 
@@ -10229,10 +10229,13 @@ function cxPreview(resetQty){
         h+=paid.map(r=>`<tr class="border-t border-slate-100"><td class="p-2 font-bold text-rose-700" colspan="3">${esc(r.desc||'')}</td><td class="p-2 font-extrabold text-rose-700" style="${NW}">${mfmt(r.debit)}-</td></tr>`).join('');
         if(paid.length) h+=sub('إجمالي العهد والمدفوع له', mfmt(pv)+'-', 'bg-rose-50 text-rose-700');
         h+=sub('صافي الأسبوع (شغل − سولار − عهد)', (work-dv-pv<0?mfmt(-(work-dv-pv))+'-':mfmt(work-dv-pv)), 'bg-emerald-50 text-emerald-800');
-        h+=sub('حساب سابق (من قبل الأسبوع)', bt(prev), 'bg-slate-50');
-        h+=sub('المتبقي في الآخر', bt(fin), 'bg-yellow-100');
+        /* فترة قبل تاريخ الحساب القديم المتكود: شغلها داخل في الحساب القديم أصلاً، فمينفعش يتجمع عليه تاني (محمد فتح 22–28/10 لسيارات حسن وطلع 321,460 غلط، 2026-11-13) */
+        if(cxInOld(name,t)) h+=`<tr><td colspan="4" class="p-2 font-extrabold" style="background:#fef2f2;color:#b91c1c;border:2px solid #dc2626">⚠ الفترة دي قبل تاريخ الحساب القديم المتكود (${dmy((ctrOf(name)||{}).openDate)}) وشغلها داخل فيه أصلاً. الحساب القديم (${bt(prev)}) هو الرصيد بعد الفترة دي مش قبلها، فمفيش «حساب سابق» ولا «متبقي» يتحسبوا هنا. ولو اتحفظت هتتحسب مرتين.</td></tr>`;
+        else { h+=sub('حساب سابق (من قبل الأسبوع)', bt(prev), 'bg-slate-50');
+        h+=sub('المتبقي في الآخر', bt(fin), 'bg-yellow-100'); }
         dd.innerHTML=h; } }catch(e){ console.warn(e); }
 }
+function cxInOld(name, to){ const c=ctrOf(name)||{}; return !!(c.openDate && to && to<c.openDate && ((Number(c.openBal)||0)||(Number(c.openTotal)||0)||(Number(c.openPaid)||0))); }
 function meterBalTxt(mb){
     return (mb.oldLeft>0?`<span class="text-slate-500">فاضل سن قديم ${nfmt(mb.oldLeft)} م</span> — `:'')
         + (Math.abs(mb.diff)<0.01 ? '<span class="text-slate-700">متساوي ✓</span>' : mb.diff>0 ? `<span class="text-emerald-700">ليه ${nfmt(mb.diff)} متر لسه</span>` : `<span class="text-rose-700">اتحاسب زيادة ${nfmt(-mb.diff)} متر</span>`);
@@ -10285,6 +10288,7 @@ function __saveCtrExtractCore(){
     const bad=L.find(x=>!(x.rt>0)); if(bad){ alert('اكتب سعر المتر لـ '+ctrEqName(name,bad.e)); g('cx-r-'+bad.i).focus(); return; }
     const from=g('cx-from').value, to=g('cx-to').value, notes=g('cx-notes').value.trim();
     if(!db.ctrExtracts) db.ctrExtracts=[];
+    if(cxInOld(name,to) && !confirm(`الفترة دي (لحد ${dmy(to)}) قبل تاريخ الحساب القديم المتكود وشغلها داخل فيه أصلاً.\nلو اتحفظت هتتحسب لـ ${name} مرتين.\n\nتحفظ برضه؟`)){ alert('ما اتحفظش: الفترة داخلة في الحساب القديم'); return; }
     /* ميتحفظش مرتين: نفس المقاول ونفس المعدة وفترة متداخلة (محمد 2026-11-07) */
     if(from && to){ const dup=L.map(x=>(db.ctrExtracts||[]).find(e=>e.name===name && eqNorm(e.equip)===eqNorm(x.e) && e.from && e.to && e.from<=to && e.to>=from)).find(Boolean);
         if(dup){ alert(`المستخلص ده متحفظ قبل كده: ${name} من ${dmy(dup.from)} إلى ${dmy(dup.to)} (${nfmt(dup.qty)} متر).\nمش هيتحفظ تاني.`); try{ openCtrExtractView(dup.id); }catch(e){} return; } }
@@ -11624,7 +11628,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 266.1';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 266.2';
 
     /* تنبيهات */
     const alerts=[];
