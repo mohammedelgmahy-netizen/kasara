@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 265.2</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 265.3</span></p></div>
         </div>
     </aside>
 
@@ -10332,13 +10332,13 @@ function ctrWeeklySheetHtml(name, from, to){
         ${work.length ? work.map(x=>`<tr><td style="${B}text-align:right">${esc(x.l)}</td><td style="${B}white-space:nowrap">${x.q}</td><td style="${B}">${x.p}</td><td style="${B}">${n0(x.v)}</td></tr>`).join('') : none('مفيش شغل مسجل في الأسبوع ده',4)}
         <tr style="background:#ecfdf5;font-weight:800"><td style="${B}text-align:right" colspan="3">إجمالي شغل الأسبوع</td><td style="${B}">${n0(tw)}</td></tr></table>
       ${sec('٢) سولار وأصناف اتصرفت له في الأسبوع')}
-      <table style="width:100%;border-collapse:collapse"><tr><th style="${TH}">التاريخ</th><th style="${TH}">الصنف</th><th style="${TH}">الكمية</th><th style="${TH}">السعر</th><th style="${TH}">القيمة</th></tr>
-        ${sol.length ? sol.map(r=>`<tr><td style="${B}white-space:nowrap">${dmy(r.date)}</td><td style="${B}">${esc(r.item)}</td><td style="${B}white-space:nowrap">${esc(r.qtyTxt||'')}</td><td style="${B}">${nfmt(r.price||0)}</td><td style="${B}">${n0(r.debit)}</td></tr>`).join('') : none('مفيش صرف مسجل في الأسبوع ده',5)}
-        <tr style="background:#fff1f2;font-weight:800"><td style="${B}text-align:right" colspan="4">إجمالي السولار والأصناف</td><td style="${B}">${n0(ts)}</td></tr></table>
+      <table style="width:100%;border-collapse:collapse"><tr><th style="${TH}">الصنف</th><th style="${TH}">الكمية</th><th style="${TH}">السعر</th><th style="${TH}">القيمة</th></tr>
+        ${sol.length ? sol.map(r=>`<tr><td style="${B}">${esc(r.item)}</td><td style="${B}white-space:nowrap">${esc(r.qtyTxt||'')}</td><td style="${B}">${nfmt(r.price||0)}</td><td style="${B}">${n0(r.debit)}</td></tr>`).join('') : none('مفيش صرف مسجل في الأسبوع ده',4)}
+        <tr style="background:#fff1f2;font-weight:800"><td style="${B}text-align:right" colspan="3">إجمالي السولار والأصناف</td><td style="${B}">${n0(ts)}</td></tr></table>
       ${sec('٣) اللي اتدفع له في الأسبوع (عهد ودفعات)')}
-      <table style="width:100%;border-collapse:collapse"><tr><th style="${TH}">التاريخ</th><th style="${TH}">البيان</th><th style="${TH}">الخزنة</th><th style="${TH}">المبلغ</th></tr>
-        ${paid.length ? paid.map(r=>`<tr><td style="${B}white-space:nowrap">${dmy(r.date)}</td><td style="${B}text-align:right">${esc(r.desc||'')}</td><td style="${B}">${esc(catLabel(r.acc||''))}</td><td style="${B}">${n0(r.debit)}</td></tr>`).join('') : none('مفيش دفعات مسجلة في الأسبوع ده',4)}
-        <tr style="background:#fff1f2;font-weight:800"><td style="${B}text-align:right" colspan="3">إجمالي المدفوع</td><td style="${B}">${n0(tp)}</td></tr></table>
+      <table style="width:100%;border-collapse:collapse"><tr><th style="${TH}">البيان</th><th style="${TH}">الخزنة</th><th style="${TH}">المبلغ</th></tr>
+        ${paid.length ? paid.map(r=>`<tr><td style="${B}text-align:right">${esc(r.desc||'')}</td><td style="${B}">${esc(catLabel(r.acc||''))}</td><td style="${B}">${n0(r.debit)}</td></tr>`).join('') : none('مفيش دفعات مسجلة في الأسبوع ده',3)}
+        <tr style="background:#fff1f2;font-weight:800"><td style="${B}text-align:right" colspan="2">إجمالي المدفوع</td><td style="${B}">${n0(tp)}</td></tr></table>
       ${sec('الحساب')}
       <table style="width:100%;border-collapse:collapse">
         <tr><td style="${big}width:62%;text-align:right">باقي حسابه من قبل الأسبوع</td><td style="${big}">${balTxt(prev)}</td></tr>
@@ -11609,7 +11609,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 265.2';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 265.3';
 
     /* تنبيهات */
     const alerts=[];
