@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 264.0</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 264.1</span></p></div>
         </div>
     </aside>
 
@@ -10078,11 +10078,11 @@ function contractorStmtRows(name){
         days.forEach(d=>ev.push({date:d.date, ord:0, day:true, desc:`شغل اليوم — ${d.n} بون${d.old?` (${nfmt(d.old)} متر سن قديم مش محسوب)`:''}`, sin:d.net, n:d.n, old:d.old, price:rate, credit:Math.round(d.net*rate), debit:0}));
     } else {
         (db.ctrExtracts||[]).filter(x=>normName(x.name)===normName(name)).forEach(x=>ev.push(x.extra
-            ? (x.discount ? {date:x.date, ord:1, desc:'خصم'+(x.notes?' — '+x.notes:''), sin:0, credit:0, debit:-(Number(x.amount)||0)} : {date:x.date, ord:0, desc: x.final ? 'مستخلص نهائي — تقدير السن (تسوية أخيرة)' : `عمل إضافي — ${x.equip}${x.from?' '+dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} × ${nfmt(x.rate)}${x.notes?' — '+x.notes:''}`, sin:0, xqty:(x.final?0:Number(x.qty)||0), xprice:(x.final?0:Number(x.rate)||0), credit:Number(x.amount)||0, debit:0})
-            : {date:x.date, ord:0, desc:`مستخلص${(l=>l==='بدون معدة'?'':' '+l)(ctrEqLbl(name,x.equip))} ${x.from?dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} متر${x.notes?' — '+x.notes:''}`, sin:Number(x.qty)||0, xprice:Number(x.rate)||0, credit:Number(x.amount)||0, debit:0}));
+            ? (x.discount ? {date:x.date, eff:x.to||x.date, ord:1, desc:'خصم'+(x.notes?' — '+x.notes:''), sin:0, credit:0, debit:-(Number(x.amount)||0)} : {date:x.date, eff:x.to||x.date, xk:'extra', xlbl:(x.final?'مستخلص نهائي — تقدير السن':'عمل إضافي — '+(x.equip||'')+(x.notes?' — '+x.notes:'')), ord:0, desc: x.final ? 'مستخلص نهائي — تقدير السن (تسوية أخيرة)' : `عمل إضافي — ${x.equip}${x.from?' '+dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} × ${nfmt(x.rate)}${x.notes?' — '+x.notes:''}`, sin:0, xqty:(x.final?0:Number(x.qty)||0), xprice:(x.final?0:Number(x.rate)||0), credit:Number(x.amount)||0, debit:0})
+            : {date:x.date, ord:0, desc:`مستخلص${(l=>l==='بدون معدة'?'':' '+l)(ctrEqLbl(name,x.equip))} ${x.from?dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} متر${x.notes?' — '+x.notes:''}`, sin:Number(x.qty)||0, xprice:Number(x.rate)||0, eff:x.to||x.date, xk:'ext', xlbl:(l=>l==='بدون معدة'?'':l)(ctrEqLbl(name,x.equip)), xnotes:x.notes||'', credit:Number(x.amount)||0, debit:0}));
     }
     const ctrCats = (db.expenses||[]).filter(c=>c.nameType==='contractors').map(c=>c.name);
-    (db.expensesData||[]).filter(x=>ctrCats.includes(x.category) && normName(x.name)===normName(name)).forEach(x=>ev.push({date:x.date, ord:1, desc:(x.payType==='settle'?'سداد — ':'عهدة — ')+(x.desc||x.notes||''), debit:Number(x.paid)||0, credit:0}));
+    (db.expensesData||[]).filter(x=>ctrCats.includes(x.category) && normName(x.name)===normName(name)).forEach(x=>ev.push({date:x.date, ord:1, desc:(x.payType==='settle'?'سداد — ':'عهدة — ')+(x.desc||x.notes||''), acc:x.account||'', debit:Number(x.paid)||0, credit:0}));
     (db.stockIssues||[]).filter(s=>normName(s.name)===normName(name)).forEach(s=>ev.push({date:s.date, ord:2, item:s.item, qtyTxt:`${nfmt(Number(s.qty)||0)} ${s.unit||''}`, price:Number(s.price)||0, desc:`${s.item} ${nfmt(s.qty)} ${s.unit||''} × ${nfmt(s.price)}${s.equip?' — '+s.equip:''}${s.notes?' — '+s.notes:''}`, debit:Math.round((Number(s.qty)||0)*(Number(s.price)||0)), credit:0}));
     (db.equipmentRepayments||[]).filter(r=>!r.deduct && normName(r.name)===normName(name)).forEach(r=>ev.push({date:r.date, ord:3, desc:'سداد سولار نقدي — '+(r.notes||''), debit:0, credit:Number(r.amount)||0}));
     ev.sort((a,b)=>(a.date||'').localeCompare(b.date||'')||a.ord-b.ord);
@@ -10235,6 +10235,57 @@ function saveCtrExtract(){
     if(firstId) try{ openCtrExtractView(firstId); }catch(e){} // بعد الحفظ يطلع المستخلص كامل للفترة (محمد 2026-11-07)
 }
 /* لما تدوس على مستخلص محفوظ تظهر تفاصيله (محمد 2026-11-07) */
+/* المستخلص الأسبوعي (محمد وافق على الصورة 2026-11-13): شغل الأسبوع، سولار الأسبوع، المدفوع في الأسبوع، وصندوق الحساب (باقي من قبل + شغل − سولار − مدفوع = الباقي). عرض بس من نفس حركات كشفه */
+function ctrWeeklySheetHtml(name, from, to){
+    const {rows} = contractorStmtRows(name);
+    const B='border:1px solid #111;padding:9px 10px;text-align:center;', TH=B+'background:#f1f5f9;font-weight:800;';
+    const n0 = v => nfmt(Math.round(v||0));
+    const eff = r => r.eff || r.date || '';
+    let prev=0; const W=[];
+    rows.forEach(r=>{ const e=eff(r); if(r.ord<0 || (from && e<from)) prev += (r.credit||0)-(r.debit||0); else if(!to || e<=to) W.push(r); });
+    const nb = contractorBons(name).filter(r=>(!from||(r.date||'')>=from) && (!to||(r.date||'')<=to)).length;
+    const work=[]; let dayQ=0, dayV=0, dayN=0, dayP=0;
+    W.forEach(r=>{ if(r.day){ dayQ+=r.sin||0; dayV+=r.credit||0; dayN+=r.n||0; dayP=r.price||dayP; }
+        else if(r.xk==='ext') work.push({l:'صافي السن'+(r.xlbl?' — '+r.xlbl:'')+(nb?` (${nfmt(nb)} بون)`:'')+(r.xnotes?' — '+r.xnotes:''), q:nfmt(r.sin)+' متر', p:r.xprice?nfmt(r.xprice):'', v:r.credit||0});
+        else if(r.xk==='extra') work.push({l:r.xlbl, q:r.xqty?nfmt(r.xqty):'', p:r.xprice?nfmt(r.xprice):'', v:r.credit||0});
+        else if((r.credit||0)>0) work.push({l:r.desc, q:'', p:'', v:r.credit}); });
+    if(dayN || dayV) work.unshift({l:`صافي السن (${nfmt(dayN)} بون)`, q:nfmt(Math.round(dayQ*100)/100)+' متر', p:dayP?nfmt(dayP):'', v:dayV});
+    const sol=W.filter(r=>r.item && (r.debit||0)>0), paid=W.filter(r=>!r.item && (r.debit||0)>0);
+    const tw=work.reduce((a,x)=>a+x.v,0), ts=sol.reduce((a,r)=>a+r.debit,0), tp=paid.reduce((a,r)=>a+r.debit,0), fin=prev+tw-ts-tp;
+    const balTxt = v => n0(Math.abs(v)) + (Math.round(v)<0 ? ' عليه' : Math.round(v)>0 ? ' ليه' : '');
+    const sec = t => `<div style="font-weight:800;margin:14px 0 6px;font-size:20px">${t}</div>`;
+    const none = (t,c) => `<tr><td colspan="${c}" style="${B}color:#666">${t}</td></tr>`;
+    const days={}; contractorBons(name).filter(r=>(!from||(r.date||'')>=from) && (!to||(r.date||'')<=to)).forEach(r=>{ const d=days[r.date]||(days[r.date]={n:0,q:0}); d.n++; d.q+=bonNetSin(r); });
+    const DK=Object.keys(days).sort(); let tn=0, tq=0;
+    const B2=B.replace('9px 10px','7px 8px');
+    const sinTbl = DK.length ? `<div style="font-weight:800;margin:14px 0 6px;font-size:17px">تفصيل السن اليومي</div><table style="width:100%;border-collapse:collapse;font-size:16px"><tr><th style="${TH}">اليوم</th><th style="${TH}">التاريخ</th><th style="${TH}">عدد البونات</th><th style="${TH}">صافي السن</th></tr>${DK.map(d=>{ tn+=days[d].n; tq+=days[d].q; return `<tr><td style="${B2}">${dayNameAr(d)}</td><td style="${B2}">${dmy(d)}</td><td style="${B2}">${days[d].n}</td><td style="${B2}">${nfmt(Math.round(days[d].q*100)/100)}</td></tr>`; }).join('')}<tr style="background:#fef9c3;font-weight:800"><td style="${B2}" colspan="2">الإجمالي</td><td style="${B2}">${tn}</td><td style="${B2}">${nfmt(Math.round(tq*100)/100)}</td></tr></table>` : '';
+    const big=B+'font-size:22px;font-weight:800;';
+    return `<div style="direction:rtl;color:#111;font-size:19px;min-width:600px">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:6px"><tr>
+        <td style="${B}font-size:24px;font-weight:800;padding:14px">مستخلص أسبوعي — ${esc(name)}</td>
+        <td style="${B}width:24%;font-weight:800">${brandLogoSrc()?`<img src="${brandLogoSrc()}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;display:block;margin:0 auto 4px">`:''}كسارة الديار</td></tr>
+        <tr><td colspan="2" style="${B}font-weight:800">الأسبوع من ${from?dmy(from):'البداية'} حتى ${to?dmy(to):dmy(todayISO())}</td></tr></table>
+      ${sec('١) شغل الأسبوع')}
+      <table style="width:100%;border-collapse:collapse"><tr><th style="${TH}">البيان</th><th style="${TH}">الكمية</th><th style="${TH}">السعر</th><th style="${TH}">القيمة</th></tr>
+        ${work.length ? work.map(x=>`<tr><td style="${B}text-align:right">${esc(x.l)}</td><td style="${B}white-space:nowrap">${x.q}</td><td style="${B}">${x.p}</td><td style="${B}">${n0(x.v)}</td></tr>`).join('') : none('مفيش شغل مسجل في الأسبوع ده',4)}
+        <tr style="background:#ecfdf5;font-weight:800"><td style="${B}text-align:right" colspan="3">إجمالي شغل الأسبوع</td><td style="${B}">${n0(tw)}</td></tr></table>
+      ${sec('٢) سولار وأصناف اتصرفت له في الأسبوع')}
+      <table style="width:100%;border-collapse:collapse"><tr><th style="${TH}">التاريخ</th><th style="${TH}">الصنف</th><th style="${TH}">الكمية</th><th style="${TH}">السعر</th><th style="${TH}">القيمة</th></tr>
+        ${sol.length ? sol.map(r=>`<tr><td style="${B}white-space:nowrap">${dmy(r.date)}</td><td style="${B}">${esc(r.item)}</td><td style="${B}white-space:nowrap">${esc(r.qtyTxt||'')}</td><td style="${B}">${nfmt(r.price||0)}</td><td style="${B}">${n0(r.debit)}</td></tr>`).join('') : none('مفيش صرف مسجل في الأسبوع ده',5)}
+        <tr style="background:#fff1f2;font-weight:800"><td style="${B}text-align:right" colspan="4">إجمالي السولار والأصناف</td><td style="${B}">${n0(ts)}</td></tr></table>
+      ${sec('٣) اللي اتدفع له في الأسبوع (عهد ودفعات)')}
+      <table style="width:100%;border-collapse:collapse"><tr><th style="${TH}">التاريخ</th><th style="${TH}">البيان</th><th style="${TH}">الخزنة</th><th style="${TH}">المبلغ</th></tr>
+        ${paid.length ? paid.map(r=>`<tr><td style="${B}white-space:nowrap">${dmy(r.date)}</td><td style="${B}text-align:right">${esc(r.desc||'')}</td><td style="${B}">${esc(catLabel(r.acc||''))}</td><td style="${B}">${n0(r.debit)}</td></tr>`).join('') : none('مفيش دفعات مسجلة في الأسبوع ده',4)}
+        <tr style="background:#fff1f2;font-weight:800"><td style="${B}text-align:right" colspan="3">إجمالي المدفوع</td><td style="${B}">${n0(tp)}</td></tr></table>
+      ${sec('الحساب')}
+      <table style="width:100%;border-collapse:collapse">
+        <tr><td style="${big}width:62%;text-align:right">باقي حسابه من قبل الأسبوع</td><td style="${big}">${balTxt(prev)}</td></tr>
+        <tr><td style="${big}text-align:right">(+) شغل الأسبوع</td><td style="${big}">${n0(tw)}</td></tr>
+        <tr><td style="${big}text-align:right">(−) سولار وأصناف</td><td style="${big}">${n0(ts)}</td></tr>
+        <tr><td style="${big}text-align:right">(−) المدفوع له</td><td style="${big}">${n0(tp)}</td></tr>
+        <tr style="background:#fef9c3"><td style="${big}text-align:right">الباقي في الآخر</td><td style="${big}">${balTxt(fin)}</td></tr></table>
+      ${sinTbl}</div>`;
+}
 function openCtrExtractView(id){
     const x=(db.ctrExtracts||[]).find(r=>String(r.id)===String(id)); if(!x) return;
     const from=x.from||x.date, to=x.to||x.date; let eq=''; try{ eq=equipAcctHtml(x.name, from, to)||''; }catch(e){}
@@ -10245,7 +10296,7 @@ function openCtrExtractView(id){
     const sinTbl=DK.length?`<div style="font-weight:800;margin:14px 0 6px">السن اليومي (من البونات)</div><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f1f5f9"><th style="${T}">اليوم</th><th style="${T}">التاريخ</th><th style="${T}">عدد البونات</th><th style="${T}">صافي السن</th></tr></thead><tbody>${DK.map(d=>{ tn+=days[d].n; tq+=days[d].q; return `<tr><td style="${T}">${dayNameAr(d)}</td><td style="${T}">${dmy(d)}</td><td style="${T}">${days[d].n}</td><td style="${T};font-weight:700">${nfmt(days[d].q)}</td></tr>`; }).join('')}<tr style="background:#fef3c7;font-weight:800"><td style="${T}" colspan="2">الإجمالي</td><td style="${T}">${tn}</td><td style="${T}">${nfmt(tq)}</td></tr></tbody></table>`:'';
     const iss=(db.stockIssues||[]).filter(i=>normName(i.name)===normName(x.name) && (i.date||'')>=from && (i.date||'')<=to).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
     const issTbl=iss.length?`<div style="font-weight:800;margin:14px 0 6px">السولار والأصناف المصروفة</div><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f1f5f9"><th style="${T}">التاريخ</th><th style="${T}">الصنف</th><th style="${T}">المعدة</th><th style="${T}">الكمية</th><th style="${T}">القيمة</th></tr></thead><tbody>${iss.map(i=>`<tr><td style="${T}">${dmy(i.date)}</td><td style="${T}">${esc(i.item||'')}</td><td style="${T}">${esc(ctrEqName(x.name,i.equip))}</td><td style="${T}">${nfmt(i.qty)} ${esc(i.unit||'')}</td><td style="${T}">${mfmt((Number(i.qty)||0)*(Number(i.price)||0))}</td></tr>`).join('')}</tbody></table>`:'';
-    const body=`<div class="rep-sec">${contractorSheetHtml(x.name, from, to).replace(SIG_LINE,'')}${eq?`<div style="font-weight:800;margin:12px 0 6px">حساب كل معدة في الفترة</div>${eq}`:''}${sinTbl}${issTbl}${SIG_LINE}</div>`; // الإمضاء في الآخر والكل صفحة واحدة
+    const body=`<div class="rep-sec">${ctrWeeklySheetHtml(x.name, from, to)}${SIG_LINE}</div>`; // الإمضاء في الآخر والكل صفحة واحدة
     document.getElementById('cxv-modal')?.remove();
     const m=document.createElement('div'); m.id='cxv-modal';
     m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:12px';
@@ -11488,7 +11539,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 264.0';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 264.1';
 
     /* تنبيهات */
     const alerts=[];
