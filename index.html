@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 263.0</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 263.1</span></p></div>
         </div>
     </aside>
 
@@ -5258,9 +5258,9 @@ function computePL(projectFilter, dateFrom, dateTo){
         .map(([k,v])=>({ num:num(), label:k, value:v.total }));
     if(otherRev) otherLines.push({ num:num(), label: otherRev<0 ? 'خصومات عملاء' : 'إيرادات أخرى مسجلة (بتزود الربح)', value: -otherRev });
     /* الإيرادات الأخرى المسجلة من شاشة الإيرادات (db.incomes) — كل نوع سطر، بتزود الربح (محمد 2026-11-11) */
-    { const g={}; (db.incomes||[]).filter(x=>matchDate(x)).forEach(x=>{ const k=x.type||'إيرادات أخرى'; g[k]=(g[k]||0)+(Number(x.amount)||0); });
+    { const g={}; (db.incomes||[]).filter(x=>matchDate(x)).forEach(x=>{ const k=((x.date||'')<=INC_OLD_CUT)?INC_OLD_LABEL:(x.type||'إيرادات أخرى'); g[k]=(g[k]||0)+(Number(x.amount)||0); });
       /* أرصدة أول المدة (خزن أول المدة − سلفة عماد أول المدة) ملهاش طرف تاني: بتتقفل في «إيرادات أخرى» عشان الميزان يتزن (محمد 2026-11-12) */
-      try{ const sd=(db.sariSettings||{}).startDate||''; if(!dateFrom || dateFrom<=sd){ const oc=(db.accounts||[]).reduce((a,x)=>a+(Number(x.openingBalance)||0),0); const ol=(db.capitalLenders||[]).includes('عماد ناجي')?0:(Number((db.sariSettings||{}).loanOpening)||0); if(oc-ol) g['إيرادات أخرى']=(g['إيرادات أخرى']||0)+(oc-ol); } }catch(e){}
+      try{ const sd=(db.sariSettings||{}).startDate||''; if(!dateFrom || dateFrom<=sd){ const oc=(db.accounts||[]).reduce((a,x)=>a+(Number(x.openingBalance)||0),0); const ol=(db.capitalLenders||[]).includes('عماد ناجي')?0:(Number((db.sariSettings||{}).loanOpening)||0); if(oc-ol) g[INC_OLD_LABEL]=(g[INC_OLD_LABEL]||0)+(oc-ol); } }catch(e){}
       Object.entries(g).forEach(([k,v])=>{ if(v) otherLines.push({ num:num(), label:'(+) '+k, value:-v }); }); }
     const otherTotal = otherLines.reduce((s,l)=>s+l.value,0);
 
@@ -5270,6 +5270,7 @@ function computePL(projectFilter, dateFrom, dateTo){
     return { revenueLines, revenueTotal, directLines, directTotal, grossProfit, operatingLines, operatingTotal, netOperatingProfit, otherLines, otherTotal, profitBeforeTax, contractorPayments };
 }
 
+const INC_OLD_CUT='2026-11-11', INC_OLD_LABEL='إيرادات أخرى — بيع سولار وقطع غيار فترة قبل 11/11';
 const PL_HIDE_OTHER = l => false; /* محمد رجع في القرار 2026-11-13: السطر يفضل ظاهر */
 /* ================= TAXES TABLE ================= */
 function renderTaxTable(){
@@ -7149,7 +7150,8 @@ function renderIncomes(){
     box.innerHTML=`<span class="text-xs font-bold text-slate-600 self-center">نوع الإيراد:</span>`+incomeTypes().map((t,i)=>`<button type="button" onclick="window.__incType=${JSON.stringify(t).replace(/"/g,'&quot;')}; renderIncomes()" class="px-3 py-2 rounded-xl text-sm font-bold border ${t===cur?'bg-emerald-600 text-white border-emerald-600':'bg-white text-slate-700 border-slate-200 hover:bg-emerald-50'}">${esc(t)}</button>`).join('')+`<button type="button" onclick="addIncomeType()" class="px-3 py-2 rounded-xl text-sm font-bold border border-dashed border-emerald-400 text-emerald-700">＋ نوع جديد</button>`;
     const as=g('inc-account'); const pv=as.value; fillSelect('inc-account', db.accounts||[]); as.value = pv || SARI_ACC; if(!as.value && as.options.length) as.selectedIndex=0;
     if(!g('inc-date').value) g('inc-date').value=todayISO();
-    const L=(db.incomes||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||String(b.id).localeCompare(String(a.id)));
+    /* محمد 2026-11-13: إيرادات الفترة قبل 11/11 بند واحد في قائمة الدخل ومش بتظهر في السجل ده (عرض بس) */
+    const L=(db.incomes||[]).filter(x=>(x.date||'')>INC_OLD_CUT).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||String(b.id).localeCompare(String(a.id)));
     g('tbody-inc').innerHTML = L.length ? L.map(x=>`<tr class="border-b border-slate-50"><td class="p-2 text-xs">${dmy(x.date)}</td><td class="p-2 font-bold">${esc(x.type)}</td><td class="p-2">${esc(x.notes||'')}</td><td class="p-2 text-teal-700">${esc(x.account||'')}</td><td class="p-2 font-extrabold text-emerald-700">${mfmt(x.amount)}</td><td class="p-2"><button onclick="deleteIncome('${x.id}')" class="text-red-500">🗑</button></td></tr>`).join('')
         + `<tr class="bg-slate-50 font-extrabold"><td class="p-2" colspan="4">الإجمالي</td><td class="p-2 text-emerald-700">${mfmt(L.reduce((a,x)=>a+(Number(x.amount)||0),0))}</td><td></td></tr>` : '<tr><td colspan="6" class="p-3 text-center text-slate-400">—</td></tr>';
 }
@@ -7168,6 +7170,7 @@ function saveIncome(){
 }
 function deleteIncome(id){
     if(isRO()) return;
+    { const o=(db.incomes||[]).find(x=>x.id===id); if(o && (o.date||'')<=INC_OLD_CUT){ alert('البند ده مقفول (إيرادات الفترة قبل 11/11) — مينفعش يتحذف'); return; } }
     const old=(db.incomes||[]).find(x=>x.id===id); if(!old || !confirm(`تحذف ${old.type} (${mfmt(old.amount)})؟`)) return;
     db.incomes=db.incomes.filter(x=>x.id!==id); logAudit('delete','إيراد',old.type,old,null); scheduleSave(); renderAll(); renderIncomes();
 }
@@ -9907,7 +9910,7 @@ function deleteDayCash(){
     const d=document.getElementById('dp-date')?.value; if(!d) return;
     const exp=(db.expensesData||[]).filter(x=>x.date===d && !x.tipDeposit && x.category!=='إيراد');
     const col=(db.expensesData||[]).filter(x=>x.date===d && !x.tipDeposit && x.category==='إيراد');
-    const inc=(db.incomes||[]).filter(x=>x.date===d), loan=(db.ownerLoans||[]).filter(x=>x.date===d), xf=(db.cashTransfers||[]).filter(x=>x.date===d), pay=(db.payments||[]).filter(x=>x.date===d);
+    const inc=(db.incomes||[]).filter(x=>x.date===d && (x.date||'')>INC_OLD_CUT), loan=(db.ownerLoans||[]).filter(x=>x.date===d), xf=(db.cashTransfers||[]).filter(x=>x.date===d), pay=(db.payments||[]).filter(x=>x.date===d);
     const n=exp.length+col.length+inc.length+loan.length+xf.length+pay.length;
     if(!n){ alert('مفيش حركات خزنة متسجلة يوم '+dmy(d)); return; }
     const msg=`هتتمسح حركات خزنة يوم ${dmy(d)}:\n• مصروفات: ${exp.length}\n• تحصيلات عملاء: ${col.length}\n• إيرادات: ${inc.length}\n• سلف: ${loan.length}\n• تحويلات: ${xf.length}\n• دفعات موردين: ${pay.length}\n\nالبونات والمشتريات وصرف المخزون مش هيتلمسوا.\nهتنزل نسخة احتياطية الأول. متأكد؟`;
@@ -9915,7 +9918,7 @@ function deleteDayCash(){
     try{ exportData('قبل-مسح-خزنة-'+d); }catch(e){}
     const ids=new Set([...exp,...col].map(x=>x.id));
     db.expensesData=db.expensesData.filter(x=>!ids.has(x.id));
-    db.incomes=(db.incomes||[]).filter(x=>x.date!==d); db.ownerLoans=(db.ownerLoans||[]).filter(x=>x.date!==d);
+    db.incomes=(db.incomes||[]).filter(x=>x.date!==d || (x.date||'')<=INC_OLD_CUT); db.ownerLoans=(db.ownerLoans||[]).filter(x=>x.date!==d);
     db.cashTransfers=(db.cashTransfers||[]).filter(x=>x.date!==d); db.payments=(db.payments||[]).filter(x=>x.date!==d);
     logAudit('delete','مسح خزنة يوم', `${d}: ${n} حركة`, null, null);
     scheduleSave(); renderAll(); renderDayPage();
@@ -11445,7 +11448,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 263.0';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 263.1';
 
     /* تنبيهات */
     const alerts=[];
