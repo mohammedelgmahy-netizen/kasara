@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 262.3</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 262.4</span></p></div>
         </div>
     </aside>
 
@@ -10374,6 +10374,17 @@ function stockBreakdown(name, from, to){
 /* قائمة الدخل والميزانية: المحاسب بس — عماد ناجي في المستخلصات وكشوف الحساب بس (محمد 2026-11-11) */
 const SIG_ACC='<div class="sig-line" style="margin-top:18px;font-weight:800;font-size:14px;display:flex;justify-content:flex-end;direction:rtl"><span>المحاسب / محمد الجميعي</span></div>';
 const SIG_LINE='<div class="sig-line" style="margin-top:18px;font-weight:800;font-size:14px;display:flex;justify-content:space-between;direction:rtl"><span>المسؤول / م. عماد ناجي</span><span>المحاسب / محمد الجميعي</span></div>';
+/* صاحب معدات عنده أكتر من معدة متكودة باسمين (أحمد أمين: لودر المحجر + لودر الأرضية): كل لودر بمستخلصه، وتحت الكشف حساب مجمّع = مستخلصات الاتنين − كل اللي أخده = الباقي له. عرض بس (محمد 2026-11-13) */
+const CTR_GROUPS=[{label:'احمد امين', re:/احمد\s*امين/}];
+function ctrGroupOf(name){ const nz=x=>String(x||'').replace(/[أإآ]/g,'ا').replace(/\s+/g,' ').trim(); const g=CTR_GROUPS.find(g=>g.re.test(nz(name))); if(!g) return null;
+    const M=(db.contractors||[]).filter(c=>g.re.test(nz(c.name))).map(c=>c.name); return M.length>1 ? {label:g.label, members:M} : null; }
+function ctrGroupCalc(name, to){ const g=ctrGroupOf(name); if(!g) return null; let CR=0, DR=0;
+    const L=g.members.map(n=>{ let cr=0, dr=0; contractorStmtRows(n).rows.filter(r=>!to || (r.date||'')<=to).forEach(r=>{ cr+=Number(r.credit)||0; dr+=Number(r.debit)||0; }); CR+=cr; DR+=dr; return {name:n, cr, dr}; });
+    return {label:g.label, L, CR, DR, net:CR-DR}; }
+function ctrGroupSheetHtml(name, to){ const G=ctrGroupCalc(name, to); if(!G) return '';
+    const B='border:1px solid #111;padding:6px 8px;text-align:center;', r=(l,v,b)=>`<tr${b?' style="font-weight:800;background:#f8fafc"':''}><td style="${B};width:55%;text-align:right">${l}</td><td style="${B}">${nfmt(Math.round(v))}</td></tr>`;
+    return `<div style="height:14px"></div><table style="width:100%;border-collapse:collapse"><tr><td colspan="2" style="${B};font-weight:800;background:#f1f5f9">الحساب المجمّع — ${esc(G.label)}${to?' (لحد '+dmy(to)+')':''}</td></tr>`
+      + G.L.map(x=>r('ليه — '+esc(x.name), x.cr)).join('') + r('إجمالي اللي ليه', G.CR, true) + r('إجمالي اللي أخده (عهد وسولار وسداد وخصومات)', G.DR) + r(G.net<0?'الباقي: عليه':'الباقي له', Math.abs(G.net), true) + '</table>'; }
 function contractorSheetHtml(name, from, to){
     const {rows, rate} = contractorStmtRows(name);
     const B='border:1px solid #111;padding:6px 8px;text-align:center;';
@@ -10411,7 +10422,7 @@ function contractorSheetHtml(name, from, to){
         <tr><td colspan="2" style="${B};font-weight:700">الفترة من ${from?dmy(from):'البداية'} حتى ${to?dmy(to):dmy(todayISO())}</td></tr></table>
       <table style="width:100%;border-collapse:collapse">${head}${openRow}${body.join('')}${totRow}</table>
       <div style="height:14px"></div>
-      <table style="width:100%;border-collapse:collapse">${sum}</table>${SIG_LINE}</div>`;
+      <table style="width:100%;border-collapse:collapse">${sum}</table>${ctrGroupSheetHtml(name, to)}${SIG_LINE}</div>`;
 }
 function renderContractorStmt(){
     const g = id=>document.getElementById(id), sel = g('cs2-name'); if(!sel) return;
@@ -10433,7 +10444,8 @@ function renderContractorStmt(){
     g('cs2-summary').innerHTML = card(auto?'صافي السن':'اتحاسب على', nfmt(sin)+' متر', 'bg-amber-50 text-amber-900') 
         + card('ليه (شغل)', fmt(cr), 'bg-emerald-50 text-emerald-900') + card('عليه (سولار وزيت وشحم + عهد + سداد)', fmt(dr) + stockBreakdown(name, from, to), 'bg-rose-50 text-rose-900')
         + `<div class="rounded p-2 border-2 ${closing<0?'border-rose-300 bg-rose-50':'border-emerald-300 bg-emerald-50'}"><div class="text-[11px] font-bold">${closing<0?'الرصيد: عليه':'الرصيد: ليه'}</div><div class="font-bold text-lg" dir="ltr">${fmt(closing)}</div></div>`
-        + (hasOld && auto ? card('فاضل من السن القديم', oldLeft>0 ? nfmt(oldLeft)+' متر' : 'خلص ✓', 'bg-slate-100 text-slate-800') : '');
+        + (hasOld && auto ? card('فاضل من السن القديم', oldLeft>0 ? nfmt(oldLeft)+' متر' : 'خلص ✓', 'bg-slate-100 text-slate-800') : '')
+        + ((G=>G?`<div class="rounded p-2 border-2 border-slate-400 bg-slate-50" style="grid-column:1/-1"><div class="text-[12px] font-bold">الحساب المجمّع — ${esc(G.label)}: ${G.L.map(x=>esc(x.name)+' '+fmt(x.cr)).join(' + ')} − اللي أخده ${fmt(G.DR)}</div><div class="font-bold text-lg">${G.net<0?'الباقي عليه':'الباقي له'}: ${fmt(Math.abs(G.net))}</div></div>`:'')(ctrGroupCalc(name, to)));
     tb.innerHTML = (from && opening ? `<tr class="bg-slate-50 font-bold"><td class="p-2">${dmy(from)}</td><td class="p-2">رصيد أول المدة</td><td></td><td></td><td></td><td class="p-2" dir="ltr">${mfmt(opening)}</td></tr>` : '')
         + inP.map(r=>`<tr class="border-b border-slate-50 ${r.info?'text-slate-500 bg-slate-50':''}"><td class="p-2 text-xs text-slate-500">${dmy(r.date)}</td><td class="p-2">${esc(r.desc)}</td><td class="p-2">${r.info?`<span class="font-bold text-sky-700">${nfmt(r.infoSin)}</span>`:(r.sin?nfmt(r.sin):'')}</td>
             <td class="p-2 text-emerald-700 font-bold">${r.credit?mfmt(r.credit):''}</td><td class="p-2 text-rose-700 font-bold">${r.debit?mfmt(r.debit):''}</td><td class="p-2 font-bold ${r.bal<0?'text-rose-700':''}" dir="ltr">${mfmt(r.bal)}</td></tr>`).join('')
@@ -11429,7 +11441,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 262.3';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 262.4';
 
     /* تنبيهات */
     const alerts=[];
