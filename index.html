@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 263.5</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 263.6</span></p></div>
         </div>
     </aside>
 
@@ -10121,6 +10121,16 @@ function ctrKind(name){ const n=String(name||''); return /حفار/.test(n)?'ح�
 function ctrEqName(name,e){ const l=ctrEqLbl(name,e); return l==='بدون معدة' ? ctrKind(name) : l; }
 function codedRate(name, eq){ const c=(db.contractors||[]).find(x=>x.name===name); if(!c) return 0; const er=c.equipRates||{}; const k=Object.keys(er).find(k=>eqNorm(k)===eqNorm(eq)); return Number(k!=null?er[k]:c.rate)||0; } // السعر المكود في دليل الأكواد (محمد 2026-11-07)
 function cxLastRate(name, eq){ const cr=codedRate(name,eq); if(cr) return cr; const L=(db.ctrExtracts||[]).filter(x=>x.name===name && x.equip===eq && x.rate).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||String(a.id).localeCompare(String(b.id))); return L.length ? L[L.length-1].rate : (workerRate(name)||''); }
+/* لودر احمد امين ارضية (محمد 2026-11-13): التراب والسمسمية والطبقة اللي نسبتها أقل من 50% بيتحاسبوا 8.75 × إجمالي التكعيب (مش صافي سن)، والباقي صافي سن بسعره */
+const CTR_LOW_RULES=[{re:/احمد\s*امين\s*ارضي/, rate:8.75}];
+function ctrLowRule(name){ const nz=String(name||'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/\s+/g,' '); return CTR_LOW_RULES.find(x=>x.re.test(nz))||null; }
+function ctrLowSplit(name, from, to){ const R=ctrLowRule(name); if(!R) return null; let cub=0, net=0, n=0;
+    contractorBons(name).forEach(r=>{ const d=r.date||''; if((from&&d<from)||(to&&d>to)) return; const q=r.q||{}; let c=0, s=0;
+        DL_SIZES.forEach(z=>{ const v=Number(q[z.key])||0; if(!v) return;
+            if(z.key==='tabaqa'){ if(tabPct(r)<50){ c+=v; s+=v*tabPct(r)/100; } }
+            else if(z.key==='xturba'||z.key==='xatraba'||z.key==='simsim'||/ترب|تراب|سمسم/.test(String(z.label||''))){ c+=v; s+=v*sinFactor(z.key,d); } });
+        if(c){ cub+=c; net+=s; n++; } });
+    return {rate:R.rate, cub:Math.round(cub*100)/100, net, n}; }
 function cxDefaults(){
     const name=document.getElementById('cx-name').value; if(!name) return;
     const last=(db.ctrExtracts||[]).filter(x=>x.name===name && x.to).map(x=>x.to).sort().pop();
@@ -10139,7 +10149,10 @@ function cxPreview(resetQty){
     /* الأمتار بتيجي من البونات (صافي السن في الفترة) — محمد 2026-11-07 */
     if(resetQty){ const E=ctrEquips(name); E.forEach((e,i)=>{ const qe=g('cx-q-'+i); if(qe) qe.value=''; });
         const q0=g('cx-q-0'), f=g('cx-from').value, t=g('cx-to').value;
-        if(q0 && f && t && !(codedRate(name,E[0])>=200)){ const r=ctrSinIn(name,f,t); const v=Math.round(r.net*100)/100; if(v>0) q0.value=v; } }
+        if(q0 && f && t && !(codedRate(name,E[0])>=200)){ const r=ctrSinIn(name,f,t); const L=ctrLowSplit(name,f,t); const v=Math.round((r.net-(L?L.net:0))*100)/100; if(v>0) q0.value=v;
+            try{ document.querySelectorAll('#cx-extra-rows tr[data-low]').forEach(x=>x.remove());
+                if(L && L.cub>0){ cxAddExtra(); const tr=document.querySelector('#cx-extra-rows tr:last-child'); tr.dataset.low='1'; const i=tr.id.split('-').pop(); g('cx-xd-'+i).value='تراب وسمسمية وطبقة أقل من 50% (إجمالي التكعيب)'; g('cx-xq-'+i).value=L.cub; g('cx-xr-'+i).value=L.rate; cxExtraCalc(i); try{ g('cx-xd-'+i).blur(); }catch(e){} }
+                cxExtraShow(); }catch(e){ console.warn(e); } } }
     ctrEquips(name).forEach((e,i)=>{ const qe=g('cx-q-'+i); if(!qe) return;
         const q=Number(qe.value)||0, rt=Number(g('cx-r-'+i).value)||0; tq+=q; ta+=q*rt;
         g('cx-a-'+i).textContent = q&&rt ? mfmt(q*rt) : '—'; });
@@ -11457,7 +11470,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 263.5';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 263.6';
 
     /* تنبيهات */
     const alerts=[];
