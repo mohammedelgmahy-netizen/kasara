@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 261.3</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 261.4</span></p></div>
         </div>
     </aside>
 
@@ -3388,7 +3388,7 @@ function fillStockRecipientSelect(id, allLabel){
     let html = allLabel ? `<option value="ALL">${allLabel}</option>` : '<option value="">— اختار المستلم —</option>';
     if((db.contractors||[]).length || !allLabel){
         const crs = allLabel ? '' : crusherEquips().map(e=>`<option value="x::${esc(e)}">${esc(e)}</option>`).join('');
-        html += `<optgroup label="أصحاب المعدات">` + crs + (db.contractors||[]).filter(c=>allLabel || !isCrusherCtr(c.name)).map(c=>`<option value="c::${esc(c.name)}">${esc(c.name)}${c.equip?' - '+esc(c.equip):''}</option>`).join('') + `</optgroup>`;
+        html += `<optgroup label="أصحاب المعدات">` + crs + (db.contractors||[]).filter(c=>allLabel || (!isCrusherCtr(c.name) && !c.done)).map(c=>`<option value="c::${esc(c.name)}">${esc(c.name)}${c.equip?' - '+esc(c.equip):''}</option>`).join('') + `</optgroup>`;
     }
     /* محمد 2026-11-13: الصرف لأصحاب المعدات أو الكسارة بس — الأفراد يظهروا في فلتر السجل لو ليهم حركات قديمة فقط */
     if((db.names||[]).length && allLabel && (db.stockIssues||[]).some(x=>x.recipientType==='person')){
@@ -11374,7 +11374,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 261.3';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 261.4';
 
     /* تنبيهات */
     const alerts=[];
