@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 263.8</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 264.0</span></p></div>
         </div>
     </aside>
 
@@ -2175,6 +2175,13 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 </div>
                 <label class="block text-xs font-bold text-slate-600 mb-1">سعر المتر اللي بنحاسبه بيه (ج.م)</label>
                 <input id="master-rate" type="number" step="any" min="0" placeholder="مثال: 53" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm">
+                <div class="bg-sky-50 border border-sky-200 rounded-lg p-2 mt-3">
+                    <label class="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2"><input id="master-low-on" type="checkbox" class="w-4 h-4"> سعر تاني للأصناف قليلة السن (بإجمالي التكعيب)</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="block text-[11px] font-bold text-slate-600">الأصناف اللي نسبة السن فيها أقل من (%)</label><input id="master-low-pct" type="number" step="any" min="0" max="100" placeholder="50" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <div><label class="block text-[11px] font-bold text-slate-600">سعر المتر ليها (ج.م × إجمالي التكعيب)</label><input id="master-low-rate" type="number" step="any" min="0" placeholder="8.75" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm"></div>
+                    </div>
+                </div>
                 <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 mt-3">
                     <label class="block text-xs font-bold text-amber-800 mb-1">رصيد افتتاحي (اختياري) — بيتسجل بتاريخ اليوم، وأي حركات قديمة قبله مش بتتحسب</label>
                     <div class="grid grid-cols-2 gap-2">
@@ -3928,6 +3935,7 @@ function openAddMasterModal(){
     document.getElementById('master-name').value = '';
     document.getElementById('master-ctrkind').value = 'equip'; document.getElementById('master-autobill').checked = false; document.getElementById('master-ctr-equips').value = '';
     document.getElementById('master-notstarted').checked = false; document.getElementById('master-startfrom').value = '';
+    document.getElementById('master-low-on').checked=false; document.getElementById('master-low-rate').value=''; document.getElementById('master-low-pct').value='';
     document.getElementById('master-ctr-status').value=''; document.getElementById('master-ctr-final').value=''; document.getElementById('master-ctr-final-date').value=''; ctrStatusTgl();
     document.getElementById('master-deductsin').value = '';
     document.getElementById('master-ctr-open-total').value = ''; document.getElementById('master-ctr-open-paid').value = ''; document.getElementById('master-ctr-open-date').value = ''; document.getElementById('master-ctr-open-acc').value = 'معلق عماد ناجي'; ctrOpenCalc();
@@ -3969,6 +3977,7 @@ function openEditMasterModal(cat, code){
     document.getElementById('master-ctrkind').value = (cat==='contractors' && item.sinOwner) ? 'owner' : 'equip';
     document.getElementById('master-autobill').checked = cat==='contractors' && !!item.autoBill;
     document.getElementById('master-notstarted').checked = cat==='contractors' && !!item.notStarted;
+    { const LR = cat==='contractors' ? ctrLowRule(item.name) : null; document.getElementById('master-low-on').checked=!!LR; document.getElementById('master-low-rate').value=LR?LR.rate:(item.lowRate||''); document.getElementById('master-low-pct').value=LR?LR.pct:(item.lowPct||''); }
     document.getElementById('master-ctr-status').value = (cat==='contractors' && item.done) ? 'done' : '';
     document.getElementById('master-ctr-final').value = (cat==='contractors' && item.finalSin) ? item.finalSin : '';
     document.getElementById('master-ctr-final-date').value = (cat==='contractors' && item.finalSinDate) ? item.finalSinDate : ''; ctrStatusTgl();
@@ -4146,7 +4155,9 @@ function saveMasterItem(e){
             if(editCode){ const old=(db.names||[]).find(it=>it.code===Number(editCode)); if(old && Number(old.perMeter)>0 && !item.perMeter) item.perMeter=old.perMeter; } }
         if(type==='names') saveEmadOpen(item);
     }
-    if(type==='contractors'){ const rt = Number(document.getElementById('master-rate').value)||0; if(rt>0) item.rate = rt; const eq = document.getElementById('master-equip').value.trim(); if(eq) item.equip = eq; const eqs = [...new Set(document.getElementById('master-ctr-equips').value.split(/[،,\n]+/).map(x=>x.trim()).filter(Boolean))]; if(eqs.length) item.equips = eqs; if(document.getElementById('master-ctrkind').value==='owner') item.sinOwner = true; else item.allSin = true;  if(document.getElementById('master-notstarted').checked) item.notStarted = true;
+    if(type==='contractors'){ { const on=document.getElementById('master-low-on').checked, lr=Number(document.getElementById('master-low-rate').value)||0, lp=Number(document.getElementById('master-low-pct').value)||0; const had=ctrLowRule(item.name);
+            if(on && lr>0){ item.lowOn=true; item.lowRate=lr; item.lowPct=lp||50; } else if(had || item.lowOn!=null){ item.lowOn=false; if(lr>0) item.lowRate=lr; if(lp>0) item.lowPct=lp; } }
+        const rt = Number(document.getElementById('master-rate').value)||0; if(rt>0) item.rate = rt; const eq = document.getElementById('master-equip').value.trim(); if(eq) item.equip = eq; const eqs = [...new Set(document.getElementById('master-ctr-equips').value.split(/[،,\n]+/).map(x=>x.trim()).filter(Boolean))]; if(eqs.length) item.equips = eqs; if(document.getElementById('master-ctrkind').value==='owner') item.sinOwner = true; else item.allSin = true;  if(document.getElementById('master-notstarted').checked) item.notStarted = true;
         /* حالة المقاول: خلص شغله = مفيش سن جديد + تقدير سن نهائي في كشفه (محمد 2026-11-10) */
         if(document.getElementById('master-ctr-status').value==='done'){ item.done=true; const fa=Number(document.getElementById('master-ctr-final').value)||0, fd=document.getElementById('master-ctr-final-date').value;
             if(fa){ item.finalSin=fa; item.finalSinDate=fd||todayISO(); } else { delete item.finalSin; delete item.finalSinDate; } }
@@ -10123,14 +10134,16 @@ function codedRate(name, eq){ const c=(db.contractors||[]).find(x=>x.name===name
 function cxLastRate(name, eq){ const cr=codedRate(name,eq); if(cr) return cr; const L=(db.ctrExtracts||[]).filter(x=>x.name===name && x.equip===eq && x.rate).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||String(a.id).localeCompare(String(b.id))); return L.length ? L[L.length-1].rate : (workerRate(name)||''); }
 /* لودر احمد امين ارضية (محمد 2026-11-13): التراب والسمسمية والطبقة اللي نسبتها أقل من 50% بيتحاسبوا 8.75 × إجمالي التكعيب (مش صافي سن)، والباقي صافي سن بسعره */
 const CTR_LOW_RULES=[{re:/احمد\s*امين\s*ارضي/, rate:8.75}];
-function ctrLowRule(name){ const nz=String(name||'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/\s+/g,' '); return CTR_LOW_RULES.find(x=>x.re.test(nz))||null; }
+function ctrLowRule(name){ const nz=String(name||'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/\s+/g,' '); const c=ctrOf(name)||{}; const def=CTR_LOW_RULES.find(x=>x.re.test(nz));
+    /* بيتعدل من دليل الأكواد (lowOn/lowRate/lowPct)؛ لو متسجلش حاجة للمقاول يرجع للقاعدة المتكودة */
+    if(c.lowOn===false) return null; const rate = c.lowOn ? Number(c.lowRate)||0 : (def?def.rate:0); if(!(rate>0)) return null; return {rate, pct: c.lowOn ? (Number(c.lowPct)||50) : 50}; }
 function ctrLowSplit(name, from, to){ const R=ctrLowRule(name); if(!R) return null; let cub=0, net=0, n=0;
     contractorBons(name).forEach(r=>{ const d=r.date||''; if((from&&d<from)||(to&&d>to)) return; const q=r.q||{}; let c=0, s=0;
         DL_SIZES.forEach(z=>{ const v=Number(q[z.key])||0; if(!v) return;
-            if(z.key==='tabaqa'){ if(tabPct(r)<50){ c+=v; s+=v*tabPct(r)/100; } }
-            else { const f=sinFactor(z.key,d); if(f<0.5){ c+=v; s+=v*f; } } }); /* أي صنف نسبة صافي السن فيه أقل من 50% (تربة، أتربة، سمسمية، مخلوط 40%، بلنفة…) */
+            if(z.key==='tabaqa'){ if(tabPct(r)<R.pct){ c+=v; s+=v*tabPct(r)/100; } }
+            else { const f=sinFactor(z.key,d); if(f*100<R.pct){ c+=v; s+=v*f; } } }); /* أي صنف نسبة صافي السن فيه أقل من 50% (تربة، أتربة، سمسمية، مخلوط 40%، بلنفة…) */
         if(c){ cub+=c; net+=s; n++; } });
-    return {rate:R.rate, cub:Math.round(cub*100)/100, net, n}; }
+    return {rate:R.rate, pct:R.pct, cub:Math.round(cub*100)/100, net, n}; }
 function cxDefaults(){
     const name=document.getElementById('cx-name').value; if(!name) return;
     const last=(db.ctrExtracts||[]).filter(x=>x.name===name && x.to).map(x=>x.to).sort().pop();
@@ -10151,7 +10164,7 @@ function cxPreview(resetQty){
         const q0=g('cx-q-0'), f=g('cx-from').value, t=g('cx-to').value;
         if(q0 && f && t && !(codedRate(name,E[0])>=200)){ const r=ctrSinIn(name,f,t); const L=ctrLowSplit(name,f,t); const v=Math.round((r.net-(L?L.net:0))*100)/100; if(v>0) q0.value=v;
             try{ document.querySelectorAll('#cx-extra-rows tr[data-low]').forEach(x=>x.remove());
-                if(L && L.cub>0){ cxAddExtra(); const tr=document.querySelector('#cx-extra-rows tr:last-child'); tr.dataset.low='1'; const i=tr.id.split('-').pop(); g('cx-xd-'+i).value='أصناف أقل من 50% سن (إجمالي التكعيب)'; g('cx-xq-'+i).value=L.cub; g('cx-xr-'+i).value=L.rate; cxExtraCalc(i); try{ g('cx-xd-'+i).blur(); }catch(e){} }
+                if(L && L.cub>0){ cxAddExtra(); const tr=document.querySelector('#cx-extra-rows tr:last-child'); tr.dataset.low='1'; const i=tr.id.split('-').pop(); g('cx-xd-'+i).value='أصناف أقل من '+L.pct+'% سن (إجمالي التكعيب)'; g('cx-xq-'+i).value=L.cub; g('cx-xr-'+i).value=L.rate; cxExtraCalc(i); try{ g('cx-xd-'+i).blur(); }catch(e){} }
                 cxExtraShow(); }catch(e){ console.warn(e); } } }
     ctrEquips(name).forEach((e,i)=>{ const qe=g('cx-q-'+i); if(!qe) return;
         const q=Number(qe.value)||0, rt=Number(g('cx-r-'+i).value)||0; tq+=q; ta+=q*rt;
@@ -10161,6 +10174,11 @@ function cxPreview(resetQty){
     const tot=(db.ctrExtracts||[]).filter(x=>x.name===name).reduce((a,x)=>a+(Number(x.qty)||0),0);
     const ea=g('cx-equip-acct'); if(ea){ const h=equipAcctHtml(name, g('cx-from').value, g('cx-to').value); ea.innerHTML = h ? `<div class="font-extrabold text-slate-800 mb-2">🚜 حساب كل معدة في الفترة</div>${h}` : ''; }
     g('cx-info').innerHTML = tot ? `اتحاسب لحد دلوقتي على <b>${nfmt(tot)}</b> متر` : '';
+    /* خصومات السولار والأصناف المصروفة له في فترة المستخلص تظهر قبل الحفظ (محمد 2026-11-13) — عرض بس، الخصم نفسه محسوب في كشفه من صرف المخزون */
+    try{ if(ea){ const f=g('cx-from').value, t=g('cx-to').value; const iss=(db.stockIssues||[]).filter(i=>normName(i.name)===normName(name) && (!f||(i.date||'')>=f) && (!t||(i.date||'')<=t)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+        if(iss.length){ const T='border:1px solid #cbd5e1;padding:5px 8px;text-align:center'; let dv=0; const xt=cxExtras().reduce((a,x)=>a+(Number(x.q)||0)*(Number(x.rt)||0),0);
+            const rows=iss.map(i=>{ const v=Math.round((Number(i.qty)||0)*(Number(i.price)||0)); dv+=v; return `<tr><td style="${T}">${dmy(i.date)}</td><td style="${T}">${esc(i.item||'')}${i.notes?' — '+esc(i.notes):''}</td><td style="${T}">${nfmt(Number(i.qty)||0)} ${esc(i.unit||'')}</td><td style="${T}">${nfmt(Number(i.price)||0)}</td><td style="${T};color:#be123c;font-weight:800">${mfmt(v)}</td></tr>`; }).join('');
+            ea.innerHTML += `<div class="font-extrabold text-slate-800 mt-3 mb-2">⛽ خصومات السولار والأصناف في الفترة</div><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f1f5f9"><th style="${T}">التاريخ</th><th style="${T}">الصنف</th><th style="${T}">الكمية</th><th style="${T}">السعر</th><th style="${T}">القيمة</th></tr></thead><tbody>${rows}<tr style="font-weight:800;background:#fff1f2"><td style="${T}" colspan="4">إجمالي الخصومات</td><td style="${T};color:#be123c">${mfmt(dv)}</td></tr><tr style="font-weight:800;background:#ecfdf5"><td style="${T}" colspan="4">صافي المستخلص بعد الخصومات</td><td style="${T}">${mfmt(ta+xt-dv)}</td></tr></tbody></table>`; } } }catch(e){ console.warn(e); }
 }
 function meterBalTxt(mb){
     return (mb.oldLeft>0?`<span class="text-slate-500">فاضل سن قديم ${nfmt(mb.oldLeft)} م</span> — `:'')
@@ -10188,7 +10206,7 @@ function cxAddExtra(){
     tb.insertAdjacentHTML('beforeend', `<tr id="cx-x-${i}" class="border-t border-amber-100"><td class="p-2"><input id="cx-xd-${i}" placeholder="مثال: حفر بالساعة" class="w-full ${inp}"></td><td class="p-2"><input id="cx-xq-${i}" type="number" step="any" min="0" value="1" oninput="cxExtraCalc(${i})" class="w-24 ${inp}"></td><td class="p-2"><input id="cx-xr-${i}" type="number" step="any" min="0" oninput="cxExtraCalc(${i})" class="w-24 ${inp}"></td><td class="p-2 font-extrabold text-emerald-700" id="cx-xa-${i}">—</td><td class="p-2"><button type="button" onclick="document.getElementById('cx-x-${i}').remove();cxExtraShow()" class="text-rose-600 text-xs font-bold">✕</button></td></tr>`);
     cxExtraShow(); document.getElementById('cx-xd-'+i).focus();
 }
-function cxExtraCalc(i){ const q=Number(document.getElementById('cx-xq-'+i).value)||0, r=Number(document.getElementById('cx-xr-'+i).value)||0; document.getElementById('cx-xa-'+i).textContent = q&&r ? mfmt(q*r) : '—'; }
+function cxExtraCalc(i){ const q=Number(document.getElementById('cx-xq-'+i).value)||0, r=Number(document.getElementById('cx-xr-'+i).value)||0; document.getElementById('cx-xa-'+i).textContent = q&&r ? mfmt(q*r) : '—'; if(!window.__cxP){ window.__cxP=1; try{ cxPreview(); }catch(e){} window.__cxP=0; } }
 function cxExtraShow(){ const tb=document.getElementById('cx-extra-rows'), t=document.getElementById('cx-extra-tbl'); if(t) t.style.display = tb && tb.children.length ? '' : 'none'; }
 function cxExtraClear(){ const tb=document.getElementById('cx-extra-rows'); if(tb) tb.innerHTML=''; cxExtraShow(); }
 function cxExtras(){ return [...document.querySelectorAll('#cx-extra-rows tr')].map(tr=>{ const i=tr.id.split('-').pop(); const v=id=>document.getElementById(id+'-'+i); return {d:(v('cx-xd').value||'').trim(), q:Number(v('cx-xq').value)||0, rt:Number(v('cx-xr').value)||0, el:v('cx-xd')}; }); }
@@ -11470,7 +11488,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 263.8';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 264.0';
 
     /* تنبيهات */
     const alerts=[];
