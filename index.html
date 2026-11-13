@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1002</span><span class="text-emerald-400 font-bold">الإصدار 2</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1003</span><span class="text-emerald-400 font-bold">الإصدار 3</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -10186,7 +10186,7 @@ function cwWeeks(name){ const c=ctrOf(name)||{}, sh=cwSheetFor(name), H=sh?((db.
     const oT=Number(c.openTotal)||0, oP=Number(c.openPaid)||0, ob=Number(c.openBal)||0, hasOpen=!!(c.openDate && (oT||oP||ob));
     if(hasOpen && H.length){ const sw=out.reduce((a,o)=>a+o.work,0), last=out[out.length-1], opening=(oT||oP)?oT-oP:ob; let dW=Math.round((oT-sw)*100)/100, dP=Math.round((last.bal+dW-opening)*100)/100;
         /* شغل ومدفوع الفترة الناقصة بيتحسبوا بس لو ملف الإكسيل بادئ من أول الحساب (رصيد سابق صفر) والأرقام منطقية؛ غير كده الرصيد بس */
-        let known = Math.abs(out[0].src.prev||0)<1 && dW>=-0.5 && dP>=-0.5;
+        let known = false; /* محمد: «مش عاوز تأليف» — من غير كراسة الدفع السطر ده يفضل فاضي (الرصيد بس من المتكود) */
         /* لو كراريس الدفع محملة: اللي خده بعد آخر أسبوع في ملف المستخلصات = مجموع بلوكات الكراسة بعده، والشغل = الفرق */
         { const PS=(db.ctrHist&&db.ctrHist.pay)||{}, pk=cwSheetFor(name, PS), pp=pk?PS[pk].filter(b=>b.from>last.to && b.from<c.openDate):[]; if(pp.length){ dP=Math.round(pp.reduce((a,b)=>a+b.paid,0)*100)/100; dW=Math.round((opening-last.bal+dP)*100)/100; known = dW>=-0.5; } }
         if(!known){ dW=null; dP=null; }
@@ -10200,7 +10200,7 @@ function cwWeeks(name){ const c=ctrOf(name)||{}, sh=cwSheetFor(name), H=sh?((db.
     out.forEach((o,i)=>{ o.prev = (o.src && o.src.prev!==undefined) ? o.src.prev : (i ? out[i-1].bal : 0); });
     return {weeks:out, sheet:sh}; }
 function cwRender(){ const sel=document.getElementById('cw-name'), box=document.getElementById('cw-body'); if(!sel||!box) return;
-    const pv=sel.value, L=(db.contractors||[]).filter(c=>!isCrusherCtr(c.name)); sel.innerHTML=L.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}${c.done?' (متوقف)':''}</option>`).join('');
+    const pv=sel.value, L=(db.contractors||[]).filter(c=>!isCrusherCtr(c.name) && !c.done); /* الشغالين بس (محمد 2026-11-13) */ sel.innerHTML=L.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('');
     if(L.some(c=>c.name===pv)) sel.value=pv; else { const d=L.find(c=>!c.done); if(d) sel.value=d.name; }
     const name=sel.value; if(!name){ box.innerHTML=''; return; }
     const {weeks, sheet}=cwWeeks(name); const q=String(document.getElementById('cw-search')?.value||'').trim().replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\b0(\d)/g,'$1');
@@ -11726,7 +11726,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 2';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 3';
 
     /* تنبيهات */
     const alerts=[];
