@@ -516,7 +516,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 260.6</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 260.7</span></p></div>
         </div>
     </aside>
 
@@ -1642,6 +1642,22 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
 
         <!-- P&L -->
         <div id="tab-tb" class="tab-content flex-col gap-6">
+            <div class="subnav-bar pl-no-print-hide no-print"><button type="button" id="jr-nav-tb" class="subnav-btn active" onclick="jrShow('tb')">⚖️ ميزان المراجعة</button><button type="button" id="jr-nav-jr" class="subnav-btn" onclick="jrShow('jr')">📘 دفتر القيود اليومية</button></div>
+            <div id="jr-card" style="display:none" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm w-full">
+                <div class="flex flex-wrap justify-between items-center border-b-2 border-slate-900 pb-4 mb-4 gap-2">
+                    <h2 class="text-lg font-bold text-slate-900">📘 دفتر القيود اليومية</h2>
+                    <div class="pl-no-print-hide flex flex-wrap items-center gap-2 text-base">
+                        <span class="text-slate-500">من</span><input id="jr-from" type="date" onchange="jrRender()" class="border border-slate-300 rounded px-2 py-1">
+                        <span class="text-slate-500">إلى</span><input id="jr-to" type="date" onchange="jrRender()" class="border border-slate-300 rounded px-2 py-1">
+                        <select id="jr-type" onchange="jrRender()" class="border border-slate-300 rounded px-2 py-1"><option value="">كل الأنواع</option></select>
+                        <select id="jr-cash" onchange="jrRender()" class="border border-slate-300 rounded px-2 py-1"><option value="">كل الخزن</option></select>
+                        <input id="jr-acc" type="search" placeholder="بحث باسم الحساب أو البيان…" oninput="jrRender()" class="border border-slate-300 rounded px-2 py-1">
+                        <button type="button" onclick="printSection('jr-card')" class="bg-slate-800 text-white px-3 py-1.5 rounded-lg font-bold">طباعة</button>
+                        <button type="button" onclick="jrExportExcel()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold">إكسيل</button>
+                    </div>
+                </div>
+                <div id="jr-content"></div>
+            </div>
             <div id="tb-card" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm w-full">
                 <div class="flex flex-wrap justify-between items-center border-b-2 border-slate-900 pb-4 mb-4 gap-2">
                     <h2 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-table-list text-sky-600"></i> ميزان المراجعة</h2>
@@ -5838,6 +5854,59 @@ function tbRender(){
       </table></div>
       ${diff ? '<div class="text-xs font-semibold text-slate-600 mt-2">الفرق ده هو اللي المركز المالي بيحطه في «رأس المال وأرصدة أول المدة». بيتقفل لما تتدخل الأرصدة الافتتاحية الحقيقية، ولو فضل بعدها يبقى فيه حاجة ناقصة أو متسجلة غلط.</div>' : ''}`;
 }
+/* ===== دفتر القيود اليومية (v260.7): عرض بس — القيود بتتحسب من الحركات المسجلة، مفيش حاجة بتتخزن ===== */
+function jrShow(w){ const g=id=>document.getElementById(id); g('tb-card').style.display=w==='jr'?'none':''; g('jr-card').style.display=w==='jr'?'':'none';
+    g('jr-nav-tb').classList.toggle('active',w!=='jr'); g('jr-nav-jr').classList.toggle('active',w==='jr'); if(w==='jr') jrRender(); else tbRender(); }
+function jrData(){
+    const J=[], N=v=>Math.round((Number(v)||0)*100)/100, defAcc=(db.accounts&&db.accounts[0]&&db.accounts[0].name)||'الخزينة النقدية';
+    const add=(date,type,desc,dr,cr,v)=>{ v=N(v); if(!v||!date) return; if(v<0){ const t=dr; dr=cr; cr=t; v=-v; } J.push({date,type,desc:desc||'',dr,cr,v}); };
+    const clients=new Set((db.clients||[]).map(c=>c.name));
+    (db.expensesData||[]).forEach(x=>{ const acc=x.account||defAcc;
+        if(x.category==='إيراد'){ const nm=(x.name||'').trim();
+            const cr = x.tipDeposit ? 'إيراد إكرامية الكسارة' : (x.saleId||clients.has(nm)) ? 'العملاء / '+nm : 'إيرادات'+(nm?' / '+nm:'');
+            add(x.date, x.tipDeposit?'إيراد':'تحصيل', x.desc||x.notes||('تحصيل من '+nm), acc, cr, x.paid); return; }
+        if(x.commission==='accrual') return;
+        if(x.custodyId){ const c=(db.custodies||[]).find(c=>c.id===x.custodyId); if(c && c.type!=='direct') return; }
+        add(x.date,'مصروف', x.desc||x.notes||x.activity||'', catLabel(x.category)+((x.name||'').trim()?' / '+x.name.trim():''), acc, x.paid); });
+    (db.dailyLog||[]).forEach(r=>{ const v=Number(bonValue(r))||0; if(!v) return; const cash=cashBonUnposted(r)&&!r.noCashIn;
+        const q=DL_SIZES.reduce((a,z)=>a+(Number((r.q||{})[z.key])||0),0);
+        add(r.date,'مبيعات',`بون ${r.bon||'-'}${q?' — '+nfmt(q)+' م':''}${r.price?' × '+nfmt(r.price):''}`, cash?((db.accounts||[]).some(a=>a.name===DRAWER_ACC)?DRAWER_ACC:defAcc):'العملاء / '+(r.client||'-'), 'مبيعات الكسارة', v); });
+    (db.procurements||[]).forEach(x=>{ if(!x) return; add(x.date,'مشتريات',`${x.item||''} ${nfmt(x.qty)} ${x.unit||''} × ${nfmt(x.price)}`.replace(/\s+/g,' '), 'مشتريات / '+(x.item||'-'), 'الموردين / '+(x.supplier||'-'), (Number(x.qty)||0)*(Number(x.price)||0)); });
+    (db.payments||[]).forEach(p=>add(p.date,'دفعة مورد','سداد '+(p.supplier||'')+(p.notes?' — '+p.notes:''), 'الموردين / '+(p.supplier||'-'), p.account||defAcc, p.amount));
+    (db.ownerLoans||[]).forEach(l=>{ const who=(l.lender||'').trim()||'عماد ناجي', isIn=l.type==='in', acc=l.account||defAcc;
+        add(l.date,'سلفة',(isIn?'سلفة من ':'رد سلفة لـ ')+who+(l.notes?' — '+l.notes:''), isIn?acc:'سلف / '+who, isIn?'سلف / '+who:acc, l.amount); });
+    (db.incomes||[]).forEach(x=>add(x.date,'إيراد',(x.type||'إيراد')+(x.notes?' — '+x.notes:''), x.account||defAcc, 'إيرادات أخرى / '+(x.type||''), x.amount));
+    (db.cashTransfers||[]).forEach(t=>add(t.date,'تحويل','تحويل بين الخزن'+(t.notes?' — '+t.notes:''), t.to, t.from, t.amount));
+    (db.custodies||[]).forEach(c=>{ if(c.type==='direct') return; const acc=c.account||defAcc; add(c.date,'عهدة','عهدة مؤقتة: '+c.name,'عهد / '+c.name,acc,c.amount);
+        if(c.status==='settled' && (c.returnedAmount||0)>0) add(c.date,'عهدة','مرتجع عهدة: '+c.name,acc,'عهد / '+c.name,c.returnedAmount); });
+    (db.equipmentRepayments||[]).forEach(r=>{ if(r.deduct) return; add(r.date,'تحصيل','سداد '+(r.name||''), r.account||defAcc, 'مديونية معدات / '+(r.name||'-'), r.amount); });
+    J.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+    J.forEach((e,i)=>{ e.no=i+1; e.dr=catLabel(e.dr); e.cr=catLabel(e.cr); });
+    return J;
+}
+function jrFiltered(){
+    const g=id=>document.getElementById(id), f=g('jr-from').value, t=g('jr-to').value, ty=g('jr-type').value, ca=g('jr-cash').value, q=(g('jr-acc').value||'').trim();
+    return jrData().filter(e=>(!f||e.date>=f)&&(!t||e.date<=t)&&(!ty||e.type===ty)&&(!ca||e.dr===ca||e.cr===ca)&&(!q||(e.dr+' '+e.cr+' '+e.desc).includes(q)));
+}
+function jrRender(){
+    const el=document.getElementById('jr-content'); if(!el) return; const g=id=>document.getElementById(id);
+    if(!window.__jrInit){ window.__jrInit=true; try{ const w=acctWeekRange(0); g('jr-from').value=w[0]; g('jr-to').value=w[1]; }catch(e){ g('jr-to').value=todayISO(); }
+        g('jr-type').innerHTML='<option value="">كل الأنواع</option>'+['مبيعات','تحصيل','مصروف','مشتريات','دفعة مورد','سلفة','إيراد','تحويل','عهدة'].map(x=>`<option>${x}</option>`).join('');
+        g('jr-cash').innerHTML='<option value="">كل الخزن</option>'+(db.accounts||[]).map(a=>`<option>${esc(catLabel(a.name))}</option>`).join(''); }
+    let L; try{ L=jrFiltered(); }catch(err){ console.error(err); el.innerHTML='<div class="text-rose-700">تعذر عرض القيود: '+esc(err.message)+'</div>'; return; }
+    const tot=L.reduce((a,e)=>a+e.v,0), n=v=>nfmt(Math.round(v*100)/100), MAX=1500, S=L.slice(0,MAX);
+    const c='padding:7px 9px;border:1px solid #d5dbe3', num=c+';text-align:left;direction:ltr;white-space:nowrap;font-weight:700';
+    el.innerHTML=`<div class="overflow-x-auto"><table class="w-full text-right" style="font-size:17px;border-collapse:collapse">
+      <thead><tr><th style="${c}">رقم القيد</th><th style="${c}">التاريخ</th><th style="${c}">النوع</th><th style="${c}">الحساب</th><th style="${c}">البيان</th><th style="${c}">مدين</th><th style="${c}">دائن</th></tr></thead>
+      <tbody>${S.map(e=>`<tr style="border-top:2px solid #8fa9c4"><td style="${c};color:#0a6ed1;font-weight:800">${e.no}</td><td style="${c};white-space:nowrap">${dmy(e.date)}</td><td style="${c}">${e.type}</td><td style="${c};font-weight:800">من حـ/ ${esc(e.dr)}</td><td style="${c}">${esc(e.desc)}</td><td style="${num}">${n(e.v)}</td><td style="${c}"></td></tr>
+        <tr><td style="${c}"></td><td style="${c}"></td><td style="${c}"></td><td style="${c};padding-right:34px">إلى حـ/ ${esc(e.cr)}</td><td style="${c}"></td><td style="${c}"></td><td style="${num}">${n(e.v)}</td></tr>`).join('') || '<tr><td colspan="7" class="p-4 text-center text-slate-400">مفيش قيود في الفترة دي</td></tr>'}</tbody>
+      <tfoot><tr><td colspan="5" style="${c};font-size:19px">الإجمالي (${L.length} قيد)</td><td style="${num};font-size:19px">${n(tot)}</td><td style="${num};font-size:19px">${n(tot)}</td></tr></tfoot></table></div>
+      <div style="color:#107e3e;font-weight:700;margin-top:8px">✔ القيود متزنة: إجمالي المدين = إجمالي الدائن</div>
+      ${L.length>MAX?`<div class="text-slate-500 mt-1">معروض أول ${MAX} قيد بس، صغّر الفترة أو صدّر إكسيل عشان تشوف الباقي.</div>`:''}`;
+}
+function jrExportExcel(){ const L=jrFiltered(), aoa=[['دفتر القيود اليومية — كسارة الديار'],[],['رقم القيد','التاريخ','النوع','الحساب','البيان','مدين','دائن']];
+    L.forEach(e=>{ aoa.push([e.no,dmy(e.date),e.type,'من حـ/ '+e.dr,e.desc,e.v,'']); aoa.push(['','','','إلى حـ/ '+e.cr,'','',e.v]); });
+    const t=L.reduce((a,e)=>a+e.v,0); aoa.push([],['','','','الإجمالي','',t,t]); xlsxSave(aoa,'القيود اليومية',`دفتر-القيود-${todayISO()}.xlsx`); }
 function tbExportExcel(){
     const D=document.getElementById('tb-date')?.value||todayISO(), T=tbData(D), r=v=>Math.round(v)||'';
     const aoa=[['ميزان المراجعة — كسارة الديار'],['في تاريخ', dmy(D)],[],['المجموعة','الحساب','مدين','دائن']];
@@ -11232,7 +11301,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 260.6';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 260.7';
 
     /* تنبيهات */
     const alerts=[];
