@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 262.2</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 262.3</span></p></div>
         </div>
     </aside>
 
@@ -11429,7 +11429,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 262.2';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 262.3';
 
     /* تنبيهات */
     const alerts=[];
@@ -11662,7 +11662,6 @@ function toggleMoreMenu(){
         ...(window.__isStandalone?[]:[['fa-solid fa-mobile-screen-button','#16a34a','تثبيت التطبيق على الجهاز','installApp()']]),
         ['fa-solid fa-file-export','#2563eb','تصدير نسخة احتياطية','exportData()'],
         ['fa-solid fa-file-excel','#059669','تصدير كل البيانات إكسيل','exportAllExcel()'],
-        ...(currentRole==='admin'?[['fa-solid fa-calendar-day','#b45309','تحويل حركات يوم لتاريخ تاني','mvDayOpen()']]:[]),
         ...(currentRole==='admin'?[['fa-solid fa-file-import','#475569','استرجاع نسخة',"document.getElementById('restore-input').click()"]]:[]),
         ['fa-solid fa-right-from-bracket','#dc2626','خروج ('+roleLabel()+')','logoutUser()']
     ];
