@@ -641,7 +641,9 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             <div class="subnav-bar">
                 <button type="button" id="subnav-dailylog-form" class="subnav-btn active" onclick="switchSub('dailylog','form')">📝 تسجيل بون</button>
                 <button type="button" id="subnav-dailylog-log" class="subnav-btn" onclick="switchSub('dailylog','log')">📒 سجل البونات</button>
+                <button type="button" id="subnav-dailylog-coll" class="subnav-btn" onclick="switchSub('dailylog','coll')">💰 تحصيلات العملاء</button>
             </div>
+            <div id="sub-dailylog-coll" class="subpage"></div>
             <div id="sub-dailylog-form" class="subpage active">
             <div id="dl-form-card" class="bg-white p-5 rounded-xl border border-amber-100 shadow-sm">
                 <h3 class="font-bold text-slate-900 mb-1"><i class="fa-solid fa-book text-amber-600"></i> السجل اليومي — بونات التحميل</h3>
@@ -802,8 +804,8 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         <!-- INCOMES -->
         <div id="tab-incomes" class="tab-content flex-col gap-4">
             <div id="inc-bar" class="grid grid-cols-3 md:grid-cols-6 gap-2"></div>
-            <!-- تحصيلات العملاء -->
-            <div class="bg-white p-5 rounded-xl border border-cyan-100 shadow-sm">
+            <!-- تحصيلات العملاء (بتتنقل لتاب المبيعات وقت التحميل — محمد 2026-11-13) -->
+            <div id="coll-form-card" class="bg-white p-5 rounded-xl border border-cyan-100 shadow-sm">
                 <h3 class="font-bold text-slate-900 mb-4"><i class="fa-solid fa-hand-holding-dollar text-cyan-600"></i> تسجيل تحصيل من عميل</h3>
                 <form onsubmit="addClientCollection(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">العميل</label><select id="coll-client" required onchange="showClientCollectionBalance()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
@@ -3549,7 +3551,7 @@ function homeQuickHtml(){
     const Q=[
         ['dailylog','fa-truck-ramp-box','#2f6fd6','تسجيل بون','بون تحميل جديد'],
         ['expenses','fa-money-bill-wave','#e8962e','مصروف','سولار، أجور، صيانة…'],
-        ['incomes','fa-hand-holding-dollar','#16a37b','تحصيل / إيراد','فلوس من عميل'],
+        ['collections','fa-hand-holding-dollar','#16a37b','تحصيل من عميل','فلوس من عميل'],
         ['purchases','fa-cart-shopping','#9b59d0','شراء','فاتورة مورد'],
         ['ledger','fa-file-invoice','#1f4b73','كشف حساب','عميل أو مقاول أو فرد'],
     ].filter(q=>can(q[0]));
@@ -3578,7 +3580,7 @@ function fitBonForm(){
     }catch(e){}
 }
 window.addEventListener('resize', ()=>{ try{ fitBonForm(); }catch(e){} });
-function switchSub(tab, which){ try{ if(tab==='inventory') renderMashoon(); }catch(e){}
+function switchSub(tab, which){ try{ if(tab==='dailylog' && which==='coll'){ renderCollectionsLog(); showClientCollectionBalance(); const cd=document.getElementById('coll-date'); if(cd && !cd.value) cd.value=todayISO(); } }catch(e){} try{ if(tab==='inventory') renderMashoon(); }catch(e){}
     const panel = document.getElementById('tab-'+tab); if(!panel) return;
     panel.querySelectorAll(':scope > .subpage').forEach(p=>p.classList.remove('active'));
     panel.querySelector('#sub-'+tab+'-'+which)?.classList.add('active');
@@ -6892,10 +6894,10 @@ function renderEqStatement(){
 /* ================= الإيرادات ================= */
 const INCOME_DEF = ['بيع خردة','إيجار معدات','إيرادات أخرى'];
 function incomeTypes(){ return db.incomeTypes && db.incomeTypes.length ? db.incomeTypes : INCOME_DEF; }
-const INC_SECS=[['coll','💰','تحصيل عميل','coll-amount'],['collog','📒','سجل التحصيل','coll-log-card'],['inc','💵','إيراد','inc-types'],['loan','💼','سلف','sari-amount'],['xfer','🔁','تحويل بين الخزن','xfer-card'],['cc','🧮','جرد الخزينة','cc-card'],['open','⚙️','أرصدة افتتاحية','open-card']];
+const INC_SECS=[['inc','💵','إيراد','inc-types'],['loan','💼','سلف','sari-amount'],['xfer','🔁','تحويل بين الخزن','xfer-card'],['cc','🧮','جرد الخزينة','cc-card'],['open','⚙️','أرصدة افتتاحية','open-card']];
 function showIncSec(k){
     const tab=document.getElementById('tab-incomes'); if(!tab) return;
-    k = k || window.__incSec || 'coll'; window.__incSec = k;
+    k = k || window.__incSec || 'inc'; if(k==='coll'||k==='collog') k='inc'; window.__incSec = k;
     const kids=[...tab.children];
     kids.forEach(c=>{ if(c.id==='inc-bar' || c.dataset.brand!==undefined) return; c.dataset.incsec=''; });
     INC_SECS.forEach(([key,,,id])=>{ const el=document.getElementById(id); if(!el) return; const top=kids.find(c=>c===el||c.contains(el)); if(top){ top.dataset.incsec=key; } });
@@ -9064,6 +9066,7 @@ function quickSearch(){
 }
 
 /* كشف الحساب = العملاء وموردي قطع الغيار والسولار، كشف المعدة في تاب المعدات، وكشف حساب المقاول فضل في تاب المستخلصات (محمد 2026-11-07) */
+document.addEventListener('DOMContentLoaded',()=>{ try{ const C=document.getElementById('sub-dailylog-coll'); ['coll-form-card','coll-log-card'].forEach(id=>{ const el=document.getElementById(id); if(C && el) C.appendChild(el); }); }catch(e){} });
 document.addEventListener('DOMContentLoaded',()=>{ const L=document.getElementById('tab-ledger'); if(!L) return;
     /* كشف المورد فضل في تاب المشتريات (محمد 2026-11-07) */ });
 function qsGo(kind, v){
@@ -10439,7 +10442,7 @@ function startEdit(kind, id){
         const hadLoan=(db.ownerLoans||[]).some(l=>l.expId===id);
         silentDelete(()=>deleteExpense(id));
         if(x.category==='إيراد'){
-            tab='incomes'; formAnchor='coll-amount'; window.__incSec='coll';
+            tab='collections'; formAnchor='coll-amount';
             setVal('coll-client', x.name); setVal('coll-amount', x.paid); setVal('coll-date', x.date); setVal('coll-account', x.account); setVal('coll-notes', x.desc||x.notes||'');
             try{ showClientCollectionBalance(); }catch(e){}
         } else {
@@ -10962,7 +10965,8 @@ function exportPartyExcel(){
     switchTab = function(tabId){
         if(tabId==='cashday'){ _switchTab.call(this,'treasury'); setTreasuryView('journal'); return; }
         if(tabId==='sales'){ tabId='dailylog'; arguments[0]='dailylog'; }
-        if(tabId==='collections'){ tabId='incomes'; arguments[0]='incomes'; }
+        if(tabId==='dailylog'){ try{ if(document.getElementById('sub-dailylog-coll')?.classList.contains('active')) switchSub('dailylog','form'); }catch(e){} }
+        if(tabId==='collections'){ _switchTab.call(this,'dailylog'); try{ switchSub('dailylog','coll'); renderCollectionsLog(); showClientCollectionBalance(); }catch(e){} return; }
         _switchTab.apply(this, arguments);
         try{
             if(tabId==='treasury'){ setTreasuryView(window.__trView||'journal'); }
