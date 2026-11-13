@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 261.8</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 261.9</span></p></div>
         </div>
     </aside>
 
@@ -1016,10 +1016,18 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <button type="submit" class="col-span-2 md:col-span-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-2 font-bold">تسجيل السلفة</button>
                 </form>
             </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto"><table class="w-full text-right" style="font-size:1.05rem">
                     <thead class="bg-slate-800 text-white"><tr><th class="p-3">الموظف</th><th class="p-3">مرتبه</th><th class="p-3">واخد</th><th class="p-3">فاضل</th></tr></thead>
                     <tbody id="tbody-adv-sum"></tbody></table></div>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-3 border-b border-slate-100 font-bold">سلف الشهر (تعديل وحذف)</div>
+                <div class="overflow-x-auto" style="height:230px;overflow-y:auto"><table class="w-full text-right" style="font-size:1.05rem">
+                    <thead class="bg-slate-100"><tr><th class="p-3">الموظف</th><th class="p-3">المبلغ</th><th class="p-3">التاريخ</th><th class="p-3">ملاحظات</th><th class="p-3"></th></tr></thead>
+                    <tbody id="tbody-adv-recent"></tbody></table></div>
+            </div>
             </div>
             </div><!-- /sub-payroll-form -->
             <div id="sub-payroll-log" class="subpage">
@@ -4926,7 +4934,7 @@ function treasuryEvents(){
         if(x.category==='إيراد'){
             const pd = Number(x.paid)||0;
             const grp = x.saleId ? 'sales' : (x.tipDeposit && x.tipBonId ? 'tips' : null);
-            events.push({ref:x.tipDeposit?null:['exp',x.id], date:x.date, desc:x.desc || `تحصيل من ${x.name}`, project:x.project, account, inflow:Math.max(pd,0), outflow:Math.max(-pd,0), doc:docRef('ت',x.id), grp});
+            events.push({at:x._at, ref:x.tipDeposit?null:['exp',x.id], date:x.date, desc:x.desc || `تحصيل من ${x.name}`, project:x.project, account, inflow:Math.max(pd,0), outflow:Math.max(-pd,0), doc:docRef('ت',x.id), grp});
         }else{
             if(x.commission==='accrual') return; // عمولة مستحقة لسه ماتصرفتش — مفيش فلوس خرجت
             // مصروفات تسوية العهدة مستثناة: الفلوس خرجت فعلياً وقت صرف العهدة نفسها (مسجلة تحت)
@@ -4934,7 +4942,7 @@ function treasuryEvents(){
                 const linkedCustody = (db.custodies||[]).find(c=>c.id===x.custodyId);
                 if(linkedCustody && linkedCustody.type!=='direct') return;
             }
-            events.push({ref:['exp',x.id], date:x.date, desc:x.desc || `${x.category} - ${x.activity} (${x.name})`, project:x.project, account, inflow:0, outflow:x.paid, doc:docRef('م',x.id)});
+            events.push({at:x._at, ref:['exp',x.id], date:x.date, desc:x.desc || `${x.category} - ${x.activity} (${x.name})`, project:x.project, account, inflow:0, outflow:x.paid, doc:docRef('م',x.id)});
         }
     });
     // البونات النقدي اللي ملهاش حركة تحصيل: فلوسها دخلت درج المكتب يوم البون
@@ -4944,15 +4952,15 @@ function treasuryEvents(){
         events.push({date:r.date, desc:`مبيعات نقدي — بون ${r.bon||'-'}`, project:r.project||'-', account:acc, inflow:v, outflow:0, grp:'sales'});
     });
     db.payments.forEach(pay=>{
-        events.push({date:pay.date, desc:`سداد ${pay.supplier}${pay.notes?' — '+pay.notes:''}`, project:pay.project||'-', account:pay.account||defaultAccount, inflow:0, outflow:pay.amount, doc:docRef('د',pay.id)});
+        events.push({at:pay._at, date:pay.date, desc:`سداد ${pay.supplier}${pay.notes?' — '+pay.notes:''}`, project:pay.project||'-', account:pay.account||defaultAccount, inflow:0, outflow:pay.amount, doc:docRef('د',pay.id)});
     });
     // العهدة = خروج نقدي فعلي وقت الصرف (سواء لسه معلقة أو اتسوّت)
     // ولو اتسوّت: المرتجع بيرجع الخزينة
     (db.custodies||[]).forEach(c=>{
         if(c.type==='direct') return; // القيود المباشرة القديمة مسجلة في expensesData عادي
-        events.push({date:c.date, desc:`عهدة مؤقتة: ${c.name}`, project:c.project||'-', account:c.account||defaultAccount, inflow:0, outflow:c.amount});
+        events.push({at:c._at, date:c.date, desc:`عهدة مؤقتة: ${c.name}`, project:c.project||'-', account:c.account||defaultAccount, inflow:0, outflow:c.amount});
         if(c.status==='settled' && (c.returnedAmount||0) > 0){
-            events.push({date:c.date, desc:`مرتجع عهدة: ${c.name}`, project:c.project||'-', account:c.account||defaultAccount, inflow:c.returnedAmount, outflow:0});
+            events.push({at:c._at, date:c.date, desc:`مرتجع عهدة: ${c.name}`, project:c.project||'-', account:c.account||defaultAccount, inflow:c.returnedAmount, outflow:0});
         }
     });
     // تمويل المستثمرين — نقدية داخلة فعلياً
@@ -4972,21 +4980,21 @@ function treasuryEvents(){
     // سداد مديونية معدات/عربيات النقل (استرداد قيمة سولار/شحم اتوفّر بسعر التكلفة) — نقدية داخلة فعلياً
     (db.equipmentRepayments||[]).forEach(r=>{
         if(r.deduct) return; // خصم من مستخلص: مش فلوس داخلة
-        events.push({date:r.date, desc:`سداد ${stockRecipientLabel(r.recipientType)}: ${r.name}`, project:'-', account:r.account||defaultAccount, inflow:r.amount, outflow:0, doc:docRef('س',r.id)});
+        events.push({at:r._at, date:r.date, desc:`سداد ${stockRecipientLabel(r.recipientType)}: ${r.name}`, project:'-', account:r.account||defaultAccount, inflow:r.amount, outflow:0, doc:docRef('س',r.id)});
     });
     // سلف عماد ناجي: سلفة = داخل الخزينة، رد سلفة = خارج
     (db.ownerLoans||[]).forEach(l=>{
         const a = Number(l.amount)||0, isIn = l.type==='in';
         const who = (l.lender||'').trim()||'عماد ناجي';
-        events.push({ref:['loan',l.id], date:l.date, desc:(isIn?`سلفة من ${who}`:`رد سلفة لـ ${who}`)+(l.notes?` — ${l.notes}`:''), project:'-', account:l.account||defaultAccount, inflow:isIn?a:0, outflow:isIn?0:a});
+        events.push({at:l._at, ref:['loan',l.id], date:l.date, desc:(isIn?`سلفة من ${who}`:`رد سلفة لـ ${who}`)+(l.notes?` — ${l.notes}`:''), project:'-', account:l.account||defaultAccount, inflow:isIn?a:0, outflow:isIn?0:a});
     });
     // الإيرادات (تاب الإيرادات)
-    (db.incomes||[]).forEach(x=>{ events.push({date:x.date, desc:`${x.type}${x.notes?' — '+x.notes:''}`, project:'-', account:x.account||defaultAccount, inflow:Number(x.amount)||0, outflow:0, doc:docRef('إ',x.id)}); });
+    (db.incomes||[]).forEach(x=>{ events.push({at:x._at, date:x.date, desc:`${x.type}${x.notes?' — '+x.notes:''}`, project:'-', account:x.account||defaultAccount, inflow:Number(x.amount)||0, outflow:0, doc:docRef('إ',x.id)}); });
     // تحويلات بين الخزن
     (db.cashTransfers||[]).forEach(t=>{
         const a = Number(t.amount)||0, n = t.notes?` — ${t.notes}`:'';
-        events.push({ref:['xfer',t.id], date:t.date, desc:`تحويل إلى ${t.to}${n}`, project:'-', account:t.from, inflow:0, outflow:a, xfer:true});
-        events.push({ref:['xfer',t.id], date:t.date, desc:`تحويل من ${t.from}${n}`, project:'-', account:t.to, inflow:a, outflow:0, xfer:true});
+        events.push({at:t._at, ref:['xfer',t.id], date:t.date, desc:`تحويل إلى ${t.to}${n}`, project:'-', account:t.from, inflow:0, outflow:a, xfer:true});
+        events.push({at:t._at, ref:['xfer',t.id], date:t.date, desc:`تحويل من ${t.from}${n}`, project:'-', account:t.to, inflow:a, outflow:0, xfer:true});
     });
     // بيع السولار للمعدات: سطر وارد (بيع سولار) + سطر صادر (سولار ... لتر) بنفس القيمة — زي دفتر اليومية
     { const avg={}; const pr=x=>{ if(Number(x.price)>0) return Number(x.price); if(avg[x.item]===undefined){ const P=(db.procurements||[]).filter(p=>p.item===x.item); const q=P.reduce((a,p)=>a+(Number(p.qty)||0),0); avg[x.item]=q?P.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0)/q:0; if(!avg[x.item]){ const L=(db.stockIssues||[]).filter(i=>i.item===x.item&&Number(i.price)>0).sort((a,b)=>(a.date||'').localeCompare(b.date||'')); avg[x.item]=L.length?Number(L[L.length-1].price):0; } } return avg[x.item]; };
@@ -4994,14 +5002,14 @@ function treasuryEvents(){
         if(!x || !x.date || !(/سول|جاز|ديزل|بنزين|زيت|شحم/.test(x.item||'') || (!isCrusherIssue(x) && Number(x.price)>0))) return;
         const pu=pr(x), v=Math.round((Number(x.qty)||0)*pu); if(!(Number(x.qty)>0)) return; const qp=pu?`${nfmt(x.qty)} ${x.unit||'لتر'} × ${nfmt(Math.round(pu*100)/100)}`:`${nfmt(x.qty)} ${x.unit||'لتر'}`;
         const who=[x.equip, x.name&&x.name!=='-'?x.name:''].filter(Boolean).join(' ')||'الكسارة';
-        events.push({ref:['stock',x.id], date:x.date, desc:`بيع ${x.item} ${who} ${qp}`, project:'-', account:defaultAccount, inflow:v, outflow:0, fuel:true});
-        events.push({ref:['stock',x.id], date:x.date, desc:`${x.item} ${who} ${qp}`, project:'-', account:defaultAccount, inflow:0, outflow:v, fuel:true});
+        events.push({at:x._at, ref:['stock',x.id], date:x.date, desc:`بيع ${x.item} ${who} ${qp}`, project:'-', account:defaultAccount, inflow:v, outflow:0, fuel:true});
+        events.push({at:x._at, ref:['stock',x.id], date:x.date, desc:`${x.item} ${who} ${qp}`, project:'-', account:defaultAccount, inflow:0, outflow:v, fuel:true});
       }); }
     /* شراء آجل: يظهر في اليومية وارد وصادر بنفس القيمة (زي الدفتر) */
     { const paidG=new Set((db.payments||[]).filter(p=>p.procGroupId).map(p=>p.procGroupId));
     (db.procurements||[]).forEach(x=>{ if(!x||!x.date||x.payCash===true||paidG.has(x.groupId)) return; const v=Math.round((Number(x.qty)||0)*(Number(x.price)||0)); if(!v) return; const qp=`${nfmt(x.qty)} ${x.unit||''} × ${nfmt(x.price)}`.replace(/\s+/g,' ');
-        events.push({ref:['buy',x.groupId], date:x.date, desc:`وارد ${x.item} ${x.supplier||''} ${qp} (آجل)`, project:'-', account:defaultAccount, inflow:v, outflow:0, fuel:true});
-        events.push({ref:['buy',x.groupId], date:x.date, desc:`${x.item} ${x.supplier||''} ${qp} (آجل)`, project:'-', account:defaultAccount, inflow:0, outflow:v, fuel:true}); }); }
+        events.push({at:x._at, ref:['buy',x.groupId], date:x.date, desc:`وارد ${x.item} ${x.supplier||''} ${qp} (آجل)`, project:'-', account:defaultAccount, inflow:v, outflow:0, fuel:true});
+        events.push({at:x._at, ref:['buy',x.groupId], date:x.date, desc:`${x.item} ${x.supplier||''} ${qp} (آجل)`, project:'-', account:defaultAccount, inflow:0, outflow:v, fuel:true}); }); }
     (()=>{ const G={}; return (db.equipExpenses||[]).reduce((out,x)=>{ if(x&&x.split){ const g0=G[x.split]; if(g0){ g0.amount=(Number(g0.amount)||0)+(Number(x.amount)||0); g0.qty=(Number(g0.qty)||0)+(Number(x.qty)||0); g0.equip+=' / '+x.equip; return out; } G[x.split]={...x}; out.push(G[x.split]); return out; } out.push(x); return out; },[]); })().forEach(x=>{ const v=Math.round(Number(x&&x.amount)||0); if(!x||!x.date||!v) return; const who=[x.equip,x.owner].filter(Boolean).join(' '); x={...x, desc:String(x.desc||'مصروف').replace(/^\s*بيع\s+/,'')||'مصروف'};
         events.push({date:x.date, desc:`بيع ${x.desc||'مصروف'} ${who}${x.qty&&x.price?` ${nfmt(x.qty)} × ${nfmt(x.price)}`:''}`, project:'-', account:defaultAccount, inflow:v, outflow:0, fuel:true});
         events.push({date:x.date, desc:`${x.desc||'مصروف'} ${who}${x.qty&&x.price?` ${nfmt(x.qty)} × ${nfmt(x.price)}`:''}`, project:'-', account:defaultAccount, inflow:0, outflow:v, fuel:true}); });
@@ -5022,7 +5030,7 @@ function treasuryEvents(){
     });
     Object.values(merged).forEach(m=>{ m.desc = m.grp==='sales' ? `مبيعات نقدي (${m.n} بون)` : `إكرامية الكسارة (${m.n} بون)`; });
     const sd = db.sariSettings && db.sariSettings.startDate;
-    return out.filter(e=>!sd || (e.date||'')>=sd).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))); // chronological for running balance
+    return out.filter(e=>!sd || (e.date||'')>=sd).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')) || String(a.at||'').localeCompare(String(b.at||''))); // بالتاريخ ثم بوقت التسجيل جوه اليوم (محمد 2026-11-13)
 }
 /* حركات الخزينة الفعلية فقط (بدون الأسطر الصفرية) */
 function cashMovements(){
@@ -7172,7 +7180,16 @@ function renderPayrollTab(){
     const ad=document.getElementById('att-date'); if(ad && !ad.value) ad.value=todayISO();
     const dd=document.getElementById('adv-date'); if(dd && !dd.value) dd.value=todayISO();
     fillSelect('adv-name', payrollPeople()); fillSelect('adv-account', db.accounts||[]); try{ advPartyBal(); }catch(e){}
-    renderAttendance(); renderPayroll(); renderAdvSummary();
+    renderAttendance(); renderPayroll(); renderAdvSummary(); renderAdvRecent();
+    if(window.__advEdit){ const v=window.__advEdit; window.__advEdit=null; try{ switchSub('payroll','form'); }catch(e){} setVal('adv-name',v.name); setVal('adv-amount',v.amount); setVal('adv-date',v.date); setVal('adv-account',v.account); setVal('adv-notes',v.notes); try{ advPartyBal(); }catch(e){} }
+}
+/* سلف الشهر تحت فورم السلفة بتعديل وحذف، آخر حاجة اتسجلت فوق (محمد 2026-11-13) */
+function advBtns(x){ return isRO()?'':`<button onclick="startEdit('exp', ${x.id})" class="text-blue-500 hover:text-blue-700 ml-3" title="تعديل">✏️</button><button onclick="deleteSalaryEntry(${x.id})" style="color:#dc2626" title="حذف"><i class="fa-solid fa-trash"></i></button>`; }
+function renderAdvRecent(){
+    const tb=document.getElementById('tbody-adv-recent'); if(!tb) return;
+    const m=todayISO().slice(0,7);
+    const L=(db.expensesData||[]).map((x,i)=>[x,i]).filter(p=>isAdvRec(p[0]) && (p[0].date||'').startsWith(m)).sort((A,B)=>String(B[0]._at||'').localeCompare(String(A[0]._at||'')) || B[1]-A[1]).map(p=>p[0]);
+    tb.innerHTML = L.length ? L.map(x=>`<tr class="border-b border-slate-100"><td class="p-3 font-bold">${esc(x.name)}</td><td class="p-3 font-bold text-rose-700">${fmt(x.paid)}</td><td class="p-3">${esc(x.date||'')}</td><td class="p-3">${esc(x.notes||'')}</td><td class="p-3 whitespace-nowrap">${x.category===ADV_CAT?advBtns(x):`<button onclick="startEdit('exp', ${x.id})" class="text-blue-500 ml-3" title="تعديل">✏️</button><button onclick="deleteByRef('exp', ${x.id})" style="color:#dc2626" title="حذف"><i class="fa-solid fa-trash"></i></button>`}</td></tr>`).join('') : '<tr><td colspan="5" class="p-4 text-center text-slate-400">مفيش سلف الشهر ده</td></tr>';
 }
 /* تحت تسجيل السلفة: كل موظف مرتبه كام وواخد كام وفاضل كام (الشهر الحالي، نفس حساب كشف الرواتب) — محمد 2026-11-12 */
 function renderAdvSummary(){
@@ -7319,7 +7336,7 @@ function renderPayroll(){
     const ta = document.getElementById('tbody-advances');
     if(ta){
         const L=(db.expensesData||[]).filter(x=>(isAdvRec(x) && inM(x)) || (x.category===SAL_CAT && x.salaryMonth===m)).sort((x,y)=>(y.date||'').localeCompare(x.date||''));
-        ta.innerHTML = L.length ? L.map(x=>`<tr class="border-b border-slate-50"><td class="p-2">${esc(x.date||'')}</td><td class="p-2 font-bold">${esc(x.name)}</td><td class="p-2">${nfmt(x.paid)}${x.category===SAL_CAT?' <span class="text-xs text-emerald-700">(راتب)</span>':''}</td><td class="p-2">${esc(x.notes||'')}</td><td class="p-2"><button onclick="deleteSalaryEntry(${x.id})" style="color:#dc2626"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')
+        ta.innerHTML = L.length ? L.map(x=>`<tr class="border-b border-slate-50"><td class="p-2">${esc(x.date||'')}</td><td class="p-2 font-bold">${esc(x.name)}</td><td class="p-2">${nfmt(x.paid)}${x.category===SAL_CAT?' <span class="text-xs text-emerald-700">(راتب)</span>':''}</td><td class="p-2">${esc(x.notes||'')}</td><td class="p-2 whitespace-nowrap">${x.category===ADV_CAT?advBtns(x):`<button onclick="deleteSalaryEntry(${x.id})" style="color:#dc2626"><i class="fa-solid fa-trash"></i></button>`}</td></tr>`).join('')
             : '<tr><td colspan="5" class="p-4 text-center text-slate-400">—</td></tr>';
     }
 }
@@ -10669,6 +10686,9 @@ function startEdit(kind, id){
             tab='collections'; formAnchor='coll-amount';
             setVal('coll-client', x.name); setVal('coll-amount', x.paid); setVal('coll-date', x.date); setVal('coll-account', x.account); setVal('coll-notes', x.desc||x.notes||'');
             try{ showClientCollectionBalance(); }catch(e){}
+        } else if(x.category===ADV_CAT){
+            tab='payroll'; formAnchor='adv-amount';
+            window.__advEdit={name:x.name, amount:x.paid, date:x.date, account:x.account, notes:x.notes||''};
         } else {
             tab='expenses'; formAnchor='exp-paid';
             setVal('exp-category', x.category); try{ filterExpenseSubFields(); }catch(e){}
@@ -10744,7 +10764,7 @@ function finishEdit(){
     document.getElementById('edit-banner').style.display = 'none';
 }
 // أي حفظ ناجح من فورم بيقفل وضع التعديل
-['addDailyLog','addExpense','addClientCollection','addStockIssue','addQuickPurchase','addEquipExtract','addCashTransfer','addSariLoan'].forEach(fn=>{
+['addDailyLog','addExpense','addClientCollection','addStockIssue','addQuickPurchase','addEquipExtract','addCashTransfer','addSariLoan','addSalaryAdvance'].forEach(fn=>{
     const orig = window[fn]; if(typeof orig!=='function') return;
     window[fn] = function(e){
         const sig = ()=>JSON.stringify([db.dailyLog,db.expensesData,db.stockIssues,db.procurements,db.equipExtracts,db.cashTransfers,db.ownerLoans]);
@@ -11406,7 +11426,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 261.8';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 261.9';
 
     /* تنبيهات */
     const alerts=[];
