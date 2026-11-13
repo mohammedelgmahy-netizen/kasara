@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 265.1</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 265.2</span></p></div>
         </div>
     </aside>
 
@@ -6271,6 +6271,7 @@ function printSection(id){
     window.print();
 }
 function printCurrentTab(){
+    if(cxFormActive()){ cxFormSheet(); return; }
     const activeTab = document.querySelector('.tab-content.active');
     if(!activeTab) return;
     document.querySelectorAll('.print-target').forEach(el=>el.classList.remove('print-target'));
@@ -9238,6 +9239,7 @@ function shareReportParts(names, title){
 }
 /* زرار واتساب جنب كل زرار طباعة: بيبعت اللي بيتطبع كصورة عليها لوجو الكسارة */
 function shareActiveTab(btn){
+    if(cxFormActive()){ cxFormSheet(); return; }
     const tab=document.querySelector('.tab-content.active'); if(!tab) return;
     const el=(btn && btn.closest && btn.closest('[id$="-card"],[id$="print-area"]')) || tab.querySelector('[id$="print-area"]') || tab;
     const title=(tab.querySelector('.tab-brand .tb-title')?.textContent || el.querySelector('h2,h3')?.textContent || 'تقرير').trim();
@@ -10348,7 +10350,7 @@ function ctrWeeklySheetHtml(name, from, to){
 }
 function openCtrExtractView(id){
     const x=(db.ctrExtracts||[]).find(r=>String(r.id)===String(id)); if(!x) return;
-    const from=x.from||x.date, to=x.to||x.date; let eq=''; try{ eq=equipAcctHtml(x.name, from, to)||''; }catch(e){}
+    const from=x.from||x.date, to=x.to||x.date; return openCtrWeekView(x.name, from, to); let eq='';
     const T='border:1px solid #cbd5e1;padding:5px 8px;text-align:center';
     const bons=contractorBons(x.name).filter(r=>(r.date||'')>=from && (r.date||'')<=to), days={};
     bons.forEach(r=>{ const d=days[r.date]||(days[r.date]={n:0,q:0}); d.n++; d.q+=pureSinQ(r.q,r.date)+(Number((r.q||{}).tabaqa)||0)*tabPct(r)/100; });
@@ -10356,17 +10358,25 @@ function openCtrExtractView(id){
     const sinTbl=DK.length?`<div style="font-weight:800;margin:14px 0 6px">السن اليومي (من البونات)</div><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f1f5f9"><th style="${T}">اليوم</th><th style="${T}">التاريخ</th><th style="${T}">عدد البونات</th><th style="${T}">صافي السن</th></tr></thead><tbody>${DK.map(d=>{ tn+=days[d].n; tq+=days[d].q; return `<tr><td style="${T}">${dayNameAr(d)}</td><td style="${T}">${dmy(d)}</td><td style="${T}">${days[d].n}</td><td style="${T};font-weight:700">${nfmt(days[d].q)}</td></tr>`; }).join('')}<tr style="background:#fef3c7;font-weight:800"><td style="${T}" colspan="2">الإجمالي</td><td style="${T}">${tn}</td><td style="${T}">${nfmt(tq)}</td></tr></tbody></table>`:'';
     const iss=(db.stockIssues||[]).filter(i=>normName(i.name)===normName(x.name) && (i.date||'')>=from && (i.date||'')<=to).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
     const issTbl=iss.length?`<div style="font-weight:800;margin:14px 0 6px">السولار والأصناف المصروفة</div><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f1f5f9"><th style="${T}">التاريخ</th><th style="${T}">الصنف</th><th style="${T}">المعدة</th><th style="${T}">الكمية</th><th style="${T}">القيمة</th></tr></thead><tbody>${iss.map(i=>`<tr><td style="${T}">${dmy(i.date)}</td><td style="${T}">${esc(i.item||'')}</td><td style="${T}">${esc(ctrEqName(x.name,i.equip))}</td><td style="${T}">${nfmt(i.qty)} ${esc(i.unit||'')}</td><td style="${T}">${mfmt((Number(i.qty)||0)*(Number(i.price)||0))}</td></tr>`).join('')}</tbody></table>`:'';
-    const body=`<div class="rep-sec">${ctrWeeklySheetHtml(x.name, from, to)}${SIG_LINE}</div>`; // الإمضاء في الآخر والكل صفحة واحدة
+}
+/* الشكل الموحد لكل المستخلصات (محمد 2026-11-13 «عمم الشكل ده»): المحفوظ، وواتساب/طباعة من شاشة مستخلص جديد */
+function openCtrWeekView(name, from, to){
+    const body=`<div class="rep-sec">${ctrWeeklySheetHtml(name, from, to)}${SIG_LINE}</div>`; // الإمضاء في الآخر والكل صفحة واحدة
     document.getElementById('cxv-modal')?.remove();
     const m=document.createElement('div'); m.id='cxv-modal';
     m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:12px';
     m.onclick=e=>{ if(e.target===m) m.remove(); };
     m.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:14px;max-width:760px;width:100%;padding:14px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:16px">${esc(x.name)} — من ${dmy(from)} إلى ${dmy(to)}</b>
-        <span style="display:flex;gap:6px"><button onclick="shareCard('cxv-body','مستخلص '+${JSON.stringify(x.name).replace(/"/g,'&quot;')})" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px"><i class="fa-brands fa-whatsapp"></i> واتساب</button><button onclick="printHtml(document.getElementById('cxv-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="document.getElementById('cxv-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✕</button></span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:16px">${esc(name)} — من ${dmy(from)} إلى ${dmy(to)}</b>
+        <span style="display:flex;gap:6px"><button onclick="shareCard('cxv-body','مستخلص '+${JSON.stringify(name).replace(/"/g,'&quot;')})" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px"><i class="fa-brands fa-whatsapp"></i> واتساب</button><button onclick="printHtml(document.getElementById('cxv-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="document.getElementById('cxv-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✕</button></span></div>
         <div id="cxv-body" style="overflow-x:auto;background:#fff;padding:6px">${body}</div></div>`;
     document.body.appendChild(m);
 }
+function cxFormSheet(){ const g=id=>document.getElementById(id), name=g('cx-name')?.value, from=g('cx-from')?.value, to=g('cx-to')?.value; if(!name) return true;
+    const has=(db.ctrExtracts||[]).some(x=>normName(x.name)===normName(name) && (x.to||x.date)>=from && (x.to||x.date)<=to);
+    if(!has){ alert('احفظ المستخلص الأول وبعدين ابعته أو اطبعه، عشان يفضل محفوظ في البرنامج.'); return true; }
+    openCtrWeekView(name, from, to); return true; }
+function cxFormActive(){ const t=document.querySelector('.tab-content.active'); return !!(t && t.querySelector('#sub-extracts-form.active')); }
 /* إجمالي كل أصحاب المعدات: له (شغل + الحساب القديم) − المدفوع له = الباقي له (محمد 2026-11-10) */
 function allContractorsStmtData(){
     const rows=(db.contractors||[]).filter(c=>!isCrusherCtr(c.name)).map(c=>{ const R=contractorStmtRows(c.name).rows;
@@ -11599,7 +11609,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 265.1';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 265.2';
 
     /* تنبيهات */
     const alerts=[];
