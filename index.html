@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 263.2</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 263.3</span></p></div>
         </div>
     </aside>
 
@@ -5177,12 +5177,14 @@ function computePL(projectFilter, dateFrom, dateTo){
     // Group expensesData by category name
     // دفعات أصحاب المعدات (عهد + سداد صافي) مش مصروف: دي سداد لقيمة المستخلص — المصروف هو المستخلص نفسه
     const catGroups = {};
-    let contractorPayments = 0, tipsIncome = 0;
+    let contractorPayments = 0, tipsIncome = 0, settleNoDisc = 0;
     db.expensesData.filter(x=>match(x)).forEach(x=>{
         const catDef = db.expenses.find(c=>c.name===x.category);
         if(catDef && catDef.nameType==='contractors'){ contractorPayments += Number(x.paid)||0; return; }
         if(x.tipDeposit){ tipsIncome += Number(x.total)||0; return; }
         if(x.category==='إيراد' && x.saleId) return; // قيمة الفاتورة محسوبة من البون/الفاتورة نفسها
+        /* تسوية حساب عميل «بدون خصم» (محمد 2026-11-13): مش بتنزل في خصومات العملاء — بتتقفل في بند إيرادات الفترة قبل 11/11 (تحصيلاتهم كانت جواه) */
+        if(x.category==='إيراد' && x.noDisc){ settleNoDisc += Number(x.total)||0; return; }
         const plType = catDef ? catDef.plType : 'operating';
         const plBucket = catDef ? catDef.plBucket : 'other_operating';
         if(!catGroups[x.category]) catGroups[x.category] = { plType, plBucket, total:0 };
@@ -5261,6 +5263,7 @@ function computePL(projectFilter, dateFrom, dateTo){
     { const g={}; (db.incomes||[]).filter(x=>matchDate(x)).forEach(x=>{ const k=((x.date||'')<=INC_OLD_CUT)?INC_OLD_LABEL:(x.type||'إيرادات أخرى'); g[k]=(g[k]||0)+(Number(x.amount)||0); });
       /* أرصدة أول المدة (خزن أول المدة − سلفة عماد أول المدة) ملهاش طرف تاني: بتتقفل في «إيرادات أخرى» عشان الميزان يتزن (محمد 2026-11-12) */
       try{ const sd=(db.sariSettings||{}).startDate||''; if(!dateFrom || dateFrom<=sd){ const oc=(db.accounts||[]).reduce((a,x)=>a+(Number(x.openingBalance)||0),0); const ol=(db.capitalLenders||[]).includes('عماد ناجي')?0:(Number((db.sariSettings||{}).loanOpening)||0); if(oc-ol) g[INC_OLD_LABEL]=(g[INC_OLD_LABEL]||0)+(oc-ol); } }catch(e){}
+      if(settleNoDisc) g[INC_OLD_LABEL]=(g[INC_OLD_LABEL]||0)+settleNoDisc;
       Object.entries(g).forEach(([k,v])=>{ if(v) otherLines.push({ num:num(), label:'(+) '+k, value:-v }); }); }
     const otherTotal = otherLines.reduce((s,l)=>s+l.value,0);
 
@@ -11449,7 +11452,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 263.2';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 263.3';
 
     /* تنبيهات */
     const alerts=[];
