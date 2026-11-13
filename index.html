@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 263.1</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 263.2</span></p></div>
         </div>
     </aside>
 
@@ -5377,8 +5377,9 @@ function renderPLInner(){
     if(r.otherLines.length){
         html += sectionHeader('إيرادات ومصروفات أخرى');
         /* محمد 2026-11-13: سطر «إيرادات أخرى» ما يظهرش في قائمة الدخل (عرض بس — الربح والمركز المالي زي ما هم) */
-        html += r.otherLines.filter(l=>!PL_HIDE_OTHER(l)).map(l=>itemRow(l.num, l.label, l.value)).join('');
-        if(!r.otherLines.some(PL_HIDE_OTHER)) html += totalRow('إجمالي', r.otherTotal, 'bg-purple-50 text-purple-800');
+        /* عرض: الإيراد يظهر موجب بعلامة (+) والمصروف بعلامة (−)، والصافي = إيرادات − مصروفات (محمد 2026-11-13) */
+        html += r.otherLines.map(l=>itemRow(l.num, l.value<0 ? l.label : '(−) '+l.label, Math.abs(l.value))).join('');
+        html += totalRow('صافي الإيرادات والمصروفات الأخرى', -r.otherTotal, 'bg-purple-50 text-purple-800');
     }
 
     html += totalRow('صافي الربح', r.profitBeforeTax, r.profitBeforeTax>=0?'bg-emerald-700 text-white':'bg-rose-700 text-white'); // الكسارة مفيهاش ضريبة
@@ -6112,8 +6113,8 @@ function exportPLExcel(){
         ['صافي الربح التشغيلي', r.netOperatingProfit],
         ...(r.otherLines.length ? [
             ['إيرادات ومصروفات أخرى', ''],
-            ...r.otherLines.filter(l=>!PL_HIDE_OTHER(l)).map(l=>[`(${l.num}) ${l.label}`, l.value]),
-            ...(r.otherLines.some(PL_HIDE_OTHER)?[]:[['إجمالي', r.otherTotal]]),
+            ...r.otherLines.map(l=>[`(${l.num}) ${l.value<0 ? l.label : '(−) '+l.label}`, Math.abs(l.value)]),
+            ['صافي الإيرادات والمصروفات الأخرى', -r.otherTotal],
         ] : []),
         ['صافي الربح', r.profitBeforeTax]
     ];
@@ -11448,7 +11449,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 263.1';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 263.2';
 
     /* تنبيهات */
     const alerts=[];
