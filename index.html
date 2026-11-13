@@ -466,7 +466,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 260.0</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 260.1</span></p></div>
         </div>
     </aside>
 
@@ -5032,7 +5032,15 @@ function stockCountAt(d){
     const C=(db.stockCounts||[]).filter(x=>x && x.date && (!d || x.date<=d));
     if(!C.length) return null;
     const last=C.map(x=>x.date).sort().pop();
-    const items=C.filter(x=>x.date===last);
+    /* محمد 2026-11-13: مخزون السولار والأصناف بيتحرك من بعد الجرد = كمية الجرد + المشتريات بعده − المصروف بعده (بمتوسط السعر). السن المشون يفضل على الجرد */
+    const sup=new Set((db.supplies||[]).map(x=>x.name)), after=x=>x && (x.date||'')>last && (!d || (x.date||'')<=d);
+    const items=C.filter(x=>x.date===last).map(x=>{ if(!sup.has(x.item)) return x;
+        const P=(db.procurements||[]).filter(p=>p.item===x.item && after(p)), pq=P.reduce((a,p)=>a+(Number(p.qty)||0),0), pv=P.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0);
+        let out=(db.stockIssues||[]).filter(i=>i.item===x.item && after(i)).reduce((a,i)=>a+(Number(i.qty)||0),0);
+        try{ out+=(db.equipExpenses||[]).filter(e=>e && Number(e.qty)>0 && after(e) && eqeItem(e.desc)===x.item).reduce((a,e)=>a+Number(e.qty),0); }catch(e){}
+        if(!pq && !out) return x;
+        const q0=Number(x.qty)||0, v0=Number(x.value)||0, avg=(q0+pq)>0?(v0+pv)/(q0+pq):0, q=Math.max(q0+pq-out,0);
+        return Object.assign({}, x, {qty:Math.round(q*100)/100, value:Math.round(q*avg), moved:true}); });
     return { date:last, items, total:items.reduce((a,x)=>a+(Number(x.value)||0),0) };
 }
 function computePL(projectFilter, dateFrom, dateTo){
@@ -5595,7 +5603,7 @@ function balanceSheetData(D){
     (db.clients||[]).forEach(c=>{ let b=0; try{ getClientAccountRowsAll(c.name).forEach(r=>{ if(le(r.date)) b+=(r.debit||0)-(r.credit||0); }); }catch(e){} if(b>0) rec+=b; else adv-=b; });
     if(Math.round(rec)) A.push({g:'العملاء', name:'مستحقات على العملاء', v:rec});
     // المخزون (بمتوسط سعر الشراء)
-    const _cnt=stockCountAt(D||''); if(_cnt){ _cnt.items.forEach(it=>A.push({g:'المخزون', name:'مخزون '+it.item+' (جرد '+_cnt.date+': '+Number(it.qty||0).toLocaleString('ar-EG')+' '+(it.unit||'')+')', v:Number(it.value)||0})); } else {
+    const _cnt=stockCountAt(D||''); if(_cnt){ _cnt.items.forEach(it=>A.push({g:'المخزون', name:'مخزون '+it.item+' ('+(it.moved?'الرصيد بعد حركة الشراء والصرف من جرد '+_cnt.date:'جرد '+_cnt.date)+': '+Number(it.qty||0).toLocaleString('ar-EG')+' '+(it.unit||'')+')', v:Number(it.value)||0})); } else {
     let inv=0; (db.supplies||[]).forEach(x=>{ try{ const q=itemStockBalance(x.name).balance; if(q<=0) return; const P=(db.procurements||[]).filter(p=>p.item===x.name); const qq=P.reduce((a,p)=>a+(Number(p.qty)||0),0); const avg=qq?P.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0)/qq:0; inv+=q*avg; }catch(e){} });
     if(Math.round(inv)) A.push({g:'المخزون', name:'مخزون الأصناف (سولار وغيره)', v:inv}); }
     // مستحقات على أصحاب المعدات
@@ -11144,7 +11152,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 260.0';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 260.1';
 
     /* تنبيهات */
     const alerts=[];
