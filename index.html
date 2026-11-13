@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 263.3</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 263.4</span></p></div>
         </div>
     </aside>
 
@@ -10386,7 +10386,7 @@ function stockBreakdown(name, from, to){
 const SIG_ACC='<div class="sig-line" style="margin-top:18px;font-weight:800;font-size:14px;display:flex;justify-content:flex-end;direction:rtl"><span>المحاسب / محمد الجميعي</span></div>';
 const SIG_LINE='<div class="sig-line" style="margin-top:18px;font-weight:800;font-size:14px;display:flex;justify-content:space-between;direction:rtl"><span>المسؤول / م. عماد ناجي</span><span>المحاسب / محمد الجميعي</span></div>';
 /* صاحب معدات عنده أكتر من معدة متكودة باسمين (أحمد أمين: لودر المحجر + لودر الأرضية): كل لودر بمستخلصه، وتحت الكشف حساب مجمّع = مستخلصات الاتنين − كل اللي أخده = الباقي له. عرض بس (محمد 2026-11-13) */
-const CTR_GROUPS=[{label:'احمد امين', re:/احمد\s*امين/}];
+const CTR_GROUPS = []; /* محمد 2026-11-13: احمد امين محجر وارضية منفصلين — الحساب المجمّع اتشال */
 function ctrGroupOf(name){ const nz=x=>String(x||'').replace(/[أإآ]/g,'ا').replace(/\s+/g,' ').trim(); const g=CTR_GROUPS.find(g=>g.re.test(nz(name))); if(!g) return null;
     const M=(db.contractors||[]).filter(c=>g.re.test(nz(c.name))).map(c=>c.name); return M.length>1 ? {label:g.label, members:M} : null; }
 function ctrGroupCalc(name, to){ const g=ctrGroupOf(name); if(!g) return null; let CR=0, DR=0;
@@ -11452,7 +11452,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 263.3';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 263.4';
 
     /* تنبيهات */
     const alerts=[];
