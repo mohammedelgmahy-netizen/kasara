@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 265.9</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 266.0</span></p></div>
         </div>
     </aside>
 
@@ -10226,7 +10226,7 @@ function cxPreview(resetQty){
         if(xt) h+=sub('أعمال إضافية', mfmt(xt), 'bg-amber-50');
         h+=sol.map(r=>`<tr class="border-t border-slate-100"><td class="p-2 font-bold text-rose-700">خصم ${esc(r.item||'')}</td><td class="p-2" style="${NW}">${esc(r.qtyTxt||'')}</td><td class="p-2">${nfmt(r.price||0)}</td><td class="p-2 font-extrabold text-rose-700" style="${NW}">${mfmt(r.debit)}-</td></tr>`).join('');
         if(sol.length) h+=sub('إجمالي خصم السولار والأصناف', mfmt(dv)+'-', 'bg-rose-50 text-rose-700');
-        h+=paid.map(r=>`<tr class="border-t border-slate-100"><td class="p-2 font-bold text-rose-700" colspan="3">${esc(r.desc||'')}${r.acc?' — '+esc(catLabel(r.acc)):''}</td><td class="p-2 font-extrabold text-rose-700" style="${NW}">${mfmt(r.debit)}-</td></tr>`).join('');
+        h+=paid.map(r=>`<tr class="border-t border-slate-100"><td class="p-2 font-bold text-rose-700" colspan="3">${esc(r.desc||'')}</td><td class="p-2 font-extrabold text-rose-700" style="${NW}">${mfmt(r.debit)}-</td></tr>`).join('');
         if(paid.length) h+=sub('إجمالي العهد والمدفوع له', mfmt(pv)+'-', 'bg-rose-50 text-rose-700');
         h+=sub('صافي الأسبوع (شغل − سولار − عهد)', (work-dv-pv<0?mfmt(-(work-dv-pv))+'-':mfmt(work-dv-pv)), 'bg-emerald-50 text-emerald-800');
         h+=sub('حساب سابق (من قبل الأسبوع)', bt(prev), 'bg-slate-50');
@@ -10340,9 +10340,9 @@ function ctrWeeklySheetHtml(name, from, to){
         ${sol.length ? sol.map(r=>`<tr><td style="${B}">${esc(r.item)}</td><td style="${B}white-space:nowrap">${esc(r.qtyTxt||'')}</td><td style="${B}">${nfmt(r.price||0)}</td><td style="${B}">${n0(r.debit)}</td></tr>`).join('') : none('مفيش صرف مسجل في الأسبوع ده',4)}
         <tr style="background:#fff1f2;font-weight:800"><td style="${B}text-align:right" colspan="3">إجمالي السولار والأصناف</td><td style="${B}">${n0(ts)}</td></tr></table>
       ${sec('٣) اللي اتدفع له في الأسبوع (عهد ودفعات)')}
-      <table style="width:100%;border-collapse:collapse"><tr><th style="${TH}">البيان</th><th style="${TH}">الخزنة</th><th style="${TH}">المبلغ</th></tr>
-        ${paid.length ? paid.map(r=>`<tr><td style="${B}text-align:right">${esc(r.desc||'')}</td><td style="${B}">${esc(catLabel(r.acc||''))}</td><td style="${B}">${n0(r.debit)}</td></tr>`).join('') : none('مفيش دفعات مسجلة في الأسبوع ده',3)}
-        <tr style="background:#fff1f2;font-weight:800"><td style="${B}text-align:right" colspan="2">إجمالي المدفوع</td><td style="${B}">${n0(tp)}</td></tr></table>
+      <table style="width:100%;border-collapse:collapse"><tr><th style="${TH}">البيان</th><th style="${TH}">المبلغ</th></tr>
+        ${paid.length ? paid.map(r=>`<tr><td style="${B}text-align:right">${esc(r.desc||'')}</td><td style="${B}">${n0(r.debit)}</td></tr>`).join('') : none('مفيش دفعات مسجلة في الأسبوع ده',2)}
+        <tr style="background:#fff1f2;font-weight:800"><td style="${B}text-align:right" >إجمالي المدفوع</td><td style="${B}">${n0(tp)}</td></tr></table>
       ${sec('الحساب')}
       <table style="width:100%;border-collapse:collapse">
         <tr><td style="${big}width:62%;text-align:right">باقي حسابه من قبل الأسبوع</td><td style="${big}">${balTxt(prev)}</td></tr>
@@ -11624,7 +11624,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 265.9';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 266.0';
 
     /* تنبيهات */
     const alerts=[];
