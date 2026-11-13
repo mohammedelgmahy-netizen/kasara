@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 261.5</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 261.6</span></p></div>
         </div>
     </aside>
 
@@ -6667,21 +6667,20 @@ function stockIssuePrice(x){
     return x.price;
 }
 
-function addStockIssue(e){
-    e.preventDefault();
+function __addStockIssueCore(e){
     if(!db.stockIssues) db.stockIssues = [];
     const item = document.getElementById('stock-item').value;
     const qty = Number(document.getElementById('stock-qty').value)||0;
-    if(!item||!qty){ alert('اختر الصنف وأدخل الكمية'); return; }
+    if(!item||!qty){ return stockMsg(false,'ما اتسجلتش: اختار الصنف واكتب الكمية.'); }
     let recipientRaw = document.getElementById('stock-name').value || '';
-    if(!recipientRaw){ alert('اختار المستلم (صاحب المعدة أو معدة الكسارة).'); document.getElementById('stock-name').focus(); return; }
+    if(!recipientRaw){ document.getElementById('stock-name').focus(); return stockMsg(false,'ما اتسجلتش: اختار المستلم (صاحب المعدة أو معدة الكسارة).'); }
     let crEquip = ''; if(recipientRaw.startsWith('x::')){ crEquip = recipientRaw.slice(3); recipientRaw = ''; const pe=document.getElementById('stock-price'); if(pe) pe.value=''; }
     /* معدات الكسارة = استهلاك الكسارة (تكلفة على الكسارة، من غير سعر) — محمد 2026-11-10 */
     if(isCrusherCtr(recipientRaw.split('::').pop())){ recipientRaw=''; const pe=document.getElementById('stock-price'); if(pe) pe.value=''; }
-    if(recipientRaw && !(Number(document.getElementById('stock-price').value)>0)){ alert('اكتب السعر عشان يتحسب على المستلم.'); document.getElementById('stock-price').focus(); return; }
+    if(recipientRaw && !(Number(document.getElementById('stock-price').value)>0)){ document.getElementById('stock-price').focus(); return stockMsg(false,'ما اتسجلتش: اكتب السعر عشان يتحسب على المستلم.'); }
     const [typeCode, recipientName] = recipientRaw.includes('::') ? recipientRaw.split('::') : ['p', recipientRaw];
     const recipientType = typeCode==='a' ? 'asset' : typeCode==='v' ? 'vehicle' : typeCode==='c' ? 'contractor' : 'person';
-    db.stockIssues.push({
+    const rec = {
         id: Date.now(),
         item,
         qty,
@@ -6693,13 +6692,33 @@ function addStockIssue(e){
         date: document.getElementById('stock-date').value || todayISO(),
         notes: document.getElementById('stock-notes').value.trim(),
         equip: crEquip || (document.getElementById('stock-equip')?.value||'').trim()
-    });
+    };
+    db.stockIssues.push(rec);
+    try{ logAudit('create','صرف مخزون', rec.item+' '+rec.qty+' - '+(rec.name==='-'?(rec.equip||'الكسارة'):rec.name), null, rec); }catch(x){}
     e.target.reset();
     document.getElementById('stock-date').value = todayISO();
     { const pe=document.getElementById('stock-price'); if(pe) delete pe.dataset.touched; } updateStockUnit(); try{ stockEquipOpts(); }catch(x){}
     scheduleSave();
     renderInventory();
     renderStockIssues();
+    stockMsg(true,'✅ اتسجلت: '+rec.item+' '+rec.qty.toLocaleString('ar-EG')+' '+(rec.unit||'')+' لـ '+(rec.name==='-'?(rec.equip||'الكسارة'):rec.name)+' بتاريخ '+rec.date+(rec.price?(' بسعر '+rec.price):''));
+}
+
+/* تأكيد الحفظ أو سبب الفشل في صرف المخزون + تسجيل المحاولة الفاشلة (محمد 2026-11-13) */
+function stockMsg(ok, txt){
+    let el=document.getElementById('stock-msg');
+    if(!el){ const fm=document.querySelector('form[onsubmit="addStockIssue(event)"]'); if(fm){ el=document.createElement('div'); el.id='stock-msg'; fm.parentNode.insertBefore(el, fm.nextSibling); } }
+    if(el){ el.textContent=txt; el.style.cssText='margin-top:10px;padding:12px 14px;font-size:16px;font-weight:bold;border:2px solid '+(ok?'#059669':'#dc2626')+';background:'+(ok?'#d1fae5':'#fee2e2')+';color:'+(ok?'#065f46':'#991b1b'); try{ el.scrollIntoView({block:'nearest'}); }catch(x){} }
+    if(!ok){
+        try{ const g=id=>(document.getElementById(id)||{}).value||''; logAudit('fail','صرف مخزون (ما اتسجلش)', txt, null, {item:g('stock-item'), qty:g('stock-qty'), price:g('stock-price'), to:g('stock-name'), date:g('stock-date'), notes:g('stock-notes')}); scheduleSave(); }catch(x){}
+        alert(txt);
+    }
+}
+function addStockIssue(e){
+    e.preventDefault();
+    const n0=(db.stockIssues||[]).length;
+    try{ __addStockIssueCore(e); }
+    catch(err){ if((db.stockIssues||[]).length>n0){ try{ scheduleSave(); }catch(x){} stockMsg(true,'✅ اتسجلت الحركة.'); console.error(err); } else stockMsg(false,'ما اتسجلتش بسبب خطأ في البرنامج: '+(err&&err.message||err)); }
 }
 
 function deleteStockIssue(id){
@@ -11387,7 +11406,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 261.5';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 261.6';
 
     /* تنبيهات */
     const alerts=[];
