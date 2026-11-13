@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1004</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1005</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -4181,7 +4181,7 @@ function saveMasterItem(e){
         { if(!db.ctrExtracts) db.ctrExtracts=[]; const fid='final-'+item.code, i=db.ctrExtracts.findIndex(x=>String(x.id)===fid);
           if(item.finalSin){ const rec={id:fid, name:item.name, extra:true, final:true, equip:'مستخلص نهائي', date:item.finalSinDate, from:item.finalSinDate, to:item.finalSinDate, qty:1, rate:Number(item.finalSin), amount:Math.round(Number(item.finalSin)), notes:'تقدير السن النهائي — تسوية أخيرة'};
             if(i>=0) db.ctrExtracts[i]=rec; else db.ctrExtracts.push(rec); }
-          else if(i>=0) db.ctrExtracts.splice(i,1); } const sf = document.getElementById('master-startfrom').value; if(sf) item.startFrom = sf; const ds = Number(document.getElementById('master-deductsin').value)||0; if(ds>0) item.deductSin = ds;
+          else if(i>=0) db.ctrExtracts.splice(i,1); } const sf = document.getElementById('master-startfrom').value; if(sf) item.startFrom = sf; else if(!editCode && !item.startFrom) item.startFrom = todayISO(); /* صاحب معدة جديد: حسابه وسنّه يبدأوا من يوم تكويده (محمد 2026-11-13) */ const ds = Number(document.getElementById('master-deductsin').value)||0; if(ds>0) item.deductSin = ds;
         const ot = Number(document.getElementById('master-ctr-open-total').value)||0, op = Number(document.getElementById('master-ctr-open-paid').value)||0;
         if(ot||op){ item.openTotal = ot; item.openPaid = op; item.openBal = ot - op; item.openDate = document.getElementById('master-ctr-open-date').value || todayISO(); item.openAcc = document.getElementById('master-ctr-open-acc').value; }
         }
@@ -10492,7 +10492,7 @@ function cxFormSheet(){ const g=id=>document.getElementById(id), name=g('cx-name
 function cxFormActive(){ const t=document.querySelector('.tab-content.active'); return !!(t && t.querySelector('#sub-extracts-form.active')); }
 /* إجمالي كل أصحاب المعدات: له (شغل + الحساب القديم) − المدفوع له = الباقي له (محمد 2026-11-10) */
 function allContractorsStmtData(){
-    const rows=(db.contractors||[]).filter(c=>!isCrusherCtr(c.name)).map(c=>{ const R=contractorStmtRows(c.name).rows;
+    const rows=(db.contractors||[]).filter(c=>!isCrusherCtr(c.name) && !c.done).map(c=>{ const R=contractorStmtRows(c.name).rows; /* المتوقف مبيظهرش في الحسابات (محمد 2026-11-13) */
         const tot=R.reduce((s,r)=>s+(Number(r.credit)||0),0), paid=R.reduce((s,r)=>s+(Number(r.debit)||0),0);
         return {name:c.name, tot, paid, bal:tot-paid}; }).filter(r=>r.tot||r.paid)
         .sort((a,b)=>b.tot-a.tot);
@@ -10718,7 +10718,7 @@ function contractorSheetHtml(name, from, to){
 function renderContractorStmt(){
     const g = id=>document.getElementById(id), sel = g('cs2-name'); if(!sel) return;
     const pv = sel.value;
-    sel.innerHTML = (db.contractors||[]).map(c=>`<option value="${esc(c.name)}">${esc(c.name)}${c.equip?' — '+esc(c.equip):''}</option>`).join('') || '<option value="">— ضيف مقاول في دليل الأكواد —</option>';
+    sel.innerHTML = (db.contractors||[]).filter(c=>!c.done).map(c=>`<option value="${esc(c.name)}">${esc(c.name)}${c.equip?' — '+esc(c.equip):''}</option>`).join('') || '<option value="">— ضيف مقاول في دليل الأكواد —</option>';
     if([...sel.options].some(o=>o.value===pv)) sel.value = pv;
     const name = sel.value, tb = g('tbody-cs2');
     if(!name){ tb.innerHTML=''; g('cs2-summary').innerHTML=''; if(g('cs2-equip')) g('cs2-equip').innerHTML=''; if(g('cs2-sheet')) g('cs2-sheet').innerHTML=''; return; }
@@ -10769,7 +10769,7 @@ function custodyStmtHtml(name, from, to, forPrint){
 function renderCustodyStmt(){
     const sel = document.getElementById('cs-name'); if(!sel) return;
     const pv = sel.value;
-    sel.innerHTML = (db.contractors||[]).map(c=>`<option value="${esc(c.name)}">${esc(c.name)}${c.equip?' — '+esc(c.equip):''}</option>`).join('') || '<option value="">— ضيف مقاول في دليل الأكواد —</option>';
+    sel.innerHTML = (db.contractors||[]).filter(c=>!c.done).map(c=>`<option value="${esc(c.name)}">${esc(c.name)}${c.equip?' — '+esc(c.equip):''}</option>`).join('') || '<option value="">— ضيف مقاول في دليل الأكواد —</option>';
     if([...sel.options].some(o=>o.value===pv)) sel.value = pv;
     const box = document.getElementById('cs-body');
     box.innerHTML = sel.value ? `<div class="overflow-x-auto">${custodyStmtHtml(sel.value, document.getElementById('cs-from').value, document.getElementById('cs-to').value)}</div>` : '';
