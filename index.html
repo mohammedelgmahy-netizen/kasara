@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 264.6</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 264.7</span></p></div>
         </div>
     </aside>
 
@@ -1470,7 +1470,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <div class="col-span-2 md:col-span-6 overflow-x-auto"><table class="w-full text-sm text-right border border-slate-200 rounded-lg"><thead class="bg-slate-100"><tr><th class="p-2">المعدة</th><th class="p-2">عدد الأمتار</th><th class="p-2" id="cx-rate-th">سعر المتر</th><th class="p-2">المبلغ</th></tr></thead><tbody id="cx-rows"></tbody><tbody><tr class="bg-indigo-50 font-extrabold"><td class="p-2">الإجمالي</td><td class="p-2" id="cx-tq">—</td><td></td><td class="p-2 text-emerald-700" id="cx-amount">—</td></tr></tbody><tbody id="cx-ded"></tbody></table></div>
                     <div class="col-span-2 md:col-span-6">
                         <div class="flex items-center gap-2 mb-1"><span class="text-xs font-bold text-slate-600">أعمال إضافية (حفر بالساعة، شغل خاص...):</span><button type="button" onclick="cxAddExtra()" class="bg-amber-500 hover:bg-amber-600 text-white rounded px-2.5 py-1 text-xs font-bold">＋ عمل إضافي</button></div>
-                        <table class="w-full text-sm text-right border border-amber-200 rounded-lg" id="cx-extra-tbl" style="display:none"><thead class="bg-amber-50"><tr><th class="p-2">وصف الشغل</th><th class="p-2">الكمية</th><th class="p-2">السعر</th><th class="p-2">المبلغ</th><th class="p-2"></th></tr></thead><tbody id="cx-extra-rows"></tbody></table>
+                        <table class="w-full text-sm text-right border border-amber-200 rounded-lg" id="cx-extra-tbl" style="display:none"><thead class="bg-amber-50"><tr><th class="p-2">وصف الشغل</th><th class="p-2">العدد / الكمية</th><th class="p-2">سعر الواحدة</th><th class="p-2">المبلغ</th><th class="p-2"></th></tr></thead><tbody id="cx-extra-rows"></tbody></table>
                     </div>
                     <div class="col-span-2 md:col-span-4"><div id="cx-info" class="text-sm font-bold text-slate-600"></div></div>
                     <div><input id="cx-notes" placeholder="ملاحظات" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
@@ -10249,8 +10249,8 @@ let cxExtraN=0;
 function cxAddExtra(){
     const tb=document.getElementById('cx-extra-rows'); if(!tb) return; const i=cxExtraN++;
     const inp='bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold';
-    tb.insertAdjacentHTML('beforeend', `<tr id="cx-x-${i}" class="border-t border-amber-100"><td class="p-2"><input id="cx-xd-${i}" placeholder="مثال: حفر بالساعة" class="w-full ${inp}"></td><td class="p-2"><input id="cx-xq-${i}" type="number" step="any" min="0" value="1" oninput="cxExtraCalc(${i})" class="w-24 ${inp}"></td><td class="p-2"><input id="cx-xr-${i}" type="number" step="any" min="0" oninput="cxExtraCalc(${i})" class="w-24 ${inp}"></td><td class="p-2 font-extrabold text-emerald-700" id="cx-xa-${i}">—</td><td class="p-2"><button type="button" onclick="document.getElementById('cx-x-${i}').remove();cxExtraShow()" class="text-rose-600 text-xs font-bold">✕</button></td></tr>`);
-    cxExtraShow(); document.getElementById('cx-xd-'+i).focus();
+    tb.insertAdjacentHTML('beforeend', `<tr id="cx-x-${i}" class="border-t border-amber-100"><td class="p-2"><input id="cx-xd-${i}" type="text" value="ساعات" placeholder="الوصف (ساعات، نقلة...)" class="w-full ${inp}"></td><td class="p-2"><input id="cx-xq-${i}" type="number" inputmode="decimal" step="any" min="0" placeholder="العدد" oninput="cxExtraCalc(${i})" class="w-24 ${inp}"></td><td class="p-2"><input id="cx-xr-${i}" type="number" inputmode="decimal" step="any" min="0" placeholder="السعر" oninput="cxExtraCalc(${i})" class="w-24 ${inp}"></td><td class="p-2 font-extrabold text-emerald-700" id="cx-xa-${i}">—</td><td class="p-2"><button type="button" onclick="document.getElementById('cx-x-${i}').remove();cxExtraShow()" class="text-rose-600 text-xs font-bold">✕</button></td></tr>`);
+    cxExtraShow(); document.getElementById('cx-xq-'+i).focus(); /* الوصف جاهز «ساعات» والمؤشر على العدد ثم السعر (محمد 2026-11-13) */
 }
 function cxExtraCalc(i){ const q=Number(document.getElementById('cx-xq-'+i).value)||0, r=Number(document.getElementById('cx-xr-'+i).value)||0; document.getElementById('cx-xa-'+i).textContent = q&&r ? mfmt(q*r) : '—'; if(!window.__cxP){ window.__cxP=1; try{ cxPreview(); }catch(e){} window.__cxP=0; } }
 function cxExtraShow(){ const tb=document.getElementById('cx-extra-rows'), t=document.getElementById('cx-extra-tbl'); if(t) t.style.display = tb && tb.children.length ? '' : 'none'; }
@@ -10262,7 +10262,7 @@ function saveCtrExtract(){
     const L=ctrEquips(name).map((e,i)=>({e, q:Number(g('cx-q-'+i)?.value)||0, rt:Number(g('cx-r-'+i)?.value)||0, i})).filter(x=>x.q>0);
     const EXall=cxExtras(), EX=EXall.filter(x=>x.d && x.q>0 && x.rt>0);
     const LOW=(()=>{ const q=Number(g('cx-lq')?.value)||0, rt=Number(g('cx-lr')?.value)||0, R=ctrLowRule(name); return (R && q>0 && rt>0) ? {q, rt, d:`أصناف أقل من ${nfmt(R.pct)}% سن (إجمالي التكعيب)`} : null; })();
-    const half=EXall.find(x=>(x.d||x.q>0||x.rt>0) && !(x.d && x.q>0 && x.rt>0));
+    const half=EXall.find(x=>(x.q>0||x.rt>0) && !(x.d && x.q>0 && x.rt>0));
     if(half){ alert('اكمل بيانات العمل الإضافي: الوصف والكمية والسعر'); half.el.focus(); return; }
     if(!name || (!L.length && !EX.length && !LOW)){ alert('اختار المقاول واكتب الأمتار أو عمل إضافي'); return; }
     const bad=L.find(x=>!(x.rt>0)); if(bad){ alert('اكتب سعر المتر لـ '+ctrEqName(name,bad.e)); g('cx-r-'+bad.i).focus(); return; }
@@ -11588,7 +11588,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 264.6';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 264.7';
 
     /* تنبيهات */
     const alerts=[];
