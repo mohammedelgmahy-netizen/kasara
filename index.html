@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1001</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1002</span><span class="text-emerald-400 font-bold">الإصدار 2</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1488,7 +1488,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <input id="cw-search" oninput="cwRender()" placeholder="ابحث بتاريخ الأسبوع (مثلاً 22/10)" class="bg-white border border-indigo-200 rounded px-2 py-1 text-sm" style="min-width:13rem">
                     <button type="button" onclick="shareCard('cw-body','أرصدة الأسابيع')" style="background:#16a34a;color:#fff" class="px-3 py-1 rounded text-xs font-bold"><i class="fa-brands fa-whatsapp"></i> واتساب</button>
                     <button type="button" onclick="printHtml(document.getElementById('cw-body').innerHTML)" class="bg-slate-800 text-white px-3 py-1 rounded text-xs font-bold">🖨️ طباعة</button>
-                    <label class="bg-amber-500 text-white px-3 py-1 rounded text-xs font-bold cursor-pointer">📥 تحميل الأسابيع القديمة من ملف الإكسيل<input type="file" accept=".xlsx,.xls" onchange="cwImport(this)" style="display:none"></label>
+                    <label class="bg-amber-500 text-white px-3 py-1 rounded text-xs font-bold cursor-pointer">📥 تحميل الأسابيع القديمة من ملف الإكسيل<input type="file" accept=".xlsx,.xls" multiple onchange="cwImport(this)" style="display:none"></label>
                 </div>
                 <div id="cw-msg" class="px-4 pt-2 text-sm font-bold"></div>
                 <div id="cw-body" class="p-3" style="overflow-x:auto;background:#fff"></div>
@@ -10146,13 +10146,13 @@ function contractorStmtRows(name){
    الأسابيع القديمة (قبل الحساب المتكود) بتيجي من ملف إكسيل المستخلصات بتاعه (كراسة المعدات): هو اللي بيحمّله بزرار، وبتتخزن مرجع للعرض بس في db.ctrHist ومبتدخلش في أي حساب.
    الأسابيع الجديدة بتتحسب من حركات كشفه (مستخلصات + سولار + عهد). */
 function cwNorm(t){ return String(t||'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[()\-ـ]/g,' ').replace(/\s+/g,' ').trim(); }
-function cwSheetFor(name){ const H=(db.ctrHist&&db.ctrHist.sheets)||{}; const n=cwNorm(name), sq=x=>cwNorm(x).replace(/\s/g,'').replace(/ابو/g,'بو');
+function cwSheetFor(name, H){ H=H||(db.ctrHist&&db.ctrHist.sheets)||{}; const n=cwNorm(name), sq=x=>cwNorm(x).replace(/\s/g,'').replace(/ابو/g,'بو');
     const ks=Object.keys(H); const exact=ks.filter(k=>sq(k)===sq(name)); if(exact.length===1) return exact[0];
     const sub=ks.filter(k=>cwNorm(k).split(' ').every(t=>n.split(' ').includes(t))); if(sub.length!==1) return null;
     /* صفحة واحدة لأكتر من صاحب معدة (زي لودر احمد امين محجر/ارضية): مينفعش تتقسم لوحدها */
     const share=(db.contractors||[]).filter(c=>cwNorm(sub[0]).split(' ').every(t=>cwNorm(c.name).split(' ').includes(t))).length; return share===1 ? sub[0] : null; }
 function cwParseDate(a,b,c){ let y,m,d; if(String(a).length===4){ y=a;m=b;d=c; } else { d=a;m=b;y=c; } if(String(y).length<=2) y='20'+String(y).padStart(2,'0'); const r=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; return isNaN(new Date(r+'T12:00:00').getTime()) || +m>12 || +d>31 ? '' : r; }
-function cwParseWorkbook(wb){ const sheets={}; const num=v=>typeof v==='number'&&isFinite(v);
+function cwParseWorkbook(wb){ const sheets={}, pay={}; const num=v=>typeof v==='number'&&isFinite(v);
     wb.SheetNames.forEach(sn=>{ const A=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:null,raw:true}); const W=[]; let cur=null;
         A.forEach(row=>{ const cells=(row||[]).slice(0,2).filter(c=>c!==null&&c!==''); /* العمودين الأولانيين بس: الأعمدة الجانبية فيها ملخصات شهرية */ if(!cells.length) return; const txt=cells.map(String).join(' ').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
             const m=/مستخلص/.test(txt) && txt.match(/(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})\d*\D+?(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
@@ -10161,23 +10161,35 @@ function cwParseWorkbook(wb){ const sheets={}; const num=v=>typeof v==='number'&
             if(/رصيد سابق/.test(lab)) cur.prev=val; else if(/سعر/.test(lab)) cur.rate=val; else if(/اجمال[ىي].*مبلغ/.test(lab)) cur.work=val; else if(/^(اجمال[ىي] )?(الكميه|الكمية)$|^عدد/.test(lab)){ cur.qty=val; cur.unit=/ساع/.test(lab)?'ساعة':'متر'; }
             else if(/اعمال اضافي/.test(lab)) cur.extra=(cur.extra||0)+val; else if(/الاجمال[ىي] الكل[ىي]/.test(lab)) cur.total=val;
             else if(/^المبلغ الواصل$/.test(lab)) cur.paid=val; else if(/المتبق[ىي]/.test(lab)) cur.remain=val; else if(val) cur.other.push([lab,val]); });
-        const ok=W.filter(w=>!w.bad && w.remain!==undefined && (w.work||w.paid||w.total)); if(ok.length) sheets[sn]=ok; });
-    return sheets; }
-function cwImport(inp){ const f=inp.files&&inp.files[0]; inp.value=''; if(!f) return; if(isRO()) return; const msg=document.getElementById('cw-msg');
-    const rd=new FileReader(); rd.onerror=()=>{ msg.innerHTML='<span style="color:#b91c1c">الملف ما اتقراش</span>'; };
-    rd.onload=()=>{ try{ const wb=XLSX.read(new Uint8Array(rd.result),{type:'array'}); const sheets=cwParseWorkbook(wb); const n=Object.keys(sheets).length, w=Object.values(sheets).reduce((a,x)=>a+x.length,0);
-            if(!n){ msg.innerHTML='<span style="color:#b91c1c">الملف ده مفيهوش مستخلصات أسبوعية بالشكل المعروف (مستخلص … من … حتى … / رصيد سابق / المبلغ الواصل / المبلغ المتبقى)</span>'; return; }
-            db.ctrHist={sheets, at:new Date().toISOString(), file:f.name}; logAudit('create','أسابيع قديمة من الإكسيل',`${f.name}: ${n} صاحب معدة، ${w} أسبوع`); scheduleSave(); cwRender();
-            msg.innerHTML=`<span style="color:#047857">✓ اتحمل ${w} أسبوع لـ ${n} صاحب معدة من «${esc(f.name)}». دي للعرض بس ومبتغيرش أي حساب.</span>`;
-        }catch(e){ msg.innerHTML='<span style="color:#b91c1c">حصل خطأ في قراءة الملف: '+esc(e.message||e)+'</span>'; } };
-    rd.readAsArrayBuffer(f); }
+        const ok=W.filter(w=>!w.bad && w.remain!==undefined && (w.work||w.paid||w.total)); if(ok.length){ sheets[sn]=ok; return; }
+        /* كراريس الدفع: بلوكات «من … حتى …» (تاريخين بأي ترتيب) وتحتها حركات وآخرها «الاجمالي» = اللي خده في الفترة */
+        const P=[]; let pc=null; A.forEach(row=>{ const c0=row&&row[0]; if(typeof c0!=='string') return; const t=c0.replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+            if(/الاجمال/.test(t)){ if(pc && num(row[1])){ pc.paid=Math.round(row[1]*100)/100; P.push(pc); } pc=null; return; }
+            const ds=[...t.matchAll(/(\d{1,4})\s*[\\\/]\s*0*(\d{1,2})\s*[\\\/]\s*(\d{1,4})/g)].map(m=>cwParseDate(m[1],m[2],m[3])).filter(Boolean).sort();
+            if(ds.length>=1 && /من|حت[ىي]|ال[ىي]|الفتر|\)\s*\(/.test(t)) pc={from:ds[0], to:ds.length>1?ds[ds.length-1]:addDays(ds[0],6)}; });
+        if(P.length) pay[sn]=P; });
+    return {sheets, pay}; }
+function cwImport(inp){ const files=[...(inp.files||[])]; inp.value=''; if(!files.length) return; if(isRO()) return; const msg=document.getElementById('cw-msg');
+    /* أكتر من ملف مع بعض (كراريس 1 و2 و3): كل ملف بيتضاف على اللي قبله؛ نفس الصفحة ونفس الأسبوع = الأحدث يكسب */
+    const read=f=>new Promise((ok,no)=>{ const rd=new FileReader(); rd.onerror=()=>no(new Error('الملف ما اتقراش: '+f.name)); rd.onload=()=>{ try{ ok(cwParseWorkbook(XLSX.read(new Uint8Array(rd.result),{type:'array'}))); }catch(e){ no(e); } }; rd.readAsArrayBuffer(f); });
+    (async()=>{ try{ const all=Object.assign({}, (db.ctrHist&&db.ctrHist.sheets)||{}), allPay=Object.assign({}, (db.ctrHist&&db.ctrHist.pay)||{}); let n=0, w=0; const empty=[];
+            for(const f of files){ const R=await read(f), sh=R.sheets; const ks=Object.keys(sh), pk=Object.keys(R.pay); if(!ks.length && !pk.length) empty.push(f.name);
+                pk.forEach(k=>{ allPay[k.trim()]=R.pay[k]; n++; w+=R.pay[k].length; });
+                ks.forEach(k=>{ const kk=k.trim(), M={}; (all[kk]||[]).forEach(x=>M[x.from]=x); sh[k].forEach(x=>{ M[x.from]=Object.assign({},x,{id:kk+'|'+x.from}); }); all[kk]=Object.values(M).sort((a,b)=>a.from.localeCompare(b.from)); n++; w+=sh[k].length; }); }
+            if(!n){ msg.innerHTML='<span style="color:#b91c1c">الملفات دي مفيهاش مستخلصات أسبوعية بالشكل المعروف (مستخلص … من … حتى … / رصيد سابق / المبلغ الواصل / المبلغ المتبقى)</span>'; return; }
+            db.ctrHist={sheets:all, pay:allPay, at:new Date().toISOString(), file:files.map(f=>f.name).join(' + ')}; logAudit('create','أسابيع قديمة من الإكسيل',`${files.map(f=>f.name).join(' + ')}: ${n} صفحة، ${w} أسبوع`); scheduleSave(); cwRender();
+            msg.innerHTML=`<span style="color:#047857">✓ اتحمل ${w} أسبوع من ${n} صفحة. دي للعرض بس ومبتغيرش أي حساب.</span>`+(empty.length?` <span style="color:#b45309">(ملفات مفيهاش مستخلصات أسبوعية: ${empty.map(esc).join('، ')})</span>`:'');
+        }catch(e){ msg.innerHTML='<span style="color:#b91c1c">حصل خطأ في قراءة الملف: '+esc(e.message||e)+'</span>'; } })(); }
 function cwWeeks(name){ const c=ctrOf(name)||{}, sh=cwSheetFor(name), H=sh?((db.ctrHist.sheets[sh])||[]).slice().sort((a,b)=>a.from.localeCompare(b.from)):[]; const out=[];
     H.forEach(w=>out.push({from:w.from, to:w.to, work:(w.total!==undefined && w.prev!==undefined) ? Math.round((w.total-w.prev)*100)/100 : (w.work||0)+(w.extra||0), qty:w.qty||0, rate:w.rate||0, paid:(w.total||0)-(w.remain||0)-0 , bal:w.remain||0, old:true, src:w}));
     out.forEach(o=>{ const w=o.src; o.paid=Math.round(((w.total!==undefined?w.total:(w.prev||0)+o.work)-(w.remain||0))*100)/100; });
     const oT=Number(c.openTotal)||0, oP=Number(c.openPaid)||0, ob=Number(c.openBal)||0, hasOpen=!!(c.openDate && (oT||oP||ob));
     if(hasOpen && H.length){ const sw=out.reduce((a,o)=>a+o.work,0), last=out[out.length-1], opening=(oT||oP)?oT-oP:ob; let dW=Math.round((oT-sw)*100)/100, dP=Math.round((last.bal+dW-opening)*100)/100;
         /* شغل ومدفوع الفترة الناقصة بيتحسبوا بس لو ملف الإكسيل بادئ من أول الحساب (رصيد سابق صفر) والأرقام منطقية؛ غير كده الرصيد بس */
-        const known = Math.abs(out[0].src.prev||0)<1 && dW>=-0.5 && dP>=-0.5; if(!known){ dW=null; dP=null; }
+        let known = Math.abs(out[0].src.prev||0)<1 && dW>=-0.5 && dP>=-0.5;
+        /* لو كراريس الدفع محملة: اللي خده بعد آخر أسبوع في ملف المستخلصات = مجموع بلوكات الكراسة بعده، والشغل = الفرق */
+        { const PS=(db.ctrHist&&db.ctrHist.pay)||{}, pk=cwSheetFor(name, PS), pp=pk?PS[pk].filter(b=>b.from>last.to && b.from<c.openDate):[]; if(pp.length){ dP=Math.round(pp.reduce((a,b)=>a+b.paid,0)*100)/100; dW=Math.round((opening-last.bal+dP)*100)/100; known = dW>=-0.5; } }
+        if(!known){ dW=null; dP=null; }
         if(!known ? Math.abs(last.bal-opening)>0.5 : (Math.abs(dW)>0.5 || Math.abs(dP)>0.5)) out.push({from:addDays(last.to,1), to:addDays(c.openDate,-7)>last.to?addDays(c.openDate,-7):addDays(last.to,7), work:dW, paid:dP, bal:opening, old:true, gap:true}); }
     else if(hasOpen && !H.length) out.push({from:'', to:addDays(c.openDate,-7), work:oT, paid:oP, bal:(oT||oP)?oT-oP:ob, old:true, lump:true});
     /* الجديد: من حركات كشفه، أسبوع بأسبوع (خميس → أربع) */
@@ -11714,7 +11726,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 1';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 2';
 
     /* تنبيهات */
     const alerts=[];
