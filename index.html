@@ -386,7 +386,8 @@ body > header .hdr-actions > button,body > header .hdr-actions > label{border-ra
 @media (max-width:900px){ #exp-form > #exp-save-wrap{display:block !important} .exp-sap-tb button[form]{display:none} #exp-sap-item .exp-sap-val{display:inline-block} }
 /* v260.9: بنود المصروف قايمة منسدلة + الشاشة ثابتة من غير تمرير يمين/شمال */
 #exp-form > #exp-quick{display:none !important}
-#exp-sap-day{max-height:128px;overflow-y:auto}
+#exp-sap-day{height:128px;overflow-y:auto}
+@media screen and (min-width:901px){ html,body{overflow-y:hidden} }
 @media (min-width:901px){ #sub-expenses-form > .bg-white:first-child > h3{display:none !important} #sub-expenses-form #exp-sap-day-h{margin-bottom:6px !important} }
 html,body{overflow-x:hidden !important;max-width:100vw}
 main{overflow-x:hidden !important}
@@ -554,7 +555,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 260.9</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 261.0</span></p></div>
         </div>
     </aside>
 
@@ -1114,7 +1115,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 </form>
                 <div id="exp-sap-line"></div>
             </div>
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-900 mb-4" id="exp-sap-day-h">مصروفات اليوم</h3><div id="exp-sap-day" class="overflow-x-auto"></div></div>
+            <div id="exp-sap-day-card" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-900 mb-4" id="exp-sap-day-h">مصروفات اليوم</h3><div id="exp-sap-day" class="overflow-x-auto"></div></div>
             </div><!-- /sub-expenses-form -->
             <div id="sub-expenses-log" class="subpage">
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col flex-1">
@@ -5960,15 +5961,27 @@ function expSapRender(){ try{ const g=id=>document.getElementById(id); if(!g('ex
     const L=(db.expensesData||[]).filter(x=>x.category!=='إيراد' && x.date===d), tot=L.reduce((a,x)=>a+(Number(x.paid)||0),0), code=n=>{ const k=(db.expenses||[]).find(z=>z.name===n); return k?k.code:''; }, accCode=n=>{ const a=(db.accounts||[]).find(z=>z.name===n); return a?a.code:''; };
     g('exp-sap-day-h').textContent='مصروفات يوم '+dmy(d);
     g('exp-sap-day').innerHTML=!L.length?'<div class="text-slate-400" style="padding:2px 4px">مفيش مصروفات مسجلة في اليوم ده</div>':`<table><thead><tr><th>م</th><th>الكود</th><th>البند</th><th>البيان</th><th>الخزنة</th><th>المبلغ</th></tr></thead><tbody>${L.map((x,i)=>`<tr><td>${i+1}</td><td style="font-family:monospace">${code(x.category)}</td><td>${esc(catLabel(x.category))}${x.name?' / '+esc(x.name):''}</td><td>${esc(x.desc||x.notes||'')}</td><td>${accCode(x.account)} ${esc(catLabel(x.account||''))}</td><td class="num">${nfmt(Number(x.paid)||0)}</td></tr>`).join('')||'<tr><td colspan="6" class="text-center text-slate-400">مفيش مصروفات مسجلة في اليوم ده</td></tr>'}</tbody><tfoot><tr><td colspan="5">الإجمالي</td><td class="num">${nfmt(tot)}</td></tr></tfoot></table>`;
-  if(window.__expRows!==L.length){ window.__expRows=L.length; setTimeout(()=>{ try{ fitPage(); }catch(e){} },0); }
+  setTimeout(()=>{ try{ fitPage(); }catch(e){} },0);
 }catch(e){ console.warn(e); } }
 document.addEventListener('DOMContentLoaded', ()=>{ const f=document.getElementById('exp-form'); if(f){ ['input','change','click'].forEach(ev=>f.addEventListener(ev,()=>setTimeout(expSapRender,0))); } });
 { const _q=renderExpQuick; renderExpQuick=function(){ const r=_q.apply(this,arguments); expSapRender(); return r; }; const _t=renderExpensesTable; renderExpensesTable=function(){ const r=_t.apply(this,arguments); expSapRender(); return r; }; }
 /* ===== v260.9: كل شاشة تسجيل تدخل في الشاشة من غير تمرير (زي فورم البون) — الكشوف الطويلة بس هي اللي بتتمرر لتحت ===== */
 function fitPage(){ try{ const m=document.querySelector('main'), t=document.querySelector('main .tab-content.active')||document.getElementById('tab-'+activeTab); if(!m||!t) return;
-    t.style.zoom=''; if(innerWidth<901 || activeTab==='dailylog') return;
-    const sh=m.scrollHeight, ch=m.clientHeight; if(sh<=ch+2) return;
-    let z=ch/sh; if(z>=0.7){ for(let i=0;i<4;i++){ t.style.zoom=(z-0.01).toFixed(3); if(m.scrollHeight<=m.clientHeight+2) break; z*=m.clientHeight/m.scrollHeight; if(z<0.66){ break; } } m.scrollTop=0; }
+    const dc=document.getElementById('exp-sap-day-card'), box=document.getElementById('exp-sap-day');
+    if(innerWidth<901 || activeTab==='dailylog'){ t.style.zoom=''; m.style.overflowY=''; if(dc) dc.style.display=''; if(box) box.style.height=''; return; }
+    /* الحجم بيتثبت لكل شاشة: يصغر لو احتاج، وعمره ما يكبر تاني وانت شغال فيها؛ ولو الشاشة دخلت كلها التمرير بيتقفل خالص (محمد 2026-11-13) */
+    const F=window.__fitZ||(window.__fitZ={}), sub=t.querySelector(':scope > .subpage.active'), key=activeTab+'|'+(sub?sub.id:'')+'|'+innerWidth+'x'+innerHeight, prev=F[key]||1, st=m.scrollTop;
+    const fits=()=>m.scrollHeight<=m.clientHeight, useDay=!!(dc && box && activeTab==='expenses' && sub && sub.id==='sub-expenses-form');
+    if(dc) dc.style.display='none';
+    t.style.zoom=''; m.style.overflowY='auto'; let z=1;
+    const floor=(['treasury','ledger','tb','pl','bs','masterdata','zakat','dashboard','audit','investors'].includes(activeTab) || (sub && !/-form$/.test(sub.id))) ? 0.88 : 0.6; /* الكشوف والتقارير ما تتصغرش عشان تفضل مقروءة */
+    if(!fits()){ z=m.clientHeight/m.scrollHeight; if(z>=floor){ for(let i=0;i<14;i++){ t.style.zoom=z.toFixed(3); if(fits()) break; z-=0.015; } if(!fits()) z=1; } else z=1; }
+    z=Math.min(prev,z); F[key]=z; t.style.zoom = z<1 ? z.toFixed(3) : '';
+    if(dc && useDay){ dc.style.display=''; box.style.height='44px';
+        if(!fits()) dc.style.display='none';
+        else { const free=m.getBoundingClientRect().bottom - t.getBoundingClientRect().bottom - 14; box.style.height=Math.max(44, Math.min(300, 44+Math.floor(free/z)))+'px'; if(!fits()) box.style.height='44px'; } }
+    else if(dc && activeTab==='expenses'){ dc.style.display=''; }
+    if(fits()){ m.style.overflowY='hidden'; m.scrollTop=0; } else { m.style.overflowY='auto'; m.scrollTop=st; }
 }catch(e){} }
 { const _s=switchTab; switchTab=function(){ const r=_s.apply(this,arguments); setTimeout(fitPage,30); return r; };
   const _b=switchSub; switchSub=function(){ const r=_b.apply(this,arguments); setTimeout(fitPage,30); return r; };
@@ -11368,7 +11381,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 260.9';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 261.0';
 
     /* تنبيهات */
     const alerts=[];
