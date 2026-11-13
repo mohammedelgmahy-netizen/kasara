@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1006</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1007</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -833,11 +833,11 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
 
         <!-- EQUIPMENT -->
         <div id="tab-equipment" class="tab-content flex-col gap-4">
-            <div class="subnav-bar">
+            <div class="subnav-bar" style="display:none">
                 <button type="button" id="subnav-equipment-form" class="subnav-btn active" onclick="switchSub('equipment','form')">🔧 مصروف معدة</button>
                 <button type="button" id="subnav-equipment-log" class="subnav-btn" onclick="switchSub('equipment','log')">📋 كشف حساب المعدات</button>
             </div>
-            <div id="sub-equipment-form" class="subpage active">
+            <div id="sub-equipment-form" class="subpage" style="display:none!important">
             <div class="bg-white p-4 rounded-xl border border-amber-200 shadow-sm">
                 <h3 class="font-bold text-slate-900 mb-3">🔧 مصروف تاني على معدة</h3>
                 <div class="grid grid-cols-2 md:grid-cols-7 gap-3 items-end">
@@ -852,7 +852,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 </div>
             </div>
             </div><!-- /sub-equipment-form -->
-            <div id="sub-equipment-log" class="subpage">
+            <div id="sub-equipment-log" class="subpage active">
             <div id="eqs-card" class="bg-white rounded-xl border border-amber-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-amber-50 border-b border-amber-200 flex flex-wrap items-center gap-2">
                     <h3 class="font-bold text-slate-900 ml-2">📋 كشف حساب معدة</h3>
@@ -3719,7 +3719,7 @@ function fitBonForm(){
     }catch(e){}
 }
 window.addEventListener('resize', ()=>{ try{ fitBonForm(); }catch(e){} });
-function switchSub(tab, which){ try{ if(tab==='dailylog' && which==='coll'){ renderCollectionsLog(); showClientCollectionBalance(); const cd=document.getElementById('coll-date'); if(cd && !cd.value) cd.value=todayISO(); } }catch(e){} try{ if(tab==='inventory') renderMashoon(); }catch(e){}
+function switchSub(tab, which){ if(tab==='equipment') which='log'; /* محمد 2026-11-13: تاب المعدات = كشف حساب المعدات بس، الصرف من المخزون */ try{ if(tab==='dailylog' && which==='coll'){ renderCollectionsLog(); showClientCollectionBalance(); const cd=document.getElementById('coll-date'); if(cd && !cd.value) cd.value=todayISO(); } }catch(e){} try{ if(tab==='inventory') renderMashoon(); }catch(e){}
     const panel = document.getElementById('tab-'+tab); if(!panel) return;
     panel.querySelectorAll(':scope > .subpage').forEach(p=>p.classList.remove('active'));
     panel.querySelector('#sub-'+tab+'-'+which)?.classList.add('active');
@@ -7142,7 +7142,7 @@ function renderEquipmentTab(){
             let tot=0; const cells=items.map(it=>{ const S=L.filter(r=>r.kind==='stock'&&r.item===it); const q=S.reduce((a,r)=>a+r.qty,0), v=S.reduce((a,r)=>a+r.value,0); tot+=v; const t=T.it[it]||(T.it[it]={q:0,v:0}); t.q+=q; t.v+=v;
                 return `<td class="p-2">${q?`${nfmt(q)} ${esc(unit[it])}<div class="text-[10px] text-slate-500">${mfmt(v)}</div>`:'—'}</td>`; }).join('');
             const oth=L.filter(r=>r.kind==='other').reduce((a,r)=>a+r.value,0); tot+=oth; T.oth+=oth; T.tot+=tot;
-            return `<tr class="border-t border-slate-100 hover:bg-amber-50 cursor-pointer" onclick="showEquipDetail(${JSON.stringify(o.owner).replace(/"/g,'&quot;')},${JSON.stringify(e).replace(/"/g,'&quot;')})"><td class="p-2 font-bold">${esc(e)}</td>${cells}<td class="p-2">${oth?mfmt(oth):'—'}</td><td class="p-2 font-extrabold text-rose-700">${mfmt(tot)}</td></tr>`; }).join('');
+            return `<tr class="border-t border-slate-100 hover:bg-amber-50 cursor-pointer" onclick="showEquipDetail(${JSON.stringify(o.owner).replace(/"/g,'&quot;')},${JSON.stringify(e).replace(/"/g,'&quot;')})"><td class="p-2 font-bold">${esc(e==='بدون معدة'?o.owner:e)}</td>${cells}<td class="p-2">${oth?mfmt(oth):'—'}</td><td class="p-2 font-extrabold text-rose-700">${mfmt(tot)}</td></tr>`; }).join('');
         if(rowsO) body+=`<tr class="bg-slate-800 text-white"><td class="p-2 font-extrabold" colspan="${items.length+3}">${o.owner==='الكسارة'?'⚙️':'🚜'} ${esc(o.owner)}</td></tr>`+rowsO;
     });
     box.innerHTML = body ? `<div class="overflow-x-auto"><table class="w-full text-sm text-right border border-slate-200 rounded-lg"><thead class="bg-amber-50"><tr><th class="p-2">المعدة</th>${items.map(it=>`<th class="p-2">${esc(it)}</th>`).join('')}<th class="p-2">مصروفات تانية</th><th class="p-2">الإجمالي</th></tr></thead><tbody>${body}</tbody>
@@ -7163,7 +7163,10 @@ function showEquipDetail(owner, equip){
 function renderEqStatement(){
     const g=id=>document.getElementById(id); const body=g('eqs-body'); if(!body) return;
     if(!g('eqs-from').value && !g('eqs-to').value){ const d0=equipRecords('','').map(r=>r.date).filter(Boolean).sort()[0]; g('eqs-from').value=d0||todayISO().slice(0,8)+'01'; g('eqs-to').value=todayISO(); } // من أول حركة لحد النهارده
-    const owners=equipOwners(); const S=window.__eqs || (window.__eqs={owner:owners[0]&&owners[0].owner, equip:'ALL', item:'ALL'});
+    const __has=new Set(equipRecords('','').map(r=>r.owner)); /* الأسماء: اللي ليهم حركات + الشغالين (محمد 2026-11-13) */
+    const owners=[{owner:'الكسارة',equips:crusherEquips()}, ...(db.contractors||[]).filter(c=>!isCrusherCtr(c.name) && (__has.has(c.name) || !c.done)).map(c=>({owner:c.name,equips:[]}))];
+    const __first=(owners.find(o=>__has.has(o.owner))||owners[0]||{}).owner;
+    const S=window.__eqs || (window.__eqs={owner:__first, equip:'ALL', item:'ALL'});
     if(!owners.some(o=>o.owner===S.owner)) S.owner=owners[0]&&owners[0].owner;
     const chip=(on,txt,js)=>`<button type="button" onclick="${js}" class="px-3 py-1.5 rounded-lg text-xs font-bold border ${on?'bg-amber-600 text-white border-amber-600':'bg-white text-slate-700 border-slate-200 hover:bg-amber-50'}">${txt}</button>`;
     const q=v=>JSON.stringify(v).replace(/"/g,'&quot;');
@@ -7183,7 +7186,7 @@ function renderEqStatement(){
     if(!L.length){ body.innerHTML=`<p class="text-sm text-slate-400 text-center py-6">مفيش حركات لـ ${esc(S.owner||'')} من ${dmy(g('eqs-from').value)} لـ ${dmy(g('eqs-to').value)} — غيّر التاريخ</p>`; return; }
     let run=0; const T={};
     const rows=L.map(r=>{ const qq=r.kind==='stock'?r.qty:r.q, pp=r.kind==='stock'?r.price:r.pr, un=r.unit||''; run+=r.value; const k=key(r); const t=T[k]||(T[k]={q:0,v:0,u:un}); t.q+=qq||0; t.v+=r.value;
-        return `<tr class="border-t border-slate-100"><td class="p-2 text-xs whitespace-nowrap">${dmy(r.date)}</td>${S.equip==='ALL'?`<td class="p-2 text-xs">${esc(r.equip)}</td>`:''}<td class="p-2 font-bold">${esc(k)}${r.notes?`<div class="text-[11px] text-slate-500 font-normal">${esc(r.notes)}</div>`:''}</td><td class="p-2">${qq?nfmt(qq)+' '+esc(un):'—'}</td><td class="p-2">${pp?nfmt(Math.round(pp*100)/100):'—'}</td><td class="p-2 font-bold text-rose-700">${mfmt(r.value)}</td><td class="p-2 text-slate-500 text-xs">${mfmt(run)}</td><td class="p-2 whitespace-nowrap">${r.kind==='other'&&!isRO()?`<button onclick="editEquipExpense('${r.id}')" class="text-blue-500 ml-2">✏️</button><button onclick="deleteEquipExpense('${r.id}')" class="text-red-400">🗑</button>`:''}</td></tr>`; }).join('');
+        return `<tr class="border-t border-slate-100"><td class="p-2 text-xs whitespace-nowrap">${dmy(r.date)}</td>${S.equip==='ALL'?`<td class="p-2 text-xs">${esc(r.equip==='بدون معدة'?r.owner:r.equip)}</td>`:''}<td class="p-2 font-bold">${esc(k)}${r.notes?`<div class="text-[11px] text-slate-500 font-normal">${esc(r.notes)}</div>`:''}</td><td class="p-2">${qq?nfmt(qq)+' '+esc(un):'—'}</td><td class="p-2">${pp?nfmt(Math.round(pp*100)/100):'—'}</td><td class="p-2 font-bold text-rose-700">${mfmt(r.value)}</td><td class="p-2 text-slate-500 text-xs">${mfmt(run)}</td><td class="p-2 whitespace-nowrap">${r.kind==='other'&&!isRO()?`<button onclick="editEquipExpense('${r.id}')" class="text-blue-500 ml-2">✏️</button><button onclick="deleteEquipExpense('${r.id}')" class="text-red-400">🗑</button>`:''}</td></tr>`; }).join('');
     const title=`${S.owner}${S.equip!=='ALL'?' — '+S.equip:''}${S.item!=='ALL'?' — '+S.item:''}`;
     body.innerHTML=`<div class="font-extrabold text-slate-800 mb-2">${esc(title)} <span class="text-xs text-slate-500 font-bold">${dmy(g('eqs-from').value)} → ${dmy(g('eqs-to').value)}</span></div>
         <div class="overflow-x-auto"><table class="w-full text-sm text-right border border-slate-200"><thead class="bg-slate-100"><tr><th class="p-2">التاريخ</th>${S.equip==='ALL'?'<th class="p-2">المعدة</th>':''}<th class="p-2">البيان</th><th class="p-2">الكمية</th><th class="p-2">السعر</th><th class="p-2">القيمة</th><th class="p-2">التراكمي</th><th class="p-2"></th></tr></thead><tbody>${rows}</tbody>
