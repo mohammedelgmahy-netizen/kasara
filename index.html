@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 263.4</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 263.5</span></p></div>
         </div>
     </aside>
 
@@ -3380,9 +3380,14 @@ const esc = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'
 const todayISO = () => new Date().toISOString().slice(0,10);
 
 function catLabel(n){ return n==='مقاولين' ? 'أصحاب المعدات' : n==='معلق عماد ناجي' ? 'البنك' : n; } // اسم العرض بس، البيانات زي ما هي
+/* محمد 2026-11-13: عملاء «اتشالوا من البرنامج» — إخفاء من القوايم بس، حركاتهم وأرصدتهم محسوبة زي ما هي */
+const HIDE_CLIENTS = new Set(['حاتم ماهر','م\\اسامه شلبى','عماد ناجى']);
+function clientHidden(n){ return HIDE_CLIENTS.has(String(n||'').trim()); }
+function visClients(){ return (db.clients||[]).filter(c=>!clientHidden(c.name)); }
 function fillSelect(id, items, allLabel){
     const el = document.getElementById(id);
     if(!el) return;
+    try{ const cl=db.clients||[]; items=(items||[]).filter(it=>!(clientHidden(it.name) && cl.includes(it))); }catch(e){}
     const prev = el.value;
     let html = allLabel ? `<option value="ALL">${allLabel}</option>` : '';
     items.forEach(it => html += `<option value="${esc(it.name)}">${it.code} - ${esc(catLabel(it.name))}</option>`);
@@ -3764,7 +3769,7 @@ function renderMasterData(){
     [...Object.keys(MASTER_META), 'persons'].forEach(cat=>{
         const dbCat = cat==='persons' ? 'names' : cat;
         const src = cat==='persons' ? (db.names||[]) : cat==='names' ? [] : (db[cat]||[]); // الأفراد = الموظفين (محمد 2026-11-08): قائمة واحدة
-        const items = [...src].filter(it=>!(cat==='expenses' && it.name==='إيراد')).filter(it=>textMatch([it.name, it.code], term)).sort((a,b)=>a.code-b.code);
+        const items = [...src].filter(it=>!(cat==='expenses' && it.name==='إيراد')).filter(it=>!(cat==='clients' && clientHidden(it.name))).filter(it=>textMatch([it.name, it.code], term)).sort((a,b)=>a.code-b.code);
         const rowOf = it=>{
             let badge = '';
             let contractLine = '';
@@ -5470,7 +5475,7 @@ function acctTotals(rows){
     const debit = rows.reduce((a,r)=>a+(r.debit||0),0), credit = rows.reduce((a,r)=>a+(r.credit||0),0);
     return { debit, credit, balance: debit-credit };
 }
-function acctNames(type){ if(type!=='person') return (db.clients||[]).map(x=>x.name); const l=(db.names||[]).map(x=>x.name); (db.expenses||[]).forEach(c=>(catPayees(c)||[]).forEach(n=>{ if(!l.includes(n)) l.push(n); })); return l; }
+function acctNames(type){ if(type!=='person') return visClients().map(x=>x.name); const l=(db.names||[]).map(x=>x.name); (db.expenses||[]).forEach(c=>(catPayees(c)||[]).forEach(n=>{ if(!l.includes(n)) l.push(n); })); return l; }
 function acctFillNames(){
     const sel = document.getElementById('acct-name'); if(!sel) return;
     const type = document.getElementById('acct-type').value;
@@ -9058,7 +9063,7 @@ function initCrusherPaperUI(){
     const el = document.getElementById('dl-client');
     if(el){
         const prev = el.value;
-        el.innerHTML = '<option value="">— اختر العميل —</option>' + db.clients.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('');
+        el.innerHTML = '<option value="">— اختر العميل —</option>' + visClients().map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('');
         if([...el.options].some(o=>o.value===prev)) el.value = prev;
     }
     try{ if(!__editSnap) renderShares(); }catch(e){}
@@ -9312,7 +9317,7 @@ function quickSearch(){
     const q=normName(document.getElementById('qs-input').value||'').trim();
     if(q.length<1){ box.innerHTML=''; return; }
     const R=[]; const has=v=>normName(String(v||'')).includes(q);
-    (db.clients||[]).filter(c=>has(c.name)).slice(0,6).forEach(c=>R.push(['عميل',c.name,`qsGo('client',${JSON.stringify(c.name)})`]));
+    visClients().filter(c=>has(c.name)).slice(0,6).forEach(c=>R.push(['عميل',c.name,`qsGo('client',${JSON.stringify(c.name)})`]));
     (db.contractors||[]).filter(c=>has(c.name)).slice(0,4).forEach(c=>R.push(['مقاول',c.name,`qsGo('ctr',${JSON.stringify(c.name)})`]));
     (db.suppliers||[]).filter(c=>has(c.name)).slice(0,4).forEach(c=>R.push(['مورد',c.name,`switchTab('purchases');setTimeout(()=>{try{document.getElementById('ss-supplier').value=${JSON.stringify(c.name)};renderSupplierStmt();document.getElementById('supplier-stmt-card').scrollIntoView({behavior:'smooth'})}catch(e){}},50)`]));
     (db.names||[]).filter(c=>has(c.name)).slice(0,4).forEach(c=>R.push(['فرد',c.name,`switchTab('ledger')`]));
@@ -11436,7 +11441,7 @@ function mgrFillFilters(){
     const g=id=>document.getElementById(id);
     const keep = (sel, html) => { const pv=sel.value; sel.innerHTML=html; if([...sel.options].some(o=>o.value===pv)) sel.value=pv; };
     keep(g('mgr-product'), '<option value="ALL">كل المنتجات</option>' + DL_SIZES.map(s=>`<option value="${esc(s.key)}">${esc(s.label)}</option>`).join(''));
-    const clients=[...new Set([...(db.clients||[]).map(c=>c.name), ...(db.dailyLog||[]).map(r=>r.client)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar'));
+    const clients=[...new Set([...(db.clients||[]).map(c=>c.name), ...(db.dailyLog||[]).map(r=>r.client)].filter(Boolean))].filter(n=>!clientHidden(n)).sort((a,b)=>a.localeCompare(b,'ar'));
     keep(g('mgr-client'), '<option value="ALL">كل العملاء</option>' + clients.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join(''));
     const vehs=[...new Set([...(db.vehicles||[]).map(v=>normPlate(v.plate)), ...(db.dailyLog||[]).map(r=>normPlate(r.tractor))].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar'));
     keep(g('mgr-vehicle'), '<option value="ALL">كل الجرارات</option>' + vehs.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join(''));
@@ -11452,7 +11457,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 263.4';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 263.5';
 
     /* تنبيهات */
     const alerts=[];
