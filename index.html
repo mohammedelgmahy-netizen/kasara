@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 265.7</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 265.8</span></p></div>
         </div>
     </aside>
 
@@ -11614,7 +11614,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 265.7';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 265.8';
 
     /* تنبيهات */
     const alerts=[];
@@ -11974,7 +11974,11 @@ function printCardEl(card){
 })();
 </script>
 <script>
-if('serviceWorker' in navigator && /^https?:/.test(location.protocol)){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(()=>{})); }
+const SW_KEEP='kasara-265.8'; /* لازم يساوي VER في sw.js — أي كاش برنامج باسم تاني بيتمسح من الجهاز، وأي service worker قديم بيتحدث (محمد 2026-11-13). مفيش بيانات بتتمس */
+if('serviceWorker' in navigator && /^https?:/.test(location.protocol)){ window.addEventListener('load',async()=>{
+    try{ const ks=await caches.keys(); await Promise.all(ks.filter(k=>!k.startsWith(SW_KEEP+'-')).map(k=>caches.delete(k))); }catch(e){}
+    try{ const rs=await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.filter(r=>!/\/sw\.js$/.test((r.active||r.waiting||r.installing||{}).scriptURL||'')).map(r=>r.unregister())); }catch(e){}
+    navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}); }); }
 /* ===== تثبيت التطبيق على الجهاز (PWA) — نفس طريقة باقي البرامج ===== */
 document.body.insertAdjacentHTML('beforeend','<style>#installBtn{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9000;display:none;align-items:center;gap:8px;padding:12px 22px;border:none;border-radius:999px;background:#16a34a;color:#fff;font:800 15px Cairo,system-ui,sans-serif;box-shadow:0 8px 24px -8px rgba(0,0,0,.5);cursor:pointer}@media (min-width:900px){#installBtn{bottom:24px}}@media print{#installBtn{display:none!important}}</style><button id="installBtn" type="button" onclick="installApp()">⬇ تثبيت البرنامج</button>');
 window.__installPrompt = null;
