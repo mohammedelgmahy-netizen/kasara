@@ -466,7 +466,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 259.9</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 260.0</span></p></div>
         </div>
     </aside>
 
@@ -5451,7 +5451,7 @@ function clientSheetHtml(name){
     const D=clientSheetData(name);
     const B='border:1px solid #111;padding:6px 8px;text-align:center;';
     const n0=v=>(v?nfmt(Math.round(v*100)/100):''), nb=v=>v?nfmt(Math.round(v*100)/100):'';
-    const sz=D.sizes;
+    const szAll=D.sizes, szUsed=szAll.filter(x=>Number(D.tot[x.key])>0), sz=szUsed.length?szUsed:szAll.slice(0,5); /* المقاسات اللي فيها كميات بس، عشان الكشف ما يتقطعش في الطباعة (محمد 2026-11-13) */
     const head=`<tr><th style="${B}">سيارة</th><th style="${B}">مقطورة</th><th style="${B}">العدد</th><th style="${B}">التكعيب</th>${sz.map(x=>`<th style="${B}">${esc(x.label)}</th>`).join('')}</tr>`;
     const rows=D.cars.map((c,ci)=>`<tr style="cursor:pointer" title="دوس لتعديل كميات بونات العربية" onclick="csCarBons(${ci})"><td style="${B}">${esc(c.tractor)}</td><td style="${B}">${esc(c.trailer)}</td><td style="${B}">${nfmt(c.n)}</td><td style="${B}">${nb(c.n?c.qty/c.n:0)}</td>${sz.map(x=>`<td style="${B}">${nb(c.q[x.key])}</td>`).join('')}</tr>`);
     while(rows.length<4) rows.push(`<tr>${('<td style="'+B+'height:30px"></td>').repeat(4+sz.length)}</tr>`);
@@ -11144,7 +11144,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 259.9';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 260.0';
 
     /* تنبيهات */
     const alerts=[];
