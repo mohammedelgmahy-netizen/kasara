@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 264.9</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 265.0</span></p></div>
         </div>
     </aside>
 
@@ -10256,7 +10256,17 @@ function cxExtraCalc(i){ const q=Number(document.getElementById('cx-xq-'+i).valu
 function cxExtraShow(){ const tb=document.getElementById('cx-extra-rows'), t=document.getElementById('cx-extra-tbl'); if(t) t.style.display = tb && tb.children.length ? '' : 'none'; }
 function cxExtraClear(){ const tb=document.getElementById('cx-extra-rows'); if(tb) tb.innerHTML=''; cxExtraShow(); }
 function cxExtras(){ return [...document.querySelectorAll('#cx-extra-rows tr')].map(tr=>{ const i=tr.id.split('-').pop(); const v=id=>document.getElementById(id+'-'+i); return {d:(v('cx-xd').value||'').trim(), q:Number(v('cx-xq').value)||0, rt:Number(v('cx-xr').value)||0, el:v('cx-xd')}; }); }
+/* حماية (2026-11-13): أي سبب يمنع حفظ المستخلص لازم يبان في رسالة ويتسجل في auditLog */
 function saveCtrExtract(){
+    const g=id=>document.getElementById(id), n0=(db.ctrExtracts||[]).length, nm=g('cx-name')?.value||'';
+    const _al=window.alert; let why='';
+    window.alert=m=>{ why=String(m||''); _al.call(window,m); };
+    try{ if(isRO()){ why='الحساب ده للعرض بس (مش مسموح له بالتسجيل)'; _al.call(window,why); } else __saveCtrExtractCore(); }
+    catch(e){ why='خطأ في البرنامج: '+(e&&e.message||e); console.error(e); _al.call(window,'المستخلص ما اتحفظش — '+why+'\nابعت الرسالة دي للدعم.'); }
+    finally{ window.alert=_al; }
+    if((db.ctrExtracts||[]).length<=n0){ try{ logAudit('fail','مستخلص مقاول (ما اتحفظش)', nm+' — '+(why||'من غير سبب ظاهر')); scheduleSave(); }catch(e){} if(!why) _al.call(window,'المستخلص ما اتحفظش. اتأكد من الأمتار والسعر.'); }
+}
+function __saveCtrExtractCore(){
     if(isRO()) return;
     const g=id=>document.getElementById(id), name=g('cx-name').value;
     const L=ctrEquips(name).map((e,i)=>({e, q:Number(g('cx-q-'+i)?.value)||0, rt:Number(g('cx-r-'+i)?.value)||0, i})).filter(x=>x.q>0);
@@ -11588,7 +11598,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 264.9';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 265.0';
 
     /* تنبيهات */
     const alerts=[];
