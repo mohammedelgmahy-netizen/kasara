@@ -363,6 +363,27 @@ body > header .hdr-actions > button,body > header .hdr-actions > label{border-ra
   aside#sidebar > div:last-child{flex:none !important;padding:5px 12px !important}
   aside#sidebar > div:last-child .w-8{width:24px !important;height:24px !important}
 }
+/* شاشة المصروفات بنمط ساب (v260.8) */
+.exp-sap-tb{display:flex;gap:10px;background:#f7f8fa;border:1px solid #d9dde3;padding:8px 12px;margin-bottom:14px}
+.exp-sap-tb button{padding:7px 22px !important;font-size:17px !important;border-radius:4px !important}
+.exp-sap-tb .exp-sap-b2{background:#fff !important;color:#0a6ed1 !important;border:1px solid #0a6ed1 !important;font-weight:700}
+.exp-sap-code,.exp-sap-val{border:1px solid #c5cbd3;background:#f2f4f7;border-radius:3px;padding:7px 12px;min-height:42px;font-weight:700;color:#32363a}
+.exp-sap-code{font-family:monospace;text-align:center;min-width:80px;background:#fffbe6;border-color:#c9a400}
+#exp-sap-line{color:#107e3e;font-weight:700;font-size:16px;margin-top:14px;padding-top:10px;border-top:1px solid #e1e5ea}
+#exp-sap-day table{width:100%;font-size:17px}#exp-sap-day td,#exp-sap-day th{padding:9px 10px !important}
+#exp-sap-day .num{text-align:left;direction:ltr;white-space:nowrap;font-weight:700}
+#exp-form > #exp-save-wrap{display:none !important}
+@media (min-width:901px){
+  #exp-form{display:grid !important;grid-template-columns:1fr 1fr !important;gap:11px 40px !important;align-items:center !important}
+  #exp-form > #exp-quick,#exp-form > #exp-contract-info,#exp-form > #exp-bal-info,#exp-form > #exp-notes-wrap{grid-column:1 / 3 !important}
+  #exp-form > div:not(#exp-quick):not(#exp-contract-info):not(#exp-bal-info):not(.hidden){display:flex;align-items:center;gap:10px}
+  #exp-form > div > label{width:150px;flex:none;text-align:left;margin:0 !important;font-size:17px !important}
+  #exp-form > div > input,#exp-form > div > select,#exp-form .exp-sap-val{flex:1;min-height:42px;font-size:17px !important}
+  #exp-form > #exp-quick{order:0}#exp-form > #exp-date-wrap{order:1}#exp-form > #exp-paytype-wrap{order:2}#exp-form > #exp-sap-item{order:3}#exp-form > #exp-account-wrap{order:4}
+  #exp-form > #exp-name-wrap{order:5}#exp-form > #exp-paid-wrap{order:6}#exp-form > #exp-ctrdisc-wrap{order:7}#exp-form > #exp-notes-wrap{order:8}#exp-form > #exp-contract-info,#exp-form > #exp-bal-info{order:9}
+  #exp-form #exp-paid{font-weight:800;font-size:20px !important;direction:ltr;text-align:left}
+}
+@media (max-width:900px){ #exp-form > #exp-save-wrap{display:block !important} .exp-sap-tb button[form]{display:none} #exp-sap-item .exp-sap-val{display:inline-block} }
 </style>
 <style>/* فورم البون: مربعات الكميات مستخبية لحد ما الصنف يتختار (محمد 2026-11-08) */
 div:has(> input[id^="dl-q-"]){display:none}
@@ -516,7 +537,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 260.7</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 260.8</span></p></div>
         </div>
     </aside>
 
@@ -1054,8 +1075,10 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             <div id="sub-expenses-form" class="subpage active">
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                 <h3 class="font-bold text-slate-900 mb-4"><i class="fa-solid fa-receipt text-emerald-500"></i> تسجيل مصروف</h3>
-                <form onsubmit="addExpense(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div class="exp-sap-tb"><button type="submit" form="exp-form" class="bg-emerald-600 text-white font-bold rounded-lg">💾 حفظ</button><button type="button" onclick="expSapNew()" class="exp-sap-b2">جديد</button><button type="button" onclick="switchSub('expenses','log')" class="exp-sap-b2">السجل</button></div>
+                <form id="exp-form" onsubmit="addExpense(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     <div id="exp-quick" class="md:col-span-4 flex flex-wrap gap-2"></div>
+                    <div id="exp-sap-item" class="exp-sap-ro"><label class="block text-xs font-bold text-slate-600 mb-1">البند (مدين)</label><span id="exp-sap-code" class="exp-sap-code"></span><span id="exp-sap-cat" class="exp-sap-val"></span></div>
                     <div class="hidden"><label class="block text-xs font-bold text-slate-600 mb-1">التبويب</label><select id="exp-category" onchange="filterExpenseSubFields(); renderExpQuick()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div id="exp-paytype-wrap" style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">نوع الدفعة</label><select id="exp-paytype" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="advance">عهدة (تتخصم من المستخلص)</option><option value="settle">سداد صافي مستخلص</option></select></div>
                     <div id="exp-name-wrap"><label id="exp-name-label" class="block text-xs font-bold text-slate-600 mb-1">المستفيد</label><select id="exp-name" required onchange="expPayeeNew();filterActivitiesByName()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
@@ -1064,15 +1087,17 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <div id="exp-contract-info" class="hidden md:col-span-4 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 text-xs text-slate-700"></div>
                     <div id="exp-bal-info" style="display:none" class="md:col-span-4"></div>
                     <!-- حقل المبلغ الوحيد — يُستخدم دائماً -->
-                    <div><label id="exp-paid-label" class="block text-xs font-bold text-slate-600 mb-1">المبلغ المدفوع</label><input id="exp-paid" type="number" step="any" required placeholder="المبلغ الفعلي" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                    <div id="exp-paid-wrap"><label id="exp-paid-label" class="block text-xs font-bold text-slate-600 mb-1">المبلغ المدفوع</label><input id="exp-paid" type="number" step="any" required placeholder="المبلغ الفعلي" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div id="exp-ctrdisc-wrap" style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">خصم (اختياري)</label><input id="exp-ctrdisc" type="number" step="any" min="0" placeholder="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="exp-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">الحساب</label><select id="exp-account" onchange="const s=document.getElementById('exp-src'); if(s){ s.value=this.value===SARI_ACC?'sari':'cash'; delete s.dataset.touched; }" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
+                    <div id="exp-date-wrap"><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="exp-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                    <div id="exp-account-wrap"><label class="block text-xs font-bold text-slate-600 mb-1">الخزنة (دائن)</label><select id="exp-account" onchange="const s=document.getElementById('exp-src'); if(s){ s.value=this.value===SARI_ACC?'sari':'cash'; delete s.dataset.touched; }" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">الفلوس منين</label><select id="exp-src" onchange="this.dataset.touched=1" class="w-full bg-amber-50 border border-amber-200 rounded-lg p-2 text-sm font-bold"><option value="sari" selected>سلفة من عماد ناجي (وارد وصادر)</option><option value="cash">من الخزنة (صادر بس)</option></select></div>
-                    <div class="md:col-span-3"><label class="block text-xs font-bold text-slate-600 mb-1">البيان</label><input id="exp-notes" type="text" required placeholder="اكتب البيان زي ما هيظهر في اليومية" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
-                    <div><button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-lg text-sm">حفظ الحركة</button></div>
+                    <div id="exp-notes-wrap" class="md:col-span-3"><label class="block text-xs font-bold text-slate-600 mb-1">البيان</label><input id="exp-notes" type="text" required placeholder="اكتب البيان زي ما هيظهر في اليومية" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                    <div id="exp-save-wrap"><button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-lg text-sm">حفظ الحركة</button></div>
                 </form>
+                <div id="exp-sap-line"></div>
             </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-900 mb-4" id="exp-sap-day-h">مصروفات اليوم</h3><div id="exp-sap-day" class="overflow-x-auto"></div></div>
             </div><!-- /sub-expenses-form -->
             <div id="sub-expenses-log" class="subpage">
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col flex-1">
@@ -5907,6 +5932,20 @@ function jrRender(){
 function jrExportExcel(){ const L=jrFiltered(), aoa=[['دفتر القيود اليومية — كسارة الديار'],[],['رقم القيد','التاريخ','النوع','الحساب','البيان','مدين','دائن']];
     L.forEach(e=>{ aoa.push([e.no,dmy(e.date),e.type,'من حـ/ '+e.dr,e.desc,e.v,'']); aoa.push(['','','','إلى حـ/ '+e.cr,'','',e.v]); });
     const t=L.reduce((a,e)=>a+e.v,0); aoa.push([],['','','','الإجمالي','',t,t]); xlsxSave(aoa,'القيود اليومية',`دفتر-القيود-${todayISO()}.xlsx`); }
+/* ===== شاشة المصروفات بنمط ساب (v260.8): عرض بس ===== */
+function expSapNew(){ const g=id=>document.getElementById(id); ['exp-paid','exp-notes','exp-ctrdisc'].forEach(i=>{ if(g(i)) g(i).value=''; }); try{ g('exp-paid').focus(); }catch(e){} expSapRender(); }
+function expSapRender(){ try{ const g=id=>document.getElementById(id); if(!g('exp-sap-line')) return;
+    const cat=g('exp-category')?.value||'', c=(typeof expTypes==='function'?expTypes():[]).find(x=>x.name===cat), accN=g('exp-account')?.value||'', acc=(db.accounts||[]).find(a=>a.name===accN);
+    const nm=(g('exp-name-wrap')&&g('exp-name-wrap').offsetParent!==null)?(g('exp-name')?.value||''):'', amt=Number(g('exp-paid')?.value)||0, d=g('exp-date')?.value||todayISO();
+    g('exp-sap-code').textContent=c?c.code:''; g('exp-sap-cat').textContent=catLabel(cat);
+    const drN=catLabel(cat)+(nm&&nm!=='__new'?' / '+nm:'');
+    g('exp-sap-line').innerHTML = amt>0 ? `✔ القيد: من حـ/ ${esc(drN)} <span dir="ltr">${nfmt(amt)}</span> &nbsp; إلى حـ/ ${esc(catLabel(accN))} <span dir="ltr">${nfmt(amt)}</span>` : `القيد: من حـ/ ${esc(drN)} &nbsp; إلى حـ/ ${esc(catLabel(accN))}`;
+    const L=(db.expensesData||[]).filter(x=>x.category!=='إيراد' && x.date===d), tot=L.reduce((a,x)=>a+(Number(x.paid)||0),0), code=n=>{ const k=(db.expenses||[]).find(z=>z.name===n); return k?k.code:''; }, accCode=n=>{ const a=(db.accounts||[]).find(z=>z.name===n); return a?a.code:''; };
+    g('exp-sap-day-h').textContent='مصروفات يوم '+dmy(d);
+    g('exp-sap-day').innerHTML=`<table><thead><tr><th>م</th><th>الكود</th><th>البند</th><th>البيان</th><th>الخزنة</th><th>المبلغ</th></tr></thead><tbody>${L.map((x,i)=>`<tr><td>${i+1}</td><td style="font-family:monospace">${code(x.category)}</td><td>${esc(catLabel(x.category))}${x.name?' / '+esc(x.name):''}</td><td>${esc(x.desc||x.notes||'')}</td><td>${accCode(x.account)} ${esc(catLabel(x.account||''))}</td><td class="num">${nfmt(Number(x.paid)||0)}</td></tr>`).join('')||'<tr><td colspan="6" class="text-center text-slate-400">مفيش مصروفات مسجلة في اليوم ده</td></tr>'}</tbody><tfoot><tr><td colspan="5">الإجمالي</td><td class="num">${nfmt(tot)}</td></tr></tfoot></table>`;
+}catch(e){ console.warn(e); } }
+document.addEventListener('DOMContentLoaded', ()=>{ const f=document.getElementById('exp-form'); if(f){ ['input','change','click'].forEach(ev=>f.addEventListener(ev,()=>setTimeout(expSapRender,0))); } });
+{ const _q=renderExpQuick; renderExpQuick=function(){ const r=_q.apply(this,arguments); expSapRender(); return r; }; const _t=renderExpensesTable; renderExpensesTable=function(){ const r=_t.apply(this,arguments); expSapRender(); return r; }; }
 function tbExportExcel(){
     const D=document.getElementById('tb-date')?.value||todayISO(), T=tbData(D), r=v=>Math.round(v)||'';
     const aoa=[['ميزان المراجعة — كسارة الديار'],['في تاريخ', dmy(D)],[],['المجموعة','الحساب','مدين','دائن']];
@@ -11301,7 +11340,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 260.7';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 260.8';
 
     /* تنبيهات */
     const alerts=[];
