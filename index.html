@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 264.4</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 264.5</span></p></div>
         </div>
     </aside>
 
@@ -10179,12 +10179,12 @@ function cxDefaults(){
     document.getElementById('cx-from').value = wf2; document.getElementById('cx-to').value = addDays(wf2,6); // من الخميس للأربع
     const LR0=ctrLowRule(name); /* سطر أساسي أوتوماتيك للأصناف قليلة السن (محمد 2026-11-13) — «عمل إضافي» للساعات وغيرها بإيده بس */
     document.getElementById('cx-rows').innerHTML = ctrEquips(name).map((e,i)=>`<tr class="border-t border-slate-100"><td class="p-2 font-bold">${esc(ctrEqName(name,e))}</td>
-        <td class="p-2"><input id="cx-q-${i}" type="number" step="any" min="0" oninput="cxPreview()" class="w-28 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
-        <td class="p-2${codedRate(name,e)?' rate-col':''}"><input id="cx-r-${i}" type="number" step="any" min="0" value="${cxLastRate(name,e)}" oninput="cxPreview()" class="w-24 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
+        <td class="p-2"><input id="cx-q-${i}" type="number" step="any" min="0" oninput="cxPreview()" style="width:clamp(76px,20vw,112px)" class="bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
+        <td class="p-2${codedRate(name,e)?' rate-col':''}"><input id="cx-r-${i}" type="number" step="any" min="0" value="${cxLastRate(name,e)}" oninput="cxPreview()" style="width:clamp(52px,13vw,96px)" class="bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
         <td class="p-2 font-extrabold text-emerald-700" id="cx-a-${i}">—</td></tr>`).join('')
-        + (LR0 ? `<tr class="border-t border-slate-100" id="cx-low-row"><td class="p-2 font-bold">أصناف أقل من ${nfmt(LR0.pct)}% سن (إجمالي التكعيب)</td>
-        <td class="p-2"><input id="cx-lq" type="number" step="any" min="0" oninput="cxPreview()" class="w-28 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
-        <td class="p-2"><input id="cx-lr" type="number" step="any" min="0" value="${LR0.rate}" oninput="cxPreview()" class="w-24 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
+        + (LR0 ? `<tr class="border-t border-slate-100" id="cx-low-row"><td class="p-2 font-bold">أقل من ${nfmt(LR0.pct)}% سن (بالتكعيب)</td>
+        <td class="p-2"><input id="cx-lq" type="number" step="any" min="0" oninput="cxPreview()" style="width:clamp(76px,20vw,112px)" class="bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
+        <td class="p-2"><input id="cx-lr" type="number" step="any" min="0" value="${LR0.rate}" oninput="cxPreview()" style="width:clamp(52px,13vw,96px)" class="bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold"></td>
         <td class="p-2 font-extrabold text-emerald-700" id="cx-la">—</td></tr>` : '');
     { const th=document.getElementById('cx-rate-th'); if(th) th.classList.toggle('rate-col', ctrEquips(name).every(e=>codedRate(name,e))); }
     cxPreview(true);
@@ -10201,16 +10201,28 @@ function cxPreview(resetQty){
         const q=Number(qe.value)||0, rt=Number(g('cx-r-'+i).value)||0; tq+=q; ta+=q*rt;
         g('cx-a-'+i).textContent = q&&rt ? mfmt(q*rt) : '—'; });
     { const lq=Number(g('cx-lq')?.value)||0, lr=Number(g('cx-lr')?.value)||0; if(g('cx-la')) g('cx-la').textContent = lq&&lr ? mfmt(lq*lr) : '—'; ta+=lq*lr; }
-    g('cx-tq').textContent = tq ? nfmt(tq) : '—';
+    g('cx-tq').textContent = (Number(g('cx-lq')?.value)||0) ? '' : (tq ? nfmt(tq) : '—'); /* لو فيه سطر تكعيب الكميتين مش من نفس النوع فخانة الكمية في الإجمالي تفضل فاضية */
     g('cx-amount').textContent = ta ? mfmt(ta) : '—';
     const tot=(db.ctrExtracts||[]).filter(x=>x.name===name).reduce((a,x)=>a+(Number(x.qty)||0),0);
     const ea=g('cx-equip-acct'); if(ea) ea.innerHTML=''; /* جدول «حساب كل معدة» اتشال من الفورم — الخصومات بقت في الجدول الأول */
     g('cx-info').innerHTML = tot ? `اتحاسب لحد دلوقتي على <b>${nfmt(tot)}</b> متر` : '';
-    /* خصومات السولار والأصناف في الفترة سطور جوه الجدول الأول نفسه (محمد 2026-11-13) — عرض بس، الخصم الفعلي من صرف المخزون في كشفه */
-    try{ const dd=g('cx-ded'); if(dd){ const f=g('cx-from').value, t=g('cx-to').value; const iss=(db.stockIssues||[]).filter(i=>normName(i.name)===normName(name) && (!f||(i.date||'')>=f) && (!t||(i.date||'')<=t)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-        let dv=0; const xt=cxExtras().reduce((a,x)=>a+(Number(x.q)||0)*(Number(x.rt)||0),0);
-        dd.innerHTML = iss.length ? iss.map(i=>{ const v=Math.round((Number(i.qty)||0)*(Number(i.price)||0)); dv+=v; return `<tr class="border-t border-slate-100"><td class="p-2 font-bold text-rose-700">خصم ${esc(i.item||'')} — ${dmy(i.date)}${i.notes?' — '+esc(i.notes):''}</td><td class="p-2">${nfmt(Number(i.qty)||0)} ${esc(i.unit||'')}</td><td class="p-2">${nfmt(Number(i.price)||0)}</td><td class="p-2 font-extrabold text-rose-700" dir="ltr">-${mfmt(v)}</td></tr>`; }).join('')
-            + `<tr class="bg-rose-50 font-extrabold"><td class="p-2" colspan="3">إجمالي الخصومات</td><td class="p-2 text-rose-700" dir="ltr">-${mfmt(dv)}</td></tr><tr class="bg-emerald-50 font-extrabold"><td class="p-2" colspan="3">صافي المستخلص بعد الخصومات</td><td class="p-2 text-emerald-800" dir="ltr">${mfmt(ta+xt-dv)}</td></tr>` : ''; } }catch(e){ console.warn(e); }
+    /* تحت الإجمالي في نفس الجدول: خصومات السولار، العهد والمدفوع في الفترة، الحساب السابق، والمتبقي ليه/عليه (محمد 2026-11-13) — عرض بس من حركات كشفه */
+    try{ const dd=g('cx-ded'); if(dd){ const f=g('cx-from').value, t=g('cx-to').value; const NW='white-space:nowrap';
+        const R=contractorStmtRows(name).rows; let prev=0; const sol=[], paid=[];
+        R.forEach(r=>{ const e=r.eff||r.date||''; if(r.ord<0 || (f && e<f)) prev+=(r.credit||0)-(r.debit||0); else if((!t || e<=t) && (r.debit||0)>0){ if(r.item) sol.push(r); else paid.push(r); } });
+        const xt=cxExtras().reduce((a,x)=>a+(Number(x.q)||0)*(Number(x.rt)||0),0), dv=sol.reduce((a,r)=>a+r.debit,0), pv=paid.reduce((a,r)=>a+r.debit,0), work=ta+xt, fin=prev+work-dv-pv;
+        const bt=v=>mfmt(Math.abs(v))+(Math.round(v)<0?' عليه':Math.round(v)>0?' ليه':'');
+        const sub=(l,v,cls)=>`<tr class="${cls} font-extrabold"><td class="p-2" colspan="3">${l}</td><td class="p-2" style="${NW}">${v}</td></tr>`;
+        let h='';
+        if(xt) h+=sub('أعمال إضافية', mfmt(xt), 'bg-amber-50');
+        h+=sol.map(r=>`<tr class="border-t border-slate-100"><td class="p-2 font-bold text-rose-700">خصم ${esc(r.item||'')} ${dmy(r.date).slice(0,5)}</td><td class="p-2" style="${NW}">${esc(r.qtyTxt||'')}</td><td class="p-2">${nfmt(r.price||0)}</td><td class="p-2 font-extrabold text-rose-700" style="${NW}">${mfmt(r.debit)}-</td></tr>`).join('');
+        if(sol.length) h+=sub('إجمالي خصم السولار والأصناف', mfmt(dv)+'-', 'bg-rose-50 text-rose-700');
+        h+=paid.map(r=>`<tr class="border-t border-slate-100"><td class="p-2 font-bold text-rose-700" colspan="3">${esc(r.desc||'')} ${dmy(r.date).slice(0,5)}${r.acc?' — '+esc(catLabel(r.acc)):''}</td><td class="p-2 font-extrabold text-rose-700" style="${NW}">${mfmt(r.debit)}-</td></tr>`).join('');
+        if(paid.length) h+=sub('إجمالي العهد والمدفوع له', mfmt(pv)+'-', 'bg-rose-50 text-rose-700');
+        h+=sub('صافي الأسبوع (شغل − سولار − عهد)', (work-dv-pv<0?mfmt(-(work-dv-pv))+'-':mfmt(work-dv-pv)), 'bg-emerald-50 text-emerald-800');
+        h+=sub('حساب سابق (من قبل الأسبوع)', bt(prev), 'bg-slate-50');
+        h+=sub('المتبقي في الآخر', bt(fin), 'bg-yellow-100');
+        dd.innerHTML=h; } }catch(e){ console.warn(e); }
 }
 function meterBalTxt(mb){
     return (mb.oldLeft>0?`<span class="text-slate-500">فاضل سن قديم ${nfmt(mb.oldLeft)} م</span> — `:'')
@@ -11574,7 +11586,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 264.4';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 264.5';
 
     /* تنبيهات */
     const alerts=[];
