@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 266.3</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1001</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1455,6 +1455,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             <div class="subnav-bar">
                 <button type="button" id="subnav-extracts-form" class="subnav-btn active" onclick="switchSub('extracts','form')">📝 مستخلص جديد</button>
                 <button type="button" id="subnav-extracts-log" class="subnav-btn" onclick="switchSub('extracts','log')">📒 مستخلصات محفوظة</button>
+                <button type="button" id="subnav-extracts-weeks" class="subnav-btn" onclick="switchSub('extracts','weeks');cwRender()">📅 أرصدة الأسابيع</button>
             </div>
             <div id="sub-extracts-form" class="subpage active">
             <div id="cx-card" class="bg-white rounded-xl border border-indigo-200 shadow-sm overflow-hidden">
@@ -1479,6 +1480,20 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 <div id="cx-equip-acct" class="px-4 pb-4"></div>
             </div>
             </div><!-- /sub-extracts-form -->
+            <div id="sub-extracts-weeks" class="subpage">
+            <div class="bg-white rounded-xl border border-indigo-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-indigo-100 bg-indigo-50 flex flex-wrap items-center gap-2">
+                    <h3 class="font-bold text-slate-900 ml-2">📅 رصيد آخر كل أسبوع</h3>
+                    <select id="cw-name" onchange="cwRender()" class="bg-white border border-indigo-200 rounded px-2 py-1 text-sm font-bold min-w-[11rem]"></select>
+                    <input id="cw-search" oninput="cwRender()" placeholder="ابحث بتاريخ الأسبوع (مثلاً 22/10)" class="bg-white border border-indigo-200 rounded px-2 py-1 text-sm" style="min-width:13rem">
+                    <button type="button" onclick="shareCard('cw-body','أرصدة الأسابيع')" style="background:#16a34a;color:#fff" class="px-3 py-1 rounded text-xs font-bold"><i class="fa-brands fa-whatsapp"></i> واتساب</button>
+                    <button type="button" onclick="printHtml(document.getElementById('cw-body').innerHTML)" class="bg-slate-800 text-white px-3 py-1 rounded text-xs font-bold">🖨️ طباعة</button>
+                    <label class="bg-amber-500 text-white px-3 py-1 rounded text-xs font-bold cursor-pointer">📥 تحميل الأسابيع القديمة من ملف الإكسيل<input type="file" accept=".xlsx,.xls" onchange="cwImport(this)" style="display:none"></label>
+                </div>
+                <div id="cw-msg" class="px-4 pt-2 text-sm font-bold"></div>
+                <div id="cw-body" class="p-3" style="overflow-x:auto;background:#fff"></div>
+            </div>
+            </div><!-- /sub-extracts-weeks -->
             <div id="sub-extracts-log" class="subpage">
             <div class="bg-white rounded-xl border border-indigo-200 shadow-sm overflow-hidden">
                 <div class="p-4 border-b border-indigo-100 bg-indigo-50 flex flex-wrap items-center gap-2"><h3 class="font-bold text-slate-900 ml-2">📒 المستخلصات المحفوظة</h3><select id="cx-filter" onchange="renderCtrExtracts()" class="bg-white border border-indigo-200 rounded px-2 py-1 text-xs font-bold min-w-[10rem]"><option value="">كل أصحاب المعدات</option></select><input id="cx-search" type="search" oninput="renderCtrExtracts()" placeholder="🔍 بحث: اسم أو تاريخ (مثلاً 22/10)" class="bg-white border border-indigo-200 rounded px-2 py-1 text-xs flex-1 min-w-[10rem]"></div>
@@ -10126,6 +10141,74 @@ function contractorStmtRows(name){
     if(!ctrIsAuto(c)){ const lx=(db.ctrExtracts||[]).filter(x=>!x.extra && normName(x.name)===normName(name)).sort((a,b)=>(a.date||'').localeCompare(b.date||'')).pop(); if(lx) shownRate = lx.rate; }
     return {rows:evF, rate:shownRate, oldLeft, auto:ctrIsAuto(c)};
 }
+
+/* ---------- رصيد آخر كل أسبوع لصاحب المعدة (محمد 2026-11-13) ----------
+   الأسابيع القديمة (قبل الحساب المتكود) بتيجي من ملف إكسيل المستخلصات بتاعه (كراسة المعدات): هو اللي بيحمّله بزرار، وبتتخزن مرجع للعرض بس في db.ctrHist ومبتدخلش في أي حساب.
+   الأسابيع الجديدة بتتحسب من حركات كشفه (مستخلصات + سولار + عهد). */
+function cwNorm(t){ return String(t||'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[()\-ـ]/g,' ').replace(/\s+/g,' ').trim(); }
+function cwSheetFor(name){ const H=(db.ctrHist&&db.ctrHist.sheets)||{}; const n=cwNorm(name), sq=x=>cwNorm(x).replace(/\s/g,'').replace(/ابو/g,'بو');
+    const ks=Object.keys(H); const exact=ks.filter(k=>sq(k)===sq(name)); if(exact.length===1) return exact[0];
+    const sub=ks.filter(k=>cwNorm(k).split(' ').every(t=>n.split(' ').includes(t))); if(sub.length!==1) return null;
+    /* صفحة واحدة لأكتر من صاحب معدة (زي لودر احمد امين محجر/ارضية): مينفعش تتقسم لوحدها */
+    const share=(db.contractors||[]).filter(c=>cwNorm(sub[0]).split(' ').every(t=>cwNorm(c.name).split(' ').includes(t))).length; return share===1 ? sub[0] : null; }
+function cwParseDate(a,b,c){ let y,m,d; if(String(a).length===4){ y=a;m=b;d=c; } else { d=a;m=b;y=c; } if(String(y).length<=2) y='20'+String(y).padStart(2,'0'); const r=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; return isNaN(new Date(r+'T12:00:00').getTime()) || +m>12 || +d>31 ? '' : r; }
+function cwParseWorkbook(wb){ const sheets={}; const num=v=>typeof v==='number'&&isFinite(v);
+    wb.SheetNames.forEach(sn=>{ const A=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:null,raw:true}); const W=[]; let cur=null;
+        A.forEach(row=>{ const cells=(row||[]).slice(0,2).filter(c=>c!==null&&c!==''); /* العمودين الأولانيين بس: الأعمدة الجانبية فيها ملخصات شهرية */ if(!cells.length) return; const txt=cells.map(String).join(' ').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+            const m=/مستخلص/.test(txt) && txt.match(/(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})\d*\D+?(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
+            if(m){ const from=cwParseDate(m[1],m[2],m[3]), to=cwParseDate(m[4],m[5],m[6]); cur={id:sn+'|'+from+'|'+W.length, from, to:(to && to>=from)?to:(from?addDays(from,6):''), other:[], bad:!from}; W.push(cur); return; }
+            if(!cur) return; const lab=String(cells.find(c=>typeof c==='string')||'').trim(), v=cells.find(num); if(!lab) return; const val=num(v)?Math.round(v*100)/100:0;
+            if(/رصيد سابق/.test(lab)) cur.prev=val; else if(/سعر/.test(lab)) cur.rate=val; else if(/اجمال[ىي].*مبلغ/.test(lab)) cur.work=val; else if(/^(اجمال[ىي] )?(الكميه|الكمية)$|^عدد/.test(lab)){ cur.qty=val; cur.unit=/ساع/.test(lab)?'ساعة':'متر'; }
+            else if(/اعمال اضافي/.test(lab)) cur.extra=(cur.extra||0)+val; else if(/الاجمال[ىي] الكل[ىي]/.test(lab)) cur.total=val;
+            else if(/^المبلغ الواصل$/.test(lab)) cur.paid=val; else if(/المتبق[ىي]/.test(lab)) cur.remain=val; else if(val) cur.other.push([lab,val]); });
+        const ok=W.filter(w=>!w.bad && w.remain!==undefined && (w.work||w.paid||w.total)); if(ok.length) sheets[sn]=ok; });
+    return sheets; }
+function cwImport(inp){ const f=inp.files&&inp.files[0]; inp.value=''; if(!f) return; if(isRO()) return; const msg=document.getElementById('cw-msg');
+    const rd=new FileReader(); rd.onerror=()=>{ msg.innerHTML='<span style="color:#b91c1c">الملف ما اتقراش</span>'; };
+    rd.onload=()=>{ try{ const wb=XLSX.read(new Uint8Array(rd.result),{type:'array'}); const sheets=cwParseWorkbook(wb); const n=Object.keys(sheets).length, w=Object.values(sheets).reduce((a,x)=>a+x.length,0);
+            if(!n){ msg.innerHTML='<span style="color:#b91c1c">الملف ده مفيهوش مستخلصات أسبوعية بالشكل المعروف (مستخلص … من … حتى … / رصيد سابق / المبلغ الواصل / المبلغ المتبقى)</span>'; return; }
+            db.ctrHist={sheets, at:new Date().toISOString(), file:f.name}; logAudit('create','أسابيع قديمة من الإكسيل',`${f.name}: ${n} صاحب معدة، ${w} أسبوع`); scheduleSave(); cwRender();
+            msg.innerHTML=`<span style="color:#047857">✓ اتحمل ${w} أسبوع لـ ${n} صاحب معدة من «${esc(f.name)}». دي للعرض بس ومبتغيرش أي حساب.</span>`;
+        }catch(e){ msg.innerHTML='<span style="color:#b91c1c">حصل خطأ في قراءة الملف: '+esc(e.message||e)+'</span>'; } };
+    rd.readAsArrayBuffer(f); }
+function cwWeeks(name){ const c=ctrOf(name)||{}, sh=cwSheetFor(name), H=sh?((db.ctrHist.sheets[sh])||[]).slice().sort((a,b)=>a.from.localeCompare(b.from)):[]; const out=[];
+    H.forEach(w=>out.push({from:w.from, to:w.to, work:(w.total!==undefined && w.prev!==undefined) ? Math.round((w.total-w.prev)*100)/100 : (w.work||0)+(w.extra||0), qty:w.qty||0, rate:w.rate||0, paid:(w.total||0)-(w.remain||0)-0 , bal:w.remain||0, old:true, src:w}));
+    out.forEach(o=>{ const w=o.src; o.paid=Math.round(((w.total!==undefined?w.total:(w.prev||0)+o.work)-(w.remain||0))*100)/100; });
+    const oT=Number(c.openTotal)||0, oP=Number(c.openPaid)||0, ob=Number(c.openBal)||0, hasOpen=!!(c.openDate && (oT||oP||ob));
+    if(hasOpen && H.length){ const sw=out.reduce((a,o)=>a+o.work,0), last=out[out.length-1], opening=(oT||oP)?oT-oP:ob; let dW=Math.round((oT-sw)*100)/100, dP=Math.round((last.bal+dW-opening)*100)/100;
+        /* شغل ومدفوع الفترة الناقصة بيتحسبوا بس لو ملف الإكسيل بادئ من أول الحساب (رصيد سابق صفر) والأرقام منطقية؛ غير كده الرصيد بس */
+        const known = Math.abs(out[0].src.prev||0)<1 && dW>=-0.5 && dP>=-0.5; if(!known){ dW=null; dP=null; }
+        if(!known ? Math.abs(last.bal-opening)>0.5 : (Math.abs(dW)>0.5 || Math.abs(dP)>0.5)) out.push({from:addDays(last.to,1), to:addDays(c.openDate,-7)>last.to?addDays(c.openDate,-7):addDays(last.to,7), work:dW, paid:dP, bal:opening, old:true, gap:true}); }
+    else if(hasOpen && !H.length) out.push({from:'', to:addDays(c.openDate,-7), work:oT, paid:oP, bal:(oT||oP)?oT-oP:ob, old:true, lump:true});
+    /* الجديد: من حركات كشفه، أسبوع بأسبوع (خميس → أربع) */
+    const R=contractorStmtRows(name).rows.filter(r=>!(r.ord<0)); const G={}; R.forEach(r=>{ const e=r.eff||r.date||''; if(!e) return; const k=weekStart(e); const g=G[k]||(G[k]={work:0,paid:0}); g.work+=r.credit||0; g.paid+=r.debit||0; });
+    let bal = out.length ? out[out.length-1].bal : 0; if(!out.length && hasOpen) bal=(oT||oP)?oT-oP:ob;
+    Object.keys(G).sort().forEach(k=>{ bal+=G[k].work-G[k].paid; out.push({from:k, to:addDays(k,6), work:G[k].work, paid:G[k].paid, bal}); });
+    { let lastW=-1; out.forEach((o,i)=>{ if(o.old || Math.round(o.work)>0) lastW=i; }); out.length=lastW+1; } /* لحد آخر أسبوع ليه مستخلص */
+    out.forEach((o,i)=>{ o.prev = (o.src && o.src.prev!==undefined) ? o.src.prev : (i ? out[i-1].bal : 0); });
+    return {weeks:out, sheet:sh}; }
+function cwRender(){ const sel=document.getElementById('cw-name'), box=document.getElementById('cw-body'); if(!sel||!box) return;
+    const pv=sel.value, L=(db.contractors||[]).filter(c=>!isCrusherCtr(c.name)); sel.innerHTML=L.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}${c.done?' (متوقف)':''}</option>`).join('');
+    if(L.some(c=>c.name===pv)) sel.value=pv; else { const d=L.find(c=>!c.done); if(d) sel.value=d.name; }
+    const name=sel.value; if(!name){ box.innerHTML=''; return; }
+    const {weeks, sheet}=cwWeeks(name); const q=String(document.getElementById('cw-search')?.value||'').trim().replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\b0(\d)/g,'$1');
+    const hit=w=>!q || [dmy(w.from),dmy(w.to)].some(d=>String(d||'').replace(/\b0(\d)/g,'$1').includes(q)) || (()=>{ const m=q.match(/^(\d{1,2})[\/\-.](\d{1,2})$/); if(!m||!w.from) return false; const y=w.to.slice(0,4), d=`${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; return d>=w.from && d<=w.to; })();
+    const B='border:1px solid #111;padding:9px 10px;text-align:center;', TH=B+'background:#f1f5f9;font-weight:800;'; const n0=v=>nfmt(Math.round(v||0)), bt=v=>n0(Math.abs(v))+(Math.round(v)<0?' عليه':Math.round(v)>0?' ليه':'');
+    const V=weeks.map((w,i)=>({w,i})).filter(x=>hit(x.w)); window.__cwW=weeks; window.__cwN=name;
+    const note = !sheet && !(db.ctrHist&&db.ctrHist.sheets) ? '<div style="margin:6px 0 10px;padding:10px;border:2px solid #f59e0b;background:#fffbeb;font-weight:800">الأسابيع القديمة لسه متحملتش: دوس «📥 تحميل الأسابيع القديمة من ملف الإكسيل» واختار ملف المستخلصات بتاعك مرة واحدة.</div>' : (!sheet ? '<div style="margin:6px 0 10px;padding:8px;background:#f8fafc;font-weight:700;color:#475569">مفيش صفحة باسم صاحب المعدة ده في ملف الإكسيل، فالقديم ظاهر رصيد واحد.</div>' : '');
+    box.innerHTML = `<div class="rep-sec">${repHeadTxt('رصيد آخر كل أسبوع — '+esc(name), weeks.length?('من '+(weeks[0].from?dmy(weeks[0].from):'البداية')+' حتى '+dmy(weeks[weeks.length-1].to)):'')}${note}
+      <table style="width:100%;border-collapse:collapse;font-size:16px"><tr><th style="${TH}">الأسبوع</th><th style="${TH}">رصيد سابق</th><th style="${TH}">اللي ليه (شغل الأسبوع)</th><th style="${TH}">اللي خده</th><th style="${TH}">المتبقي</th></tr>
+      ${V.length ? V.map(({w,i})=>`<tr style="cursor:pointer${w.old?'':';background:#f0fdf4'}" onclick="cwOpen(${i})"><td style="${B}white-space:nowrap;font-weight:700">${w.lump?'الحساب القديم كله لحد '+dmy(w.to):(w.gap?'باقي الحساب القديم ('+dmy(w.from)+' → '+dmy(w.to)+')':dmy(w.from)+' → '+dmy(w.to))}</td><td style="${B}">${bt(w.prev)}</td><td style="${B}">${w.work===null?'—':n0(w.work)}</td><td style="${B}">${w.paid===null?'—':n0(w.paid)}</td><td style="${B}font-weight:800;${Math.round(w.bal)<0?'color:#b91c1c':'color:#047857'}">${bt(w.bal)}</td></tr>`).join('') : `<tr><td style="${B}color:#64748b" colspan="5">مفيش أسبوع بالتاريخ ده</td></tr>`}
+      </table><div class="no-print" style="margin-top:8px;font-size:13px;color:#475569;font-weight:700">دوس على أي أسبوع عشان تشوف تفاصيله.</div>${SIG_LINE}</div>`; }
+function cwOpen(i){ const w=(window.__cwW||[])[i], name=window.__cwN; if(!w) return; if(!w.old){ openCtrWeekView(name, w.from, w.to); return; }
+    const B='border:1px solid #111;padding:9px 10px;', n2=v=>nfmt(Math.round((v||0)*100)/100), bt=v=>nfmt(Math.round(Math.abs(v||0)))+(Math.round(v)<0?' عليه':Math.round(v)>0?' ليه':''), s=w.src||{};
+    const row=(l,v,st)=>`<tr style="${st||''}"><td style="${B}text-align:right;font-weight:800">${l}</td><td style="${B}text-align:center;font-weight:800">${v}</td></tr>`;
+    const rows = w.src ? row('رصيد سابق', bt(s.prev)) + row('الكمية', n2(s.qty)+' '+(s.unit||'متر')) + row('السعر', n2(s.rate)) + row('مبلغ الكمية', n2(s.work)) + (s.extra?row('أعمال إضافية', n2(s.extra)):'') + row('الإجمالي الكلي', bt(s.total)) + row('المبلغ الواصل (اتدفع له)', n2(w.paid),'background:#fef2f2') + (s.other||[]).map(o=>row(esc(o[0]), n2(o[1]))).join('') + row('المتبقي آخر الأسبوع', bt(w.bal),'background:#fef9c3')
+        : row('رصيد سابق', bt(w.prev)) + row('اللي ليه (الشغل)', w.work===null?'مش متسجل بالتفصيل':n2(w.work)) + row('اللي خده', w.paid===null?'مش متسجل بالتفصيل':n2(w.paid),'background:#fef2f2') + row('الرصيد', bt(w.bal),'background:#fef9c3') + `<tr><td colspan="2" style="${B}font-size:13px;color:#475569">السطر ده محسوب من الحساب القديم المتكود في دليل الأكواد (الفرق بين المتكود وآخر أسبوع في ملف الإكسيل).</td></tr>`;
+    document.getElementById('cxv-modal')?.remove(); const m=document.createElement('div'); m.id='cxv-modal'; m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:12px'; m.onclick=e=>{ if(e.target===m) m.remove(); };
+    m.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:14px;max-width:620px;width:100%;padding:14px"><div style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:8px"><button onclick="shareCard('cxv-body','مستخلص '+${JSON.stringify(name).replace(/"/g,'&quot;')})" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">واتساب</button><button onclick="printHtml(document.getElementById('cxv-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="document.getElementById('cxv-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✕</button></div>
+      <div id="cxv-body" style="background:#fff;padding:6px"><div class="rep-sec">${repHeadTxt('مستخلص '+esc(name), w.from?('من '+dmy(w.from)+' حتى '+dmy(w.to)):('لحد '+dmy(w.to)))}<table style="width:100%;border-collapse:collapse;font-size:17px">${rows}</table>${SIG_LINE}</div></div></div>`;
+    document.body.appendChild(m); }
 /* ---------- مستخلص مقاول ---------- */
 function extractableCtrs(){ return (db.contractors||[]).filter(c=>!ctrIsAuto(c) && !c.done && !isCrusherCtr(c.name)); } // اللي خلص شغله مبيظهرش في المستخلصات (محمد 2026-11-10)
 function renderCtrExtracts(){
@@ -11631,7 +11714,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 266.3';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 1';
 
     /* تنبيهات */
     const alerts=[];
@@ -11991,7 +12074,7 @@ function printCardEl(card){
 })();
 </script>
 <script>
-const SW_KEEP='kasara-265.8'; /* لازم يساوي VER في sw.js — أي كاش برنامج باسم تاني بيتمسح من الجهاز، وأي service worker قديم بيتحدث (محمد 2026-11-13). مفيش بيانات بتتمس */
+const SW_KEEP='kasara-v1'; /* لازم يساوي VER في sw.js — أي كاش برنامج باسم تاني بيتمسح من الجهاز، وأي service worker قديم بيتحدث (محمد 2026-11-13). مفيش بيانات بتتمس */
 if('serviceWorker' in navigator && /^https?:/.test(location.protocol)){ window.addEventListener('load',async()=>{
     try{ const ks=await caches.keys(); await Promise.all(ks.filter(k=>!k.startsWith(SW_KEEP+'-')).map(k=>caches.delete(k))); }catch(e){}
     try{ const rs=await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.filter(r=>!/\/sw\.js$/.test((r.active||r.waiting||r.installing||{}).scriptURL||'')).map(r=>r.unregister())); }catch(e){}
@@ -12041,7 +12124,7 @@ try{ navigator.storage && navigator.storage.persist && navigator.storage.persist
     try{ const r=await fetch('index.html',{cache:'no-store'}); if(r.ok){ const t=await r.text(); const m=t.match(/id="app-version-lbl"[^>]*>[^<]*?(\d+(?:\.\d+)?)/); const c=cur();
         if(m && c && m[1]!==c && num(m[1])>num(c) && !document.getElementById('upd-bar')){ const b=document.createElement('button'); b.id='upd-bar'; b.type='button';
           b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:#fff;font-weight:800;font-size:16px;padding:12px;text-align:center;border:0';
-          b.textContent='⚠ البرنامج عندك نسخة قديمة ('+c+') — دوس هنا عشان تفتح آخر نسخة ('+m[1]+')';
+          b.textContent='⚠ البرنامج عندك نسخة قديمة — دوس هنا عشان تفتح آخر نسخة';
           b.onclick=async()=>{ try{ if(typeof cloudSaveMerged==='function') await cloudSaveMerged(); }catch(e){} try{ const ks=await caches.keys(); await Promise.all(ks.filter(k=>/shell/.test(k)).map(k=>caches.delete(k))); }catch(e){} location.reload(); };
           document.body.appendChild(b); }
         /* تحديث تلقائي (محمد 2026-11-13 مش عاوز يقفل ويفتح): لو مش بيكتب في خانة ومفيش نافذة مفتوحة، يحفظ ويفتح آخر نسخة لوحده — مرة واحدة لكل إصدار عشان مايلفش */
