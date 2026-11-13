@@ -354,7 +354,7 @@ body > header .hdr-actions > button,body > header .hdr-actions > label{border-ra
 #exp-sap-line{color:var(--od);font-weight:700;font-size:16px;margin-top:14px;padding-top:10px;border-top:1px solid var(--line)}
 #exp-sap-day table{width:100%;font-size:17px}#exp-sap-day td,#exp-sap-day th{padding:9px 10px !important}
 #exp-sap-day .num{text-align:left;direction:ltr;white-space:nowrap;font-weight:700}
-#exp-form > #exp-save-wrap{display:none !important}
+#exp-form > #exp-save-wrap{order:10}
 @media (min-width:901px){
   #exp-form{display:grid !important;grid-template-columns:1fr 1fr !important;gap:11px 40px !important;align-items:center !important}
   #exp-form > #exp-quick,#exp-form > #exp-contract-info,#exp-form > #exp-bal-info,#exp-form > #exp-notes-wrap{grid-column:1 / 3 !important}
@@ -365,7 +365,7 @@ body > header .hdr-actions > button,body > header .hdr-actions > label{border-ra
   #exp-form > #exp-name-wrap{order:5}#exp-form > #exp-paid-wrap{order:6}#exp-form > #exp-ctrdisc-wrap{order:7}#exp-form > #exp-notes-wrap{order:8}#exp-form > #exp-contract-info,#exp-form > #exp-bal-info{order:9}
   #exp-form #exp-paid{font-weight:800;font-size:20px !important;direction:ltr;text-align:left}
 }
-@media (max-width:900px){ #exp-form > #exp-save-wrap{display:block !important} .exp-sap-tb button[form]{display:none} #exp-sap-item .exp-sap-val{display:inline-block} }
+@media (min-width:901px){ #exp-form > #exp-save-wrap{grid-column:1 / -1 !important;justify-content:flex-end} #exp-form > #exp-save-wrap > button{width:auto !important;min-width:220px;font-size:18px !important;padding:10px 26px !important} }
 /* v260.9: بنود المصروف قايمة منسدلة + الشاشة ثابتة من غير تمرير يمين/شمال */
 #exp-form > #exp-quick{display:none !important}
 #exp-sap-day{height:128px;overflow-y:auto}
@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 261.1</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 261.2</span></p></div>
         </div>
     </aside>
 
@@ -1083,8 +1083,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
             <div id="sub-expenses-form" class="subpage active">
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                 <h3 class="font-bold text-slate-900 mb-4"><i class="fa-solid fa-receipt text-emerald-500"></i> تسجيل مصروف</h3>
-                <div class="exp-sap-tb"><button type="submit" form="exp-form" class="bg-emerald-600 text-white font-bold rounded-lg">💾 حفظ</button><button type="button" onclick="expSapNew()" class="exp-sap-b2">جديد</button><button type="button" onclick="switchSub('expenses','log')" class="exp-sap-b2">السجل</button></div>
-                <form id="exp-form" onsubmit="addExpense(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                                <form id="exp-form" onsubmit="addExpense(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     <div id="exp-quick" class="md:col-span-4 flex flex-wrap gap-2"></div>
                     <div id="exp-sap-item" class="exp-sap-ro"><label class="block text-xs font-bold text-slate-600 mb-1">بند المصروف</label><span id="exp-sap-code" style="display:none"></span><select id="exp-sap-sel" onchange="pickExpType(Number(this.value))" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"></select></div>
                     <div class="hidden"><label class="block text-xs font-bold text-slate-600 mb-1">التبويب</label><select id="exp-category" onchange="filterExpenseSubFields(); renderExpQuick()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
@@ -3389,7 +3388,8 @@ function fillStockRecipientSelect(id, allLabel){
     if((db.contractors||[]).length){
         html += `<optgroup label="أصحاب المعدات">` + db.contractors.map(c=>`<option value="c::${esc(c.name)}">${esc(c.name)}${c.equip?' - '+esc(c.equip):''}</option>`).join('') + `</optgroup>`;
     }
-    if((db.names||[]).length){
+    /* محمد 2026-11-13: الصرف لأصحاب المعدات أو الكسارة بس — الأفراد يظهروا في فلتر السجل لو ليهم حركات قديمة فقط */
+    if((db.names||[]).length && allLabel && (db.stockIssues||[]).some(x=>x.recipientType==='person')){
         html += `<optgroup label="أفراد">` + db.names.map(n=>`<option value="p::${esc(n.name)}">${esc(n.name)}</option>`).join('') + `</optgroup>`;
     }
     if((db.assets||[]).length){
@@ -4511,6 +4511,7 @@ function renderExpQuick(){
 }
 function pickExpType(code){
     const c=(db.expenses||[]).find(x=>x.code===code); if(!c) return;
+    try{ const nt=document.getElementById('exp-notes'); if(nt && !__editSnap && (!nt.value.trim() || nt.value===nt.dataset.auto)){ nt.value=catLabel(c.name); nt.dataset.auto=nt.value; } }catch(e){}
     const sel=document.getElementById('exp-category'); sel.value=c.name; filterExpenseSubFields(); renderExpQuick();
     document.getElementById('exp-paid')?.focus();
 }
@@ -5962,15 +5963,13 @@ function fitPage(){ try{ const m=document.querySelector('main'), t=document.quer
     /* الحجم بيتثبت لكل شاشة: يصغر لو احتاج، وعمره ما يكبر تاني وانت شغال فيها؛ ولو الشاشة دخلت كلها التمرير بيتقفل خالص (محمد 2026-11-13) */
     const F=window.__fitZ||(window.__fitZ={}), sub=t.querySelector(':scope > .subpage.active'), key=activeTab+'|'+(sub?sub.id:'')+'|'+innerWidth+'x'+innerHeight, prev=F[key]||1, st=m.scrollTop;
     const fits=()=>m.scrollHeight<=m.clientHeight, useDay=!!(dc && box && activeTab==='expenses' && sub && sub.id==='sub-expenses-form');
-    if(dc) dc.style.display='none';
+    if(dc){ dc.style.display=''; if(useDay) box.style.height='44px'; }
     t.style.zoom=''; m.style.overflowY='auto'; let z=1;
     const floor=(['treasury','ledger','tb','pl','bs','masterdata','zakat','dashboard','audit','investors'].includes(activeTab) || (sub && !/-form$/.test(sub.id))) ? 0.88 : 0.6; /* الكشوف والتقارير ما تتصغرش عشان تفضل مقروءة */
     if(!fits()){ z=m.clientHeight/m.scrollHeight; if(z>=floor){ for(let i=0;i<14;i++){ t.style.zoom=z.toFixed(3); if(fits()) break; z-=0.015; } if(!fits()) z=1; } else z=1; }
     z=Math.min(prev,z); F[key]=z; t.style.zoom = z<1 ? z.toFixed(3) : '';
-    if(dc && useDay){ dc.style.display=''; box.style.height='44px';
-        if(!fits()) dc.style.display='none';
-        else { const free=m.getBoundingClientRect().bottom - t.getBoundingClientRect().bottom - 14; box.style.height=Math.max(44, Math.min(300, 44+Math.floor(free/z)))+'px'; if(!fits()) box.style.height='44px'; } }
-    else if(dc && activeTab==='expenses'){ dc.style.display=''; }
+    if(dc && useDay){
+        if(fits()){ const free=m.getBoundingClientRect().bottom - t.getBoundingClientRect().bottom - 14; box.style.height=Math.max(44, Math.min(300, 44+Math.floor(free/z)))+'px'; if(!fits()) box.style.height='44px'; } }
     if(fits()){ m.style.overflowY='hidden'; m.scrollTop=0; } else { m.style.overflowY='auto'; m.scrollTop=st; }
 }catch(e){} }
 { const _s=switchTab; switchTab=function(){ const r=_s.apply(this,arguments); setTimeout(fitPage,30); return r; };
@@ -11371,7 +11370,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 261.1';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 261.2';
 
     /* تنبيهات */
     const alerts=[];
