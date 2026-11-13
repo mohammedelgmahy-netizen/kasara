@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 262.4</span></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" class="text-emerald-400 font-bold">الإصدار 262.5</span></p></div>
         </div>
     </aside>
 
@@ -11441,7 +11441,7 @@ function renderMgr(){
     const F=mgrFilters(), R=mgrCompute(F); window.__mgr=R;
     document.querySelectorAll('.mgr-preset').forEach(b=>{ const t=todayISO(); const on = (b.dataset.preset==='day'&&F.from===t&&F.to===t) || (b.dataset.preset==='week'&&F.from===weekStart(t)&&F.to===t) || (b.dataset.preset==='month'&&F.from===t.slice(0,8)+'01'&&F.to===t) || (b.dataset.preset==='all'&&!F.from&&!F.to); b.classList.toggle('on',on); });
     g('mgr-period-label').textContent = 'الفترة المحاسبية: ' + mgrPeriodText(F);
-    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 262.4';
+    g('mgr-stamp').textContent = 'تاريخ الاستخراج: ' + new Date().toLocaleString('ar-EG',{dateStyle:'medium', timeStyle:'short'}) + ' — ' + siteName() + ' — الإصدار 262.5';
 
     /* تنبيهات */
     const alerts=[];
@@ -11674,6 +11674,7 @@ function toggleMoreMenu(){
         ...(window.__isStandalone?[]:[['fa-solid fa-mobile-screen-button','#16a34a','تثبيت التطبيق على الجهاز','installApp()']]),
         ['fa-solid fa-file-export','#2563eb','تصدير نسخة احتياطية','exportData()'],
         ['fa-solid fa-file-excel','#059669','تصدير كل البيانات إكسيل','exportAllExcel()'],
+        ...(currentRole==='admin'?[['fa-solid fa-hand-holding-dollar','#b45309','تصفية حسابات عملاء (خصم)','cstlOpen()']]:[]),
         ...(currentRole==='admin'?[['fa-solid fa-file-import','#475569','استرجاع نسخة',"document.getElementById('restore-input').click()"]]:[]),
         ['fa-solid fa-right-from-bracket','#dc2626','خروج ('+roleLabel()+')','logoutUser()']
     ];
@@ -11717,6 +11718,41 @@ function mvDayApply(){ if(currentRole!=='admin') return; if(typeof __editSnap!==
     scheduleSave(); try{ renderAll(); }catch(e){}
     document.getElementById('mvday').remove();
     alert(`✅ اتحولت ${c} حركة لتاريخ ${t}`); }
+/* زرار مؤقت: تصفية حسابات عملاء بخصم بتاريخ 11/11 — القايمة من محمد 2026-11-13 (اتصال القاعدة من عندي كان واقع فبينفذها هو من عنده) */
+const CSTL_DATE='2026-11-11';
+const CSTL_LIST=[['حاتم ماهر',/^حاتم ماهر/,0],['اسامة شلبي',/اسامه شلب/,0],['عاشور الزعيري',/^عاشور الزعير/,35120],['وليد ابو زيد',/^وليد ابو ?(ال)?ي?زيد/,0],['محمد سعد القناشي',/محمد سعد القناش/,0],['عبد الرحمن دعبوب',/عبد ?الرحمن دعبوب/,0],['عماد ناجي',/^عماد ناج/,0],['ش كابيتال هيبة',/كاب.*هيب/,0],['حسين غيث',/^حسين غيث/,0],['ابوزيد الفردي',/ابو ?زيد الفرد/,0]];
+function cstlRows(){ const nz=x=>String(x||'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/\s+/g,' ').trim(); const out=[];
+    CSTL_LIST.forEach(([lbl,re,target])=>{ const M=(db.clients||[]).filter(c=>re.test(nz(c.name)));
+        if(!M.length){ out.push({lbl, client:'', bal:0, disc:0, target, miss:true}); return; }
+        M.forEach(c=>{ const bal=Math.round(clientSalesBalance(c.name).remaining*100)/100; out.push({lbl, client:c.name, bal, target, disc:Math.round((bal-target)*100)/100}); }); });
+    return out; }
+function cstlOpen(){ if(currentRole!=='admin') return; const ex=document.getElementById('cstl'); if(ex) ex.remove();
+    const R=cstlRows(); window.__cstl=R; const B='border:1px solid #cbd5e1;padding:7px;';
+    const m=document.createElement('div'); m.id='cstl'; m.dir='rtl'; m.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:10px';
+    m.innerHTML=`<div style="background:#fff;max-width:760px;width:100%;max-height:94vh;overflow:auto;padding:16px;border:2px solid var(--od,#1f4b73)">
+      <div style="font-weight:800;font-size:19px;margin-bottom:4px">تصفية حسابات عملاء (خصم)</div>
+      <div style="font-size:15px;color:#475569;margin-bottom:10px">هيتسجل لكل عميل سطر خصم بتاريخ ${dmy(CSTL_DATE)}. البونات والتحصيلات زي ما هي. شيل العلامة من أي اسم مش عاوزه.</div>
+      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:15px"><tr style="background:#f1f5f9;font-weight:800"><td style="${B}"></td><td style="${B}">العميل في البرنامج</td><td style="${B}">الباقي عليه دلوقتي</td><td style="${B}">الخصم</td><td style="${B}">الباقي بعد الخصم</td></tr>
+      ${R.map((r,i)=>r.miss?`<tr><td style="${B}"></td><td style="${B};color:#b91c1c" colspan="4">${esc(r.lbl)}: مش لاقيه في العملاء</td></tr>`:`<tr><td style="${B};text-align:center">${r.disc>0?`<input type="checkbox" id="cstl-c${i}" checked onchange="cstlSum()" style="width:22px;height:22px">`:''}</td><td style="${B};font-weight:700">${esc(r.client)}</td><td style="${B}">${nfmt(r.bal)}</td><td style="${B};font-weight:800;color:#b45309">${r.disc>0?nfmt(r.disc):(r.disc<0?'رصيده أقل من المطلوب':'خالص أصلاً')}</td><td style="${B}">${r.disc>0?nfmt(r.target):nfmt(r.bal)}</td></tr>`).join('')}
+      </table></div>
+      <div id="cstl-sum" style="margin-top:10px;font-weight:800;font-size:16px"></div>
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <button type="button" onclick="cstlApply()" style="flex:2;padding:12px;font-size:17px;font-weight:800;color:#fff;background:#b45309;border:none">سجّل الخصومات</button>
+        <button type="button" onclick="document.getElementById('cstl').remove()" style="flex:1;padding:12px;font-size:17px;font-weight:800;background:#e2e8f0;border:none">إلغاء</button>
+      </div></div>`;
+    document.body.appendChild(m); cstlSum(); }
+function cstlPicked(){ return (window.__cstl||[]).filter((r,i)=>r.disc>0 && (document.getElementById('cstl-c'+i)||{}).checked); }
+function cstlSum(){ const P=cstlPicked(); document.getElementById('cstl-sum').textContent = P.length ? `${P.length} عميل، إجمالي الخصم ${nfmt(Math.round(P.reduce((a,r)=>a+r.disc,0)))}` : 'مفيش خصم هيتسجل'; }
+function cstlApply(){ if(currentRole!=='admin') return; if(typeof __editSnap!=='undefined' && __editSnap){ alert('فيه تعديل مفتوح — احفظه أو الغيه الأول'); return; }
+    const P=cstlPicked(); if(!P.length) return; const tot=Math.round(P.reduce((a,r)=>a+r.disc,0));
+    if(!confirm(`هيتسجل خصم لـ ${P.length} عميل بإجمالي ${nfmt(tot)} بتاريخ ${dmy(CSTL_DATE)}. تكمل؟`)) return;
+    try{ localStorage.setItem('kasara-before-cstl::'+STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    const act=(db.activities.find(a=>a.categories&&a.categories.includes('إيراد'))||db.activities[0]||{}).name||'', project=(db.projects[0]&&db.projects[0].name)||'';
+    P.forEach(r=>{ const now=Math.round(clientSalesBalance(r.client).remaining*100)/100, d=Math.round((now-r.target)*100)/100; if(!(d>0)) return;
+        const rec={ id: db.nextId.exp++, category:'إيراد', activity:act, name:r.client, project, total:-d, paid:0, remaining:0, executedValue:0, date:CSTL_DATE, account:'', notes:'خصم تسوية حساب', desc:'خصم تسوية حساب' };
+        db.expensesData.push(rec); logAudit('create','خصم عميل', `${r.client} - ${fmt(d)}`, null, rec); });
+    scheduleSave(); try{ renderAll(); }catch(e){}
+    document.getElementById('cstl').remove(); alert('✅ اتسجلت الخصومات. راجع أرصدة العملاء.'); }
 function toggleSidebar(force){
     const s = document.getElementById('sidebar'), b = document.getElementById('side-backdrop');
     const open = force===undefined ? !s.classList.contains('open') : force;
