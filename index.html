@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1021</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1022</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -759,7 +759,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">إكرامية (ج.م)</label><input id="dl-tip" type="number" step="any" min="0" oninput="this.dataset.touched=1" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">سعر المتر</label><input id="dl-price" type="number" step="any" min="0" oninput="this.dataset.touched=1;dlPriceHint()" class="font-bold w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"><button type="button" onclick="dlSaveClientPrice()" style="margin-top:4px;width:100%;background:#16a34a;color:#fff;border-radius:6px;padding:5px 6px;font-weight:800;font-size:14px">💾 ثبّت السعر للعميل</button><div id="dl-price-hint" class="text-xs font-bold mt-1 text-emerald-700"></div></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">سعر المتر</label><input id="dl-price" type="number" step="any" min="0" oninput="this.dataset.touched=1;dlPriceHint()" class="font-bold w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"><div id="dl-price-hint" style="display:none"></div></div>
                         <div class="hidden"><label class="block text-xs font-bold text-slate-600 mb-1">المشروع</label><select id="dl-project" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                         <div class="col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">ملاحظات</label><input id="dl-notes" type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">طريقة الدفع</label><select id="dl-pay" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="credit">آجل</option><option value="cash">نقدي (درج المكتب)</option></select></div>
@@ -4065,7 +4065,7 @@ function toggleMasterFields(){
     const plType = document.getElementById('master-pltype').value;
     document.getElementById('master-plbucket-wrap').classList.toggle('hidden', !(type==='expenses' && plType==='operating'));
     document.getElementById('master-contract-wrap').classList.toggle('hidden', !(type==='clients'));
-    document.getElementById('master-prepaid-wrap').classList.toggle('hidden', !(type==='clients')); document.getElementById('master-cprices-wrap').classList.toggle('hidden', !(type==='clients'));
+    document.getElementById('master-prepaid-wrap').classList.toggle('hidden', !(type==='clients')); document.getElementById('master-cprices-wrap').classList.add('hidden');
     document.getElementById('master-salary-wrap').classList.toggle('hidden', type!=='names');
     document.getElementById('master-rate-wrap').classList.toggle('hidden', type!=='contractors'); try{ renderCtrEqQuick(); }catch(e){}
     document.getElementById('master-account-wrap')?.classList.toggle('hidden', type!=='accounts');
@@ -4168,7 +4168,7 @@ function saveMasterItem(e){
             const cv = Number(document.getElementById('master-contract').value);
             if(cv>0) item.contractValue = cv;
             if(document.getElementById('master-prepaid').checked) item.prepaid = true;
-            { const P=cpricesRead(); if(Object.keys(P).length) item.prices = P; }
+
         }
         const acts = [...document.querySelectorAll('.name-activity-check:checked')].map(cb=>cb.value);
         if(acts.length) item.activities = acts;
@@ -9524,7 +9524,7 @@ function cpricesFill(P){ const box=document.getElementById('master-cprices'); if
     box.innerHTML = DL_SIZES.filter(sz=>!DL_FORM_HIDE.includes(sz.key) || P[sz.key]).map(sz=>`<label class="block text-xs font-bold text-slate-700">${esc(sz.label)}<input type="number" step="any" min="0" data-cpr="${sz.key}" value="${P[sz.key]||''}" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-sm font-bold mt-1"></label>`).join(''); }
 function cpricesRead(){ const P={}; document.querySelectorAll('#master-cprices input[data-cpr]').forEach(i=>{ const v=Number(i.value)||0; if(v>0) P[i.dataset.cpr]=v; }); return P; }
 function clientCodedPrices(name){ const c=(db.clients||[]).find(x=>normName(x.name)===normName(name||'')); return (c&&c.prices)||null; }
-function dlAutoPrice(){ try{
+function dlAutoPrice(){ return; /* محمد 2026-11-14 12:42: «حتة تثبت السعر سيبك منها خالص — اكتب السعر جنب البون عادي زي الأول»: مفيش سعر بيتملى لوحده ولا سعر متثبت للعميل؛ التسعير بالجملة من كشف الحساب بس */ try{
     const el=document.getElementById('dl-price'); if(!el || el.dataset.touched) return;
     if(window.__editBon && typeof __editSnap!=='undefined' && __editSnap) return; /* تعديل بون قديم: سعره زي ما هو */
     const P=clientCodedPrices((document.getElementById('dl-client')||{}).value);
