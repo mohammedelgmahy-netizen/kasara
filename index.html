@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1028</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1030</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1832,7 +1832,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 <button type="button" id="subnav-ledger-form" class="subnav-btn active" onclick="switchSub('ledger','form')">📄 كشف حساب</button>
                 <button type="button" id="subnav-ledger-log" class="subnav-btn" onclick="switchSub('ledger','log')">👥 أرصدة العملاء</button>
                 <button type="button" id="subnav-ledger-eq" class="subnav-btn" onclick="switchSub('ledger','eq')">🚜 كشف حساب المعدات</button>
-                <button type="button" id="subnav-ledger-cx" class="subnav-btn" onclick="switchSub('ledger','cx')">🧾 مستخلص عميل</button>
+                <button type="button" id="subnav-ledger-cx" class="subnav-btn" style="display:none" onclick="switchSub('ledger','cx')">🧾 مستخلص عميل</button>
             </div>
             <div id="sub-ledger-eq" class="subpage"><div id="sub-ledger-eq-in" class="flex flex-col gap-4"></div></div>
             <div id="sub-ledger-cx" class="subpage">
@@ -3744,7 +3744,7 @@ function fitBonForm(){
     }catch(e){}
 }
 window.addEventListener('resize', ()=>{ try{ fitBonForm(); }catch(e){} });
-function switchSub(tab, which){ if(tab==='ledger' && which==='cx'){ try{ setTimeout(cxcRender,0); }catch(e){} } if(tab==='ledger' && which==='eq'){ try{ eqMoveToLedger(); renderEquipmentTab(); }catch(e){ console.warn(e); } } /* محمد 2026-11-13: كشف حساب المعدات جوه تاب كشف الحساب، والصرف من المخزون */ try{ if(tab==='dailylog' && which==='coll'){ renderCollectionsLog(); showClientCollectionBalance(); const cd=document.getElementById('coll-date'); if(cd && !cd.value) cd.value=todayISO(); } }catch(e){} try{ if(tab==='inventory') renderMashoon(); }catch(e){}
+function switchSub(tab, which){ if(tab==='ledger' && which==='cx') which='form'; /* صفحة مستخلص عميل اتخفت (محمد 2026-11-14) */ if(tab==='ledger' && which==='cx'){ try{ setTimeout(cxcRender,0); }catch(e){} } if(tab==='ledger' && which==='eq'){ try{ eqMoveToLedger(); renderEquipmentTab(); }catch(e){ console.warn(e); } } /* محمد 2026-11-13: كشف حساب المعدات جوه تاب كشف الحساب، والصرف من المخزون */ try{ if(tab==='dailylog' && which==='coll'){ renderCollectionsLog(); showClientCollectionBalance(); const cd=document.getElementById('coll-date'); if(cd && !cd.value) cd.value=todayISO(); } }catch(e){} try{ if(tab==='inventory') renderMashoon(); }catch(e){}
     const panel = document.getElementById('tab-'+tab); if(!panel) return;
     panel.querySelectorAll(':scope > .subpage').forEach(p=>p.classList.remove('active'));
     panel.querySelector('#sub-'+tab+'-'+which)?.classList.add('active');
@@ -5598,7 +5598,7 @@ function renderAccountStatement(){ try{ const ub=document.getElementById('cs-unp
         if(window.__csLastName!==name){ window.__csLastName=name; const ls=csLastStmt(name); if(ls){ __acctWeekInit=true; const fa=document.getElementById('acct-from'), ta=document.getElementById('acct-to'); const d=new Date(ls+'T12:00:00'); d.setDate(d.getDate()+1); if(fa) fa.value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); if(ta) ta.value=''; } }
         if(!__acctWeekInit){ __acctWeekInit=true; const fa=document.getElementById('acct-from'), ta=document.getElementById('acct-to'); if(fa && ta && !fa.value && !ta.value){ const [f,t]=acctWeekRange(0); fa.value=f; ta.value=t; } }
         if(wrapEl) wrapEl.style.display='none';
-        if(sheetEl){ sheetEl.style.display=''; sheetEl.innerHTML=clientSheetHtml(name); try{ let ub=document.getElementById('cs-unpriced-bar'); if(!ub){ ub=document.createElement('div'); ub.id='cs-unpriced-bar'; ub.className='no-print'; sheetEl.parentNode.insertBefore(ub, sheetEl); } ub.innerHTML=csUnpricedBar(name)+(isRO()?'':`<div style="direction:rtl;margin:0 0 10px"><button type="button" onclick="csPriceRange()" style="background:#1d4ed8;color:#fff;padding:8px 16px;border-radius:8px;font-weight:800;font-size:16px">💲 تسعير من بون رقم … لبون رقم …</button></div>`); }catch(e){} }
+        if(sheetEl){ sheetEl.style.display=''; window.__csEditing=!isRO(); try{ sheetEl.innerHTML=clientSheetHtml(name); } finally { window.__csEditing=false; } try{ let ub=document.getElementById('cs-unpriced-bar'); if(!ub){ ub=document.createElement('div'); ub.id='cs-unpriced-bar'; ub.className='no-print'; sheetEl.parentNode.insertBefore(ub, sheetEl); } ub.innerHTML=(isRO()?'':`<div style="direction:rtl;margin:0 0 10px"><button type="button" onclick="csSavePrices()" style="background:#16a34a;color:#fff;padding:8px 16px;border-radius:8px;font-weight:800;font-size:16px">💾 حفظ أسعار العميل</button> <span style="font-weight:800;font-size:15px">اكتب السعر في الخانة الصفرا تحت كل صنف</span></div>`); }catch(e){} }
         return;
     }
     if(wrapEl) wrapEl.style.display=''; if(sheetEl){ sheetEl.style.display='none'; sheetEl.innerHTML=''; }
@@ -5618,7 +5618,7 @@ function renderAccountStatement(){ try{ const ub=document.getElementById('cs-unp
 }
 /* آخر كشف اتبعت/اتطبع لكل عميل (تاريخ نهايته) — علامة بس، مش حركة حسابات */
 function csLastStmt(name){ let d=(db.stmtLast||{})[name]||''; (db.clientStmts||[]).forEach(x=>{ if(x.name===name && x.to && x.to>d) d=x.to; }); return d; }
-function csMarkStmt(){ try{ const g=id=>document.getElementById(id); if(g('acct-name').value===ALL_BONS) return; if(g('acct-type').value!=='client' || isRO()) return; const name=g('acct-name').value; if(!name) return;
+function csMarkStmt(){ try{ const sh=document.getElementById('acct-sheet'), nm=document.getElementById('acct-name')?.value; if(sh && sh.querySelector('.csp-in') && nm){ sh.innerHTML=clientSheetHtml(nm); setTimeout(()=>{ try{ renderAccountStatement(); }catch(e){} }, 5000); } }catch(e){} try{ const g=id=>document.getElementById(id); if(g('acct-name').value===ALL_BONS) return; if(g('acct-type').value!=='client' || isRO()) return; const name=g('acct-name').value; if(!name) return;
     const to=g('acct-to').value||todayISO(); if(!db.stmtLast) db.stmtLast={}; if((db.stmtLast[name]||'')>=to) return; db.stmtLast[name]=to; scheduleSave(); }catch(e){} }
 /* كشف حساب العميل بشكل الورقة: جدول لكل عربية بالأصناف، ثم السعر والمبلغ، ثم الرصيد السابق والتحصيلات */
 /* أسبوع الكشف: من الخميس للأربع — افتراضياً آخر أسبوع خلص يوم الأربع */
@@ -5680,7 +5680,7 @@ function clientSheetHtml0(name){
     const totRow=`<tr style="font-weight:800"><td style="${B}" colspan="2">الإجمالي</td><td style="${B}">${D.n?nfmt(D.n):''}</td><td style="${B}"></td>${sz.map(x=>`<td style="${B}">${n0(D.tot[x.key])}</td>`).join('')}</tr>`;
     const qAll=sz.reduce((t,x)=>t+(Number(D.tot[x.key])||0),0);
     const qtyRow=`<tr style="font-weight:800;background:#f1f5f9"><td style="${B}" colspan="4">إجمالي الكميات (متر)</td><td style="${B};font-size:1.1em" colspan="${sz.length||1}">${n0(qAll)}</td></tr>`;
-    const priceRow=`<tr><td style="${B};font-weight:800" colspan="4">السعر</td>${sz.map(x=>D.tot[x.key]?`<td style="${B};cursor:pointer" class="cs-price" title="دوس لتعديل السعر" onclick="csEditPrice('${x.key}')">${n0(D.priceOf(x.key))||'—'}</td>`:`<td style="${B}"></td>`).join('')}</tr>`;
+    const priceRow=`<tr><td style="${B};font-weight:800" colspan="4">السعر</td>${sz.map(x=>D.tot[x.key]?(window.__csEditing?`<td style="${B};background:#fef9c3;padding:2px"><input class="csp-in" data-csp="${x.key}" type="number" step="any" min="0" value="${Number(D.priceOf(x.key))||''}" placeholder="السعر" style="width:90px;font-size:18px;font-weight:800;text-align:center;border:2px solid #16a34a;border-radius:4px;background:#fff;color:#000"></td>`:`<td style="${B}">${n0(D.priceOf(x.key))||'—'}</td>`):`<td style="${B}"></td>`).join('')}</tr>`;
     const amtRow=`<tr style="font-weight:800"><td style="${B}" colspan="4">إجمالي المبلغ</td>${sz.map(x=>`<td style="${B}">${n0(D.amt[x.key])}</td>`).join('')}</tr>`;
     const req=D.bonsTotal+D.otherDebit, totalReq=req+D.prev;
     const sl=(l,v,bold)=>`<tr${bold?' style="font-weight:800"':''}><td style="${B};width:55%">${l}</td><td style="${B}">${Math.round(v)?nfmt(Math.round(v)):''}</td></tr>`;
@@ -5796,6 +5796,24 @@ function cxcSave(){
 }
 function cxcPrint(){ const g=id=>document.getElementById(id); if(!g('cxc-name').value){ alert('اختار العميل الأول'); return; } printHtml(cxcSheetHtml(g('cxc-name').value, g('cxc-from').value, g('cxc-to').value, false)); }
 function cxcShare(){ const g=id=>document.getElementById(id), name=g('cxc-name').value; if(!name){ alert('اختار العميل الأول'); return; } const b=g('cxc-body'); b.innerHTML=cxcSheetHtml(name, g('cxc-from').value, g('cxc-to').value, false); const pr=elementToFile(b,'مستخلص '+name); shareImagesModal('مستخلص '+name, pr); Promise.resolve(pr).catch(()=>{}).then(()=>cxcRender()); }
+/* محمد 2026-11-14: «الكشف يطلع لي بعدد العربيات والأمتار وأنا أحط السعر اللي على مزاجي» — خانة سعر لكل صنف في كشف الحساب، والحفظ بيطبق السعر على بونات العميل في الفترة للصنف ده (زي csEditPrice) */
+function csSavePrices(){
+    if(isRO()) return; const g=id=>document.getElementById(id); if(g('acct-type').value!=='client') return;
+    const name=g('acct-name').value, from=g('acct-from').value, to=g('acct-to').value; if(!name) return;
+    const plan=[]; let skip=0;
+    document.querySelectorAll('#acct-sheet input[data-csp]').forEach(inp=>{ const key=inp.dataset.csp, pr=Number(String(inp.value).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(',','.'))||0; if(!(pr>0)) return;
+        const all=clientBons(name, from, to).filter(r=>(Number((r.q||{})[key])||0)>0); skip+=all.filter(r=>r.saleGroupId).length;
+        const list=all.filter(r=>!r.saleGroupId && (Number(r.price)||0)!==pr); if(list.length) plan.push({key, sz:DL_SIZES.find(x=>x.key===key)||{label:key}, pr, list}); });
+    if(!plan.length){ alert('مفيش سعر جديد يتحفظ — اكتب السعر في الخانة الصفرا'); return; }
+    const before=plan.reduce((a,p)=>a+p.list.reduce((b,r)=>b+(Number(bonValue(r))||0),0),0);
+    if(!confirm(`هيتسجل السعر على بونات «${name}»${from||to?' من '+(from?dmy(from):'الأول')+' لـ '+(to?dmy(to):'النهارده'):''}:\n`+plan.map(p=>`• ${p.sz.label}: ${p.list.length} بون × ${nfmt(p.pr)}`).join('\n')+(skip?`\n(${skip} بون مربوط بفاتورة مش هيتغير)`:'')+'\n\nتمام؟')) return;
+    let n=0; plan.forEach(p=>p.list.forEach(r=>{ r.price=p.pr; delete r.total; n++; }));
+    const after=plan.reduce((a,p)=>a+p.list.reduce((b,r)=>b+(Number(bonValue(r))||0),0),0);
+    /* محمد 2026-11-14: «لما أحفظ الباقي يترحل للي جاي» — الحفظ بيعلّم آخر كشف للعميل، فالكشف الجاي بيبدأ من اليوم اللي بعده والباقي بيظهر «المتبقي» من قبل */
+    { const end=to||todayISO(); if(!db.stmtLast) db.stmtLast={}; if((db.stmtLast[name]||'')<end) db.stmtLast[name]=end; }
+    logAudit('update','تعديل سعر من كشف الحساب', `${name} — ${n} بون — `+plan.map(p=>`${p.sz.label} ${nfmt(p.pr)}`).join(' ، '), {total:Math.round(before)}, {total:Math.round(after), from, to});
+    scheduleSave(); renderAll(); try{ renderAccountStatement(); }catch(e){}
+}
 function csEditPrice(key){
     if(isRO()) return;
     const g=id=>document.getElementById(id); if(g('acct-type').value!=='client') return;
@@ -9461,7 +9479,7 @@ function saveCashCount(){
 function homeAlertsHtml(){
     const A=[]; const can=t=>tabPerm(t)!=='none';
     try{
-        const n=unpricedBons().length; if(n && can('dailylog')) A.push(['#be123c','💲',`${nfmt(n)} بون من غير سعر`,"switchTab('ledger');switchSub('ledger','cx')"]);
+        const n=unpricedBons().length; if(n && can('dailylog')) A.push(['#be123c','💲',`${nfmt(n)} بون من غير سعر`,"switchTab('ledger');switchSub('ledger','form')"]);
         const mb=missingBons().length; if(mb && can('dailylog')) A.push(['#d97706','⚠️',`${nfmt(mb)} بون ناقص في التسلسل`,"switchTab('dailylog'); setTimeout(showMissingBons,100)"]);
         if(can('collections')){
             const lim=new Date(Date.now()-30*864e5).toISOString().slice(0,10); let late=0, out=0;
@@ -9687,7 +9705,7 @@ function markBonCancelled(n){
 function renderPriceBonsBtn(){
     const b = document.getElementById('price-bons-btn'); if(!b) return;
     const n = unpricedBons().length;
-    b.style.display = 'none'; /* محمد 2026-11-14: «خلي سعر العميل من هنا (المستخلص) مش من المبيعات» — زرار التسعير اتشال من المبيعات */
+    b.style.display = 'none'; /* محمد 2026-11-14: «خلي سعر العميل من هنا (كشف الحساب) مش من المبيعات» */
     b.textContent = `💲 تسعير ${n} بون من غير سعر`;
 }
 function openPriceBons(){
@@ -12255,7 +12273,7 @@ function printCardEl(card){
 })();
 </script>
 <script>
-const SW_KEEP='kasara-v1'; /* لازم يساوي VER في sw.js — أي كاش برنامج باسم تاني بيتمسح من الجهاز، وأي service worker قديم بيتحدث (محمد 2026-11-13). مفيش بيانات بتتمس */
+const SW_KEEP='kasara-v2'; /* لازم يساوي VER في sw.js — أي كاش برنامج باسم تاني بيتمسح من الجهاز، وأي service worker قديم بيتحدث (محمد 2026-11-13). مفيش بيانات بتتمس */
 if('serviceWorker' in navigator && /^https?:/.test(location.protocol)){ window.addEventListener('load',async()=>{
     try{ const ks=await caches.keys(); await Promise.all(ks.filter(k=>!k.startsWith(SW_KEEP+'-')).map(k=>caches.delete(k))); }catch(e){}
     try{ const rs=await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.filter(r=>!/\/sw\.js$/.test((r.active||r.waiting||r.installing||{}).scriptURL||'')).map(r=>r.unregister())); }catch(e){}
