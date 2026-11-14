@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1031</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1032</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5499,6 +5499,8 @@ function getClientAccountRows(name){
         if(paid>0) rows.push({ date:x.date, desc: x.saleId ? 'تحصيل نقدي مع البون' : ('تحصيل — '+(x.desc||x.notes||'')), debit:0, credit:paid });
         if(paid<0) rows.push({ date:x.date, desc:'رد للعميل — '+(x.desc||x.notes||''), debit:-paid, credit:0 });
     });
+    /* تعديل الرصيد الأولاني للعميل (محمد 2026-11-14، بلال عاشور 9,700 → 3,850): رقم على العميل نفسه بيتجمع في رصيده قبل أي حركة — مش تحصيل ولا خصم، ومش داخل في الخزنة ولا الربح */
+    { const c=(db.clients||[]).find(c=>normName(c.name)===normName(name)), adj=Number(c&&c.openAdj)||0; if(adj) rows.unshift({ date:'2000-01-01', desc:'تعديل الرصيد الأولاني', debit:adj>0?adj:0, credit:adj<0?-adj:0, openAdj:true }); }
     const from = document.getElementById('acct-from')?.value || '', to = document.getElementById('acct-to')?.value || '';
     const all = acctFinish(rows);
     if(!from && !to) return all;
@@ -5653,13 +5655,13 @@ function clientSheetData(name){
     // الرصيد السابق: كل الحركات قبل بداية الفترة
     const allRows=getClientAccountRowsAll(name);
     const start = from || (bons[0]&&bons[0].date) || '';
-    const before = start ? allRows.filter(r=>(r.date||'')<start) : [];
+    const before = start ? allRows.filter(r=>(r.date||'')<start) : allRows.filter(r=>r.openAdj); /* تعديل الرصيد الأولاني دايماً في «المتبقي» من قبل، عمره ما يظهر سطر */
     const prev = before.reduce((a,r)=>a+(r.debit||0)-(r.credit||0),0);
     const inRange = d => (!start || (d||'')>=start);
     const bonsTotal = bons.reduce((a,r)=>a+(Number(bonValue(r))||0),0); // نفس قيمة البون في الرصيد (عشان التقريب)
     // مديونيات تانية في الفترة (فواتير مش مربوطة ببون)
-    const otherDebit = allRows.filter(r=>!r.bon && r.debit>0 && inRange(r.date) && (!to || r.date<=to)).reduce((a,r)=>a+r.debit,0);
-    const credits = allRows.filter(r=>r.credit>0 && inRange(r.date)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    const otherDebit = allRows.filter(r=>!r.bon && !r.openAdj && r.debit>0 && inRange(r.date) && (!to || r.date<=to)).reduce((a,r)=>a+r.debit,0);
+    const credits = allRows.filter(r=>r.credit>0 && !r.openAdj && inRange(r.date)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
     const pFrom = from || (bons[0]&&bons[0].date) || '', pTo = to || (bons.length?bons[bons.length-1].date:'') || '';
     const used = sizes.filter(sz=>tot[sz.key] || DL_BASE_SIZES.some(b=>b.key===sz.key) || DL_BUILTIN_EXTRA.some(b=>b.key===sz.key));
     return {from:pFrom, to:pTo, cars:Object.values(cars), sizes:used, tot, amt, priceOf, n:bons.length, prev, bonsTotal, otherDebit, credits};
@@ -5925,7 +5927,7 @@ function balanceSheetData(D){
     (db.accounts||[]).forEach(a=>{ try{ const v=buildCashStatement('', D, a.name).closing; if(Math.round(v)) A.push({g:'النقدية', name:a.name, v}); }catch(e){} });
     // العملاء
     let rec=0, adv=0;
-    (db.clients||[]).forEach(c=>{ let b=0; try{ getClientAccountRowsAll(c.name).forEach(r=>{ if(le(r.date)) b+=(r.debit||0)-(r.credit||0); }); }catch(e){} if(b>0) rec+=b; else adv-=b; });
+    (db.clients||[]).forEach(c=>{ let b=0; try{ getClientAccountRowsAll(c.name).forEach(r=>{ if(!r.openAdj && le(r.date)) b+=(r.debit||0)-(r.credit||0); }); }catch(e){} if(b>0) rec+=b; else adv-=b; });
     if(Math.round(rec)) A.push({g:'العملاء', name:'مستحقات على العملاء', v:rec});
     // المخزون (بمتوسط سعر الشراء)
     const _cnt=stockCountAt(D||''); if(_cnt){ _cnt.items.forEach(it=>A.push({g:'المخزون', name:'مخزون '+it.item+' ('+(it.moved?'الرصيد بعد حركة الشراء والصرف من جرد '+_cnt.date:'جرد '+_cnt.date)+': '+Number(it.qty||0).toLocaleString('ar-EG')+' '+(it.unit||'')+')', v:Number(it.value)||0})); } else {
@@ -6039,7 +6041,7 @@ function tbData(D){
     const put = (g, name, v, side) => { v = Number(v)||0; if(!Math.round(v)) return; if(side==='cr') v = -v; rows.push({g, name, dr: v>0?v:0, cr: v<0?-v:0}); };
     // تفصيل العملاء وموردي قطع الغيار والسولار وأصحاب المعدات بالاسم (نفس حساب المركز المالي)
     const cl=[], su=[], ct=[];
-    (db.clients||[]).forEach(c=>{ let b=0; try{ getClientAccountRowsAll(c.name).forEach(r=>{ if(le(r.date)) b+=(r.debit||0)-(r.credit||0); }); }catch(e){} if(Math.round(b)) cl.push({name:c.name, v:b}); });
+    (db.clients||[]).forEach(c=>{ let b=0; try{ getClientAccountRowsAll(c.name).forEach(r=>{ if(!r.openAdj && le(r.date)) b+=(r.debit||0)-(r.credit||0); }); }catch(e){} if(Math.round(b)) cl.push({name:c.name, v:b}); });
     (db.suppliers||[]).forEach(x=>{ const {ob:sOB, od:sOD}=supOpen(x.name); const ok=p=>le(p.date) && (!sOD || (p.date||'')>=sOD); const i=(db.procurements||[]).filter(p=>p.supplier===x.name && ok(p)).reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0); const pd=(db.payments||[]).filter(p=>p.supplier===x.name && ok(p)).reduce((a,p)=>a+(Number(p.amount)||0),0); const b=(sOD && le(sOD)?sOB:0)+i-pd; if(Math.round(b)) su.push({name:x.name, v:b}); });
     (db.contractors||[]).forEach(c=>{ try{ let b=0; contractorStmtRows(c.name).rows.forEach(r=>{ if(le(r.date)) b+=(r.credit||0)-(r.debit||0); }); if(Math.round(b)) ct.push({name:c.name, v:b}); }catch(e){} });
     const sum = (L,f) => L.filter(f).reduce((a,x)=>a+x.v,0);
