@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1022</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1023</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1832,8 +1832,25 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 <button type="button" id="subnav-ledger-form" class="subnav-btn active" onclick="switchSub('ledger','form')">📄 كشف حساب</button>
                 <button type="button" id="subnav-ledger-log" class="subnav-btn" onclick="switchSub('ledger','log')">👥 أرصدة العملاء</button>
                 <button type="button" id="subnav-ledger-eq" class="subnav-btn" onclick="switchSub('ledger','eq')">🚜 كشف حساب المعدات</button>
+                <button type="button" id="subnav-ledger-cx" class="subnav-btn" onclick="switchSub('ledger','cx')">🧾 مستخلص عميل</button>
             </div>
             <div id="sub-ledger-eq" class="subpage"><div id="sub-ledger-eq-in" class="flex flex-col gap-4"></div></div>
+            <div id="sub-ledger-cx" class="subpage">
+            <div class="bg-white rounded-xl border border-emerald-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-emerald-100 bg-emerald-50 flex flex-wrap items-center gap-2">
+                    <h3 class="font-bold text-slate-900 ml-2">🧾 مستخلص أسبوعي للعميل</h3>
+                    <select id="cxc-name" onchange="cxcRender()" class="bg-white border border-emerald-300 rounded px-2 py-1 text-base font-bold min-w-[12rem]"></select>
+                    <label class="text-sm font-bold text-slate-700">من <input id="cxc-from" type="date" onchange="cxcRender()" class="bg-white border border-slate-300 rounded p-1 text-sm font-bold"></label>
+                    <label class="text-sm font-bold text-slate-700">إلى <input id="cxc-to" type="date" onchange="cxcRender()" class="bg-white border border-slate-300 rounded p-1 text-sm font-bold"></label>
+                    <button type="button" onclick="cxcShift(-1)" class="bg-white border border-slate-300 rounded px-2 py-1 text-sm font-bold">▶ الأسبوع اللي قبله</button>
+                    <button type="button" onclick="cxcShift(1)" class="bg-white border border-slate-300 rounded px-2 py-1 text-sm font-bold">الأسبوع اللي بعده ◀</button>
+                    <button type="button" onclick="cxcSave()" style="background:#d97706;color:#fff" class="px-4 py-1.5 rounded text-sm font-bold">💾 حفظ الأسعار</button>
+                    <button type="button" onclick="cxcShare()" style="background:#16a34a;color:#fff" class="px-3 py-1.5 rounded text-sm font-bold"><i class="fa-brands fa-whatsapp"></i> واتساب</button>
+                    <button type="button" onclick="cxcPrint()" class="bg-slate-800 text-white px-3 py-1.5 rounded text-sm font-bold">🖨️ طباعة</button>
+                </div>
+                <div id="cxc-body" class="p-3" style="overflow-x:auto;background:#fff"></div>
+            </div>
+            </div><!-- /sub-ledger-cx -->
             <div id="sub-ledger-form" class="subpage active">
             <div id="acct-card" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                 <div class="flex flex-wrap justify-between items-center gap-3 mb-4 border-b border-slate-100 pb-3">
@@ -3725,7 +3742,7 @@ function fitBonForm(){
     }catch(e){}
 }
 window.addEventListener('resize', ()=>{ try{ fitBonForm(); }catch(e){} });
-function switchSub(tab, which){ if(tab==='ledger' && which==='eq'){ try{ eqMoveToLedger(); renderEquipmentTab(); }catch(e){ console.warn(e); } } /* محمد 2026-11-13: كشف حساب المعدات جوه تاب كشف الحساب، والصرف من المخزون */ try{ if(tab==='dailylog' && which==='coll'){ renderCollectionsLog(); showClientCollectionBalance(); const cd=document.getElementById('coll-date'); if(cd && !cd.value) cd.value=todayISO(); } }catch(e){} try{ if(tab==='inventory') renderMashoon(); }catch(e){}
+function switchSub(tab, which){ if(tab==='ledger' && which==='cx'){ try{ setTimeout(cxcRender,0); }catch(e){} } if(tab==='ledger' && which==='eq'){ try{ eqMoveToLedger(); renderEquipmentTab(); }catch(e){ console.warn(e); } } /* محمد 2026-11-13: كشف حساب المعدات جوه تاب كشف الحساب، والصرف من المخزون */ try{ if(tab==='dailylog' && which==='coll'){ renderCollectionsLog(); showClientCollectionBalance(); const cd=document.getElementById('coll-date'); if(cd && !cd.value) cd.value=todayISO(); } }catch(e){} try{ if(tab==='inventory') renderMashoon(); }catch(e){}
     const panel = document.getElementById('tab-'+tab); if(!panel) return;
     panel.querySelectorAll(':scope > .subpage').forEach(p=>p.classList.remove('active'));
     panel.querySelector('#sub-'+tab+'-'+which)?.classList.add('active');
@@ -5724,6 +5741,59 @@ function csPriceRange(){
     logAudit('update','تسعير بونات بالأرقام', `${name} — من ${from} لـ ${to} — ${n} بون — `+plan.map(x=>`${x.sz.label} ${nfmt(x.pr)}`).join(' ، '), {total:Math.round(before)}, {total:Math.round(tot), from, to});
     scheduleSave(); renderAll(); try{ renderAccountStatement(); }catch(e){}
 }
+/* ===== مستخلص أسبوعي للعميل (محمد 2026-11-14: «تسعير البون بناءً على المستخلص أفضل») =====
+   مسحوبات الأسبوع مجمعة لكل صنف، السعر بيتكتب مرة لكل صنف وبيتحفظ على بونات الأسبوع نفسها (البون بسعر واحد: بيتبع أول صنف فيه كمية)، + المحصّل + صندوق الحساب */
+function cxcKey(r){ return (DL_SIZES.find(sz=>Number((r.q||{})[sz.key])>0)||{}).key; }
+function cxcData(name, from, to){
+    const L=clientBons(name, from, to).filter(r=>bonQtyTotal(r)>0), G={}, order=[];
+    L.forEach(r=>{ const k=cxcKey(r); if(!k) return; let g=G[k]; if(!g){ g=G[k]={key:k, label:(DL_SIZES.find(z=>z.key===k)||{}).label||k, n:0, q:0, val:0, prices:new Set(), list:[]}; order.push(k); }
+        g.n++; g.q+=bonQtyTotal(r); g.val+=Number(bonValue(r))||0; g.prices.add(Number(r.price)||0); g.list.push(r); });
+    let before=0, work=0, coll=0; const colls=[];
+    getClientAccountRowsAll(name).forEach(x=>{ const d=x.date||''; if(from && d<from){ before+=(x.debit||0)-(x.credit||0); } else if(!to || d<=to){ work+=(x.debit||0); if(x.credit){ coll+=x.credit; colls.push(x); } } });
+    return {groups:DL_SIZES.filter(z=>G[z.key]).map(z=>G[z.key]), before, work, coll, colls, n:L.length};
+}
+function cxcSheetHtml(name, from, to, edit){
+    const D=cxcData(name, from, to), B='border:1px solid #000;padding:9px 10px;text-align:center', H=B+';background:#eef2f7;font-weight:800', m=v=>nfmt(Math.round(v)), bt=v=>m(Math.abs(v))+' '+(Math.round(v)>=0?'عليه':'ليه');
+    const prTxt=g=>{ const P=[...g.prices]; return P.length===1 ? (P[0]?nfmt(P[0]):'—') : P.map(v=>v?nfmt(v):'—').join(' ، '); };
+    const prCell=g=>{ const P=[...g.prices]; return edit ? `<td style="${B};background:#fef9c3;border:3px solid #16a34a;padding:4px"><input type="number" step="any" min="0" data-cxc="${g.key}" value="${P.length===1&&P[0]?P[0]:''}" placeholder="${P.length>1?prTxt(g):'السعر'}" style="width:110px;font-size:20px;font-weight:800;text-align:center;border:0;background:transparent;color:#000"></td>` : `<td style="${B}">${prTxt(g)}</td>`; };
+    const end=D.before+D.work-D.coll, sizesVal=D.groups.reduce((a,g)=>a+g.val,0), other=D.work-sizesVal;
+    return `<div style="direction:rtl;color:#000;font-size:20px;font-weight:800;min-width:600px;background:#fff">
+<table style="width:100%;border-collapse:collapse"><tr><td style="${B};font-size:24px">مستخلص أسبوعي — العميل / ${esc(name)}</td><td style="${B};width:190px">${esc(typeof COMPANY_NAME!=='undefined'?COMPANY_NAME:'كسارة الديار')}</td></tr><tr><td colspan="2" style="${B}">الأسبوع من ${dmy(from)} حتى ${dmy(to)}</td></tr></table>
+<div style="margin:14px 0 6px">١) مسحوبات الأسبوع</div>
+<table style="width:100%;border-collapse:collapse"><tr><th style="${H}">الصنف</th><th style="${H}">عدد البونات</th><th style="${H}">الكمية</th><th style="${H}">السعر</th><th style="${H}">القيمة</th></tr>
+${D.groups.map(g=>`<tr><td style="${B}">${esc(g.label)}</td><td style="${B}">${nfmt(g.n)}</td><td style="${B}">${nfmt(Math.round(g.q*100)/100)} متر</td>${prCell(g)}<td style="${B}">${m(g.val)}</td></tr>`).join('') || `<tr><td style="${B}" colspan="5">مفيش بونات للعميل في الأسبوع ده</td></tr>`}
+${Math.abs(other)>=1?`<tr><td style="${B};text-align:right" colspan="4">حركات تانية على حسابه في الأسبوع</td><td style="${B}">${m(other)}</td></tr>`:''}
+<tr style="background:#ecfdf5"><td style="${B};text-align:right" colspan="4">إجمالي مسحوبات الأسبوع</td><td style="${B}">${m(D.work)}</td></tr></table>
+<div style="margin:14px 0 6px">٢) المحصّل منه في الأسبوع</div>
+<table style="width:100%;border-collapse:collapse"><tr><th style="${H}">البيان</th><th style="${H}">المبلغ</th></tr>
+${D.colls.map(x=>`<tr><td style="${B};text-align:right">تحصيل ${dmy(x.date)}</td><td style="${B}">${m(x.credit)}</td></tr>`).join('')}
+<tr style="background:#fef2f2"><td style="${B};text-align:right">إجمالي المحصّل</td><td style="${B}">${m(D.coll)}</td></tr></table>
+<div style="margin:14px 0 6px">الحساب</div>
+<table style="width:100%;border-collapse:collapse;font-size:22px"><tr><td style="${B};text-align:right">باقي حسابه من قبل الأسبوع</td><td style="${B}">${bt(D.before)}</td></tr><tr><td style="${B};text-align:right">(+) مسحوبات الأسبوع</td><td style="${B}">${m(D.work)}</td></tr><tr><td style="${B};text-align:right">(−) المحصّل منه</td><td style="${B}">${m(D.coll)}</td></tr><tr style="background:#fef9c3"><td style="${B};text-align:right">الباقي في الآخر</td><td style="${B}">${bt(end)}</td></tr></table>
+<div style="display:flex;justify-content:space-between;margin-top:18px;font-size:17px"><span>المسؤول / م. عماد ناجي</span><span>المحاسب / محمد الجميعي</span></div></div>`;
+}
+function cxcRender(){
+    const g=id=>document.getElementById(id), sel=g('cxc-name'); if(!sel) return;
+    const pv=sel.value, N=(db.clients||[]).map(c=>c.name).filter(n=>!(typeof clientHidden==='function' && clientHidden(n))).sort((a,b)=>a.localeCompare(b,'ar'));
+    sel.innerHTML='<option value="">— اختار العميل —</option>'+N.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join(''); if(N.includes(pv)) sel.value=pv;
+    if(!g('cxc-from').value || !g('cxc-to').value){ const w=acctWeekRange(0); g('cxc-from').value=w[0]; g('cxc-to').value=w[1]; }
+    g('cxc-body').innerHTML = sel.value ? cxcSheetHtml(sel.value, g('cxc-from').value, g('cxc-to').value, !isRO()) : '<p style="text-align:center;padding:30px;font-weight:800;font-size:18px;color:#475569">اختار العميل والأسبوع</p>';
+}
+function cxcShift(n){ const g=id=>document.getElementById(id); const f=g('cxc-from').value||acctWeekRange(0)[0]; g('cxc-from').value=addDays(f,7*n); g('cxc-to').value=addDays(g('cxc-from').value,6); cxcRender(); }
+function cxcSave(){
+    if(isRO()) return; const g=id=>document.getElementById(id), name=g('cxc-name').value, from=g('cxc-from').value, to=g('cxc-to').value; if(!name){ alert('اختار العميل الأول'); return; }
+    const D=cxcData(name, from, to), plan=[]; let skip=0;
+    D.groups.forEach(gr=>{ const inp=document.querySelector(`#cxc-body input[data-cxc="${gr.key}"]`); const pr=inp?Number(inp.value)||0:0; if(!(pr>0)) return;
+        const list=gr.list.filter(r=>!r.saleGroupId && !r.free && (Number(r.price)||0)!==pr); skip+=gr.list.filter(r=>r.saleGroupId).length; if(list.length) plan.push({gr, pr, list}); });
+    if(!plan.length){ alert('مفيش سعر جديد يتحفظ — اكتب السعر في الخانة الصفرا'); return; }
+    const before=plan.reduce((a,p)=>a+p.list.reduce((b,r)=>b+(Number(bonValue(r))||0),0),0), after=plan.reduce((a,p)=>a+p.list.reduce((b,r)=>b+bonQtyTotal(r)*p.pr,0),0);
+    if(!confirm(`هيتسجل السعر على بونات «${name}» من ${dmy(from)} لـ ${dmy(to)}:\n`+plan.map(p=>`• ${p.gr.label}: ${p.list.length} بون × ${nfmt(p.pr)}`).join('\n')+`\n\nقيمتهم دلوقتي: ${nfmt(Math.round(before))}\nقيمتهم بعد السعر: ${nfmt(Math.round(after))}`+(skip?`\n(${skip} بون مربوط بفاتورة مش هيتغير)`:'')+`\nتمام؟`)) return;
+    let n=0; plan.forEach(p=>p.list.forEach(r=>{ r.price=p.pr; delete r.total; n++; }));
+    logAudit('update','تسعير من مستخلص العميل', `${name} — ${dmy(from)} → ${dmy(to)} — ${n} بون — `+plan.map(p=>`${p.gr.label} ${nfmt(p.pr)}`).join(' ، '), {total:Math.round(before)}, {total:Math.round(after), from, to});
+    scheduleSave(); renderAll(); cxcRender();
+}
+function cxcPrint(){ const g=id=>document.getElementById(id); if(!g('cxc-name').value){ alert('اختار العميل الأول'); return; } printHtml(cxcSheetHtml(g('cxc-name').value, g('cxc-from').value, g('cxc-to').value, false)); }
+function cxcShare(){ const g=id=>document.getElementById(id), name=g('cxc-name').value; if(!name){ alert('اختار العميل الأول'); return; } const b=g('cxc-body'); b.innerHTML=cxcSheetHtml(name, g('cxc-from').value, g('cxc-to').value, false); const pr=elementToFile(b,'مستخلص '+name); shareImagesModal('مستخلص '+name, pr); Promise.resolve(pr).catch(()=>{}).then(()=>cxcRender()); }
 function csEditPrice(key){
     if(isRO()) return;
     const g=id=>document.getElementById(id); if(g('acct-type').value!=='client') return;
