@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1014</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1015</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5645,7 +5645,7 @@ function getClientAccountRowsAll(name){
     const fv=f?f.value:'', tv=t?t.value:''; if(f) f.value=''; if(t) t.value='';
     try{ return getClientAccountRows(name); } finally { if(f) f.value=fv; if(t) t.value=tv; }
 }
-function clientSheetHtml(name){
+function clientSheetHtml0(name){
     const D=clientSheetData(name);
     const B='border:1px solid #111;padding:6px 8px;text-align:center;';
     const n0=v=>(v?nfmt(Math.round(v*100)/100):''), nb=v=>v?nfmt(Math.round(v*100)/100):'';
@@ -10413,7 +10413,7 @@ function __saveCtrExtractCore(){
 }
 /* لما تدوس على مستخلص محفوظ تظهر تفاصيله (محمد 2026-11-07) */
 /* المستخلص الأسبوعي (محمد وافق على الصورة 2026-11-13): شغل الأسبوع، سولار الأسبوع، المدفوع في الأسبوع، وصندوق الحساب (باقي من قبل + شغل − سولار − مدفوع = الباقي). عرض بس من نفس حركات كشفه */
-function ctrWeeklySheetHtml(name, from, to){
+function ctrWeeklySheetHtml0(name, from, to){
     const {rows} = contractorStmtRows(name);
     const B='border:1px solid #111;padding:9px 10px;text-align:center;', TH=B+'background:#f1f5f9;font-weight:800;';
     const n0 = v => nfmt(Math.round(v||0));
@@ -10678,7 +10678,7 @@ function ctrGroupSheetHtml(name, to){ const G=ctrGroupCalc(name, to); if(!G) ret
     const B='border:1px solid #111;padding:6px 8px;text-align:center;', r=(l,v,b)=>`<tr${b?' style="font-weight:800;background:#f8fafc"':''}><td style="${B};width:55%;text-align:right">${l}</td><td style="${B}">${nfmt(Math.round(v))}</td></tr>`;
     return `<div style="height:14px"></div><table style="width:100%;border-collapse:collapse"><tr><td colspan="2" style="${B};font-weight:800;background:#f1f5f9">الحساب المجمّع — ${esc(G.label)}${to?' (لحد '+dmy(to)+')':''}</td></tr>`
       + G.L.map(x=>r('ليه — '+esc(x.name), x.cr)).join('') + r('إجمالي اللي ليه', G.CR, true) + r('إجمالي اللي أخده (عهد وسولار وسداد وخصومات)', G.DR) + r(G.net<0?'الباقي: عليه':'الباقي له', Math.abs(G.net), true) + '</table>'; }
-function contractorSheetHtml(name, from, to){
+function contractorSheetHtml0(name, from, to){
     const {rows, rate} = contractorStmtRows(name);
     const B='border:1px solid #111;padding:6px 8px;text-align:center;';
     const before = rows.filter(r=>from && r.date<from), opening = before.length ? before[before.length-1].bal : 0;
@@ -10782,6 +10782,14 @@ function printCustodyStmt(){
 }
 
 /* ---------- طباعة HTML جاهز (مشتركة) ---------- */
+/* محمد 2026-11-14: «غمّق الكلام في المستخلص وكبّره شوية وكشف الحساب برضه» — الخط أكبر وأتقل والرمادي بقى أسود (شاشة + طباعة + واتساب) */
+function sheetDark(html, k){ try{ return '<div style="font-weight:800;color:#000">'+String(html)
+    .replace(/font-size:\s*(\d+(?:\.\d+)?)px/g,(m,n)=>'font-size:'+Math.round(Number(n)*(k||1.1))+'px')
+    .replace(/font-weight:\s*(?:[4-7]00|normal|bold)\b/g,'font-weight:800')
+    .replace(/([;"\s]color:\s*)#(?:111|222|333|444|555|666|777|888|999|64748b|475569|334155|94a3b8|6b7280|4b5563|374151|1f2937|0f172a|1e293b)\b/gi,'$1#000')+'</div>'; }catch(e){ return html; } }
+function ctrWeeklySheetHtml(){ return sheetDark(ctrWeeklySheetHtml0.apply(this,arguments), 1.1); }
+function contractorSheetHtml(){ return sheetDark(contractorSheetHtml0.apply(this,arguments), 1.25); }
+function clientSheetHtml(){ return sheetDark(clientSheetHtml0.apply(this,arguments), 1.1); }
 function printHtml(html){
     document.querySelectorAll('.print-target').forEach(el=>el.classList.remove('print-target'));
     const box = document.createElement('div');
