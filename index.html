@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1025</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1026</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5688,7 +5688,7 @@ function clientSheetHtml0(name){
     const paid=D.credits.reduce((a,c)=>a+(Number(c.credit)||0),0), bal=totalReq-paid;
     const sl2=(l,v,sign,bold)=>`<tr${bold?' style="font-weight:800;background:#f1f5f9"':''}><td style="${B};width:55%">${l}</td><td style="${B}">${sign||''}${nfmt(Math.round(Math.abs(v)))}</td></tr>`;
     let sum=sl2(D.prev<0?'المتبقي (ليه)':'المتبقي',D.prev,D.prev<0?'− ':'');
-    sum+=sl2('المسحوب خلال الفترة',req,'+ ');
+    /* محمد 2026-11-14: «امسح المسحوب خلال الفترة… ملهمش لازمة» — السطر اتشال من الكشف (الحساب زي ما هو) */
     if(D.credits.length>1) D.credits.forEach(c=>{ sum+=sl2('محصّل '+dmy(c.date),c.credit,'− '); });
     sum+=sl2(D.credits.length>1?'إجمالي المحصّل':('المحصّل'+(D.credits.length===1?' '+dmy(D.credits[0].date):'')),paid,'− ');
     sum+=sl2(bal<0?'المتبقي (ليه)':'المتبقي',bal,'',true);
@@ -5697,7 +5697,7 @@ function clientSheetHtml0(name){
         <td style="${B};font-size:22px;font-weight:800;padding:14px">${/نقدي/.test(name)?'':'السيد/ '}${esc(name)}</td>
         <td style="${B};width:24%;font-weight:800">${brandLogoSrc()?`<img src="${brandLogoSrc()}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;display:block;margin:0 auto 4px">`:''}كسارة الديار</td></tr>
         <tr><td colspan="2" style="${B};font-weight:700">الفترة من ${D.from?dmy(D.from):'-'} حتى ${D.to?dmy(D.to):'-'}</td></tr></table>
-      <table style="width:100%;border-collapse:collapse">${head}${rows.join('')}${totRow}${qtyRow}${priceRow}${amtRow}</table>
+      <table style="width:100%;border-collapse:collapse">${head}${rows.join('')}${totRow}${priceRow}${amtRow}</table>
       <div style="height:14px"></div>
       <table style="width:100%;border-collapse:collapse">${sum}</table>${SIG_LINE}</div>`;
 }
@@ -5771,7 +5771,7 @@ ${Math.abs(other)>=1?`<tr><td style="${B};text-align:right" colspan="4">حركا
 ${D.colls.map(x=>`<tr><td style="${B};text-align:right">تحصيل ${dmy(x.date)}</td><td style="${B}">${m(x.credit)}</td></tr>`).join('')}
 <tr style="background:#fef2f2"><td style="${B};text-align:right">إجمالي المحصّل</td><td style="${B}">${m(D.coll)}</td></tr></table>
 <div style="margin:14px 0 6px">الحساب</div>
-<table style="width:100%;border-collapse:collapse;font-size:22px"><tr><td style="${B};text-align:right">باقي حسابه من قبل الأسبوع</td><td style="${B}">${bt(D.before)}</td></tr><tr><td style="${B};text-align:right">(+) مسحوبات الأسبوع</td><td style="${B}">${m(D.work)}</td></tr><tr><td style="${B};text-align:right">(−) المحصّل منه</td><td style="${B}">${m(D.coll)}</td></tr><tr style="background:#fef9c3"><td style="${B};text-align:right">الباقي في الآخر</td><td style="${B}">${bt(end)}</td></tr></table>
+<table style="width:100%;border-collapse:collapse;font-size:22px"><tr><td style="${B};text-align:right">باقي حسابه من قبل الأسبوع</td><td style="${B}">${bt(D.before)}</td></tr><tr><td style="${B};text-align:right">(−) المحصّل منه</td><td style="${B}">${m(D.coll)}</td></tr><tr style="background:#fef9c3"><td style="${B};text-align:right">الباقي في الآخر</td><td style="${B}">${bt(end)}</td></tr></table>
 <div style="display:flex;justify-content:space-between;margin-top:18px;font-size:17px"><span>المسؤول / م. عماد ناجي</span><span>المحاسب / محمد الجميعي</span></div></div>`;
 }
 function cxcRender(){
