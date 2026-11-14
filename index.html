@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1032</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1033</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3428,7 +3428,7 @@ const todayISO = () => new Date().toISOString().slice(0,10);
 
 function catLabel(n){ return n==='مقاولين' ? 'أصحاب المعدات' : n==='معلق عماد ناجي' ? 'البنك' : n; } // اسم العرض بس، البيانات زي ما هي
 /* محمد 2026-11-13: عملاء «اتشالوا من البرنامج» — إخفاء من القوايم بس، حركاتهم وأرصدتهم محسوبة زي ما هي */
-const HIDE_CLIENTS = new Set(['حاتم ماهر','م\\اسامه شلبى','عماد ناجى']);
+const HIDE_CLIENTS = new Set(['حاتم ماهر','عماد ناجى']); /* م\\اسامه شلبى رجع ظاهر 2026-11-14: محمد «عليه 55,200» */
 function clientHidden(n){ return HIDE_CLIENTS.has(String(n||'').trim()); }
 function visClients(){ return (db.clients||[]).filter(c=>!clientHidden(c.name)); }
 function fillSelect(id, items, allLabel){
