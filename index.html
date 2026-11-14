@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1011</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1012</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -751,7 +751,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">سن 3</label><input id="dl-q-s3" type="number" step="any" min="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">سن مدرج</label><input id="dl-q-mudarrag" type="number" step="any" min="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div id="dl-extra-sizes" class="contents"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">طبقة عادية</label><input id="dl-q-tabaqa" type="number" step="any" min="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">طبقة</label><input id="dl-q-tabaqa" type="number" step="any" min="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div id="dl-extra-sizes2" class="contents"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">نسبة السن في الطبقة</label><select id="dl-tabaqa-pct" onchange="document.getElementById('dl-tabaqa-pct-custom').style.display=this.value==='custom'?'':'none'" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="">عادي (50%)</option><option value="10">10%</option><option value="20">20%</option><option value="30">30%</option><option value="40">40%</option><option value="50">50%</option><option value="60">60%</option><option value="custom">نسبة تانية...</option></select>
                             <input id="dl-tabaqa-pct-custom" type="number" step="any" min="0" max="100" placeholder="اكتب النسبة %" style="display:none" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm mt-1"></div>
@@ -8900,10 +8900,10 @@ async function shareViaWhatsApp(day){
 /* ================= كسارة الديار — الدفاتر الورقية (سجل يومي / يومية / دفاتر أطراف) ================= */
 const DL_BASE_SIZES = [
     {key:'s1', label:'سن 1'}, {key:'s15', label:'سن 1.5'}, {key:'s3', label:'سن 3'},
-    {key:'mudarrag', label:'سن مدرج'}, {key:'tabaqa', label:'طبقة عادية'}
+    {key:'mudarrag', label:'سن مدرج'}, {key:'tabaqa', label:'طبقة'}
 ];
 /* أصناف ثابتة زيادة (زي ورقة الكشف): سن 2، طبقة مخلوط، سمسم */
-const DL_BUILTIN_EXTRA = [{key:'s2', label:'سن 2'}, {key:'tmix', label:'طبقة'}, {key:'simsim', label:'سمسم'}];
+const DL_BUILTIN_EXTRA = [{key:'s2', label:'سن 2'}, {key:'tmix', label:'طبقة مخلوط'}, {key:'simsim', label:'سمسم'}];
 let DL_SIZES = DL_BASE_SIZES.slice();
 /* أصناف سن إضافية (سن 2، سن 6...) بتتضاف من زرار "+ صنف جديد" وبتتحفظ في db.meta.extraSizes */
 function refreshSizes(){
@@ -10846,7 +10846,7 @@ function printSinBreakdown(){
                 <tr style="background:#fef3c7;font-weight:800"><td style="${cell}" colspan="2">🪨 إجمالي صافي السن</td><td style="${cell};text-align:center;font-size:18px">${nfmt(Math.round(total*100)/100)}</td></tr>
             </tbody>
         </table>
-        <p style="text-align:center;font-size:11px;color:#555">عدد البونات: ${rows.length} — طبقة عادية 50% · طبقة 50% (40% من 10/9) · تربة 25% (10% من 15/10) · طبقة بلنفة 40% · سمسمية مش محسوبة</p></div>`;
+        <p style="text-align:center;font-size:11px;color:#555">عدد البونات: ${rows.length} — طبقة 50% · طبقة مخلوط 50% (40% من 10/9) · تربة 25% (10% من 15/10) · طبقة بلنفة 40% · سمسمية مش محسوبة</p></div>`;
     printHtml(html);
 }
 function printSinOnly(){
