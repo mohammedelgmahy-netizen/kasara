@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1012</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1013</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -7960,6 +7960,8 @@ function removeTipShare(bonId){ db.expensesData = (db.expensesData||[]).filter(x
 function codedVehicle(plate){ return (db.vehicles||[]).find(x=>normPlate(x.plate)===normPlate(plate||'')); }
 /* أزرار الصنف: دوسة واحدة تحط تكعيب العربية في الصنف ده */
 function dlCubeNum(){ const t=String(document.getElementById('dl-cube')?.value||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(',','.'); const n=parseFloat(t.replace(/[^0-9.]/g,'')); return isNaN(n)?0:n; }
+/* محمد 2026-11-14: «شيل مخلوط خالص» — زرار «طبقة مخلوط» و«مخلوط» مخفي من فورم البون (بيظهر بس لو بون قديم عليه كمية بيتعدل). البونات القديمة والحسابات زي ما هي */
+const DL_FORM_HIDE=['tmix','xmix'];
 function renderSizeBtns(){
     const box=document.getElementById('dl-size-btns'); if(!box) return;
     const cube=dlCubeNum();
@@ -7967,7 +7969,7 @@ function renderSizeBtns(){
     DL_SIZES.forEach(sz=>{ const el=document.getElementById('dl-q-'+sz.key); if(el){ const on=Number(el.value)>0; if(on) __dlSel.add(sz.key); el.style.background = on?'#d1fae5':''; el.style.borderColor = on?'#059669':''; el.style.fontWeight = on?'800':'';
         /* محمد 2026-11-08: مربع الكمية يظهر بس للصنف المختار */
         const wrap=el.parentElement; if(wrap){ wrap.style.display=''; wrap.classList.toggle('dlq-on', __dlSel.has(sz.key)); } } });
-    box.innerHTML = `<span class="text-xs font-bold text-slate-600">${cube?`الحمولة (${nfmt(cube)} م):`:'الصنف:'}</span>` + DL_SIZES.map(sz=>{ const on=__dlSel.has(sz.key); return `<button type="button" onclick="dlPickSize('${sz.key}')" class="px-3 py-1.5 rounded-lg text-sm font-bold border-2 ${on?'bg-emerald-600 border-emerald-600 text-white':'bg-white border-slate-300 text-slate-700'}">${on?'✓ ':''}${esc(sz.label)}</button>`; }).join('');
+    box.innerHTML = `<span class="text-xs font-bold text-slate-600">${cube?`الحمولة (${nfmt(cube)} م):`:'الصنف:'}</span>` + DL_SIZES.filter(sz=>!DL_FORM_HIDE.includes(sz.key) || __dlSel.has(sz.key)).map(sz=>{ const on=__dlSel.has(sz.key); return `<button type="button" onclick="dlPickSize('${sz.key}')" class="px-3 py-1.5 rounded-lg text-sm font-bold border-2 ${on?'bg-emerald-600 border-emerald-600 text-white':'bg-white border-slate-300 text-slate-700'}">${on?'✓ ':''}${esc(sz.label)}</button>`; }).join('');
     try{ fitBonForm(); }catch(e){}
 }
 document.addEventListener('input', e=>{ if(e.target && e.target.id && e.target.id.startsWith('dl-q-')) try{
