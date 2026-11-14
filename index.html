@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1019</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1020</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5579,7 +5579,7 @@ function renderAccountStatement(){ try{ const ub=document.getElementById('cs-unp
         if(window.__csLastName!==name){ window.__csLastName=name; const ls=csLastStmt(name); if(ls){ __acctWeekInit=true; const fa=document.getElementById('acct-from'), ta=document.getElementById('acct-to'); const d=new Date(ls+'T12:00:00'); d.setDate(d.getDate()+1); if(fa) fa.value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); if(ta) ta.value=''; } }
         if(!__acctWeekInit){ __acctWeekInit=true; const fa=document.getElementById('acct-from'), ta=document.getElementById('acct-to'); if(fa && ta && !fa.value && !ta.value){ const [f,t]=acctWeekRange(0); fa.value=f; ta.value=t; } }
         if(wrapEl) wrapEl.style.display='none';
-        if(sheetEl){ sheetEl.style.display=''; sheetEl.innerHTML=clientSheetHtml(name); try{ let ub=document.getElementById('cs-unpriced-bar'); if(!ub){ ub=document.createElement('div'); ub.id='cs-unpriced-bar'; ub.className='no-print'; sheetEl.parentNode.insertBefore(ub, sheetEl); } ub.innerHTML=csUnpricedBar(name); }catch(e){} }
+        if(sheetEl){ sheetEl.style.display=''; sheetEl.innerHTML=clientSheetHtml(name); try{ let ub=document.getElementById('cs-unpriced-bar'); if(!ub){ ub=document.createElement('div'); ub.id='cs-unpriced-bar'; ub.className='no-print'; sheetEl.parentNode.insertBefore(ub, sheetEl); } ub.innerHTML=csUnpricedBar(name)+(isRO()?'':`<div style="direction:rtl;margin:0 0 10px"><button type="button" onclick="csPriceRange()" style="background:#1d4ed8;color:#fff;padding:8px 16px;border-radius:8px;font-weight:800;font-size:16px">💲 تسعير من بون رقم … لبون رقم …</button></div>`); }catch(e){} }
         return;
     }
     if(wrapEl) wrapEl.style.display=''; if(sheetEl){ sheetEl.style.display='none'; sheetEl.innerHTML=''; }
@@ -5701,6 +5701,27 @@ function csPriceUnpriced(){
     if(!confirm(`هيتسجل السعر على بونات «${name}»:\n`+plan.map(x=>`• ${x.sz.label}: ${x.list.length} بون × ${nfmt(x.pr)}`).join('\n')+`\n\nالإجمالي اللي هينزل على حسابه: ${nfmt(Math.round(tot))}\nتمام؟`)) return;
     let n=0; plan.forEach(x=>x.list.forEach(r=>{ r.price=x.pr; delete r.total; n++; }));
     logAudit('update','تسعير بونات من غير سعر', `${name} — ${n} بون — `+plan.map(x=>`${x.sz.label} ${nfmt(x.pr)}`).join(' ، '), null, {total:Math.round(tot)});
+    scheduleSave(); renderAll(); try{ renderAccountStatement(); }catch(e){}
+}
+/* محمد 2026-11-14: «من بون رقم كذا لبون رقم كذا سعره قد كده» — تسعير بنطاق أرقام البونات للعميل المختار؛ اللي بره النطاق ما بيتلمسش */
+function csPriceRange(){
+    if(isRO()) return; const g=id=>document.getElementById(id); if(g('acct-type').value!=='client') return; const name=g('acct-name').value; if(!name) return;
+    const num=t=>Number(String(t).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(',','.').replace(/[^0-9.]/g,''));
+    const all=(db.dailyLog||[]).filter(r=>normName(r.client)===normName(name) && bonQtyTotal(r)>0 && isFinite(bonNum(r)));
+    if(!all.length){ alert('مفيش بونات للعميل ده'); return; }
+    const ns=all.map(bonNum), lo=Math.min(...ns), hi=Math.max(...ns);
+    const a=prompt(`تسعير بونات «${name}»\nمن بون رقم؟ (بوناته من ${lo} لـ ${hi})`, ''); if(a===null) return; const from=num(a); if(!(from>0)){ alert('اكتب رقم البون'); return; }
+    const b=prompt(`لحد بون رقم؟`, ''); if(b===null) return; const to=num(b); if(!(to>=from)){ alert('رقم «لحد» لازم يكون أكبر من أو يساوي رقم «من»'); return; }
+    const inR=all.filter(r=>bonNum(r)>=from && bonNum(r)<=to); const list=inR.filter(r=>!r.saleGroupId && !r.free), skip=inR.length-list.length;
+    if(!list.length){ alert(`مفيش بونات للعميل «${name}» من ${from} لـ ${to}`+(skip?` (${skip} بون مربوط بفاتورة/مجاني)`:'')); return; }
+    const keyOf=r=>(DL_SIZES.find(sz=>Number((r.q||{})[sz.key])>0)||{}).key; const G={}; list.forEach(r=>{ const k=keyOf(r); if(k) (G[k]=G[k]||[]).push(r); });
+    const plan=[]; for(const k of Object.keys(G)){ const sz=DL_SIZES.find(x=>x.key===k)||{label:k}; const q=G[k].reduce((x,r)=>x+bonQtyTotal(r),0); const cur=[...new Set(G[k].map(r=>Number(r.price)||0))];
+        const raw=prompt(`سعر المتر لـ «${sz.label}» — ${name}\nمن بون ${from} لبون ${to}: ${G[k].length} بون (${nfmt(Math.round(q*100)/100)} متر)\nالسعر الحالي: ${cur.map(v=>v?nfmt(v):'من غير سعر').join(' ، ')}\nسيبها فاضية لو مش عاوز تغير المقاس ده`, ''); if(raw===null) return; const pr=num(raw); if(pr>0) plan.push({k, sz, pr, list:G[k], q}); }
+    if(!plan.length) return;
+    const before=plan.reduce((x,p)=>x+p.list.reduce((y,r)=>y+(Number(bonValue(r))||0),0),0), tot=plan.reduce((x,p)=>x+p.q*p.pr,0);
+    if(!confirm(`هيتسجل السعر على بونات «${name}» من ${from} لـ ${to}:\n`+plan.map(x=>`• ${x.sz.label}: ${x.list.length} بون × ${nfmt(x.pr)}`).join('\n')+`\n\nقيمتهم دلوقتي: ${nfmt(Math.round(before))}\nقيمتهم بعد السعر الجديد: ${nfmt(Math.round(tot))}`+(skip?`\n(${skip} بون مربوط بفاتورة مش هيتغير)`:'')+`\nتمام؟`)) return;
+    let n=0; plan.forEach(x=>x.list.forEach(r=>{ r.price=x.pr; delete r.total; n++; }));
+    logAudit('update','تسعير بونات بالأرقام', `${name} — من ${from} لـ ${to} — ${n} بون — `+plan.map(x=>`${x.sz.label} ${nfmt(x.pr)}`).join(' ، '), {total:Math.round(before)}, {total:Math.round(tot), from, to});
     scheduleSave(); renderAll(); try{ renderAccountStatement(); }catch(e){}
 }
 function csEditPrice(key){
