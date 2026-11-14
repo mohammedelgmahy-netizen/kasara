@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1009</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1010</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -8117,17 +8117,7 @@ function editVehicleCube(plate){
     if(c===null) return;
     const old = v.cube||''; v.cube = c.trim();
     logAudit('update','تكعيب جرار', `${plate}: ${old||'-'} → ${v.cube||'-'}`);
-    const o=Number(String(old).replace(/[^0-9.]/g,''))||0, n=Number(String(v.cube).replace(/[^0-9.]/g,''))||0;
-    if(o && n && o!==n){
-        const lk = db.lockedUntil||'';
-        const L=(db.dailyLog||[]).filter(r=>normPlate(r.tractor)===normPlate(plate) && (!lk || (r.date||'')>lk) && DL_SIZES.some(sz=>Number((r.q||{})[sz.key])===o));
-        if(L.length && confirm(`في ${L.length} بون متسجل للعربية دي بالتكعيب القديم (${nfmt(o)}). تعدّلهم للتكعيب الجديد (${nfmt(n)})؟`)){
-            L.forEach(r=>{ DL_SIZES.forEach(sz=>{ if(Number((r.q||{})[sz.key])===o) r.q[sz.key]=n; });
-                if(r.total!=null) delete r.total;
-                if(r.saleGroupId){ removeSaleGroup(r.saleGroupId); r.saleGroupId = r.price>0 ? postSaleForLog(r) : undefined; } });
-            logAudit('update','تعديل بونات بالتكعيب', `${plate}: ${L.length} بون ${nfmt(o)} → ${nfmt(n)}`);
-        }
-    }
+    /* محمد 2026-11-14: «مليش أي علاقة بالقديم» — تعديل التكعيب للبونات الجديدة بس، البونات المسجلة ما تتلمسش */
     renderVehicles(); scheduleSave(); try{ renderAll(); }catch(e){}
 }
 function editVehicleDriver(plate){
