@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1020</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1021</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -9539,9 +9539,15 @@ function dlSaveClientPrice(){
     if(!name){ alert('اختار العميل الأول'); return; } if(!ks.length){ alert('اختار الصنف الأول'); return; } if(!(pr>0)){ alert('اكتب سعر المتر الأول'); g('dl-price').focus(); return; }
     const c=(db.clients||[]).find(x=>normName(x.name)===normName(name)); if(!c){ alert('العميل ده مش متكود'); return; }
     const lbl=ks.map(k=>(DL_SIZES.find(z=>z.key===k)||{}).label||k).join(' و ');
-    if(!confirm(`يتثبت سعر ${nfmt(pr)} للعميل «${name}» في «${lbl}»؟\nهيتملى لوحده في بوناته الجاية بس. البونات المسجلة مش هتتغير.`)) return;
+    if(!confirm(`يتثبت سعر ${nfmt(pr)} للعميل «${name}» في «${lbl}»؟\nهيتملى لوحده في بوناته الجاية.`)) return;
     const old={...(c.prices||{})}; c.prices=c.prices||{}; ks.forEach(k=>{ c.prices[k]=pr; });
-    logAudit('update','سعر عميل', `${name} — ${lbl} — ${nfmt(pr)}`, old, {...c.prices}); scheduleSave(); dlPriceHint();
+    logAudit('update','سعر عميل', `${name} — ${lbl} — ${nfmt(pr)}`, old, {...c.prices});
+    /* محمد 2026-11-14: بونات العميل اللي اتسجلت من غير سعر (30–40 بون) تتسعّر بنفس السعر بعد سؤال واحد؛ اللي ليها سعر ما بتتلمسش */
+    try{ const U=csUnpricedList(name).filter(r=>ks.includes((DL_SIZES.find(sz=>Number((r.q||{})[sz.key])>0)||{}).key));
+        if(U.length){ const q=U.reduce((a,r)=>a+bonQtyTotal(r),0);
+            if(confirm(`فيه ${U.length} بون متسجلين للعميل «${name}» في «${lbl}» من غير سعر (${nfmt(Math.round(q*100)/100)} متر).\nأسعّرهم بنفس السعر ${nfmt(pr)}؟\nالإجمالي اللي هينزل على حسابه: ${nfmt(Math.round(q*pr))}\n\n(البونات اللي ليها سعر مش هتتغير)`)){
+                U.forEach(r=>{ r.price=pr; delete r.total; }); logAudit('update','تسعير بونات من غير سعر', `${name} — ${lbl} — ${U.length} بون — ${nfmt(pr)}`, null, {total:Math.round(q*pr)}); try{ renderAll(); }catch(e){} } } }catch(e){ console.warn(e); }
+    scheduleSave(); dlPriceHint();
 }
 function dlClientPrice(){
     dlAutoPrice(); return; // السعر بييجي من تكويد العميل بس (محمد 2026-11-14)؛ اللي ملوش سعر متكود بيتكتب باليد (محمد 2026-11-08)
