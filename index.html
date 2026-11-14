@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1016</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1017</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -2225,6 +2225,10 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 </div>
             </div>
             <label id="master-prepaid-wrap" class="hidden flex items-center gap-2 text-sm font-bold text-slate-700 bg-amber-50 border border-amber-200 rounded-lg p-2"><input id="master-prepaid" type="checkbox" class="w-4 h-4"> يدفع مقدم (مايسحبش أكتر من فلوسه)</label>
+            <div id="master-cprices-wrap" class="hidden bg-emerald-50 border border-emerald-200 rounded-lg p-2">
+                <div class="text-sm font-bold text-slate-800 mb-2">💲 سعر المتر للعميل — بيتملى لوحده في البون (اللي تسيبه فاضي يتسجل من غير سعر)</div>
+                <div id="master-cprices" class="grid grid-cols-3 gap-2"></div>
+            </div>
             <div id="master-contract-wrap" class="hidden flex flex-col gap-2">
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">قيمة الاتفاقية (اختياري)</label>
@@ -3959,7 +3963,7 @@ function openAddMasterModal(){
     document.getElementById('master-emad-wrap').classList.add('hidden'); document.getElementById('master-emad-open-total').value=''; document.getElementById('master-emad-open-paid').value='';
     document.getElementById('master-sup-open-total').value = ''; document.getElementById('master-sup-open-paid').value = ''; document.getElementById('master-sup-open-date').value = ''; document.getElementById('master-sup-open-acc').value = 'معلق عماد ناجي'; supOpenCalc();
     document.getElementById('master-contract').value = '';
-    document.getElementById('master-prepaid').checked = false;
+    document.getElementById('master-prepaid').checked = false; cpricesFill({});
     document.getElementById('master-min-stock').value = ''; document.getElementById('master-open-qty').value = '';
     document.getElementById('add-master-modal').classList.remove('hidden');
     document.getElementById('add-master-modal').classList.add('flex');
@@ -3985,7 +3989,7 @@ function openEditMasterModal(cat, code){
         if(item.nameType) document.getElementById('master-name-type').value = item.nameType;
     }
     if(cat==='clients') document.getElementById('master-contract').value = item.contractValue || '';
-    document.getElementById('master-prepaid').checked = cat==='clients' && !!item.prepaid;
+    document.getElementById('master-prepaid').checked = cat==='clients' && !!item.prepaid; cpricesFill(cat==='clients' ? (item.prices||{}) : {});
     document.getElementById('master-salary').value = cat==='names' ? (item.salary || '') : '';
     document.getElementById('master-rate').value = cat==='contractors' ? (item.rate || '') : '';
     document.getElementById('master-equip').value = cat==='contractors' ? (item.equip || '') : '';
@@ -4061,7 +4065,7 @@ function toggleMasterFields(){
     const plType = document.getElementById('master-pltype').value;
     document.getElementById('master-plbucket-wrap').classList.toggle('hidden', !(type==='expenses' && plType==='operating'));
     document.getElementById('master-contract-wrap').classList.toggle('hidden', !(type==='clients'));
-    document.getElementById('master-prepaid-wrap').classList.toggle('hidden', !(type==='clients'));
+    document.getElementById('master-prepaid-wrap').classList.toggle('hidden', !(type==='clients')); document.getElementById('master-cprices-wrap').classList.toggle('hidden', !(type==='clients'));
     document.getElementById('master-salary-wrap').classList.toggle('hidden', type!=='names');
     document.getElementById('master-rate-wrap').classList.toggle('hidden', type!=='contractors'); try{ renderCtrEqQuick(); }catch(e){}
     document.getElementById('master-account-wrap')?.classList.toggle('hidden', type!=='accounts');
@@ -4164,6 +4168,7 @@ function saveMasterItem(e){
             const cv = Number(document.getElementById('master-contract').value);
             if(cv>0) item.contractValue = cv;
             if(document.getElementById('master-prepaid').checked) item.prepaid = true;
+            { const P=cpricesRead(); if(Object.keys(P).length) item.prices = P; }
         }
         const acts = [...document.querySelectorAll('.name-activity-check:checked')].map(cb=>cb.value);
         if(acts.length) item.activities = acts;
@@ -7969,6 +7974,7 @@ function renderSizeBtns(){
     DL_SIZES.forEach(sz=>{ const el=document.getElementById('dl-q-'+sz.key); if(el){ const on=Number(el.value)>0; if(on) __dlSel.add(sz.key); el.style.background = on?'#d1fae5':''; el.style.borderColor = on?'#059669':''; el.style.fontWeight = on?'800':'';
         /* محمد 2026-11-08: مربع الكمية يظهر بس للصنف المختار */
         const wrap=el.parentElement; if(wrap){ wrap.style.display=''; wrap.classList.toggle('dlq-on', __dlSel.has(sz.key)); } } });
+    dlAutoPrice();
     box.innerHTML = `<span class="text-xs font-bold text-slate-600">${cube?`الحمولة (${nfmt(cube)} م):`:'الصنف:'}</span>` + DL_SIZES.filter(sz=>!DL_FORM_HIDE.includes(sz.key) || __dlSel.has(sz.key)).map(sz=>{ const on=__dlSel.has(sz.key); return `<button type="button" onclick="dlPickSize('${sz.key}')" class="px-3 py-1.5 rounded-lg text-sm font-bold border-2 ${on?'bg-emerald-600 border-emerald-600 text-white':'bg-white border-slate-300 text-slate-700'}">${on?'✓ ':''}${esc(sz.label)}</button>`; }).join('');
     try{ fitBonForm(); }catch(e){}
 }
@@ -9184,7 +9190,7 @@ function addDailyLog(e){
     window.__fillMissing=null; if(window.__manualBon){ window.__manualBon=false; const mb=g('dl-bon-manual'); if(mb) mb.textContent='بون فات'; g('dl-bon').placeholder=''; } g('dl-bon').style.background=''; g('dl-bon').style.borderColor='';
     g('dl-bon').value = nextBonNo(); g('dl-bon').readOnly = true;
     window.__editBon = null;
-    delete g('dl-price').dataset.touched; delete g('dl-tip').dataset.touched;
+    delete g('dl-price').dataset.touched; delete g('dl-tip').dataset.touched; delete g('dl-price').dataset.auto;
     scheduleSave();
     renderAll();
 }
@@ -9473,8 +9479,20 @@ function dlClientBal(){
 }
 /* آخر سعر اتباع بيه للعميل */
 function lastClientPrice(c){ const r = (db.dailyLog||[]).filter(x=>normName(x.client)===normName(c) && Number(x.price)>0).sort(bonOrder).pop(); return r ? r.price : ''; }
+/* محمد 2026-11-14: «العميل اللي سعره معروف أو النقدي معروف بيتحط كده» — سعر المتر لكل مقاس متكود عند العميل (clients[].prices) وبيتملى في البون لوحده؛ اللي ملوش سعر بيفضل فاضي ويتسعّر بعدين من كشف الحساب */
+function cpricesFill(P){ const box=document.getElementById('master-cprices'); if(!box) return; P=P||{};
+    box.innerHTML = DL_SIZES.filter(sz=>!DL_FORM_HIDE.includes(sz.key) || P[sz.key]).map(sz=>`<label class="block text-xs font-bold text-slate-700">${esc(sz.label)}<input type="number" step="any" min="0" data-cpr="${sz.key}" value="${P[sz.key]||''}" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-sm font-bold mt-1"></label>`).join(''); }
+function cpricesRead(){ const P={}; document.querySelectorAll('#master-cprices input[data-cpr]').forEach(i=>{ const v=Number(i.value)||0; if(v>0) P[i.dataset.cpr]=v; }); return P; }
+function clientCodedPrices(name){ const c=(db.clients||[]).find(x=>normName(x.name)===normName(name||'')); return (c&&c.prices)||null; }
+function dlAutoPrice(){ try{
+    const el=document.getElementById('dl-price'); if(!el || el.dataset.touched) return;
+    if(window.__editBon && typeof __editSnap!=='undefined' && __editSnap) return; /* تعديل بون قديم: سعره زي ما هو */
+    const P=clientCodedPrices((document.getElementById('dl-client')||{}).value);
+    const keys=[...(window.__dlSel||[])]; let pr=0; if(P) for(const k of keys){ if(Number(P[k])>0){ pr=Number(P[k]); break; } }
+    if(pr){ el.value=pr; el.dataset.auto=1; } else if(el.dataset.auto){ el.value=''; delete el.dataset.auto; }
+}catch(e){} }
 function dlClientPrice(){
-    return; // محمد 2026-11-08: سعر المتر بيتكتب باليد في كل بون — مفيش سعر بيتحط لوحده
+    dlAutoPrice(); return; // السعر بييجي من تكويد العميل بس (محمد 2026-11-14)؛ اللي ملوش سعر متكود بيتكتب باليد (محمد 2026-11-08)
     const el = document.getElementById('dl-price'); if(!el || el.dataset.touched) return;
     el.value = lastClientPrice(document.getElementById('dl-client').value);
 }
@@ -10991,7 +11009,7 @@ function startEdit(kind, id){
         try{ renderShares(Array.isArray(r.shares) ? r.shares : sharedContractors().map(c=>c.name)); }catch(e){}
         setVal('dl-date', r.date); setVal('dl-bon', r.bon); setVal('dl-client', r.client); setVal('dl-tractor', r.tractor); setVal('dl-trailer', r.trailer); setVal('dl-worker', r.worker==='شغل الكسارة' ? 'الكسارة' : (r.worker||''));
         DL_SIZES.forEach(s=>setVal('dl-q-'+s.key, (r.q||{})[s.key]||''));
-        setVal('dl-tip', r.tip||''); setVal('dl-price', r.price||''); setVal('dl-notes', r.notes||''); setVal('dl-pay', r.paidCash?'cash':'credit');
+        setVal('dl-tip', r.tip||''); setVal('dl-price', r.price||''); try{ document.getElementById('dl-price').dataset.touched=1; }catch(e){} setVal('dl-notes', r.notes||''); setVal('dl-pay', r.paidCash?'cash':'credit');
         const v = (db.vehicles||[]).find(x=>normPlate(x.plate)===normPlate(r.tractor)); setVal('dl-cube', v&&v.cube||'');
         const pctSel = document.getElementById('dl-tabaqa-pct');
         if(pctSel){ const pv = String(r.tabaqaPct||''); if([...pctSel.options].some(o=>o.value===pv)) pctSel.value = pv; else { pctSel.value='custom'; setVal('dl-tabaqa-pct-custom', r.tabaqaPct); } pctSel.dispatchEvent(new Event('change')); }
