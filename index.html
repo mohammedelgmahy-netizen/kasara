@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1008</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1009</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -696,7 +696,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                 </form>
             </div>
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="p-4 bg-amber-50 border-b border-amber-100"><h3 class="font-bold text-slate-900">السيارات المكودة</h3></div>
+                <div class="p-4 bg-amber-50 border-b border-amber-100 flex flex-wrap items-center gap-3"><h3 class="font-bold text-slate-900">السيارات المكودة</h3><input id="veh-search" type="search" oninput="renderVehicles()" placeholder="🔍 ابحث برقم الجرار أو المقطورة" class="bg-white border border-amber-300 rounded-lg px-3 py-2 text-base font-bold" style="min-width:16rem;flex:1;max-width:24rem"><span id="veh-search-n" class="text-sm font-bold text-slate-600"></span></div>
                 <div class="overflow-x-auto max-h-64">
                     <table class="w-full text-sm text-right">
                         <thead class="bg-slate-100 sticky top-0"><tr>
@@ -8091,8 +8091,11 @@ function renderVehicles(){
     if(!tbody) return;
     if(!db.vehicles) db.vehicles = [];
     ensureVehicleCodes();
-    tbody.innerHTML = db.vehicles.length
-        ? db.vehicles.slice().sort((x,y)=>(x.code||0)-(y.code||0)).map(v=>`<tr class="border-b border-slate-50 hover:bg-slate-50">
+    const __q=(document.getElementById('veh-search')||{}).value||'', __qs=__q.trim(), __qn=normPlate(__qs);
+    const __L=db.vehicles.filter(v=>!__qs || (__qn && (normPlate(v.plate).includes(__qn) || normPlate(v.trailer||'').includes(__qn))) || String(v.plate||'').includes(__qs) || String(v.trailer||'').includes(__qs) || String(v.code||'')===__qs);
+    { const n=document.getElementById('veh-search-n'); if(n) n.textContent = __qs ? (__L.length ? `${__L.length} عربية` : '') : `${db.vehicles.length} عربية`; }
+    tbody.innerHTML = !__L.length && __qs ? `<tr><td colspan="6" class="p-4 text-center font-bold text-rose-600">مفيش عربية مكودة بالرقم ده</td></tr>` : db.vehicles.length
+        ? __L.slice().sort((x,y)=>(x.code||0)-(y.code||0)).map(v=>`<tr class="border-b border-slate-50 hover:bg-slate-50">
                 <td class="p-3 font-mono text-slate-500 font-bold">${v.code||''}</td>
                 <td class="p-3 font-bold text-base">${esc(v.plate)}</td>
                 <td class="p-3 font-bold text-base">${v.trailer?esc(v.trailer):'<span class="text-slate-300">—</span>'}</td>
