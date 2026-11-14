@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1017</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1018</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5551,7 +5551,7 @@ function openAcct(type, name){ try{ switchSub('ledger','form'); }catch(e){}
     renderAccountStatement();
     document.getElementById('acct-card').scrollIntoView({behavior:'smooth', block:'start'});
 }
-function renderAccountStatement(){
+function renderAccountStatement(){ try{ const ub=document.getElementById('cs-unpriced-bar'); if(ub) ub.innerHTML=''; }catch(e){}
     const tbody = document.getElementById('tbody-acct'); if(!tbody) return;
     const type = document.getElementById('acct-type').value;
     const name = document.getElementById('acct-name').value;
@@ -5579,7 +5579,7 @@ function renderAccountStatement(){
         if(window.__csLastName!==name){ window.__csLastName=name; const ls=csLastStmt(name); if(ls){ __acctWeekInit=true; const fa=document.getElementById('acct-from'), ta=document.getElementById('acct-to'); const d=new Date(ls+'T12:00:00'); d.setDate(d.getDate()+1); if(fa) fa.value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); if(ta) ta.value=''; } }
         if(!__acctWeekInit){ __acctWeekInit=true; const fa=document.getElementById('acct-from'), ta=document.getElementById('acct-to'); if(fa && ta && !fa.value && !ta.value){ const [f,t]=acctWeekRange(0); fa.value=f; ta.value=t; } }
         if(wrapEl) wrapEl.style.display='none';
-        if(sheetEl){ sheetEl.style.display=''; sheetEl.innerHTML=clientSheetHtml(name); }
+        if(sheetEl){ sheetEl.style.display=''; sheetEl.innerHTML=clientSheetHtml(name); try{ let ub=document.getElementById('cs-unpriced-bar'); if(!ub){ ub=document.createElement('div'); ub.id='cs-unpriced-bar'; ub.className='no-print'; sheetEl.parentNode.insertBefore(ub, sheetEl); } ub.innerHTML=csUnpricedBar(name); }catch(e){} }
         return;
     }
     if(wrapEl) wrapEl.style.display=''; if(sheetEl){ sheetEl.style.display='none'; sheetEl.innerHTML=''; }
@@ -5684,6 +5684,25 @@ function clientSheetHtml0(name){
 }
 
 /* تعديل سعر المتر من كشف حساب العميل: محمد بيدوس على السعر تحت المقاس ويكتب السعر الجديد، وبيتطبق على بونات العميل في الفترة للمقاس ده (محمد 2026-11-12) */
+/* محمد 2026-11-14: عميل شغال من غير سعر (500–600 نقلة) وبعدين صاحب الشغل يحدد سعره → شريط فوق كشفه بعدد البونات اللي من غير سعر وزرار يسعّرهم كلهم مرة واحدة (كل مقاس بسعره)، والسعر بيتخزن في البونات نفسها */
+function csUnpricedList(name){ return (db.dailyLog||[]).filter(r=>normName(r.client)===normName(name) && !r.free && !r.saleGroupId && !(Number(r.price)>0) && bonQtyTotal(r)>0); }
+function csUnpricedBar(name){ try{ const L=csUnpricedList(name); if(!L.length || isRO()) return ''; const q=L.reduce((a,r)=>a+bonQtyTotal(r),0);
+    return `<div class="no-print" style="direction:rtl;margin:0 0 10px;padding:12px;border:2px solid #dc2626;background:#fef2f2;border-radius:8px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-weight:800;font-size:17px;color:#000"><span>⚠️ ${nfmt(L.length)} بون من غير سعر (${nfmt(Math.round(q*100)/100)} متر) — مش محسوبين في حسابه لسه</span><button type="button" onclick="csPriceUnpriced()" style="background:#16a34a;color:#fff;padding:8px 16px;border-radius:8px;font-weight:800;font-size:17px">💲 سعّرهم دلوقتي</button></div>`; }catch(e){ return ''; } }
+function csPriceUnpriced(){
+    if(isRO()) return; const g=id=>document.getElementById(id); const name=g('acct-name').value; if(!name) return;
+    const L=csUnpricedList(name); if(!L.length){ alert('مفيش بونات من غير سعر للعميل ده'); return; }
+    const num=t=>Number(String(t).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(',','.').replace(/[^0-9.]/g,''));
+    /* البون بسعر واحد: بيتسعّر بسعر مقاسه (أول مقاس فيه كمية) */
+    const keyOf=r=>(DL_SIZES.find(sz=>Number((r.q||{})[sz.key])>0)||{}).key; const G={}; L.forEach(r=>{ const k=keyOf(r); if(k) (G[k]=G[k]||[]).push(r); });
+    const plan=[]; for(const k of Object.keys(G)){ const sz=DL_SIZES.find(x=>x.key===k)||{label:k}; const q=G[k].reduce((a,r)=>a+bonQtyTotal(r),0);
+        const raw=prompt(`سعر المتر لـ «${sz.label}» — ${name}\n${G[k].length} بون من غير سعر (${nfmt(Math.round(q*100)/100)} متر)\nسيبها فاضية لو لسه مش عارف سعر المقاس ده`, ''); if(raw===null) return; const pr=num(raw); if(pr>0) plan.push({k, sz, pr, list:G[k], q}); }
+    if(!plan.length) return;
+    const tot=plan.reduce((a,x)=>a+x.q*x.pr,0);
+    if(!confirm(`هيتسجل السعر على بونات «${name}»:\n`+plan.map(x=>`• ${x.sz.label}: ${x.list.length} بون × ${nfmt(x.pr)}`).join('\n')+`\n\nالإجمالي اللي هينزل على حسابه: ${nfmt(Math.round(tot))}\nتمام؟`)) return;
+    let n=0; plan.forEach(x=>x.list.forEach(r=>{ r.price=x.pr; delete r.total; n++; }));
+    logAudit('update','تسعير بونات من غير سعر', `${name} — ${n} بون — `+plan.map(x=>`${x.sz.label} ${nfmt(x.pr)}`).join(' ، '), null, {total:Math.round(tot)});
+    scheduleSave(); renderAll(); try{ renderAccountStatement(); }catch(e){}
+}
 function csEditPrice(key){
     if(isRO()) return;
     const g=id=>document.getElementById(id); if(g('acct-type').value!=='client') return;
