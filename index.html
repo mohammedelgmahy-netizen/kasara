@@ -550,7 +550,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1049</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1050</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3637,6 +3637,11 @@ function mergeSaadawiCars(){
 function renderAll(){
     try{ renderMashoon(); }catch(e){}
     try{ mergeSaadawiCars(); }catch(e){}
+    try{ /* محمد 2026-11-15: «سيارة الكسارة» اسمها «كسارة الديار» */ const R=a=>Array.isArray(a)&&a.includes('سيارة الكسارة')?a.map(x=>x==='سيارة الكسارة'?'كسارة الديار':x):a; let ch=false;
+        const ce=R(db.crusherEquips); if(ce!==db.crusherEquips){ db.crusherEquips=ce; ch=true; }
+        (db.contractors||[]).forEach(c=>{ const e=R(c.equips); if(e!==c.equips){ c.equips=e; ch=true; } });
+        (db.stockIssues||[]).forEach(x=>{ if(x&&x.equip==='سيارة الكسارة'){ x.equip='كسارة الديار'; ch=true; } });
+        if(ch) scheduleSave(); }catch(e){}
     try{ emadCleanAuto(); }catch(e){} try{ ensureCrusherCode(); }catch(e){}
     try{ buyPaySync(); }catch(e){}
     try{ [['exp-src','exp-account'],['pay-src','pay-account']].forEach(([a,b])=>{ const S=document.getElementById(a), A=document.getElementById(b); if(S&&A&&!S.dataset.touched) S.value=A.value===SARI_ACC?'sari':'cash'; }); }catch(e){}
