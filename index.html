@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1043</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1044</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1326,6 +1326,17 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <b class="font-bold text-slate-900">🪨 مخزون السن (المشون)</b>
                     <span id="mashoon-now" class="text-sm font-bold text-slate-700"></span>
                     <button type="button" onclick="stockAddMashoon()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-1.5"><i class="fa-solid fa-plus"></i><span>إضافة على مخزون السن</span></button>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-teal-200 shadow-sm">
+                    <b class="font-bold text-slate-900">📦 تسجيل رصيد صنف موجود في المخزن</b>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-2 items-end mt-2">
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">الصنف</label><select id="sopen-item" onchange="sopenShow()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">الكمية الموجودة</label><input id="sopen-qty" type="number" step="any" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">قيمتها بالجنيه</label><input id="sopen-val" type="number" step="any" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="sopen-date" type="date" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <div><button type="button" onclick="stockOpenAdd()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold p-2.5 rounded-lg text-sm">حفظ الرصيد</button></div>
+                    </div>
+                    <div id="sopen-now" class="text-sm font-bold text-slate-700 mt-2"></div>
                 </div>
             <div class="flex justify-end gap-2 w-full">
                 <button onclick="printCurrentTab()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
@@ -5241,8 +5252,18 @@ function stockCountAt(d){
         const q0=Number(x.qty)||0, v0=Number(x.value)||0, avg=(q0+pq)>0?(v0+pv)/(q0+pq):0, q=Math.max(q0+pq-out,0);
         return Object.assign({}, x, {qty:Math.round(q*100)/100, value:Math.round(q*avg), moved:true}); });
     /* إضافات على الجرد (محمد 2026-11-13: لو المهندس قدّر المشون أكتر، يكتب الزيادة فتتجمع على اللي موجود) */
+    const fresh={}; /* صنف مش في الجرد ومتسجل له رصيد (محمد 2026-11-15): يبدأ من أول رصيد متسجل له + المشتريات − الصرف بعده */
     (db.stockCounts||[]).filter(x=>x && x.add && (x.date||'')>=last && (!d || x.date<=d)).forEach(x=>{ const i=items.findIndex(y=>y.item===x.item);
-        if(i>=0) items[i]=Object.assign({}, items[i], {qty:(Number(items[i].qty)||0)+(Number(x.qty)||0), value:(Number(items[i].value)||0)+(Number(x.value)||0)}); else items.push(Object.assign({}, x)); });
+        if(i>=0 && !fresh[x.item]) items[i]=Object.assign({}, items[i], {qty:(Number(items[i].qty)||0)+(Number(x.qty)||0), value:(Number(items[i].value)||0)+(Number(x.value)||0)});
+        else if(i>=0) { fresh[x.item].q+=Number(x.qty)||0; fresh[x.item].v+=Number(x.value)||0; }
+        else { fresh[x.item]={q:Number(x.qty)||0, v:Number(x.value)||0, from:x.date||'', rec:x}; items.push(Object.assign({}, x)); } });
+    Object.keys(fresh).forEach(it=>{ const f=fresh[it], i=items.findIndex(y=>y.item===it); if(!sup.has(it) && !(db.procurements||[]).some(p=>p.item===it)){ items[i]=Object.assign({}, f.rec, {qty:f.q, value:f.v}); return; }
+        const aft=x=>x && (x.date||'')>=f.from && (!d || (x.date||'')<=d);
+        const P=(db.procurements||[]).filter(p=>p.item===it && aft(p)), pq=P.reduce((a,p)=>a+(Number(p.qty)||0),0), pv=P.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0);
+        let out=(db.stockIssues||[]).filter(x=>x.item===it && aft(x)).reduce((a,x)=>a+(Number(x.qty)||0),0);
+        try{ out+=(db.equipExpenses||[]).filter(e=>e && Number(e.qty)>0 && aft(e) && eqeItem(e.desc)===it).reduce((a,e)=>a+Number(e.qty),0); }catch(e){}
+        const avg=(f.q+pq)>0?(f.v+pv)/(f.q+pq):0, q=Math.max(f.q+pq-out,0);
+        items[i]=Object.assign({}, f.rec, {qty:Math.round(q*100)/100, value:Math.round(q*avg), moved:true}); });
     return { date:last, items, total:items.reduce((a,x)=>a+(Number(x.value)||0),0) };
 }
 function computePL(projectFilter, dateFrom, dateTo){
@@ -5994,7 +6015,23 @@ function balanceSheetData(D){
     return {A,L,E,tA,tL:tL2,tE};
 }
 /* إضافة (أو تنزيل بالسالب) على مخزون السن المشون — محمد بيكتب الكمية والقيمة بإيده */
-function renderMashoon(){ const el=document.getElementById('mashoon-now'); if(!el) return; const c=(stockCountAt('')||{items:[]}).items.find(x=>x.item==='سن مشون'); el.textContent = c ? `${nfmt(c.qty)} متر — بقيمة ${nfmt(c.value)}` : 'مفيش جرد متسجل'; }
+function sopenItems(){ return [...new Set([...(db.supplies||[]).map(x=>x.name), ...(db.procurements||[]).map(p=>p.item)].filter(n=>n && n!=='سن مشون'))]; }
+function sopenShow(){ const el=document.getElementById('sopen-now'), it=document.getElementById('sopen-item')?.value; if(!el) return; if(!it){ el.textContent=''; return; }
+    const c=(stockCountAt('')||{items:[]}).items.find(x=>x.item===it); el.textContent = c ? `الموجود دلوقتي في المخزن: ${nfmt(c.qty)} ${c.unit||''} بقيمة ${nfmt(c.value)}` : 'الصنف ده لسه ملوش رصيد متسجل'; }
+function stockOpenAdd(){ /* محمد 2026-11-15: يسجل رصيد أي صنف موجود عنده في المخزن، يتجمع على الرصيد ويتحرك بالشراء والصرف بعد كده */
+    if(isRO()) return; const g=id=>document.getElementById(id);
+    const it=g('sopen-item').value, q=Number(g('sopen-qty').value), v=Number(g('sopen-val').value)||0, d=g('sopen-date').value||todayISO();
+    if(!it){ alert('اختار الصنف'); return; } if(!q){ alert('اكتب الكمية'); return; }
+    const sp=(db.supplies||[]).find(x=>x.name===it), lp=(db.procurements||[]).filter(p=>p.item===it).pop();
+    const unit=(sp&&sp.unit)||(lp&&lp.unit)||'';
+    if(!confirm(`هيتسجل في المخزن: ${it} ${nfmt(q)} ${unit} بقيمة ${nfmt(v)} بتاريخ ${dmy(d)}\nتمام؟`)) return;
+    if(!db.stockCounts) db.stockCounts=[];
+    const rec={id:newId(), add:true, item:it, unit, qty:q, value:v, date:d, notes:'رصيد موجود في المخزن', _at:Date.now()};
+    db.stockCounts.push(rec); logAudit('create','رصيد صنف في المخزن',`${it} ${q} — ${v}`,null,rec);
+    g('sopen-qty').value=''; g('sopen-val').value='';
+    scheduleSave(); renderAll(); sopenShow(); }
+function renderMashoon(){ try{ const sl=document.getElementById('sopen-item'); if(sl){ const pv=sl.value; sl.innerHTML='<option value="">— اختار الصنف —</option>'+sopenItems().map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join(''); sl.value=pv; const sd=document.getElementById('sopen-date'); if(sd && !sd.value) sd.value=todayISO(); sopenShow(); } }catch(e){}
+    const el=document.getElementById('mashoon-now'); if(!el) return; const c=(stockCountAt('')||{items:[]}).items.find(x=>x.item==='سن مشون'); el.textContent = c ? `${nfmt(c.qty)} متر — بقيمة ${nfmt(c.value)}` : 'مفيش جرد متسجل'; }
 function stockAddMashoon(){
     if(isRO() || currentRole!=='admin') return;
     const num=r=>Number(String(r).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/,/g,'').replace(/[^0-9.\-]/g,''));
