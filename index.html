@@ -556,7 +556,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1054</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1055</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -12441,6 +12441,24 @@ window.addEventListener('load', ()=>setTimeout(dlClearSizes, 300)); window.addEv
             try{ const rs=await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.map(r=>r.update().catch(()=>{}))); }catch(e){}
             location.replace(location.pathname+'?v='+m[1]+'.'+Date.now()); return; } } } }catch(e){} busy=false; }
   setTimeout(chk,4000); setInterval(chk,120000); window.addEventListener('focus',chk); window.addEventListener('online',chk); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) chk(); }); })();
+</script>
+<script>
+/* محمد 2026-11-15: الموبايل بوضع «سطح المكتب» والصفحة متكبرة (زوم) → كان بيشوف جزء بس والأرقام والأزرار مقطوعة شمال.
+   الحل: عرض الصفحة يبقى قد الجزء اللي ظاهر على الشاشة فعلاً، فكل حاجة تترتب جواه والخط يفضل كبير. اللابتوب مش بيتأثر. */
+(function(){
+  const de=document.documentElement, vv=window.visualViewport;
+  if(!vv || !(window.matchMedia && matchMedia('(pointer:coarse)').matches)) return;
+  let last='';
+  function fitVV(){
+    const lw=de.clientWidth||window.innerWidth, w=Math.floor(vv.width);
+    const want = (vv.scale>1.02 && w>=320 && w<lw-8) ? (w+'px') : '';
+    if(want===last) return; last=want;
+    de.style.width=want; de.style.maxWidth=want?want:'';
+    try{ if(typeof fitPage==='function') fitPage(); }catch(e){}
+  }
+  let t=null; const on=()=>{ clearTimeout(t); t=setTimeout(fitVV,120); };
+  vv.addEventListener('resize',on); window.addEventListener('orientationchange',on); window.addEventListener('load',on); on();
+})();
 </script>
 </body>
 </html>
