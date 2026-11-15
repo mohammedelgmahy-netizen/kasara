@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1044</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1045</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -10243,8 +10243,7 @@ function renderDayPage(){
     { const k=r=>isBuy(r)?1:isStk(r)?2:r.stk2?3:0; rows = rows.map((r,i)=>[r,i]).sort((a,b)=>k(a[0])-k(b[0])||a[1]-b[1]).map(x=>x[0]); } /* الشراء ثم صرف المعدات ثم مخزون الكسارة، بنفس الترتيب في الجهتين */
     /* الحركات العادية الأول، وبعدها بلوك السولار (شراء، صرف معدات، مخزون الكسارة) بيبدأ في نفس السطر في الجهتين عشان يبقوا متوازيين */
     const isF=r=>isBuy(r)||isStk(r)||r.stk2;
-    const rev = [{desc:'رصيد مرحل', inflow:st.opening, open:true}, ...rows.filter(r=>!isF(r)&&r.inflow>0)]; const exp = [null, ...rows.filter(r=>!isF(r)&&r.outflow>0)];
-    while(rev.length<exp.length) rev.push(null); while(exp.length<rev.length) exp.push(null);
+    const rev = [{desc:'رصيد مرحل', inflow:st.opening, open:true}, ...rows.filter(r=>!isF(r)&&r.inflow>0)]; const exp = rows.filter(r=>!isF(r)&&r.outflow>0); /* من غير أسطر فاضية — الترتيب بس (محمد 2026-11-15) */
     rev.push(...rows.filter(r=>isF(r)&&r.inflow>0)); exp.push(...rows.filter(r=>isF(r)&&r.outflow>0));
     const revT = rev.reduce((s,r)=>s+(r?r.inflow:0),0), expT = exp.reduce((s,r)=>s+(r?r.outflow:0),0);
     const n = Math.max(rev.length, exp.length, 18);
