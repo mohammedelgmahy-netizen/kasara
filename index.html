@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1045</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1046</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1328,13 +1328,14 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <button type="button" onclick="stockAddMashoon()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-1.5"><i class="fa-solid fa-plus"></i><span>إضافة على مخزون السن</span></button>
                 </div>
                 <div class="bg-white p-4 rounded-xl border border-teal-200 shadow-sm">
-                    <b class="font-bold text-slate-900">📦 تسجيل رصيد صنف موجود في المخزن</b>
+                    <b class="font-bold text-slate-900">📦 جرد صنف (الموجود فعلاً في المخزن)</b>
+                    <div class="text-xs text-slate-500 mt-1">الكمية اللي تكتبها هنا بتبقى رصيد الصنف في التاريخ ده وبتحل محل أي رصيد قبله — المشتريات والصرف اللي قبل التاريخ ده مش بتتحسب تاني، واللي بعده بس بيتحسب عليه.</div>
                     <div class="grid grid-cols-2 md:grid-cols-5 gap-2 items-end mt-2">
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">الصنف</label><select id="sopen-item" onchange="sopenShow()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">الكمية الموجودة</label><input id="sopen-qty" type="number" step="any" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">الكمية الموجودة فعلاً</label><input id="sopen-qty" type="number" step="any" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">قيمتها بالجنيه</label><input id="sopen-val" type="number" step="any" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="sopen-date" type="date" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
-                        <div><button type="button" onclick="stockOpenAdd()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold p-2.5 rounded-lg text-sm">حفظ الرصيد</button></div>
+                        <div><button type="button" onclick="stockOpenAdd()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold p-2.5 rounded-lg text-sm">حفظ الجرد</button></div>
                     </div>
                     <div id="sopen-now" class="text-sm font-bold text-slate-700 mt-2"></div>
                 </div>
@@ -5238,33 +5239,33 @@ function plRevenueTotal(projectFilter, from, to){
     return plBonsRevenue(projectFilter, from, to) + other;
 }
 // جرد المخزون الفعلي (سولار في التنك + سن في المشون): آخر جرد تاريخه ≤ d هو اللي بيتحسب في الميزانية وقائمة الدخل
+const isSetCount = x => x && (x.set || (x.add && x.notes==='رصيد موجود في المخزن')); /* جرد صنف لوحده: بيحل محل اللي قبله */
 function stockCountAt(d){
-    const C=(db.stockCounts||[]).filter(x=>x && x.date && !x.add && (!d || x.date<=d));
-    if(!C.length) return null;
-    const last=C.map(x=>x.date).sort().pop();
-    /* محمد 2026-11-13: مخزون السولار والأصناف بيتحرك من بعد الجرد = كمية الجرد + المشتريات بعده − المصروف بعده (بمتوسط السعر). السن المشون يفضل على الجرد */
-    const sup=new Set((db.supplies||[]).map(x=>x.name)), after=x=>x && (x.date||'')>last && (!d || (x.date||'')<=d);
-    const items=C.filter(x=>x.date===last).map(x=>{ if(!sup.has(x.item)) return x;
-        const P=(db.procurements||[]).filter(p=>p.item===x.item && after(p)), pq=P.reduce((a,p)=>a+(Number(p.qty)||0),0), pv=P.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0);
-        let out=(db.stockIssues||[]).filter(i=>i.item===x.item && after(i)).reduce((a,i)=>a+(Number(i.qty)||0),0);
-        try{ out+=(db.equipExpenses||[]).filter(e=>e && Number(e.qty)>0 && after(e) && eqeItem(e.desc)===x.item).reduce((a,e)=>a+Number(e.qty),0); }catch(e){}
-        if(!pq && !out) return x;
-        const q0=Number(x.qty)||0, v0=Number(x.value)||0, avg=(q0+pq)>0?(v0+pv)/(q0+pq):0, q=Math.max(q0+pq-out,0);
-        return Object.assign({}, x, {qty:Math.round(q*100)/100, value:Math.round(q*avg), moved:true}); });
-    /* إضافات على الجرد (محمد 2026-11-13: لو المهندس قدّر المشون أكتر، يكتب الزيادة فتتجمع على اللي موجود) */
-    const fresh={}; /* صنف مش في الجرد ومتسجل له رصيد (محمد 2026-11-15): يبدأ من أول رصيد متسجل له + المشتريات − الصرف بعده */
-    (db.stockCounts||[]).filter(x=>x && x.add && (x.date||'')>=last && (!d || x.date<=d)).forEach(x=>{ const i=items.findIndex(y=>y.item===x.item);
-        if(i>=0 && !fresh[x.item]) items[i]=Object.assign({}, items[i], {qty:(Number(items[i].qty)||0)+(Number(x.qty)||0), value:(Number(items[i].value)||0)+(Number(x.value)||0)});
-        else if(i>=0) { fresh[x.item].q+=Number(x.qty)||0; fresh[x.item].v+=Number(x.value)||0; }
-        else { fresh[x.item]={q:Number(x.qty)||0, v:Number(x.value)||0, from:x.date||'', rec:x}; items.push(Object.assign({}, x)); } });
-    Object.keys(fresh).forEach(it=>{ const f=fresh[it], i=items.findIndex(y=>y.item===it); if(!sup.has(it) && !(db.procurements||[]).some(p=>p.item===it)){ items[i]=Object.assign({}, f.rec, {qty:f.q, value:f.v}); return; }
-        const aft=x=>x && (x.date||'')>=f.from && (!d || (x.date||'')<=d);
-        const P=(db.procurements||[]).filter(p=>p.item===it && aft(p)), pq=P.reduce((a,p)=>a+(Number(p.qty)||0),0), pv=P.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0);
-        let out=(db.stockIssues||[]).filter(x=>x.item===it && aft(x)).reduce((a,x)=>a+(Number(x.qty)||0),0);
-        try{ out+=(db.equipExpenses||[]).filter(e=>e && Number(e.qty)>0 && aft(e) && eqeItem(e.desc)===it).reduce((a,e)=>a+Number(e.qty),0); }catch(e){}
-        const avg=(f.q+pq)>0?(f.v+pv)/(f.q+pq):0, q=Math.max(f.q+pq-out,0);
-        items[i]=Object.assign({}, f.rec, {qty:Math.round(q*100)/100, value:Math.round(q*avg), moved:true}); });
-    return { date:last, items, total:items.reduce((a,x)=>a+(Number(x.value)||0),0) };
+    /* الجرد العام (29/10) + جرد صنف لوحده (محمد 2026-11-15: «لو جردت بعدين ما يدخلش مرتين»): أحدث جرد للصنف هو الأساس، وبعده المشتريات − الصرف. الإضافات (السن) بتتجمع فوق الأساس */
+    const inD = x => !d || (x.date||'')<=d;
+    const C=(db.stockCounts||[]).filter(x=>x && x.date && !x.add && !x.set && inD(x));
+    const S=(db.stockCounts||[]).filter(x=>x && x.date && isSetCount(x) && inD(x));
+    if(!C.length && !S.length) return null;
+    const last=C.length?C.map(x=>x.date).sort().pop():'';
+    const base={}; /* item → {rec, date, set} */
+    C.filter(x=>x.date===last).forEach(x=>{ base[x.item]={rec:x, date:last, q:Number(x.qty)||0, v:Number(x.value)||0}; });
+    S.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||((a._at||0)-(b._at||0))).forEach(x=>{ const B=base[x.item];
+        if(B && B.set && B.date===x.date){ B.q=Number(x.qty)||0; B.v=Number(x.value)||0; B.rec=x; return; } /* نفس اليوم: آخر تسجيل هو اللي يمشي */
+        if(!B || x.date>=B.date) base[x.item]={rec:x, date:x.date, set:true, q:Number(x.qty)||0, v:Number(x.value)||0}; });
+    const sup=new Set((db.supplies||[]).map(x=>x.name));
+    const items=Object.keys(base).map(it=>{ const B=base[it];
+        let q0=B.q, v0=B.v;
+        (db.stockCounts||[]).filter(x=>x && x.add && !isSetCount(x) && x.item===it && (x.date||'')>=B.date && inD(x)).forEach(x=>{ q0+=Number(x.qty)||0; v0+=Number(x.value)||0; });
+        const plain=Object.assign({}, B.rec, {item:it, qty:q0, value:v0});
+        if(!sup.has(it) && !(B.set && (db.procurements||[]).some(p=>p.item===it))) return plain;
+        const after=x=>x && (x.date||'')>B.date && inD(x);
+        const P=(db.procurements||[]).filter(p=>p.item===it && after(p)), pq=P.reduce((a,p)=>a+(Number(p.qty)||0),0), pv=P.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0);
+        let out=(db.stockIssues||[]).filter(i=>i.item===it && after(i)).reduce((a,i)=>a+(Number(i.qty)||0),0);
+        try{ out+=(db.equipExpenses||[]).filter(e=>e && Number(e.qty)>0 && after(e) && eqeItem(e.desc)===it).reduce((a,e)=>a+Number(e.qty),0); }catch(e){}
+        if(!pq && !out) return plain;
+        const avg=(q0+pq)>0?(v0+pv)/(q0+pq):0, q=Math.max(q0+pq-out,0);
+        return Object.assign(plain, {qty:Math.round(q*100)/100, value:Math.round(q*avg), moved:true}); });
+    return { date:last||S.map(x=>x.date).sort().pop(), items, total:items.reduce((a,x)=>a+(Number(x.value)||0),0) };
 }
 function computePL(projectFilter, dateFrom, dateTo){
     const matchProj = rec => projectFilter==='ALL'||!projectFilter||rec.project===projectFilter;
@@ -6024,10 +6025,10 @@ function stockOpenAdd(){ /* محمد 2026-11-15: يسجل رصيد أي صنف �
     if(!it){ alert('اختار الصنف'); return; } if(!q){ alert('اكتب الكمية'); return; }
     const sp=(db.supplies||[]).find(x=>x.name===it), lp=(db.procurements||[]).filter(p=>p.item===it).pop();
     const unit=(sp&&sp.unit)||(lp&&lp.unit)||'';
-    if(!confirm(`هيتسجل في المخزن: ${it} ${nfmt(q)} ${unit} بقيمة ${nfmt(v)} بتاريخ ${dmy(d)}\nتمام؟`)) return;
+    if(!confirm(`جرد ${it} يوم ${dmy(d)}: ${nfmt(q)} ${unit} بقيمة ${nfmt(v)}\nالرقم ده هيبقى رصيد الصنف في اليوم ده (بيحل محل اللي قبله)، والشراء والصرف بعده بس هيتحسبوا عليه.\nتمام؟`)) return;
     if(!db.stockCounts) db.stockCounts=[];
-    const rec={id:newId(), add:true, item:it, unit, qty:q, value:v, date:d, notes:'رصيد موجود في المخزن', _at:Date.now()};
-    db.stockCounts.push(rec); logAudit('create','رصيد صنف في المخزن',`${it} ${q} — ${v}`,null,rec);
+    const rec={id:newId(), set:true, item:it, unit, qty:q, value:v, date:d, notes:'جرد صنف', _at:Date.now()};
+    db.stockCounts.push(rec); logAudit('create','جرد صنف',`${it} ${q} — ${v}`,null,rec);
     g('sopen-qty').value=''; g('sopen-val').value='';
     scheduleSave(); renderAll(); sopenShow(); }
 function renderMashoon(){ try{ const sl=document.getElementById('sopen-item'); if(sl){ const pv=sl.value; sl.innerHTML='<option value="">— اختار الصنف —</option>'+sopenItems().map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join(''); sl.value=pv; const sd=document.getElementById('sopen-date'); if(sd && !sd.value) sd.value=todayISO(); sopenShow(); } }catch(e){}
@@ -7202,10 +7203,10 @@ function renderEquipmentRepayments(){
 function itemMovementRows(item, from, to){
     /* v261.5: الكشف بيبدأ من آخر جرد للصنف (زي المركز المالي) + المشتريات بعده − الصرف بعده، وفلتر الفترة بيجيب رصيد أول المدة */
     const rows = [];
-    const C=(db.stockCounts||[]).filter(x=>x && x.item===item && x.date && !x.add), last=C.length?C.map(x=>x.date).sort().pop():'';
+    const C=(db.stockCounts||[]).filter(x=>x && x.item===item && x.date && (!x.add || isSetCount(x))), last=C.length?C.map(x=>x.date).sort().pop():'';
     const after=d=>!last || (d||'')>last;
-    if(last){ const q=C.filter(x=>x.date===last).reduce((a,x)=>a+(Number(x.qty)||0),0); rows.push({date:last, kind:'جرد', desc:'رصيد الجرد', inQ:q, outQ:0, ord:0}); }
-    (db.stockCounts||[]).filter(x=>x && x.item===item && x.add && x.date).forEach(x=>rows.push({date:x.date, kind:'إضافة', desc:x.notes||'إضافة على المخزون', inQ:Math.max(Number(x.qty)||0,0), outQ:Math.max(-(Number(x.qty)||0),0), ord:1}));
+    if(last){ const L=C.filter(x=>x.date===last), Ls=L.filter(isSetCount); const q=Ls.length?(Number(Ls.sort((a,b)=>(a._at||0)-(b._at||0)).pop().qty)||0):L.reduce((a,x)=>a+(Number(x.qty)||0),0); rows.push({date:last, kind:'جرد', desc:'رصيد الجرد', inQ:q, outQ:0, ord:0}); }
+    (db.stockCounts||[]).filter(x=>x && x.item===item && x.add && !isSetCount(x) && x.date && (!last || x.date>=last)).forEach(x=>rows.push({date:x.date, kind:'إضافة', desc:x.notes||'إضافة على المخزون', inQ:Math.max(Number(x.qty)||0,0), outQ:Math.max(-(Number(x.qty)||0),0), ord:1}));
     (db.procurements||[]).filter(p=>p.item===item && after(p.date)).forEach(p=>rows.push({date:p.date, kind:'وارد (شراء)', desc:`${p.supplier||''}${p.notes?' — '+p.notes:''}`, inQ:Number(p.qty)||0, outQ:0, ord:1}));
     (db.productions||[]).forEach(o=>{ if(!after(o.date)) return;
         (o.outputs||[]).filter(x=>x.item===item).forEach(x=>rows.push({date:o.date, kind:'إنتاج', desc:'أمر إنتاج', inQ:Number(x.qty)||0, outQ:0, ord:1}));
