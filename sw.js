@@ -2,7 +2,7 @@
 // - صفحة البرنامج: من النت الأول (عشان أي تحديث يوصل على طول)، ولو مفيش نت أو النت بطيء تفتح آخر نسخة محفوظة.
 // - مكتبات الشكل (Tailwind / الخطوط / الأيقونات / الإكسيل): من الكاش وبتتحدث في الخلفية.
 // - Supabase والبيانات: مش بيعدي على الكاش خالص — البيانات بتفضل على الجهاز (localStorage) وبتترفع لما النت يرجع.
-const VER = 'kasara-v2'; // أي كاش باسم إصدار أقدم بيتمسح في activate (محمد 2026-11-13: «سيب النسخة الحالية فقط»)
+const VER = 'kasara-v3'; // أي كاش باسم إصدار أقدم بيتمسح في activate (محمد 2026-11-13: «سيب النسخة الحالية فقط»)
 const SHELL = VER + '-shell', LIBS = VER + '-libs';
 const SHELL_URLS = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png'];
 const LIB_URLS = [
@@ -41,8 +41,8 @@ async function shellFirstNetwork(req, isNav) {
     return r;
   });
   try {
-    // لو النت ضعيف أوي (أكتر من 8 ثواني) افتح النسخة المحفوظة
-    return await Promise.race([net, timeout(8000)]);
+    // لو النت ضعيف أوي (أكتر من 25 ثانية — كانت 8 وكانت بتفتح نسخة قديمة كتير على النت الضعيف، محمد 2026-11-16) افتح النسخة المحفوظة
+    return await Promise.race([net, timeout(navigator.onLine===false ? 1500 : 25000)]);
   } catch (err) {
     const hit = (await cache.match(key, { ignoreSearch: true })) || (isNav && await cache.match('./'));
     if (hit) return hit;
