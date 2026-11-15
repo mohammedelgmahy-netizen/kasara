@@ -407,6 +407,17 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
 #tab-pl, #tab-pl > *, #pl-print-area{ max-width:100%; min-width:0; }
 #tab-pl .text-white, #tab-pl .bg-slate-800 *, #tab-pl .bg-slate-900 *, #tab-pl [class*="bg-slate-8"] , #tab-pl [class*="bg-slate-9"]{ color:#fff !important; }
 </style>
+<style id="coarse-side">/* موبايل بوضع سطح المكتب: الشريط الجانبي أعرض لحد الخط اللي محمد رسمه (~ سدس الشاشة) والأسماء جنب الأيقونة — 2026-11-16 */
+@media (pointer:coarse) and (min-width:700px) and (max-width:1100px){
+  aside#sidebar{width:17.5vw !important;min-width:150px !important}
+  aside#sidebar > div:first-child{padding:8px 6px !important;gap:2px !important}
+  aside#sidebar .tab-btn{flex-direction:row !important;justify-content:flex-start !important;text-align:right !important;gap:7px !important;padding:9px 6px !important;font-size:15px !important;line-height:1.25 !important;font-weight:700 !important}
+  aside#sidebar .tab-btn .nav-ic{width:26px !important;height:26px !important;flex:0 0 26px !important;font-size:15px !important}
+  aside#sidebar .tab-btn span{white-space:normal;word-break:normal}
+}
+/* أزرار التعديل والحذف تفضل ظاهرة في الجداول اللي بتتمرر (لازقة في الجنب الشمال) — محمد 2026-11-16 */
+main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="delete"], > button[onclick*="Delete"]){position:sticky;left:0;z-index:1;background:var(--card,#fff);box-shadow:4px 0 6px -4px rgba(0,0,0,.25)}
+</style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col">
 <!-- ACTIVATION GATE -->
@@ -556,7 +567,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1055</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1056</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
