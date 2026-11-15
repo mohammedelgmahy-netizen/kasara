@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1040</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1041</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -10197,9 +10197,13 @@ function renderDayPage(){
     /* السولار والمخزون (محمد 2026-11-15): الوارد (شراء آجل) يمين بس، والصرف بالأسماء شمال بس؛ والفرق سطر واحد عشان الرصيد يفضل زي ما هو */
     const isBuy=r=>r.ref&&r.ref[0]==='buy', isStk=r=>r.ref&&r.ref[0]==='stock';
     let rows = st.rows.filter(r=>!r.xfer && !(isBuy(r)&&r.outflow>0) && !(isStk(r)&&r.inflow>0));
-    { const bIn=st.rows.filter(r=>isBuy(r)).reduce((a,r)=>a+r.inflow,0), sOut=st.rows.filter(r=>isStk(r)).reduce((a,r)=>a+r.outflow,0), df=Math.round(bIn-sOut);
-      if(df>0) rows.push({desc:'متبقي في المخزون من وارد اليوم', inflow:0, outflow:df});
-      else if(df<0) rows.push({desc:'منصرف من رصيد المخزون', inflow:-df, outflow:0}); }
+    { const M={}; const g=it=>M[it]||(M[it]={v:0,q:0,u:''});
+      const bG=new Set(st.rows.filter(r=>isBuy(r)&&r.inflow>0).map(r=>r.ref[1])), sI=new Set(st.rows.filter(r=>isStk(r)&&r.outflow>0).map(r=>r.ref[1]));
+      st.rows.filter(r=>isBuy(r)&&r.inflow>0).forEach(r=>{ const p=(db.procurements||[]).find(x=>x.groupId===r.ref[1] && r.desc.indexOf('وارد '+x.item)===0); const o=g(p?p.item:'?'); o.v+=r.inflow; if(p){ o.q+=Number(p.qty)||0; o.u=p.unit||o.u; } });
+      st.rows.filter(r=>isStk(r)&&r.outflow>0).forEach(r=>{ const x=(db.stockIssues||[]).find(i=>i.id===r.ref[1]); const o=g(x?x.item:'?'); o.v-=r.outflow; if(x){ o.q-=Number(x.qty)||0; o.u=o.u||x.unit||''; } });
+      Object.entries(M).forEach(([it,o])=>{ const df=Math.round(o.v); if(!df) return; const qq=Math.abs(Math.round(o.q*100)/100), q=qq?` ${nfmt(qq)} ${o.u||'لتر'}`:'';
+        if(df>0) rows.push({desc:`${it}${q} إلى مخزون الكسارة`, inflow:0, outflow:df});
+        else rows.push({desc:`${it}${q} من مخزون الكسارة`, inflow:-df, outflow:0}); }); }
     const rev = [{desc:'رصيد مرحل', inflow:st.opening, open:true}, ...rows.filter(r=>r.inflow>0)], exp = rows.filter(r=>r.outflow>0);
     const revT = rev.reduce((s,r)=>s+r.inflow,0), expT = exp.reduce((s,r)=>s+r.outflow,0);
     const n = Math.max(rev.length, exp.length, 18);
