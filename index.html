@@ -545,7 +545,7 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1035</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1036</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1196,6 +1196,8 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">الدفع</label><select id="buy-pay" style="display:none" onchange="buyPaySync(); document.getElementById('buy-account-wrap').style.display=this.value==='cash'?'':'none'" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="credit" selected>آجل على المورد</option><option value="cash">نقدي</option></select><div class="flex gap-1"><button type="button" id="buy-pay-credit" onclick="setBuyPay('credit')" class="flex-1 rounded-lg p-2 text-sm font-bold border">آجل</button><button type="button" id="buy-pay-cash" onclick="setBuyPay('cash')" class="flex-1 rounded-lg p-2 text-sm font-bold border">نقدي</button></div></div>
                     <div id="buy-account-wrap" style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">من خزينة</label><select id="buy-account" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">ملاحظات</label><input id="buy-notes" type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                    <div id="buy-extra" class="col-span-2 md:col-span-4 flex flex-col gap-2"></div>
+                    <div class="col-span-2 md:col-span-4"><button type="button" onclick="buyAddLine()" class="bg-white border-2 border-dashed border-emerald-500 text-emerald-700 font-bold rounded-lg px-4 py-2 text-sm">＋ صنف تاني في نفس الفاتورة</button></div>
                     <div class="col-span-2 md:col-span-4 flex items-center justify-between gap-3">
                         <span class="text-sm font-bold text-slate-700">الإجمالي: <span id="buy-total">٠ ج.م</span></span>
                         <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm">حفظ الشراء</button>
@@ -7558,9 +7560,18 @@ function renderPayroll(){
 
 /* ================= شراء سولار / أصناف (وارد سريع) ================= */
 function buyTotal(){ try{ buyPaySync(); }catch(e){}
-    const t = (Number(document.getElementById('buy-qty').value)||0) * (Number(document.getElementById('buy-price').value)||0);
+    let t = (Number(document.getElementById('buy-qty').value)||0) * (Number(document.getElementById('buy-price').value)||0);
+    document.querySelectorAll('#buy-extra .buy-line').forEach(r=>{ t += (Number(r.querySelector('.bl-qty').value)||0)*(Number(r.querySelector('.bl-price').value)||0); });
     document.getElementById('buy-total').textContent = fmt(t);
 }
+/* محمد 2026-11-15: «عاوز أضيف صنف أو أكتر لفاتورة المشتريات» — سطور أصناف زيادة بتتحفظ في نفس الفاتورة (نفس الرقم والمورد والتاريخ) */
+function buyAddLine(){ const box=document.getElementById('buy-extra'); if(!box) return;
+    const opts='<option value="">— الصنف —</option>'+(db.supplies||[]).map(x=>`<option value="${esc(x.name)}">${esc(x.name)}</option>`).join('');
+    const C='bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm w-full';
+    const d=document.createElement('div'); d.className='buy-line grid grid-cols-2 md:grid-cols-4 gap-3 items-end border-t border-slate-200 pt-2';
+    d.innerHTML=`<div><label class="block text-xs font-bold text-slate-600 mb-1">الصنف</label><select class="bl-item ${C}" onchange="buyLineItem(this)">${opts}</select></div><div><label class="block text-xs font-bold text-slate-600 mb-1">الكمية</label><input type="number" step="any" min="0" class="bl-qty ${C}" oninput="buyTotal()"></div><div><label class="block text-xs font-bold text-slate-600 mb-1">سعر الوحدة</label><input type="number" step="any" min="0" class="bl-price ${C}" oninput="buyTotal()"></div><div><button type="button" onclick="this.closest('.buy-line').remove(); buyTotal()" class="bg-rose-50 border border-rose-200 text-rose-700 font-bold rounded-lg p-2 text-sm w-full">✕ شيل الصنف ده</button></div>`;
+    box.appendChild(d); }
+function buyLineItem(sel){ const r=sel.closest('.buy-line'), pr=r.querySelector('.bl-price'); const last=(db.procurements||[]).filter(p=>p.item===sel.value).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id-a.id))[0]; if(last && !pr.value) pr.value=last.price; buyTotal(); }
 function buyPaySync(){ const v=(document.getElementById('buy-pay')||{}).value||'credit'; [['credit','bg-amber-600 text-white border-amber-600'],['cash','bg-emerald-600 text-white border-emerald-600']].forEach(([k,on])=>{ const b=document.getElementById('buy-pay-'+k); if(b) b.className='flex-1 rounded-lg p-2 text-sm font-bold border '+(k===v?on:'bg-white text-slate-600 border-slate-200'); }); const w=document.getElementById('buy-account-wrap'); if(w) w.style.display=v==='cash'?'':'none'; }
 function setBuyPay(v){ const s=document.getElementById('buy-pay'); if(!s) return; s.value=v; buyPaySync(); }
 function addQuickPurchase(e){
@@ -7570,23 +7581,26 @@ function addQuickPurchase(e){
     const item = g('buy-item').value, qty = Number(g('buy-qty').value)||0, price = Number(g('buy-price').value)||0;
     let supplier = g('buy-supplier').value;
     if(!item || !qty || !price){ alert('اختار الصنف واكتب الكمية والسعر'); return; }
+    const extra=[...document.querySelectorAll('#buy-extra .buy-line')].map(r=>({item:r.querySelector('.bl-item').value, qty:Number(r.querySelector('.bl-qty').value)||0, price:Number(r.querySelector('.bl-price').value)||0}));
+    if(extra.some(l=>(l.item||l.qty||l.price) && !(l.item && l.qty && l.price))){ alert('كمّل الصنف والكمية والسعر في كل سطر زيادة، أو شيل السطر'); return; }
+    const L=[{item,qty,price}].concat(extra.filter(l=>l.item && l.qty && l.price)), invTotal=L.reduce((a,l)=>a+l.qty*l.price,0);
     if(!supplier){ const nm=(prompt('اسم المورد (هيتضاف لدليل الأكواد):')||'').trim(); if(!nm) return; if(!db.suppliers) db.suppliers=[]; if(!db.suppliers.some(x=>x.name===nm)) db.suppliers.push({code:nextCode('suppliers'), name:nm}); supplier=nm; }
     const date = g('buy-date').value || todayISO(), notes = g('buy-notes').value.trim(), cash0 = g('buy-pay').value==='cash';
     let cash = cash0;
     const buyAcc = g('buy-account').value || (db.accounts[0]&&db.accounts[0].name) || '', buySari = false;
-    if(cash && !buySari && !checkCashAvailable(buyAcc, qty*price)){ if(!confirm('تسجلها شراء بالآجل على المورد؟')) return; cash=false; }
+    if(cash && !buySari && !checkCashAvailable(buyAcc, invTotal)){ if(!confirm('تسجلها شراء بالآجل على المورد؟')) return; cash=false; }
     const unit = ((db.supplies||[]).find(s=>s.name===item)||{}).unit || '';
     if(!db.nextId.purchaseInvoiceNo) db.nextId.purchaseInvoiceNo = 1;
     if(!db.nextId.proc) db.nextId.proc = (db.procurements||[]).reduce((m,p)=>Math.max(m,p.id||0),0)+1;
     const groupId = Date.now(), invoiceNumber = 'PO-' + String(db.nextId.purchaseInvoiceNo++).padStart(5,'0');
-    db.procurements.push({id:db.nextId.proc++, groupId, invoiceNumber, item, supplier, project:(db.projects[0]&&db.projects[0].name)||'', qty, unit, price, date, notes, quick:true, payCash:cash});
+    L.forEach(l=>{ const u=((db.supplies||[]).find(s=>s.name===l.item)||{}).unit || ''; db.procurements.push({id:db.nextId.proc++, groupId, invoiceNumber, item:l.item, supplier, project:(db.projects[0]&&db.projects[0].name)||'', qty:l.qty, unit:u, price:l.price, date, notes, quick:true, payCash:cash}); });
     if(cash){
         if(!db.nextId.pay) db.nextId.pay = (db.payments||[]).reduce((m,p)=>Math.max(m,p.id||0),0)+1;
-        db.payments.push({id:db.nextId.pay++, supplier, amount:Math.round(qty*price), project:null, account:g('buy-account').value || (db.accounts[0]&&db.accounts[0].name) || '', date, notes:`شراء ${item} ${invoiceNumber}`, procGroupId:groupId});
+        db.payments.push({id:db.nextId.pay++, supplier, amount:Math.round(invTotal), project:null, account:g('buy-account').value || (db.accounts[0]&&db.accounts[0].name) || '', date, notes:`شراء ${L.map(l=>l.item).join(' + ')} ${invoiceNumber}`, procGroupId:groupId});
         if(buySari) addLinkedSariLoan(date, Math.round(qty*price), `شراء ${item} ${supplier} ${nfmt(qty)} × ${nfmt(price)}`, buyAcc, {procGroupId:groupId});
     }
-    logAudit('create','شراء صنف',`${item} - ${nfmt(qty)} × ${nfmt(price)} (${cash?'نقدي':'آجل'})`,null,{groupId,item,qty,price});
-    g('buy-qty').value=''; g('buy-price').value=''; g('buy-notes').value=''; buyTotal();
+    logAudit('create','شراء صنف',L.map(l=>`${l.item} - ${nfmt(l.qty)} × ${nfmt(l.price)}`).join(' ، ')+` (${cash?'نقدي':'آجل'})`,null,{groupId,lines:L});
+    g('buy-qty').value=''; g('buy-price').value=''; g('buy-notes').value=''; { const bx=g('buy-extra'); if(bx) bx.innerHTML=''; } buyTotal();
     scheduleSave(); renderAll();
 }
 function deleteQuickPurchase(groupId){
@@ -11196,9 +11210,11 @@ function startEdit(kind, id){
     } else if(kind==='buy'){
         const x = (db.procurements||[]).find(p=>p.groupId===id); if(!x) return;
         const pay = (db.payments||[]).find(p=>p.procGroupId===id);
+        window.__editBuyRest = (db.procurements||[]).filter(p=>p.groupId===id && p!==x).map(p=>({item:p.item, qty:p.qty, price:p.price})); /* فاتورة فيها أكتر من صنف: باقي الأصناف بترجع سطور زيادة */
         silentDelete(()=>deleteQuickPurchase(id)); tab='purchases'; formAnchor='buy-qty';
         setVal('buy-date', x.date); setVal('buy-item', x.item); setVal('buy-qty', x.qty); setVal('buy-price', x.price); setVal('buy-supplier', x.supplier);
         setVal('buy-pay', x.payCash?'cash':'credit'); try{ buyPaySync(); }catch(e){} if(pay) setVal('buy-account', pay.account); setVal('buy-notes', x.notes||''); try{ buyTotal(); }catch(e){}
+        try{ const bx=document.getElementById('buy-extra'); if(bx) bx.innerHTML=''; (window.__editBuyRest||[]).forEach(l=>{ buyAddLine(); const r=[...document.querySelectorAll('#buy-extra .buy-line')].pop(); r.querySelector('.bl-item').value=l.item; r.querySelector('.bl-qty').value=l.qty; r.querySelector('.bl-price').value=l.price; }); window.__editBuyRest=null; buyTotal(); }catch(e){}
     } else if(kind==='extract'){
         const x = (db.equipExtracts||[]).find(e=>e.id===id); if(!x) return;
         silentDelete(()=>deleteEquipExtract(id)); tab='extracts'; formAnchor='eqx-amount';
