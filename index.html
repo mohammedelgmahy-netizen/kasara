@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1079</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1080</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -10998,7 +10998,7 @@ function stockBreakdown(name, from, to){
 }
 /* ---------- مستخلص المقاول بالتفصيل (نفس شكل كشف حساب العميل) ---------- */
 /* قائمة الدخل والميزانية: المحاسب بس — عماد ناجي في المستخلصات وكشوف الحساب بس (محمد 2026-11-11) */
-const SIG_ACC='<div class="sig-line" style="display:none"></div>'; /* محمد 2026-11-16: شيل اسم المسؤول والمحاسب من كل البرنامج — ماركر فاضي عشان الطباعة والواتساب ما يضيفوش الإمضا */
+const SIG_ACC='<div class="sig-line" style="margin-top:18px;font-weight:800;font-size:14px;display:flex;justify-content:flex-end;direction:rtl"><span>المحاسب / محمد الجميعي</span></div>'; /* محمد 2026-11-16: الإمضا الوحيد في البرنامج — «المحاسب / محمد الجميعي» تحت قائمة الدخل والمركز المالي بس */
 const SIG_LINE='<div class="sig-line" style="display:none"></div>';
 /* صاحب معدات عنده أكتر من معدة متكودة باسمين (أحمد أمين: لودر المحجر + لودر الأرضية): كل لودر بمستخلصه، وتحت الكشف حساب مجمّع = مستخلصات الاتنين − كل اللي أخده = الباقي له. عرض بس (محمد 2026-11-13) */
 const CTR_GROUPS = []; /* محمد 2026-11-13: احمد امين محجر وارضية منفصلين — الحساب المجمّع اتشال */
