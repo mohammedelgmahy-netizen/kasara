@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1090</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1091</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3972,7 +3972,9 @@ function renderMasterData(){
     if(general.length){ expCount += general.length;
         expBody += `<div class="border border-slate-200 rounded-xl p-2 flex flex-col gap-1.5"><div class="font-bold text-slate-600 text-sm">أنشطة عامة (لكل التبويبات)</div><div class="flex flex-col gap-1.5 pr-5 border-r-2 border-slate-200 mr-2">${general.map(actRow).join('')}</div></div>`; }
     const expBox = box('expenses', '🧾 المصروفات (التبويب ← النشاط)', tabs.length, MASTER_META.expenses.color, 'expenses', expBody || '<p class="text-sm text-slate-400 text-center py-3">لا توجد بنود</p>');
-    const GROUPS=[['clients','🧑‍💼'],['suppliers','🏭'],['contractors','🚜'],['persons','👷'],['investors','💼'],['accounts','🏦'],['supplies','📦'],['expenses','🧾']];
+    const GROUPS=[['clients','🧑‍💼'],['suppliers','🏭'],['contractors','🚜'],['persons','👷'],['investors','💼'],['accounts','🏦'],['supplies','📦'],['expenses','🧾'],['fixedassets','🏗️']];
+    catCount.fixedassets=(db.assets||[]).length; catHtml.fixedassets=faGuideHtml();
+    if(!MASTER_META.fixedassets) MASTER_META.fixedassets={label:'الأصول الثابتة'};
     const cnt = c => catCount[c];
     let cur = window.__mdTab || ''; /* محمد 2026-11-16: مفيش مجموعة مفتوحة لحد ما يدوس عليها، ودوسة تانية تقفلها */
     if(term && !cnt(cur)){ const f=GROUPS.find(([c])=>cnt(c)>0); if(f) cur=f[0]; }
@@ -3980,6 +3982,7 @@ function renderMasterData(){
     if(!cur){ container.innerHTML = bar; return; }
     const head = `<div class="flex items-center justify-between gap-2 mb-2"><div class="font-extrabold text-slate-900">${GROUPS.find(g=>g[0]===cur)[1]} ${cur==='expenses'?'المصروفات':cur==='persons'?'الأفراد':MASTER_META[cur].label}</div><button type="button" onclick="openAddMasterModal(); document.getElementById('master-type').value='${cur==='persons'?'names':cur}'; toggleMasterFields();" class="bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg text-sm font-bold">＋ إضافة</button></div>`;
     const content = catHtml[cur];
+    if(cur==='fixedassets'){ container.innerHTML = bar + `<div class="bg-white border border-slate-200 rounded-xl p-3"><div class="font-extrabold text-slate-900 mb-2">🏗️ الأصول الثابتة</div>${content}</div>`; return; }
     container.innerHTML = bar + `<div class="bg-white border border-slate-200 rounded-xl p-3">${head}${content}</div>`;
 }
 /* الرصيد جنب كل بند في الدليل */
@@ -5110,7 +5113,7 @@ function treasuryEvents(){
     });
     // شراء الأصول — نقدية خارجة فعلياً
     (db.assets||[]).forEach(a=>{
-        if(a.cost>0 && a.date){
+        if(a.cost>0 && a.date && !a.noCash){ /* الأصول اللي في دليل الأكواد (noCash) اتشرت بفلوس برا البرنامج: مقابلها رأس مال مش الخزنة */
             events.push({date:a.date, desc:`شراء أصل: ${a.name}`, project:a.location||'-', account:defaultAccount, inflow:0, outflow:a.cost});
         }
     });
@@ -5402,6 +5405,7 @@ function computePL(projectFilter, dateFrom, dateTo){
     /* مرتب عماد ناجي القديم (رصيد افتتاحي من التكويد) — القديم كله يعتبر جديد (محمد 2026-11-10) */
     /* كل موظف سطر لوحده، وعماد ناجي اسمه «عمولة عماد ناجي» (محمد 2026-11-11) */
     try{ (db.names||[]).filter(x=>x.openDate && matchDate({date:x.openDate}) && (Number(x.openTotal)||0)).forEach(x=>operatingLines.push({ num:num(), label: x.name===COM_PERSON ? 'عمولة عماد ناجي' : /مجد[يى]/.test(x.name) ? 'مجدي عبد الغني الميكانيكي' : 'مرتب '+x.name, value:Number(x.openTotal)||0 })); }catch(e){}
+    try{ const dep=assetsDepBetween(dateFrom, dateTo); if(Math.round(dep)) operatingLines.push({ num:num(), label:'إهلاك الأصول الثابتة', value:dep }); }catch(e){}
     const operatingTotal = operatingLines.reduce((s,l)=>s+l.value,0);
 
     // هـ. صافي الربح التشغيلي
@@ -6042,8 +6046,8 @@ function balanceSheetData(D){
     /* سلف الموظفين: فلوس طلعت من الخزنة ولسه هتتخصم من المرتب — أصل لينا عند الموظفين، عشان الميزان يتزن ومن غير ما تدخل الربح (محمد 2026-11-13) */
     { const empAdv=(db.expensesData||[]).filter(x=>x.category===ADV_CAT && le(x.date)).reduce((a,x)=>a+(Number(x.paid)||0),0); if(Math.round(empAdv)) A.push({g:'مستحقات أخرى', name:'سلف موظفين', v:empAdv}); }
     // الأصول الثابتة
-    let fa=0; (db.assets||[]).filter(a=>a.status!=='sold' && le(a.date)).forEach(a=>{ fa+=assetBookValue(a); });
-    if(Math.round(fa)) A.push({g:'أرض وتأمينات المحجر', name:'أرض وتأمينات المحجر', v:fa});
+    /* الأصول الثابتة من دليل الأكواد: كل أصل بقيمته بعد الإهلاك، وتكلفته بتتقابل بـ«رأس مال (الأصول الثابتة)» (محمد 2026-11-16) */
+    let faCost=0; (db.assets||[]).filter(a=>a.status!=='sold' && le(a.date)).forEach(a=>{ if(a.noCash) faCost+=Number(a.cost)||0; const v=assetBookValue(a, D); A.push({g:'الأصول الثابتة', name:a.name+' (بعد الإهلاك)', v}); });
     // الخصوم
     let sup=0, supAdv=0; (db.suppliers||[]).forEach(x=>{ const {ob:sOB, od:sOD}=supOpen(x.name); const ok=p=>le(p.date) && (!sOD || (p.date||'')>=sOD); const i=(db.procurements||[]).filter(p=>p.supplier===x.name && ok(p)).reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0); const pd=(db.payments||[]).filter(p=>p.supplier===x.name && ok(p)).reduce((a,p)=>a+(Number(p.amount)||0),0); const b=(sOD && le(sOD)?sOB:0)+i-pd; if(b>0) sup+=b; else supAdv+=-b; });
     if(Math.round(supAdv)) A.push({g:'مستحقات أخرى', name:'دفعات مقدمة لموردي قطع الغيار والسولار', v:supAdv});
@@ -6056,6 +6060,7 @@ function balanceSheetData(D){
     try{ const s0=db.sariSettings||{}; const bals={'عماد ناجي':Number(s0.loanOpening)||0}; (db.ownerLoans||[]).filter(l=>le(l.date)).forEach(l=>{ const w=loanLender(l); bals[w]=(bals[w]||0)+(l.type==='in'?1:-1)*(Number(l.amount)||0); }); const capL=db.capitalLenders||[]; Object.entries(bals).forEach(([w,v])=>{ if(!Math.round(v)) return; if(capL.includes(w)) __capE.push({name:'رأس مال '+w+' (باقي حصته في شراء الكسارة)', v}); else L.push({name:'سلف '+w, v}); }); }catch(e){}
     // حقوق الملكية
     const fund=(db.investorFunding||[]).filter(x=>le(x.date)).reduce((a,x)=>a+(Number(x.amount)||0),0);
+    if(Math.round(faCost)) __capE.push({name:'رأس مال (الأصول الثابتة)', v:faCost});
     const tA=A.reduce((a,x)=>a+x.v,0), tL=L.reduce((a,x)=>a+x.v,0);
     let profit=0; try{ profit=computePL('ALL','',D||'').profitBeforeTax||0; }catch(x){}
     if(Math.round(fund)) E.push({name:'تمويل المستثمرين', v:fund});
@@ -6132,7 +6137,7 @@ function zakatRender(){ const el=document.getElementById('zakat-content'); if(!e
 /* زكاة المال: بتتحسب لوحدها 2.5% على (الخزن + المخزون + اللي لينا بره) − اللي علينا، في تاريخ الميزانية (محمد 2026-11-12). عرض بس، ما بتغيرش أي حساب */
 function zakatHtml(S, D){
     try{
-        const fixed=S.A.filter(x=>x.g==='أرض وتأمينات المحجر').reduce((a,x)=>a+x.v,0);
+        const fixed=S.A.filter(x=>x.g==='أرض وتأمينات المحجر'||x.g==='الأصول الثابتة').reduce((a,x)=>a+x.v,0);
         const assets=S.tA-fixed, base=assets-S.tL, due=base>0?base*0.025:0;
         const paid=(db.expensesData||[]).filter(x=>x.category==='زكاة المال' && (!D || (x.date||'')<=D)).reduce((a,x)=>a+(Number(x.paid)||0),0);
         const r=(l,v,b)=>`<tr class="border-b border-emerald-100 ${b?'font-extrabold text-lg':'font-bold'}"><td class="p-2">${l}</td><td class="p-2 text-left" dir="ltr">${nfmt(Math.round(v))}</td></tr>`;
@@ -6566,16 +6571,52 @@ function printCurrentTab(){
 
 /* ================= EXPORT ================= */
 /* ================= ASSETS (أصول ومعدات الشركة) ================= */
-function assetBookValue(a){
+/* الإهلاك المتراكم لحد يوم d (قسط ثابت سنوي، عمره ما يعدي التكلفة) — محمد 2026-11-16 */
+function assetAccDep(a, d){
+    const cost=Number(a.cost)||0, rate=(Number(a.depRate)||0)/100; if(!rate || !a.date || !cost) return 0;
+    const end=d||todayISO(); if(end<=a.date) return 0;
+    const years=(new Date(end).getTime()-new Date(a.date).getTime())/(365.25*24*3600*1000);
+    return Math.min(cost, cost*rate*years);
+}
+/* إهلاك فترة (من → إلى) لكل الأصول الثابتة — بينزل مصروف في قائمة الدخل */
+function assetsDepBetween(from, to){
+    const end=to||todayISO();
+    return (db.assets||[]).filter(a=>a.status!=='sold').reduce((s,a)=>s+Math.max(0, assetAccDep(a,end)-(from?assetAccDep(a,from):0)),0);
+}
+function assetBookValue(a, d){
     // القيمة الدفترية = التكلفة - الإهلاك المتراكم (قسط ثابت سنوي)
-    const cost = a.cost||0;
-    const depRate = (a.depRate||0)/100;
-    if(!depRate || !a.date) return cost;
-    const years = Math.max((Date.now() - new Date(a.date).getTime()) / (365.25*24*3600*1000), 0);
-    const accumulated = cost * depRate * years;
-    return Math.max(cost - accumulated, 0);
+    return Math.max((Number(a.cost)||0) - assetAccDep(a, d), 0);
 }
 
+/* الأصول الثابتة في دليل الأكواد (محمد 2026-11-16): الاسم، سعر الشراء، التاريخ، نسبة الإهلاك في السنة */
+function faGuideHtml(){
+    const L=(db.assets||[]).slice().sort((a,b)=>(a.code||0)-(b.code||0)), t=todayISO();
+    const inp='border:1px solid #cbd5e1;border-radius:8px;padding:6px 8px;font-size:16px;margin-top:4px';
+    const lb='display:flex;flex-direction:column;font-size:14px;font-weight:700;color:#334155';
+    const td='padding:8px;border:1px solid #cbd5e1', th=td+';background:#1e293b;color:#fff;font-weight:800';
+    const rows=L.map(a=>{ const acc=assetAccDep(a,t); return `<tr><td style="${td};font-family:monospace;color:#475569">${a.code||''}</td><td style="${td};font-weight:800">${esc(a.name)}</td><td style="${td}">${nfmt(Math.round(a.cost||0))}</td><td style="${td}">${a.date?dmy(a.date):''}</td><td style="${td}">${a.depRate?nfmt(a.depRate)+'%':'—'}</td><td style="${td}">${nfmt(Math.round(acc))}</td><td style="${td};font-weight:800">${nfmt(Math.round((Number(a.cost)||0)-acc))}</td><td style="${td};white-space:nowrap"><button onclick="faEdit('${a.id}')" title="تعديل" style="color:#3b82f6">✏️</button> <button onclick="faDel('${a.id}')" title="حذف" style="color:#ef4444;margin-right:8px">🗑️</button></td></tr>`; }).join('');
+    const tc=L.reduce((s,a)=>s+(Number(a.cost)||0),0), ta=L.reduce((s,a)=>s+assetAccDep(a,t),0);
+    return `<div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px;margin-bottom:12px"><input type="hidden" id="fa-edit">
+        <label style="${lb}">الأصل<input id="fa-name" style="${inp};width:12rem"></label>
+        <label style="${lb}">سعر الشراء<input id="fa-cost" type="number" style="${inp};width:9rem"></label>
+        <label style="${lb}">تاريخ الشراء<input id="fa-date" type="date" style="${inp}"></label>
+        <label style="${lb}">الإهلاك في السنة %<input id="fa-rate" type="number" value="10" style="${inp};width:6rem"></label>
+        <button type="button" onclick="faSave()" style="background:#0f172a;color:#fff;padding:8px 18px;border-radius:8px;font-weight:800;font-size:16px">حفظ</button></div>
+      <table style="width:100%;border-collapse:collapse;text-align:right;font-size:16px"><tr><th style="${th}">الكود</th><th style="${th}">الأصل</th><th style="${th}">سعر الشراء</th><th style="${th}">تاريخ الشراء</th><th style="${th}">الإهلاك في السنة</th><th style="${th}">الإهلاك لحد النهارده</th><th style="${th}">القيمة الحالية</th><th style="${th}"></th></tr>
+      ${rows||`<tr><td colspan="8" style="${td};text-align:center;color:#94a3b8">لسه مفيش أصول متسجلة</td></tr>`}
+      ${L.length?`<tr style="background:#eef2ff;font-weight:800"><td style="${td}" colspan="2">الإجمالي</td><td style="${td}">${nfmt(Math.round(tc))}</td><td style="${td}"></td><td style="${td}"></td><td style="${td}">${nfmt(Math.round(ta))}</td><td style="${td}">${nfmt(Math.round(tc-ta))}</td><td style="${td}"></td></tr>`:''}</table>`;
+}
+function faSave(){
+    if(isRO()) return; const g=id=>document.getElementById(id);
+    const name=g('fa-name').value.trim(), cost=Number(g('fa-cost').value)||0, date=g('fa-date').value, rate=Number(g('fa-rate').value)||0, eid=g('fa-edit').value;
+    if(!name){ alert('اكتب اسم الأصل'); return; } if(!cost){ alert('اكتب سعر الشراء'); return; } if(!date){ alert('اختار تاريخ الشراء'); return; }
+    if(!db.assets) db.assets=[];
+    if(eid){ const a=db.assets.find(x=>String(x.id)===eid); if(!a) return; const before={...a}; Object.assign(a,{name,cost,date,depRate:rate}); logAudit('update','أصل ثابت',`${name} — ${cost}`,before,a); }
+    else { const code=Math.max(5000,...db.assets.map(x=>Number(x.code)||0))+1; const rec={id:newId(), code, name, cost, date, depRate:rate, status:'working', noCash:true, _at:Date.now()}; db.assets.push(rec); logAudit('create','أصل ثابت',`${name} — ${cost}`,null,rec); }
+    scheduleSave(); renderAll(); window.__mdTab='fixedassets'; renderMasterData();
+}
+function faEdit(id){ const a=(db.assets||[]).find(x=>String(x.id)===String(id)); if(!a) return; const g=x=>document.getElementById(x); g('fa-edit').value=String(a.id); g('fa-name').value=a.name||''; g('fa-cost').value=a.cost||''; g('fa-date').value=a.date||''; g('fa-rate').value=a.depRate||''; g('fa-name').focus(); }
+function faDel(id){ if(isRO()) return; const a=(db.assets||[]).find(x=>String(x.id)===String(id)); if(!a) return; if(!confirm(`حذف الأصل «${a.name}»؟`)) return; db.assets=db.assets.filter(x=>x!==a); logAudit('delete','أصل ثابت',a.name,a,null); scheduleSave(); renderAll(); window.__mdTab='fixedassets'; renderMasterData(); }
 function addAsset(e){
     e.preventDefault();
     if(!db.assets) db.assets = [];
