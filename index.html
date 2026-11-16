@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1074</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1075</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5867,7 +5867,7 @@ ${D.colls.map(x=>`<tr><td style="${B};text-align:right">تحصيل ${dmy(x.date)
 <tr style="background:#fef2f2"><td style="${B};text-align:right">إجمالي المحصّل</td><td style="${B}">${m(D.coll)}</td></tr></table>
 <div style="margin:14px 0 6px">الحساب</div>
 <table style="width:100%;border-collapse:collapse;font-size:22px"><tr><td style="${B};text-align:right">باقي حسابه من قبل الأسبوع</td><td style="${B}">${bt(D.before)}</td></tr><tr><td style="${B};text-align:right">(+) مسحوبات الأسبوع</td><td style="${B}">${m(D.work)}</td></tr><tr><td style="${B};text-align:right">(−) المحصّل منه</td><td style="${B}">${m(D.coll)}</td></tr><tr style="background:#fef9c3"><td style="${B};text-align:right">الباقي في الآخر</td><td style="${B}">${bt(end)}</td></tr></table>
-<div style="display:flex;justify-content:space-between;margin-top:18px;font-size:17px"><span>المسؤول / م. عماد ناجي</span><span>المحاسب / محمد الجميعي</span></div></div>`;
+</div>`;
 }
 function cxcRender(){
     const g=id=>document.getElementById(id), sel=g('cxc-name'); if(!sel) return;
@@ -9534,7 +9534,7 @@ function addShareButtons(root){
     });
 }
 document.addEventListener('DOMContentLoaded', ()=>{ try{ addShareButtons(); }catch(e){} });
-function waSig(t){ return /محمد الجميعي/.test(t) ? t : t+'\n\nالمحاسب / محمد الجميعي'; } // الإمضا تحت أي رسالة واتس (محمد 2026-11-10)
+function waSig(t){ return t; } /* محمد 2026-11-16: من غير إمضا */ // الإمضا تحت أي رسالة واتس (محمد 2026-11-10)
 function shareCard(id, title){ const el=document.getElementById(id); if(!el) return; shareImagesModal(title, elementToFile(el, title)); }
 
 /* ---- قفل الفترات ---- */
@@ -10995,8 +10995,8 @@ function stockBreakdown(name, from, to){
 }
 /* ---------- مستخلص المقاول بالتفصيل (نفس شكل كشف حساب العميل) ---------- */
 /* قائمة الدخل والميزانية: المحاسب بس — عماد ناجي في المستخلصات وكشوف الحساب بس (محمد 2026-11-11) */
-const SIG_ACC='<div class="sig-line" style="margin-top:18px;font-weight:800;font-size:14px;display:flex;justify-content:flex-end;direction:rtl"><span>المحاسب / محمد الجميعي</span></div>';
-const SIG_LINE='<div class="sig-line" style="margin-top:18px;font-weight:800;font-size:14px;display:flex;justify-content:space-between;direction:rtl"><span>المسؤول / م. عماد ناجي</span><span>المحاسب / محمد الجميعي</span></div>';
+const SIG_ACC='<div class="sig-line" style="display:none"></div>'; /* محمد 2026-11-16: شيل اسم المسؤول والمحاسب من كل البرنامج — ماركر فاضي عشان الطباعة والواتساب ما يضيفوش الإمضا */
+const SIG_LINE='<div class="sig-line" style="display:none"></div>';
 /* صاحب معدات عنده أكتر من معدة متكودة باسمين (أحمد أمين: لودر المحجر + لودر الأرضية): كل لودر بمستخلصه، وتحت الكشف حساب مجمّع = مستخلصات الاتنين − كل اللي أخده = الباقي له. عرض بس (محمد 2026-11-13) */
 const CTR_GROUPS = []; /* محمد 2026-11-13: احمد امين محجر وارضية منفصلين — الحساب المجمّع اتشال */
 function ctrGroupOf(name){ const nz=x=>String(x||'').replace(/[أإآ]/g,'ا').replace(/\s+/g,' ').trim(); const g=CTR_GROUPS.find(g=>g.re.test(nz(name))); if(!g) return null;
