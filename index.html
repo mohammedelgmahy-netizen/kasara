@@ -567,7 +567,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1071</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1072</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5768,9 +5768,9 @@ function clientSheetHtml0(name){
     const n0=v=>(v?nfmt(Math.round(v*100)/100):''), nb=v=>v?nfmt(Math.round(v*100)/100):'';
     const szAll=D.sizes, szUsed=szAll.filter(x=>Number(D.tot[x.key])>0), sz=szUsed.length?szUsed:szAll.slice(0,5); /* المقاسات اللي فيها كميات بس، عشان الكشف ما يتقطعش في الطباعة (محمد 2026-11-13) */
     const head=`<tr><th style="${B}">سيارة</th><th style="${B}">مقطورة</th><th style="${B}">العدد</th><th style="${B}">التكعيب</th>${sz.map(x=>`<th style="${B}">${esc(x.label)}</th>`).join('')}</tr>`;
-    const rows=D.cars.map((c,ci)=>`<tr style="cursor:pointer" title="دوس لتعديل كميات بونات العربية" onclick="csCarBons(${ci})"><td style="${B}">${esc(c.tractor)}</td><td style="${B}">${esc(c.trailer)}</td><td style="${B}">${nfmt(c.n)}</td><td style="${B}">${nb(c.n?c.qty/c.n:0)}</td>${sz.map(x=>`<td style="${B}">${nb(c.q[x.key])}${c.cnt[x.key]?`<div style="font-size:.8em;font-weight:800">${nfmt(c.cnt[x.key])} عربية</div>`:''}</td>`).join('')}</tr>`);
+    const rows=D.cars.map((c,ci)=>`<tr style="cursor:pointer" title="دوس لتعديل كميات بونات العربية" onclick="csCarBons(${ci})"><td style="${B}">${esc(c.tractor)}</td><td style="${B}">${esc(c.trailer)}</td><td style="${B}">${nfmt(c.n)}</td><td style="${B}">${nb(c.n?c.qty/c.n:0)}</td>${sz.map(x=>`<td style="${B}">${nb(c.q[x.key])}</td>`).join('')}</tr>`);
     while(rows.length<4) rows.push(`<tr>${('<td style="'+B+'height:30px"></td>').repeat(4+sz.length)}</tr>`);
-    const totRow=`<tr style="font-weight:800"><td style="${B}" colspan="2">الإجمالي</td><td style="${B}">${D.n?nfmt(D.n):''}</td><td style="${B}"></td>${sz.map(x=>`<td style="${B}">${n0(D.tot[x.key])}${D.totCnt[x.key]?`<div style="font-size:.8em">${nfmt(D.totCnt[x.key])} عربية</div>`:''}</td>`).join('')}</tr>`;
+    const totRow=`<tr style="font-weight:800"><td style="${B}" colspan="2">الإجمالي</td><td style="${B}">${D.n?nfmt(D.n):''}</td><td style="${B}"></td>${sz.map(x=>`<td style="${B}">${n0(D.tot[x.key])}</td>`).join('')}</tr>`;
     const qAll=sz.reduce((t,x)=>t+(Number(D.tot[x.key])||0),0);
     const qtyRow=`<tr style="font-weight:800;background:#f1f5f9"><td style="${B}" colspan="4">إجمالي الكميات (متر)</td><td style="${B};font-size:1.1em" colspan="${sz.length||1}">${n0(qAll)}</td></tr>`;
     const priceRow=`<tr><td style="${B};font-weight:800" colspan="4">السعر</td>${sz.map(x=>D.tot[x.key]?(window.__csEditing?`<td style="${B};background:#fef9c3;padding:2px"><input class="csp-in" data-csp="${x.key}" type="number" step="any" min="0" value="${Number(D.priceOf(x.key))||''}" placeholder="السعر" oninput="csAmtLive(this)" style="width:90px;font-size:18px;font-weight:800;text-align:center;border:2px solid #16a34a;border-radius:4px;background:#fff;color:#000"></td>`:`<td style="${B}">${n0(D.priceOf(x.key))||'—'}</td>`):`<td style="${B}"></td>`).join('')}</tr>`;
