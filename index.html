@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1086</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1087</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3846,7 +3846,7 @@ function switchTab(tabId){
     if(tabId==='purchases'){ try{ renderQuickPurchases(); renderPaymentsTable(); renderSupplierStmt(); }catch(e){ console.warn(e); } }
     if(tabId==='production'){ renderProductions(); updateProdTotalPreview(); }
     if(tabId==='fleet'){ renderVehicles(); renderTrips(); }
-    if(tabId==='masterdata'){ try{ renderMasterData(); }catch(e){} try{ renderVehicles(); }catch(e){} try{ renderSitesCard(); }catch(e){} }
+    if(tabId==='masterdata'){ window.__mdTab=''; /* محمد 2026-11-16: الدليل بيفتح وكل المجموعات مقفولة */ try{ renderMasterData(); }catch(e){} try{ renderVehicles(); }catch(e){} try{ renderSitesCard(); }catch(e){} }
     if(tabId==='audit'){ renderAuditLog(); }
     if(tabId==='ledger'){ renderAccounts(); try{ renderClientStmts(); }catch(e){} try{ renderSupplierStmt(); }catch(e){} try{ renderContractorStmt(); }catch(e){} try{ fillEquipSelects(); renderEqStatement(); }catch(e){} }
     if(tabId==='balance'){ renderTrialBalance(); }
@@ -3974,9 +3974,10 @@ function renderMasterData(){
     const expBox = box('expenses', '🧾 المصروفات (التبويب ← النشاط)', tabs.length, MASTER_META.expenses.color, 'expenses', expBody || '<p class="text-sm text-slate-400 text-center py-3">لا توجد بنود</p>');
     const GROUPS=[['clients','🧑‍💼'],['suppliers','🏭'],['contractors','🚜'],['persons','👷'],['investors','💼'],['accounts','🏦'],['supplies','📦'],['expenses','🧾']];
     const cnt = c => catCount[c];
-    let cur = window.__mdTab || 'clients';
+    let cur = window.__mdTab || ''; /* محمد 2026-11-16: مفيش مجموعة مفتوحة لحد ما يدوس عليها، ودوسة تانية تقفلها */
     if(term && !cnt(cur)){ const f=GROUPS.find(([c])=>cnt(c)>0); if(f) cur=f[0]; }
-    const bar = `<div class="flex flex-wrap gap-2 mb-3">${GROUPS.map(([c,ic])=>`<button type="button" onclick="window.__mdTab='${c}'; renderMasterData()" class="px-3 py-2 rounded-xl text-sm font-bold border flex items-center gap-2 ${c===cur?'bg-slate-900 text-white border-slate-900':'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}">${ic} ${({contractors:'أصحاب المعدات',investors:'الشركاء',expenses:'المصروفات',persons:'الأفراد'})[c]||MASTER_META[c].label} <span class="text-xs px-2 py-0.5 rounded-full ${c===cur?'bg-white/20':'bg-slate-100'}">${cnt(c)}</span></button>`).join('')}</div>`;
+    const bar = `<div class="flex flex-wrap gap-2 mb-3">${GROUPS.map(([c,ic])=>`<button type="button" onclick="window.__mdTab=(window.__mdTab==='${c}'?'':'${c}'); renderMasterData()" class="px-3 py-2 rounded-xl text-sm font-bold border flex items-center gap-2 ${c===cur?'bg-slate-900 text-white border-slate-900':'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}">${ic} ${({contractors:'أصحاب المعدات',investors:'الشركاء',expenses:'المصروفات',persons:'الأفراد'})[c]||MASTER_META[c].label} <span class="text-xs px-2 py-0.5 rounded-full ${c===cur?'bg-white/20':'bg-slate-100'}">${cnt(c)}</span></button>`).join('')}</div>`;
+    if(!cur){ container.innerHTML = bar; return; }
     const head = `<div class="flex items-center justify-between gap-2 mb-2"><div class="font-extrabold text-slate-900">${GROUPS.find(g=>g[0]===cur)[1]} ${cur==='expenses'?'المصروفات':cur==='persons'?'الأفراد':MASTER_META[cur].label}</div><button type="button" onclick="openAddMasterModal(); document.getElementById('master-type').value='${cur==='persons'?'names':cur}'; toggleMasterFields();" class="bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg text-sm font-bold">＋ إضافة</button></div>`;
     const content = catHtml[cur];
     container.innerHTML = bar + `<div class="bg-white border border-slate-200 rounded-xl p-3">${head}${content}</div>`;
