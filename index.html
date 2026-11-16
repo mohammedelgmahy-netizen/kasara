@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1081</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1082</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -783,10 +783,10 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">إكرامية (ج.م)</label><input id="dl-tip" type="number" step="any" min="0" oninput="this.dataset.touched=1" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">سعر المتر</label><input id="dl-price" type="number" step="any" min="0" oninput="this.dataset.touched=1;dlPriceHint()" class="font-bold w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"><div id="dl-price-hint" style="display:none"></div></div>
+                        <div id="dl-price-box" style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">سعر المتر</label><input id="dl-price" type="number" step="any" min="0" oninput="this.dataset.touched=1;dlPriceHint()" class="font-bold w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"><div id="dl-price-hint" style="display:none"></div></div>
                         <div class="hidden"><label class="block text-xs font-bold text-slate-600 mb-1">المشروع</label><select id="dl-project" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
                         <div class="col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">ملاحظات</label><input id="dl-notes" type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">طريقة الدفع</label><select id="dl-pay" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="credit">آجل</option><option value="cash">نقدي (درج المكتب)</option></select></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">طريقة الدفع</label><select id="dl-pay" onchange="dlPayToggle()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="credit">آجل</option><option value="cash">نقدي (درج المكتب)</option></select></div>
                         <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white font-bold p-2.5 rounded-lg text-sm">حفظ البون</button>
                         <button type="button" onclick="cancelBonFromForm()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold p-2.5 rounded-lg text-sm">🚫 البون ده ملغي</button>
                     </div>
@@ -5763,7 +5763,9 @@ function getClientAccountRowsAll(name){
     try{ return getClientAccountRows(name); } finally { if(f) f.value=fv; if(t) t.value=tv; }
 }
 /* محمد 2026-11-16: «اجمالي الكمية × السعر» — إجمالي المبلغ بيتحسب وهو بيكتب السعر في الخانة الصفرا (عرض بس، الحفظ بزرار حفظ أسعار العميل) */
-function csAmtLive(inp){ try{ const k=inp.dataset.csp, td=inp.closest('table').querySelector('td[data-csa="'+k+'"]'); if(!td) return; const pr=Number(String(inp.value).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(',','.'))||0, q=Number(td.dataset.q)||0; td.textContent=pr>0&&q?nfmt(Math.round(q*pr*100)/100):''; }catch(e){} }
+function csAmtLive(inp){ try{ const k=inp.dataset.csp, td=inp.closest('table').querySelector('td[data-csa="'+k+'"]'); if(!td) return; const pr=Number(String(inp.value).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(',','.'))||0, q=Number(td.dataset.q)||0; td.textContent=pr>0&&q?nfmt(Math.round(q*pr*100)/100):''; td.dataset.v=pr>0&&q?q*pr:0;
+    /* محمد 2026-11-16: «لما احط السعر يجمع، اشيل السعر ما يجمعش» — المتبقي بيتحسب فوراً */
+    const sh=inp.closest('.cs-sheet')||document, bt=sh.querySelector('td[data-csbal]'); if(bt){ const v=(Number(bt.dataset.csbal)||0)+[...sh.querySelectorAll('td[data-csa]')].reduce((a,t)=>a+(Number(t.dataset.v)||0),0); bt.textContent=nfmt(Math.round(Math.abs(v))); const l=sh.querySelector('td[data-csbal-l]'); if(l) l.textContent=v<0?'المتبقي (ليه)':'المتبقي'; } }catch(e){} }
 function clientSheetHtml0(name){
     const D=clientSheetData(name);
     const B='border:1px solid #111;padding:6px 8px;text-align:center;';
@@ -5776,7 +5778,7 @@ function clientSheetHtml0(name){
     const qAll=sz.reduce((t,x)=>t+(Number(D.tot[x.key])||0),0);
     const qtyRow=`<tr style="font-weight:800;background:#f1f5f9"><td style="${B}" colspan="4">إجمالي الكميات (متر)</td><td style="${B};font-size:1.1em" colspan="${sz.length||1}">${n0(qAll)}</td></tr>`;
     const priceRow=`<tr><td style="${B};font-weight:800" colspan="4">السعر</td>${sz.map(x=>D.tot[x.key]?(window.__csEditing?`<td style="${B};background:#fef9c3;padding:2px"><input class="csp-in" data-csp="${x.key}" data-orig="${Number(D.priceOf(x.key))||''}" type="number" step="any" min="0" value="${Number(D.priceOf(x.key))||''}" placeholder="السعر" oninput="csAmtLive(this)" style="width:90px;font-size:18px;font-weight:800;text-align:center;border:2px solid #16a34a;border-radius:4px;background:#fff;color:#000"></td>`:`<td style="${B}">${n0(D.priceOf(x.key))||'—'}</td>`):`<td style="${B}"></td>`).join('')}</tr>`;
-    const amtRow=`<tr style="font-weight:800"><td style="${B}" colspan="4">إجمالي المبلغ</td>${sz.map(x=>`<td style="${B}" data-csa="${x.key}" data-q="${Number(D.tot[x.key])||0}">${n0(D.amt[x.key])}</td>`).join('')}</tr>`;
+    const amtRow=`<tr style="font-weight:800"><td style="${B}" colspan="4">إجمالي المبلغ</td>${sz.map(x=>`<td style="${B}" data-csa="${x.key}" data-q="${Number(D.tot[x.key])||0}" data-v="${Number(D.amt[x.key])||0}">${n0(D.amt[x.key])}</td>`).join('')}</tr>`;
     const req=D.bonsTotal+D.otherDebit, totalReq=req+D.prev;
     const sl=(l,v,bold)=>`<tr${bold?' style="font-weight:800"':''}><td style="${B};width:55%">${l}</td><td style="${B}">${Math.round(v)?nfmt(Math.round(v)):''}</td></tr>`;
     /* ملخص مختصر (محمد 2026-11-13): إجمالي اللي عليه + المسحوب − المحصل = المتبقي */
@@ -5786,7 +5788,7 @@ function clientSheetHtml0(name){
     /* محمد 2026-11-14: «امسح المسحوب خلال الفترة… ملهمش لازمة» — السطر اتشال من الكشف (الحساب زي ما هو) */
     if(D.credits.length>1) D.credits.forEach(c=>{ sum+=sl2('محصّل '+dmy(c.date),c.credit,'− '); });
     sum+=sl2(D.credits.length>1?'إجمالي المحصّل':('المحصّل'+(D.credits.length===1?' '+dmy(D.credits[0].date):'')),paid,'− ');
-    sum+=sl2(bal<0?'المتبقي (ليه)':'المتبقي',bal,'',true);
+    { const base=bal-sz.reduce((t,x)=>t+(Number(D.amt[x.key])||0),0); sum+=`<tr style="font-weight:800;background:#f1f5f9"><td style="${B};width:55%" data-csbal-l>${bal<0?'المتبقي (ليه)':'المتبقي'}</td><td style="${B}" data-csbal="${base}">${nfmt(Math.round(Math.abs(bal)))}</td></tr>`; }
     return `<div class="cs-sheet" style="direction:rtl;color:#111;font-size:18px;font-weight:700;min-width:560px">
       <table style="width:100%;border-collapse:collapse;margin-bottom:-1px"><tr>
         <td style="${B};font-size:22px;font-weight:800;padding:14px">${/نقدي/.test(name)?'':'السيد/ '}${esc(name)}</td>
@@ -9428,7 +9430,7 @@ function addDailyLog(e){
         id:EB ? EB.id : newId(), date: g('dl-date').value || todayISO(), bon, client,
         tractor: g('dl-tractor').value.trim(), trailer: g('dl-trailer').value.trim(),
         project: g('dl-project').value || (db.projects[0]||{}).name || '',
-        q, tip: Number(g('dl-tip').value)||0, price: Number(g('dl-price').value)||0,
+        q, tip: Number(g('dl-tip').value)||0, price: g('dl-pay').value==='cash' ? (Number(g('dl-price').value)||0) : (EB ? (Number(EB.price)||0) : 0), /* محمد 2026-11-16: السعر للنقدي بس؛ الآجل بيتسعّر من كشف الحساب (البون الآجل القديم بيحتفظ بسعره) */
         paidCash: g('dl-pay').value==='cash', notes: g('dl-notes').value.trim(),
         worker: (g('dl-worker')?.value||''),
         tabaqaPct: q.tabaqa ? (g('dl-tabaqa-pct').value==='custom' ? Math.min(100, Number(g('dl-tabaqa-pct-custom').value)||0) : (Number(g('dl-tabaqa-pct').value)||0)) : 0
@@ -9445,7 +9447,7 @@ function addDailyLog(e){
     window.__fillMissing=null; if(window.__manualBon){ window.__manualBon=false; const mb=g('dl-bon-manual'); if(mb) mb.textContent='بون فات'; g('dl-bon').placeholder=''; } g('dl-bon').style.background=''; g('dl-bon').style.borderColor='';
     g('dl-bon').value = nextBonNo(); g('dl-bon').readOnly = true;
     window.__editBon = null;
-    delete g('dl-price').dataset.touched; delete g('dl-tip').dataset.touched; delete g('dl-price').dataset.auto;
+    delete g('dl-price').dataset.touched; delete g('dl-tip').dataset.touched; delete g('dl-price').dataset.auto; dlPayToggle();
     scheduleSave();
     renderAll();
 }
@@ -9747,6 +9749,9 @@ function dlAutoPrice(){ return; /* محمد 2026-11-14 12:42: «حتة تثبت 
     if(pr){ el.value=pr; el.dataset.auto=1; } else if(el.dataset.auto){ el.value=''; delete el.dataset.auto; }
 }catch(e){} try{ dlPriceHint(); }catch(e){} }
 /* محمد 2026-11-14: «جنب تسجيل البونات سعر العميل ويسمّع في بوناته، على الشغل الجديد بس» — زرار تحت خانة السعر بيثبّت السعر المكتوب للعميل والصنف المختار (clients[].prices)، فالبونات الجاية تتملى بيه؛ البونات المسجلة ما بتتلمسش */
+/* محمد 2026-11-16: خانة سعر المتر في فورم البون بتظهر للنقدي بس */
+function dlPayToggle(){ try{ const b=document.getElementById('dl-price-box'), p=document.getElementById('dl-pay'); if(b&&p) b.style.display=p.value==='cash'?'':'none'; }catch(e){} }
+document.addEventListener('DOMContentLoaded', ()=>{ try{ dlPayToggle(); }catch(e){} });
 function dlPriceHint(){ try{ const h=document.getElementById('dl-price-hint'); if(!h) return; const P=clientCodedPrices((document.getElementById('dl-client')||{}).value)||{}; const ks=[...(window.__dlSel||[])].filter(k=>Number(P[k])>0);
     h.textContent = ks.length ? 'سعر العميل المتثبت: '+ks.map(k=>((DL_SIZES.find(z=>z.key===k)||{}).label||k)+' '+nfmt(P[k])).join(' ، ') : ''; }catch(e){} }
 function dlSaveClientPrice(){
@@ -11320,7 +11325,7 @@ function startEdit(kind, id){
         try{ renderShares(Array.isArray(r.shares) ? r.shares : sharedContractors().map(c=>c.name)); }catch(e){}
         setVal('dl-date', r.date); setVal('dl-bon', r.bon); setVal('dl-client', r.client); setVal('dl-tractor', r.tractor); setVal('dl-trailer', r.trailer); setVal('dl-worker', r.worker==='شغل الكسارة' ? 'الكسارة' : (r.worker||''));
         DL_SIZES.forEach(s=>setVal('dl-q-'+s.key, (r.q||{})[s.key]||''));
-        setVal('dl-tip', r.tip||''); setVal('dl-price', r.price||''); try{ document.getElementById('dl-price').dataset.touched=1; }catch(e){} setVal('dl-notes', r.notes||''); setVal('dl-pay', r.paidCash?'cash':'credit');
+        setVal('dl-tip', r.tip||''); setVal('dl-price', r.price||''); try{ document.getElementById('dl-price').dataset.touched=1; }catch(e){} setVal('dl-notes', r.notes||''); setVal('dl-pay', r.paidCash?'cash':'credit'); try{ dlPayToggle(); }catch(e){}
         const v = (db.vehicles||[]).find(x=>normPlate(x.plate)===normPlate(r.tractor)); setVal('dl-cube', v&&v.cube||'');
         const pctSel = document.getElementById('dl-tabaqa-pct');
         if(pctSel){ const pv = String(r.tabaqaPct||''); if([...pctSel.options].some(o=>o.value===pv)) pctSel.value = pv; else { pctSel.value='custom'; setVal('dl-tabaqa-pct-custom', r.tabaqaPct); } pctSel.dispatchEvent(new Event('change')); }
