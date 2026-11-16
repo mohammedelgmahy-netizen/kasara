@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1080</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1081</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1921,7 +1921,6 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
                         <button type="button" onclick="acctWeek(-1)" class="bg-slate-50 border border-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-bold">الأسبوع اللي قبله</button>
                         <select id="acct-name" onchange="renderAccountStatement()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs min-w-[11rem]"></select>
                         <button type="button" onclick="csMarkStmt();shareCard('acct-card','كشف حساب '+((v=>v===ALL_BONS?'كل البونات':v)(document.getElementById('acct-name').value||'')))" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i><span>واتساب</span></button>
-                        <label class="text-xs font-bold text-slate-700 flex items-center gap-1 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5" title="الكشف للعميل من غير سطر السعر وإجمالي المبلغ (واتساب وطباعة)"><input id="acct-noprice" type="checkbox" onchange="renderAccountStatement()"> من غير سعر</label>
                         <button onclick="csMarkStmt();printSection('acct-card')" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة الكشف</span></button>
                         <button onclick="exportAccountStatementExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
                     </div>
