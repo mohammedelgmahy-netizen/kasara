@@ -418,6 +418,8 @@ div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
 /* أزرار التعديل والحذف تفضل ظاهرة في الجداول اللي بتتمرر (لازقة في الجنب الشمال) — محمد 2026-11-16 */
 main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="delete"], > button[onclick*="Delete"]){position:sticky;left:0;z-index:1;background:var(--card,#fff);box-shadow:4px 0 6px -4px rgba(0,0,0,.25)}
 </style>
+<style>/* محمد 2026-11-16: طباعة كشف الحساب من غير الشريط اللي فوق، وكلمة «كشف الحساب» في النص */
+@media print{ #acct-card > div:first-child{justify-content:center!important} #acct-card > div:first-child > h3{width:100%;text-align:center!important;justify-content:center!important} #cs-unpriced-bar{display:none!important} }</style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col">
 <!-- ACTIVATION GATE -->
@@ -567,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1073</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1074</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1904,7 +1906,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
             </div>
             </div><!-- /sub-ledger-cx -->
             <div id="sub-ledger-form" class="subpage active">
-            <div id="acct-card" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div id="acct-card" data-no-brand="1" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                 <div class="flex flex-wrap justify-between items-center gap-3 mb-4 border-b border-slate-100 pb-3">
                     <h3 class="font-bold text-lg text-slate-900"><i class="fa-solid fa-file-invoice text-indigo-500"></i> كشف الحساب</h3>
                     <div class="pl-no-print-hide flex flex-wrap gap-2 items-center">
