@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1092</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1093</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -7019,13 +7019,26 @@ function updateStockUnit(){
     document.getElementById('stock-unit').value = item ? item.unit : '';
     // سعر البيع للمعدة = آخر سعر شراء من البنزينة (تقدر تغيّره)
     const pe=document.getElementById('stock-price');
-    if(pe && !pe.dataset.touched){ const P=(db.procurements||[]).filter(p=>p.item===name && Number(p.price)>0).sort((a,b)=>(a.date||'').localeCompare(b.date||'')); const L=(db.stockIssues||[]).filter(i=>i.item===name&&Number(i.price)>0).sort((a,b)=>(a.date||'').localeCompare(b.date||'')); pe.value = P.length ? P[P.length-1].price : (L.length?L[L.length-1].price:''); if(!pe.oninput) pe.oninput=()=>pe.dataset.touched='1'; }
+    if(pe && !pe.dataset.touched){ const P=(db.procurements||[]).filter(p=>p.item===name && Number(p.price)>0).sort((a,b)=>(a.date||'').localeCompare(b.date||'')); const L=(db.stockIssues||[]).filter(i=>i.item===name&&Number(i.price)>0).sort((a,b)=>(a.date||'').localeCompare(b.date||'')); { const fp=fifoIssuePrice(name, window.__stockEditId); pe.value = fp ? Math.round(fp*100)/100 : (P.length ? P[P.length-1].price : (L.length?L[L.length-1].price:'')); } if(!pe.oninput) pe.oninput=()=>pe.dataset.touched='1'; }
 }
 
+/* محمد 2026-11-17: الصرف بيطلع بسعر فاتورة الشراء نفسها (الأقدم الأول): بنمشي على الجرد ثم الفواتير بالترتيب ونطرح اللي اتصرف قبل كده، والسعر = سعر أول فاتورة لسه فيها رصيد */
+function fifoIssuePrice(item, skipId){
+    if(!item) return 0;
+    const C=(db.stockCounts||[]).filter(x=>x && x.item===item && x.date && !x.add).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||((a._at||0)-(b._at||0))).pop();
+    const base=C?C.date:'', after=x=>!base || (x.date||'')>base;
+    const lots=[]; if(C && Number(C.qty)>0) lots.push({q:Number(C.qty), p:(Number(C.value)||0)/Number(C.qty)});
+    (db.procurements||[]).filter(x=>x && x.item===item && Number(x.qty)>0 && after(x)).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||((a._at||0)-(b._at||0))).forEach(x=>lots.push({q:Number(x.qty), p:Number(x.price)||0}));
+    if(!lots.length) return 0;
+    let used=(db.stockIssues||[]).filter(x=>x && x.item===item && after(x) && String(x.id)!==String(skipId)).reduce((a,x)=>a+(Number(x.qty)||0),0);
+    try{ used+=(db.equipExpenses||[]).filter(x=>x && Number(x.qty)>0 && after(x) && String(x.id)!==String(skipId) && eqeItem(x.desc)===item).reduce((a,x)=>a+Number(x.qty),0); }catch(e){}
+    for(const L of lots){ if(used < L.q - 1e-9) return L.p; used-=L.q; }
+    return lots[lots.length-1].p;
+}
 /* مصروف معدة بيانه اسم صنف من المخزن (سولار/زيت/شحم) = خارج من المخزن بالكمية */
 function eqeItem(desc){ const d=String(desc||'').trim(); if(!d) return ''; const L=(db.supplies||[]).map(s=>s.name).filter(Boolean).sort((a,b)=>b.length-a.length); return L.find(n=>d===n||d.startsWith(n+' ')||d.startsWith(n)) || ''; }
 function eqeStockHint(){ const g=id=>document.getElementById(id); const h=g('eqe-stock'); if(!h) return; const it=eqeItem(g('eqe-desc').value); if(!it){ h.textContent=''; return; } const b=itemStockBalance(it).balance, u=((db.supplies||[]).find(s=>s.name===it)||{}).unit||''; h.textContent=`المخزن: ${nfmt(b)} ${u}`; h.className='text-[11px] font-bold '+(b>0?'text-emerald-700':'text-rose-600');
-    const pe=g('eqe-price'); if(pe && !pe.value){ const P=(db.procurements||[]).filter(p=>p.item===it&&Number(p.price)>0).sort((a,b)=>(a.date||'').localeCompare(b.date||'')); if(P.length){ pe.value=P[P.length-1].price; eqeCalc(); } } }
+    const pe=g('eqe-price'); if(pe && !pe.value){ const fp=fifoIssuePrice(it); const P=(db.procurements||[]).filter(p=>p.item===it&&Number(p.price)>0).sort((a,b)=>(a.date||'').localeCompare(b.date||'')); const v=fp?Math.round(fp*100)/100:(P.length?P[P.length-1].price:0); if(v){ pe.value=v; eqeCalc(); } } }
 function itemStockBalance(itemName){
     if(!db.productions) db.productions = [];
     const procIn = db.procurements.filter(p=>p.item===itemName).reduce((s,p)=>s+p.qty,0);
