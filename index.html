@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1094</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1095</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -4349,7 +4349,8 @@ function initDropdowns(){
     fillSelect('coll-project', db.projects, 'بدون مشروع محدد');
     fillSelect('search-client-accounts', db.clients, 'كل العملاء');
     if(document.getElementById('coll-date') && !document.getElementById('coll-date').value) document.getElementById('coll-date').value = todayISO();
-    fillSelect('stock-item', db.supplies);
+    /* محمد 2026-11-17: «ما يطلعش صنف مش موجود» — قايمة الصرف فيها الأصناف اللي ليها رصيد بس */
+    { const cur=document.getElementById('stock-item')?.value; fillSelect('stock-item', (db.supplies||[]).filter(x=>x.name===cur || stockAvail(x.name)>0)); }
     fillSelect('buy-item', db.supplies); (()=>{ const s = document.getElementById('buy-supplier'); if(s){ const pv = s.value; s.innerHTML = '<option value="">— اختار المورد —</option>' + (db.suppliers||[]).map(x=>`<option value="${esc(x.name)}">${esc(x.name)}</option>`).join(''); if([...s.options].some(o=>o.value===pv)) s.value = pv; } })();
     (()=>{ const s = document.getElementById('ss-supplier'); if(s){ const pv = s.value; s.innerHTML = ((db.suppliers||[]).length ? '<option value="__ALL__">📊 كل موردي قطع الغيار والسولار (الإجمالي)</option>' : '') + ((db.suppliers||[]).map(x=>`<option value="${esc(x.name)}">${esc(x.name)}</option>`).join('') || '<option value="">— ضيف مورد في دليل الأكواد —</option>'); if([...s.options].some(o=>o.value===pv)) s.value = pv; } })(); fillSelect('buy-account', db.accounts||[]);
     fillStockRecipientSelect('stock-name');
@@ -7023,6 +7024,11 @@ function updateStockUnit(){
 }
 
 /* محمد 2026-11-17: الصرف بيطلع بسعر فاتورة الشراء نفسها (الأقدم الأول): بنمشي على الجرد ثم الفواتير بالترتيب ونطرح اللي اتصرف قبل كده، والسعر = سعر أول فاتورة لسه فيها رصيد */
+/* محمد 2026-11-17: «ما يطلعش حاجة من المخزن طالما مفيش فيه شراء» — الرصيد المتاح للصرف (الجرد + المشتريات − اللي اتصرف) */
+function stockAvail(item){
+    try{ const c=(stockCountAt('')||{items:[]}).items.find(x=>x.item===item); if(c) return Number(c.qty)||0; }catch(e){}
+    try{ return Math.max(itemStockBalance(item).balance,0); }catch(e){ return 0; }
+}
 function fifoIssuePrice(item, skipId){
     if(!item) return 0;
     const C=(db.stockCounts||[]).filter(x=>x && x.item===item && x.date && !x.add).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||((a._at||0)-(b._at||0))).pop();
@@ -7068,6 +7074,7 @@ function __addStockIssueCore(e){
     const item = document.getElementById('stock-item').value;
     const qty = Number(document.getElementById('stock-qty').value)||0;
     if(!item||!qty){ return stockMsg(false,'ما اتسجلتش: اختار الصنف واكتب الكمية.'); }
+    { const av=stockAvail(item); if(qty>av+1e-9){ const u=((db.supplies||[]).find(x=>x.name===item)||{}).unit||''; alert(`مفيش رصيد ${item} في المخزن يكفي.\nالموجود: ${nfmt(av)} ${u} — وانت بتصرف ${nfmt(qty)}.\nسجّل فاتورة الشراء الأول.`); return stockMsg(false,`ما اتسجلتش: الموجود في المخزن ${nfmt(av)} ${u} بس — سجّل فاتورة الشراء الأول.`); } }
     let recipientRaw = document.getElementById('stock-name').value || '';
     if(!recipientRaw){ document.getElementById('stock-name').focus(); return stockMsg(false,'ما اتسجلتش: اختار المستلم (صاحب المعدة أو معدة الكسارة).'); }
     let crEquip = ''; if(recipientRaw.startsWith('x::')){ crEquip = recipientRaw.slice(3); recipientRaw = ''; }
@@ -7419,6 +7426,7 @@ function saveEquipExpense(){
     if(!db.equipExpenses) db.equipExpenses=[];
     const q=Number(g('eqe-qty').value)||0, pz=Number(g('eqe-price').value)||0;
     const EID=window.__eqeEdit; window.__eqeEdit=null;
+    { const it=q>0?eqeItem(desc):''; if(it){ const old=EID?(db.equipExpenses||[]).find(x=>String(x.id)===String(EID)):null; const av=stockAvail(it)+((old && eqeItem(old.desc)===it)?(Number(old.qty)||0):0); if(q>av+1e-9){ window.__eqeEdit=EID; alert(`مفيش رصيد ${it} في المخزن يكفي.\nالموجود: ${nfmt(av)} — وانت بتصرف ${nfmt(q)}.\nسجّل فاتورة الشراء الأول.`); return; } } }
     { const S=window.__eqeSplit; const L=(!EID && S && S.owner===owner)?S.list.filter(Boolean):[]; if(L.length>1){ const n=L.length, grp='sp'+newId(), date=g('eqe-date').value||todayISO(); let left=Math.round(amt*100); const each=Math.floor(left/n);
         L.forEach((e,i)=>{ const a=(i===n-1?left:each)/100; left-=Math.round(a*100); const r={id:String(newId()), date, owner, equip:e, desc:desc||'مصروف', amount:a, split:grp, splitN:n}; if(q>0){ r.qty=Math.round(q/n*100)/100; if(pz>0) r.price=pz; } db.equipExpenses.push(r); });
         logAudit('create','مصروف معدة',`${owner} — ${desc} ${amt} ÷ ${n}`,null,{owner,L,amt});
@@ -11426,6 +11434,7 @@ function startEdit(kind, id){
     } else if(kind==='stock'){
         const x = (db.stockIssues||[]).find(s=>s.id===id); if(!x) return;
         silentDelete(()=>deleteStockIssue(id)); tab='inventory'; formAnchor='stock-qty';
+        { const si=document.getElementById('stock-item'); if(si && ![...si.options].some(o=>o.value===x.item)){ const o=document.createElement('option'); o.value=x.item; o.textContent=x.item; si.appendChild(o); } }
         setVal('stock-item', x.item); try{ updateStockUnit(); }catch(e){}
         setVal('stock-qty', x.qty); setVal('stock-price', x.price); setVal('stock-unit', x.unit); setVal('stock-date', x.date); setVal('stock-notes', x.notes||'');
         const code = x.recipientType==='asset'?'a':x.recipientType==='vehicle'?'v':x.recipientType==='contractor'?'c':'';
