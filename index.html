@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1095</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1096</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3480,6 +3480,8 @@ const fmt = n => __sepFix(__NFm.format(Math.round(Number(n)||0))) + ' ج.م';  /
 const esc = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const todayISO = () => new Date().toISOString().slice(0,10);
 
+/* محمد 2026-11-17: تحت كل حركة يتكتب من أنهي خزنة «الدرج» أو «البنك» */
+function accShort(n){ n=n||((db.accounts&&db.accounts[0]&&db.accounts[0].name)||''); return /درج/.test(n) ? 'الدرج' : (catLabel(n)==='البنك' ? 'البنك' : n); }
 function catLabel(n){ return n==='مقاولين' ? 'أصحاب المعدات' : n==='معلق عماد ناجي' ? 'البنك' : n; } // اسم العرض بس، البيانات زي ما هي
 /* محمد 2026-11-13: عملاء «اتشالوا من البرنامج» — إخفاء من القوايم بس، حركاتهم وأرصدتهم محسوبة زي ما هي */
 const HIDE_CLIENTS = new Set(['حاتم ماهر','عماد ناجى']); /* م\\اسامه شلبى رجع ظاهر 2026-11-14: محمد «عليه 55,200» */
@@ -5045,7 +5047,7 @@ function renderExpensesTable(){
             <td class="p-3">${esc(catLabel(x.category))}</td>
             <td class="p-3">${esc(x.name)}</td>
             <td class="p-3 font-bold">${x.executedValue ? fmt(x.executedValue) : fmt(x.paid)}</td>
-            <td class="p-3">${fmt(x.paid)}</td>
+            <td class="p-3">${fmt(x.paid)}${Number(x.paid)>0?`<div class="text-xs font-bold text-slate-500">${esc(accShort(x.account))}</div>`:''}</td>
             <td class="p-3 ${x.remaining>0?'text-rose-600 font-bold':'text-slate-400'}">${x.remaining>0?fmt(x.remaining):'-'}</td>
             <td class="p-3 text-slate-500">${x.date}</td>
             <td class="p-3 whitespace-nowrap"><button onclick="startEdit('exp', ${x.id})" class="text-blue-500 hover:text-blue-700 text-xs ml-2" title="تعديل">✏️</button><button onclick="deleteExpense(${x.id})" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button></td>
@@ -10391,10 +10393,11 @@ function renderDayPage(){
     const exp = [null, ...rows.filter(r=>isF(r)&&r.outflow>0), ...rows.filter(r=>!isF(r)&&r.outflow>0)];
     const revT = rev.reduce((s,r)=>s+(r?r.inflow:0),0), expT = exp.reduce((s,r)=>s+(r?r.outflow:0),0);
     const n = Math.max(rev.length, exp.length);
+    const dpAcc = r => (r && !r.open && !r.fuel && !isF(r) && r.account) ? `<div style="font-size:13px;font-weight:800;color:#444">${esc(accShort(r.account))}</div>` : '';
     let body = '';
     for(let i=0;i<n;i++){
         const r = rev[i], x = exp[i];
-        body += `<tr><td class="amt"${r&&r.open?' style="font-weight:800"':''}>${r?nfmt(r.inflow):''}</td><td${r&&r.open?' style="font-weight:800"':''}>${r?esc(r.desc):''}</td><td class="amt">${x?nfmt(x.outflow):''}</td><td>${x?esc(x.desc):''}</td></tr>`;
+        body += `<tr><td class="amt"${r&&r.open?' style="font-weight:800"':''}>${r?nfmt(r.inflow):''}</td><td${r&&r.open?' style="font-weight:800"':''}>${r?esc(r.desc)+dpAcc(r):''}</td><td class="amt">${x?nfmt(x.outflow):''}</td><td>${x?esc(x.desc)+dpAcc(x):''}</td></tr>`;
     }
     const sari = buildCashStatement('', d, SARI_ACC).closing, drawer = buildCashStatement('', d, DRAWER_ACC).closing;
     box.innerHTML = `<div class="dp-sheet">
