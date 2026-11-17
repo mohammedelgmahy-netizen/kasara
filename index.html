@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1097</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1098</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -11497,8 +11497,20 @@ function deleteInEdit(){
     scheduleSave(); try{ initDropdowns(); }catch(e){} renderAll();
     alert('✅ اتحذفت');
 }
+/* محمد 2026-11-17: «حتى بعد ما أعدله يرجع في مكانه» — الحركة المعدّلة بتاخد وقت تسجيلها الأصلي ومكانها في القايمة */
+function keepEditPlace(snapStr){
+    try{ const old=JSON.parse(snapStr); Object.keys(old).forEach(k=>{ if(k==='auditLog'||k==='__del'||!Array.isArray(old[k])||!Array.isArray(db[k])) return;
+        const oid=new Set(old[k].map(x=>x&&x.id!=null?String(x.id):null)), nid=new Set(db[k].map(x=>x&&x.id!=null?String(x.id):null));
+        const gone=old[k].map((x,i)=>[x,i]).filter(([x])=>x&&x.id!=null&&!nid.has(String(x.id))), added=db[k].filter(x=>x&&x.id!=null&&!oid.has(String(x.id)));
+        if(gone.length!==1 || added.length<1) return;
+        const [o,pos]=gone[0];
+        added.forEach(a=>{ if(o._at) a._at=o._at; if(o._by) a._by=o._by; });
+        const rest=db[k].filter(x=>!added.includes(x)); rest.splice(Math.min(pos,rest.length),0,...added); db[k]=rest;
+    }); }catch(e){}
+}
 function finishEdit(){
     if(!__editSnap) return;
+    keepEditPlace(__editSnap); try{ scheduleSave(); }catch(e){}
     tombstoneVsSnap(__editSnap);
     __editSnap = null; try{ localStorage.removeItem('kasara-edit-pending::'+STORAGE_KEY); }catch(e){}
     document.getElementById('edit-banner').style.display = 'none';
