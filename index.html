@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1112</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1113</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5910,7 +5910,7 @@ function cxcSave(){
 function cxcPrint(){ const g=id=>document.getElementById(id); if(!g('cxc-name').value){ alert('اختار العميل الأول'); return; } printHtml(cxcSheetHtml(g('cxc-name').value, g('cxc-from').value, g('cxc-to').value, false)); }
 function cxcShare(){ const g=id=>document.getElementById(id), name=g('cxc-name').value; if(!name){ alert('اختار العميل الأول'); return; } const b=g('cxc-body'); b.innerHTML=cxcSheetHtml(name, g('cxc-from').value, g('cxc-to').value, false); const pr=elementToFile(b,'مستخلص '+name); shareImagesModal('مستخلص '+name, pr); Promise.resolve(pr).catch(()=>{}).then(()=>cxcRender()); }
 /* محمد 2026-11-14: «الكشف يطلع لي بعدد العربيات والأمتار وأنا أحط السعر اللي على مزاجي» — خانة سعر لكل صنف في كشف الحساب، والحفظ بيطبق السعر على بونات العميل في الفترة للصنف ده (زي csEditPrice) */
-function csSavePrices(){
+function csSavePrices(quiet){
     if(isRO()) return; const g=id=>document.getElementById(id); if(g('acct-type').value!=='client') return;
     const name=g('acct-name').value, from=g('acct-from').value, to=g('acct-to').value; if(!name) return;
     const plan=[]; let skip=0;
@@ -5919,7 +5919,7 @@ function csSavePrices(){
         const clr=!(pr>0) && String(inp.value).trim()==='' && Number(inp.dataset.orig)>0; if(!(pr>0) && !clr) return;
         const all=clientBons(name, from, to).filter(r=>(Number((r.q||{})[key])||0)>0); skip+=all.filter(r=>r.saleGroupId).length;
         const list=all.filter(r=>!r.saleGroupId && (clr ? (Number(r.price)||0)>0 : (Number(r.price)||0)!==pr)); if(list.length) plan.push({key, sz:DL_SIZES.find(x=>x.key===key)||{label:key}, pr, list}); });
-    if(!plan.length){ alert('مفيش سعر جديد يتحفظ'); return; }
+    if(!plan.length){ if(!quiet) alert('مفيش سعر جديد يتحفظ'); return; }
     const before=plan.reduce((a,p)=>a+p.list.reduce((b,r)=>b+(Number(bonValue(r))||0),0),0);
     if(!confirm(`هيتسجل السعر على بونات «${name}»${from||to?' من '+(from?dmy(from):'الأول')+' لـ '+(to?dmy(to):'النهارده'):''}:\n`+plan.map(p=>p.pr>0?`• ${p.sz.label}: ${p.list.length} بون × ${nfmt(p.pr)}`:`• ${p.sz.label}: ${p.list.length} بون — السعر هيتمسح ويخرج من الحساب`).join('\n')+(skip?`\n(${skip} بون مربوط بفاتورة مش هيتغير)`:'')+'\n\nتمام؟')) return;
     let n=0; plan.forEach(p=>p.list.forEach(r=>{ if(p.pr>0) r.price=p.pr; else delete r.price; delete r.total; n++; }));
@@ -5989,6 +5989,8 @@ function saveClientStmt(){
     const g=id=>document.getElementById(id); if(g('acct-type').value!=='client') return;
     const name=g('acct-name').value, from=g('acct-from').value; let to=g('acct-to').value;
     if(!name){ alert('اختار العميل'); return; } if(!from){ alert('اكتب «من»'); return; } if(!to){ to=todayISO(); } if(!confirm(`حفظ كشف «${name}» من ${dmy(from)} إلى ${dmy(to)}؟\nالكشف الجاي هيبدأ من اليوم اللي بعده والمتبقي يترحل رصيد سابق.`)) return;
+    /* محمد 2026-11-18: «الأسعار بحطها وأنا بحفظ كشف الحساب» — الأسعار المكتوبة في الكشف بتتحفظ مع نفس الضغطة */
+    try{ csSavePrices(true); }catch(e){}
     if(!db.clientStmts) db.clientStmts=[];
     const dup=db.clientStmts.find(x=>x.name===name && x.from<=to && x.to>=from);
     if(dup){ alert(`الكشف ده متحفظ قبل كده: ${name} من ${dmy(dup.from)} إلى ${dmy(dup.to)}.\nمش هيتحفظ تاني.`); try{ openClientStmtView(dup.id); }catch(e){} return; }
