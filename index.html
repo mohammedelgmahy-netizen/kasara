@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1114</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1115</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5757,7 +5757,10 @@ function clientSheetData(name){
     const allRows=getClientAccountRowsAll(name);
     const start = from || (bons[0]&&bons[0].date) || '';
     const before = start ? allRows.filter(r=>(r.date||'')<start) : allRows.filter(r=>r.openAdj); /* تعديل الرصيد الأولاني دايماً في «المتبقي» من قبل، عمره ما يظهر سطر */
-    const prev = before.reduce((a,r)=>a+(r.debit||0)-(r.credit||0),0);
+    let prev = before.reduce((a,r)=>a+(r.debit||0)-(r.credit||0),0);
+    /* محمد 2026-11-18: «زي المستخلص» — آخر كشف محفوظ قبل الفترة مقفول: رصيده المتبقي هو الرصيد السابق، والقديم ما يتحسبش تاني */
+    const cl = start ? csClosedBefore(name, start) : null;
+    if(cl) prev = (Number(cl.bal)||0) + allRows.filter(r=>!r.openAdj && (r.date||'')>cl.to && (r.date||'')<start).reduce((a,r)=>a+(r.debit||0)-(r.credit||0),0);
     const inRange = d => (!start || (d||'')>=start);
     const bonsTotal = bons.reduce((a,r)=>a+(Number(bonValue(r))||0),0); // نفس قيمة البون في الرصيد (عشان التقريب)
     // مديونيات تانية في الفترة (فواتير مش مربوطة ببون)
@@ -5767,6 +5770,9 @@ function clientSheetData(name){
     const used = sizes.filter(sz=>tot[sz.key] || DL_BASE_SIZES.some(b=>b.key===sz.key) || DL_BUILTIN_EXTRA.some(b=>b.key===sz.key));
     return {from:pFrom, to:pTo, cars:Object.values(cars), sizes:used, tot, totCnt, amt, priceOf, n:bons.length, prev, bonsTotal, otherDebit, credits};
 }
+function csClosedBefore(name, start){ return (db.clientStmts||[]).filter(x=>normName(x.name)===normName(name) && x.to && x.to<start).sort((a,b)=>b.to.localeCompare(a.to))[0]||null; }
+function csLogo(){ return document.querySelector('link[rel=icon]')?.getAttribute('href')||''; }
+function csClosedTo(name){ const x=(db.clientStmts||[]).filter(x=>normName(x.name)===normName(name) && x.to).sort((a,b)=>b.to.localeCompare(a.to))[0]; return x?x.to:''; }
 function getClientAccountRowsAll(name){
     const f=document.getElementById('acct-from'), t=document.getElementById('acct-to');
     const fv=f?f.value:'', tv=t?t.value:''; if(f) f.value=''; if(t) t.value='';
@@ -5913,11 +5919,11 @@ function cxcShare(){ const g=id=>document.getElementById(id), name=g('cxc-name')
 function csSavePrices(quiet){
     if(isRO()) return; const g=id=>document.getElementById(id); if(g('acct-type').value!=='client') return;
     const name=g('acct-name').value, from=g('acct-from').value, to=g('acct-to').value; if(!name) return;
-    const plan=[]; let skip=0;
+    const plan=[]; let skip=0; const cto=csClosedTo(name); /* بونات كشف محفوظ مقفولة: السعر الجديد ما يلمسهاش */
     document.querySelectorAll('#acct-sheet input[data-csp]').forEach(inp=>{ const key=inp.dataset.csp, pr=Number(String(inp.value).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(',','.'))||0;
         /* محمد 2026-11-16: لو مسح السعر من خانة صنف كان ليه سعر → سعر الصنف ده يتمسح من بوناته في الفترة ويخرج من التجميع */
         const clr=!(pr>0) && String(inp.value).trim()==='' && Number(inp.dataset.orig)>0; if(!(pr>0) && !clr) return;
-        const all=clientBons(name, from, to).filter(r=>(Number((r.q||{})[key])||0)>0); skip+=all.filter(r=>r.saleGroupId).length;
+        const all=clientBons(name, from, to).filter(r=>(Number((r.q||{})[key])||0)>0 && !(cto && r.date<=cto)); skip+=all.filter(r=>r.saleGroupId).length;
         const list=all.filter(r=>!r.saleGroupId && (clr ? (Number(r.price)||0)>0 : (Number(r.price)||0)!==pr)); if(list.length) plan.push({key, sz:DL_SIZES.find(x=>x.key===key)||{label:key}, pr, list}); });
     if(!plan.length){ if(!quiet) alert('مفيش سعر جديد يتحفظ'); return; }
     const before=plan.reduce((a,p)=>a+p.list.reduce((b,r)=>b+(Number(bonValue(r))||0),0),0);
@@ -5933,9 +5939,10 @@ function csEditPrice(key){
     const g=id=>document.getElementById(id); if(g('acct-type').value!=='client') return;
     const name=g('acct-name').value, from=g('acct-from').value, to=g('acct-to').value; if(!name) return;
     const sz=DL_SIZES.find(x=>x.key===key)||{label:key};
-    const all=clientBons(name, from, to).filter(r=>(Number((r.q||{})[key])||0)>0);
+    const cto=csClosedTo(name);
+    const all=clientBons(name, from, to).filter(r=>(Number((r.q||{})[key])||0)>0 && !(cto && r.date<=cto));
     const list=all.filter(r=>!r.saleGroupId), skip=all.length-list.length;
-    if(!list.length){ alert(skip?'البونات دي مربوطة بفواتير، سعرها بيتعدل من الفاتورة.':'مفيش بونات للمقاس ده في الفترة.'); return; }
+    if(!list.length){ alert(cto && from && from<=cto ? `الفترة دي فيها كشف محفوظ لحد ${dmy(cto)} — مقفول ومش بيتعدل.` : skip?'البونات دي مربوطة بفواتير، سعرها بيتعدل من الفاتورة.':'مفيش بونات للمقاس ده في الفترة.'); return; }
     const cur=[...new Set(list.map(r=>Number(r.price)||0))];
     const raw=prompt(`سعر المتر الجديد لـ «${sz.label}» — ${name}\n(${list.length} بون${from||to?' من '+(from?dmy(from):'الأول')+' لـ '+(to?dmy(to):'الآخر'):''})\nالسعر الحالي: ${cur.map(v=>nfmt(v)).join(' ، ')}`, cur.length===1&&cur[0]?cur[0]:'');
     if(raw==null) return;
@@ -5976,10 +5983,10 @@ function csCarBonsSave(){
     if(!ch.length){ box.remove(); return; }
     if(ch.some(c=>!(c.v>0))){ alert('الكمية لازم تكون أكبر من صفر. لو البون ملغي الغيه من سجل البونات.'); return; }
     const done=[];
-    ch.forEach(c=>{ const r=(db.dailyLog||[]).find(x=>String(x.id)===c.id); if(!r || r.saleGroupId) return; r.q=r.q||{}; r.q[c.k]=c.v; delete r.total; done.push(`بون ${r.bon}: ${c.old} ← ${c.v}`); });
+    let lk=0; ch.forEach(c=>{ const r=(db.dailyLog||[]).find(x=>String(x.id)===c.id); if(!r || r.saleGroupId) return; const cto=csClosedTo(r.client); if(cto && r.date<=cto){ lk++; return; } r.q=r.q||{}; r.q[c.k]=c.v; delete r.total; done.push(`بون ${r.bon}: ${c.old} ← ${c.v}`); });
     if(done.length){ logAudit('update','تعديل كمية من كشف الحساب', done.join(' ، '), null, ch); scheduleSave(); renderAll(); }
     box.remove(); try{ renderAccountStatement(); }catch(e){}
-    if(done.length<ch.length) alert('فيه بونات مربوطة بفاتورة ما اتغيرتش؛ عدلها من الفاتورة.');
+    if(lk) alert(lk+' بون في كشف محفوظ (مقفول) ما اتغيرش.'); else if(done.length<ch.length) alert('فيه بونات مربوطة بفاتورة ما اتغيرتش؛ عدلها من الفاتورة.');
 }
 /* ---------- كشوفات العملاء المحفوظة: زي المستخلص، بالأسبوع، تتحفظ وتفتح تاني (محمد 2026-11-07) ---------- */
 function withAcctRange(from, to, fn){ const f=document.getElementById('acct-from'), t=document.getElementById('acct-to'); const fv=f?f.value:'', tv=t?t.value:''; if(f) f.value=from||''; if(t) t.value=to||''; try{ return fn(); } finally{ if(f) f.value=fv; if(t) t.value=tv; } }
@@ -5995,7 +6002,8 @@ function saveClientStmt(){
     const dup=db.clientStmts.find(x=>x.name===name && x.from<=to && x.to>=from);
     if(dup){ alert(`الكشف ده متحفظ قبل كده: ${name} من ${dmy(dup.from)} إلى ${dmy(dup.to)}.\nمش هيتحفظ تاني.`); try{ openClientStmtView(dup.id); }catch(e){} return; }
     const S=clientStmtSnap(name, from, to);
-    const rec={id:String(newId()), name, from, to, date:todayISO(), n:S.n, sin:Math.round(S.sin*100)/100, qty:Math.round(S.qty*100)/100, req:Math.round(S.req), col:Math.round(S.col), bal:Math.round(S.bal)};
+    let html=''; try{ html=withAcctRange(from, to, ()=>clientSheetHtml(name)); const L=csLogo(); if(L) html=html.split(L).join('@@LOGO@@'); html=html.replace(/>\s+</g,'><'); }catch(e){}
+    const rec={id:String(newId()), name, from, to, date:todayISO(), html, n:S.n, sin:Math.round(S.sin*100)/100, qty:Math.round(S.qty*100)/100, req:Math.round(S.req), col:Math.round(S.col), bal:Math.round(S.bal)};
     db.clientStmts.push(rec); logAudit('create','كشف حساب عميل',`${name} ${dmy(from)}→${dmy(to)}`,null,rec);
     window.__csLastName=null; scheduleSave(); renderClientStmts(); try{ openClientStmtView(rec.id); }catch(e){}
 }
@@ -6012,15 +6020,16 @@ function renderClientStmts(){
     if(fs){ const N=[...new Set(A.map(x=>x.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar')); fs.innerHTML='<option value="">كل العملاء</option>'+N.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join(''); fs.value=N.includes(fv)?fv:''; }
     const qv=String(document.getElementById('cst-search')?.value||'').trim().replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
     const qm=x=>!qv || [x.name, dmy(x.date), dmy(x.from), dmy(x.to)].join(' ').includes(qv) || [dmy(x.date),dmy(x.from),dmy(x.to)].some(d=>String(d||'').replace(/\b0(\d)/g,'$1').includes(qv.replace(/\b0(\d)/g,'$1')));
-    const XA=A.filter(x=>(!fs||!fs.value||x.name===fs.value) && qm(x)).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.to||'').localeCompare(a.to||''));
+    const XA=A.filter(x=>(!fs||!fs.value||x.name===fs.value) && qm(x)).slice().sort((a,b)=>(b.to||'').localeCompare(a.to||'')||(b.date||'').localeCompare(a.date||''));
     const LIM=10, cut=!qv && !(fs&&fs.value) && XA.length>LIM, X=cut?XA.slice(0,LIM):XA;
-    tb.innerHTML=(X.length ? X.map(x=>`<tr class="border-b border-slate-50 cursor-pointer hover:bg-cyan-50" onclick="openClientStmtView('${x.id}')"><td class="p-2 text-xs">${dmy(x.date)}</td><td class="p-2 font-bold">${esc(x.name)}</td><td class="p-2 text-xs">${dmy(x.from)} → ${dmy(x.to)}</td><td class="p-2">${nfmt(x.n)}</td><td class="p-2">${nfmt(x.sin)}</td><td class="p-2">${mfmt(x.req)}</td><td class="p-2 text-emerald-700">${mfmt(x.col)}</td><td class="p-2 font-extrabold ${x.bal>0?'text-rose-700':'text-emerald-700'}">${mfmt(Math.abs(x.bal))} <span class="text-xs">${x.bal>0?'عليه':x.bal<0?'ليه':''}</span></td><td class="p-2"><button onclick="event.stopPropagation();deleteClientStmt('${x.id}')" class="text-rose-600 text-xs">🗑</button></td></tr>`).join('')
+    let wk=''; const wkRow=x=>{ const w=weekStart(x.to||x.date); if(w===wk) return ''; wk=w; const e=new Date(w+'T12:00:00'); e.setDate(e.getDate()+6); return `<tr class="bg-cyan-100"><td colspan="9" class="p-2 font-extrabold text-slate-800 text-xs">📅 أسبوع ${dmy(w)} → ${dmy(e.toISOString().slice(0,10))}</td></tr>`; };
+    tb.innerHTML=(X.length ? X.map(x=>wkRow(x)+`<tr class="border-b border-slate-50 cursor-pointer hover:bg-cyan-50" onclick="openClientStmtView('${x.id}')"><td class="p-2 text-xs">${dmy(x.date)}</td><td class="p-2 font-bold">${esc(x.name)}</td><td class="p-2 text-xs">${dmy(x.from)} → ${dmy(x.to)}</td><td class="p-2">${nfmt(x.n)}</td><td class="p-2">${nfmt(x.sin)}</td><td class="p-2">${mfmt(x.req)}</td><td class="p-2 text-emerald-700">${mfmt(x.col)}</td><td class="p-2 font-extrabold ${x.bal>0?'text-rose-700':'text-emerald-700'}">${mfmt(Math.abs(x.bal))} <span class="text-xs">${x.bal>0?'عليه':x.bal<0?'ليه':''}</span></td><td class="p-2"><button onclick="event.stopPropagation();deleteClientStmt('${x.id}')" class="text-rose-600 text-xs">🗑</button></td></tr>`).join('')
         : `<tr><td colspan="9" class="p-3 text-center text-slate-400">${A.length?'مفيش كشوفات بالبحث ده':'لسه مفيش كشوفات محفوظة — اختار العميل والتواريخ فوق ودوس «💾 حفظ الكشف وترحيل المتبقي»'}</td></tr>`)
         + (cut?`<tr><td colspan="9" class="p-3 text-center text-slate-500 text-xs font-bold">ظاهر آخر ${LIM} كشوفات بس من ${XA.length} — اكتب اسم العميل أو التاريخ في البحث عشان تلاقي الأقدم</td></tr>`:'');
 }
 function openClientStmtView(id){
     const x=(db.clientStmts||[]).find(r=>String(r.id)===String(id)); if(!x) return;
-    const body=withAcctRange(x.from, x.to, ()=>clientSheetHtml(x.name));
+    const body=(x.html && x.html.split('@@LOGO@@').join(csLogo())) || withAcctRange(x.from, x.to, ()=>clientSheetHtml(x.name)); /* الكشف المحفوظ بيتعرض زي ما اتحفظ */
     document.getElementById('cstv-modal')?.remove();
     const m=document.createElement('div'); m.id='cstv-modal';
     m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:12px';
