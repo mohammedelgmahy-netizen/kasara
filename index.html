@@ -570,7 +570,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1136</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1137</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -10746,7 +10746,7 @@ function ctrLowSplit(name, from, to){ const R=ctrLowRule(name); if(!R) return nu
 function cxDefaults(){
     const name=document.getElementById('cx-name').value; if(!name) return;
     const last=(db.ctrExtracts||[]).filter(x=>x.name===name && x.to).map(x=>x.to).sort().pop();
-    const nf = last ? addDays(last,1) : ''; const wf = weekStart(nf && nf<=todayISO() ? nf : todayISO());
+    const nf = last ? addDays(last,1) : ''; const wf = weekStart(nf || todayISO()); /* محمد 2026-11-18: المستخلص الجديد بيبدأ بعد آخر مستخلص محفوظ حتى لو الأسبوع لسه ما بدأش، فـ«حساب سابق» = المتبقي في آخر مستخلص */
     let wf2 = wf;
     /* لو الأسبوع ده لسه مفيهوش بونات: افتح على آخر أسبوع فيه بونات ولسه متعملوش مستخلص، عشان الأمتار تتملى لوحدها (محمد 2026-11-13) */
     try{ const has=(f,t)=>contractorBons(name).some(r=>(r.date||'')>=f && (r.date||'')<=t);
@@ -10793,7 +10793,7 @@ function cxPreview(resetQty){
         R.forEach(r=>{ const e=r.eff||r.date||''; if(r.ord<0 || (f && e<f)) prev+=(r.credit||0)-(r.debit||0); else if((!t || e<=t) && (r.debit||0)>0){ if(r.item) sol.push(r); else paid.push(r); } });
         const DX=(db.ctrExtracts||[]).filter(x=>x.daily && x.name===name && (!f||(x.date||'')>=f) && (!t||(x.date||'')<=t)).sort((a,b)=>(a.date||'').localeCompare(b.date||'')), dxv=DX.reduce((a,x)=>a+(Number(x.amount)||0),0); /* الإضافي المتسجل من الكارت (محمد 2026-11-16) */
         const xt=cxExtras().reduce((a,x)=>a+(Number(x.q)||0)*(Number(x.rt)||0),0), dv=sol.reduce((a,r)=>a+r.debit,0), pv=paid.reduce((a,r)=>a+r.debit,0), work=ta+xt+dxv, fin=prev+work-dv-pv;
-        const bt=v=>mfmt(Math.abs(v))+(Math.round(v)<0?' عليه':Math.round(v)>0?' ليه':'');
+        const bt=v=>mfmt(Math.round(Math.abs(v)))+(Math.round(v)<0?' عليه':Math.round(v)>0?' ليه':'');
         const sub=(l,v,cls)=>`<tr class="${cls} font-extrabold"><td class="p-2" colspan="3">${l}</td><td class="p-2" style="${NW}">${v}</td></tr>`;
         let h='';
         h+=DX.map(x=>`<tr class="border-t border-amber-200" style="background:#fff7ed"><td class="p-2 font-bold">عمل إضافي — ${esc(x.equip||'')}</td><td class="p-2" style="${NW}">${nfmt(x.qty)}</td><td class="p-2">${nfmt(x.rate)}</td><td class="p-2 font-extrabold" style="${NW}">${mfmt(x.amount)}</td></tr>`).join('');
@@ -10806,7 +10806,7 @@ function cxPreview(resetQty){
         h+=sub('صافي الأسبوع (شغل − سولار − عهد)', (work-dv-pv<0?mfmt(-(work-dv-pv))+'-':mfmt(work-dv-pv)), 'bg-emerald-50 text-emerald-800');
         /* فترة قبل تاريخ الحساب القديم المتكود: شغلها داخل في الحساب القديم أصلاً، فمينفعش يتجمع عليه تاني (محمد فتح 22–28/10 لسيارات حسن وطلع 321,460 غلط، 2026-11-13) */
         if(cxInOld(name,t)) h+=`<tr><td colspan="4" class="p-2 font-extrabold" style="background:#fef2f2;color:#b91c1c;border:2px solid #dc2626">⚠ الفترة دي قبل تاريخ الحساب القديم المتكود (${dmy((ctrOf(name)||{}).openDate)}) وشغلها داخل فيه أصلاً. الحساب القديم (${bt(prev)}) هو الرصيد بعد الفترة دي مش قبلها، فمفيش «حساب سابق» ولا «متبقي» يتحسبوا هنا. ولو اتحفظت هتتحسب مرتين.</td></tr>`;
-        else { h+=sub('حساب سابق (من قبل الأسبوع)', bt(prev), 'bg-slate-50');
+        else { h+=sub('الرصيد السابق', bt(prev), 'bg-slate-50');
         h+=sub('المتبقي في الآخر', bt(fin), 'bg-yellow-100'); }
         dd.innerHTML=h; } }catch(e){ console.warn(e); }
 }
