@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1115</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1116</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5700,7 +5700,9 @@ function renderAccountStatement(){ try{ const ub=document.getElementById('cs-unp
         /* محمد 2026-11-13: «المسحوب» = اللي سحبه بعد آخر كشف اتبعت/اتطبع له. أول ما يختار العميل: من = اليوم اللي بعد آخر كشف، إلى = فاضي (لحد النهارده) */
         /* محمد 2026-11-18: «الغي الأسبوع والأسبوع السابق خالص، أنا منين ما أحب أطلع كشف أطلعه» — مفيش تاريخ بيتملى لوحده ولا آخر كشف بيتحفظ */
         /* محمد 2026-11-18: «عاوز حفظ كشف حساب والمتبقي يترحل للأسبوع اللي بعده» — بس من زرار «حفظ الكشف» اللي بيدوسه بإيده (db.clientStmts): أول ما يختار العميل «من» = اليوم اللي بعد آخر كشف محفوظ، فالمتبقي بيظهر «الرصيد السابق». يقدر يغير التاريخ عادي */
-        if(window.__csLastName!==name){ window.__csLastName=name; const ls=(db.clientStmts||[]).filter(x=>x.name===name && x.to).map(x=>x.to).sort().pop(); if(ls){ const fa=document.getElementById('acct-from'), ta=document.getElementById('acct-to'); const d=new Date(ls+'T12:00:00'); d.setDate(d.getDate()+1); if(fa) fa.value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); if(ta) ta.value=''; } }
+        /* محمد 2026-11-18: «القديم ماليش دعوة بيه» — الكشف الجاري دايماً بيبدأ بعد آخر كشف محفوظ (أو بعد 11/11 أرصدة البداية): القديم يتجمع في «المتبقي» بس */
+        { const fl=[CS_BASE_CLOSE, ...(db.clientStmts||[]).filter(x=>normName(x.name)===normName(name) && x.to).map(x=>x.to)].sort().pop(); const d=new Date(fl+'T12:00:00'); d.setDate(d.getDate()+1); const nx=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+          const fa=document.getElementById('acct-from'), ta=document.getElementById('acct-to'); if(window.__csLastName!==name){ window.__csLastName=name; if(ta) ta.value=''; if(fa) fa.value=nx; } if(fa && (!fa.value || fa.value<nx)) fa.value=nx; if(ta && ta.value && ta.value<nx) ta.value=''; }
         if(wrapEl) wrapEl.style.display='none';
         if(sheetEl){ sheetEl.style.display=''; window.__csEditing=!isRO(); try{ sheetEl.innerHTML=clientSheetHtml(name); } finally { window.__csEditing=false; } try{ let ub=document.getElementById('cs-unpriced-bar'); if(!ub){ ub=document.createElement('div'); ub.id='cs-unpriced-bar'; ub.className='no-print'; sheetEl.parentNode.insertBefore(ub, sheetEl); } ub.innerHTML=(isRO()?'':`<div style="direction:rtl;margin:0 0 10px"><button type="button" onclick="csSavePrices()" style="background:#16a34a;color:#fff;padding:8px 16px;border-radius:8px;font-weight:800;font-size:16px">💾 حفظ أسعار العميل</button></div>`); }catch(e){} }
         return;
@@ -5771,6 +5773,7 @@ function clientSheetData(name){
     return {from:pFrom, to:pTo, cars:Object.values(cars), sizes:used, tot, totCnt, amt, priceOf, n:bons.length, prev, bonsTotal, otherDebit, credits};
 }
 function csClosedBefore(name, start){ return (db.clientStmts||[]).filter(x=>normName(x.name)===normName(name) && x.to && x.to<start).sort((a,b)=>b.to.localeCompare(a.to))[0]||null; }
+const CS_BASE_CLOSE='2026-11-11'; /* أرصدة 11/11 اتظبطت على شيت محمد = أول كشف مقفول لكل العملاء */
 function csLogo(){ return document.querySelector('link[rel=icon]')?.getAttribute('href')||''; }
 function csClosedTo(name){ const x=(db.clientStmts||[]).filter(x=>normName(x.name)===normName(name) && x.to).sort((a,b)=>b.to.localeCompare(a.to))[0]; return x?x.to:''; }
 function getClientAccountRowsAll(name){
