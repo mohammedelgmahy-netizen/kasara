@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1108</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1109</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -2871,14 +2871,14 @@ function snapIds(){ const m={}; Object.keys(db||{}).forEach(k=>{ if(k!=='auditLo
 /* الحذف النهائي: أي حركة اتحذفت بتتسجل علامة عشان متترجعش من جهاز تاني أو من نسخة قديمة */
 function tombstone(k,id){ if(id==null) return; if(!db.__del||typeof db.__del!=='object'||Array.isArray(db.__del)) db.__del={}; if(!db.__del[k]) db.__del[k]={}; db.__del[k][String(id)]=Date.now(); }
 function applyTombstones(){ const T=db&&db.__del; if(!T||typeof T!=='object') return 0; let n=0; const lim=Date.now()-90*864e5;
-    Object.keys(T).forEach(k=>{ const M=T[k]||{}; Object.keys(M).forEach(id=>{ if(M[id]<lim) delete M[id]; }); if(Array.isArray(db[k])){ const b=db[k].length; db[k]=db[k].filter(x=>!(x&&typeof x==='object'&&x.id!=null&&M[String(x.id)])); n+=b-db[k].length; } });
+    Object.keys(T).forEach(k=>{ const M=T[k]||{}; Object.keys(M).forEach(id=>{ if(M[id]<lim) delete M[id]; }); if(Array.isArray(db[k])){ const b=db[k].length; db[k]=db[k].filter(x=>{ if(!(x&&typeof x==='object'&&x.id!=null)) return true; const t=M[String(x.id)]; if(!t) return true; if(Number(x._live)>t){ delete M[String(x.id)]; return true; } return false; }); n+=b-db[k].length; } }); /* _live: حركة اتعدلت ورجعت بنفس الـ id بعد ما اتحذفت وقت فتح التعديل — متتمسحش (2026-11-18) */
     return n; }
 function tombstoneVsSnap(snapStr){ try{ const old=JSON.parse(snapStr); Object.keys(old).forEach(k=>{ if(k==='auditLog'||!Array.isArray(old[k])||!Array.isArray(db[k])) return; const have=new Set(db[k].map(x=>x&&x.id!=null?String(x.id):null)); old[k].forEach(x=>{ if(x&&x.id!=null&&!have.has(String(x.id))) tombstone(k,x.id); }); }); }catch(e){} }
 function stampNew(){
     if(!__stampBase) { __stampBase = snapIds(); return; }
     try{ const ed=(typeof __editSnap!=='undefined')&&__editSnap; Object.keys(__stampBase).forEach(k=>{ if(k==='auditLog'||!Array.isArray(db[k])) return; const cur=new Set(db[k].map(x=>x&&x.id!=null?String(x.id):null));
         if(!ed) __stampBase[k].forEach(id=>{ if(id!=null && !cur.has(id)) tombstone(k,id); });
-        if(db.__del&&db.__del[k]) cur.forEach(id=>{ if(id!=null && !__stampBase[k].has(id) && db.__del[k][id]) delete db.__del[k][id]; }); }); }catch(e){}
+        if(db.__del&&db.__del[k]){ const D=db.__del[k]; db[k].forEach(x=>{ const id=x&&x.id!=null?String(x.id):null; if(id==null||!D[id]) return; if(!(Number(x._live)>D[id])) x._live=Date.now(); delete D[id]; }); } }); }catch(e){} /* أي حركة موجودة وعليها علامة حذف = اترجعت (تعديل بنفس الـ id) → تتشال العلامة ويتعلم عليها _live عشان الدمج مع السحابة ما يمسحهاش (محمد 2026-11-18: «البرنامج مسمعش») */
     const who = (typeof roleLabel==='function') ? roleLabel() : '', at = new Date().toISOString();
     Object.keys(db).forEach(k=>{
         if(k==='auditLog' || !Array.isArray(db[k])) return;
@@ -2965,7 +2965,7 @@ async function loadDb(){
         }
         const val = await store.get(STORAGE_KEY);
         if(val){
-            db = JSON.parse(val);
+            db = JSON.parse(val); try{ applyTombstones(); }catch(e){}
             if(!db.payments) db.payments = [];
             if(!db.nextId) db.nextId = {};
             if(!db.nextId.pay) db.nextId.pay = 1;
