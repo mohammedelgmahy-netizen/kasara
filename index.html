@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1122</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1123</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5791,7 +5791,7 @@ function balSheetHtml(asOf){ asOf=asOf||todayISO(); const ws=weekStart(asOf);
     const f=v=>!v?'-':(v<0?'-':'')+Math.abs(v).toLocaleString('en-US',{maximumFractionDigits:2}), red=v=>v<0?'color:#b91c1c;':'';
     return `<div dir="rtl" style="background:#fff;padding:8px;font-family:Cairo,Calibri,sans-serif"><div style="text-align:center;font-weight:800;font-size:20px;margin-bottom:6px">أرصدة العملاء حتى ${dmy(asOf)}</div>
     <table style="border-collapse:collapse;width:100%;max-width:760px;margin:0 auto"><tr><td style="${B}${G}">اسم العميل</td><td style="${B}${G}">الحساب السابق</td><td style="${B}${G}">المحصل</td><td style="${B}${G}">المتبقي</td></tr>
-    ${L.map(x=>`<tr><td style="${B}">${esc(x.n)}</td><td style="${N}${red(x.prev)}">${f(x.prev)}</td><td style="${N}color:#047857;">${f(x.p)}</td><td style="${N}font-weight:800;${red(x.b)}">${f(x.b)}</td></tr>`).join('')}
+    ${L.map(x=>`<tr><td style="${B}">${esc(String(x.n).replace(/([\u0600-\u06FF])([A-Za-z])/g,'$1 $2'))}</td><td style="${N}${red(x.prev)}">${f(x.prev)}</td><td style="${N}color:#047857;">${f(x.p)}</td><td style="${N}font-weight:800;${red(x.b)}">${f(x.b)}</td></tr>`).join('')}
     <tr><td style="${B}${G}">الاجماليات</td><td style="${N}${G}">${f(sum('prev'))}</td><td style="${N}${G}">${f(sum('p'))}</td><td style="${N}${G}">${f(sum('b'))}</td></tr></table></div>`; }
 function balSheetPage(keep){ const T=document.getElementById('bals-tools'); if(!T) return; const rr="document.getElementById('bals-body').innerHTML=balSheetHtml(document.getElementById('bals-date').value)";
     if(!document.getElementById('bals-date')){ T.innerHTML=`<b>حتى يوم</b><input type="date" id="bals-date" value="${todayISO()}" onchange="${rr}" style="border:1px solid #cbd5e1;border-radius:8px;padding:4px 8px">
