@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1117</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1118</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1947,7 +1947,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
             <div class="grid grid-cols-1 gap-6">
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="p-4 bg-cyan-50 border-b border-cyan-100">
-                        <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="font-bold text-slate-900"><i class="fa-solid fa-user-tie text-cyan-600"></i> حسابات العملاء </h3>
+                        <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="font-bold text-slate-900"><i class="fa-solid fa-user-tie text-cyan-600"></i> حسابات العملاء </h3><button type="button" onclick="balSheetOpen()" class="bg-amber-500 text-white font-bold rounded px-3 py-1 text-xs">📋 كشف الأرصدة (لينا وعلينا)</button>
                         <select id="acct-clients-status" onchange="renderAccounts()" class="bg-white border border-cyan-200 rounded px-2 py-1 text-xs font-bold"><option value="ALL">كل العملاء</option><option value="ON">عليهم فلوس</option><option value="FOR">ليهم (مقدم)</option><option value="ZERO">خالص</option></select></div>
                     </div>
                     <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100 sticky top-0"><tr><th class="p-3">العميل</th><th class="p-3">إجمالي المبيعات</th><th class="p-3">المحصّل</th><th class="p-3">الرصيد</th></tr></thead><tbody id="tbody-acct-clients"></tbody></table></div>
@@ -5777,6 +5777,26 @@ const CS_BASE_CLOSE='2026-11-11'; /* أرصدة 11/11 اتظبطت على شيت
 /* محمد 2026-11-18: بون مربوط بفاتورة سطر واحد (اتعملت من البون) — السعر من الكشف بيتعدل فيها هي كمان، عشان السعر ما يطلعش متوسط */
 function csSale1(r){ if(!r.saleGroupId) return null; const L=(db.sales||[]).filter(s=>String(s.groupId||s.id)===String(r.saleGroupId)); return L.length===1 && (String(L[0].dailyLogId||'')===String(r.id) || String(L[0].bon||'')===String(r.bon)) ? L[0] : null; }
 function csSetPrice(r, pr){ const s1=csSale1(r); if(s1){ if(pr>0){ s1.price=pr; s1.total=Math.round((Number(s1.qty)||0)*pr*100)/100; } } if(pr>0) r.price=pr; else delete r.price; delete r.total; }
+/* محمد 2026-11-18: «كشف بعد كل أسبوع بالإجماليات اللي لينا واللي علينا وإجماليهم في الآخر» — زي جدول الإكسيل بتاعه (اسم العميل + إجمالي المديونية) */
+function clientBalAt(name, asOf){ const rows=getClientAccountRowsAll(name); const cl=(db.clientStmts||[]).filter(x=>normName(x.name)===normName(name) && x.to && x.to<=asOf).sort((a,b)=>b.to.localeCompare(a.to))[0];
+    if(cl) return (Number(cl.bal)||0) + rows.filter(r=>!r.openAdj && (r.date||'')>cl.to && (r.date||'')<=asOf).reduce((a,r)=>a+(r.debit||0)-(r.credit||0),0);
+    return rows.filter(r=>r.openAdj || (r.date||'')<=asOf).reduce((a,r)=>a+(r.debit||0)-(r.credit||0),0); }
+function balSheetHtml(asOf){ const L=visClients().map(c=>({n:c.name, b:Math.round(clientBalAt(c.name, asOf)*100)/100})).filter(x=>Math.abs(x.b)>=0.5);
+    const lena=L.filter(x=>x.b>0).reduce((a,x)=>a+x.b,0), alena=L.filter(x=>x.b<0).reduce((a,x)=>a+x.b,0);
+    const B='border:1px solid #000;padding:6px 14px;font-size:20px;text-align:center;line-height:1.4;', G='background:#C9A227 !important;color:#000;font-weight:800;';
+    const f=v=>(v<0?'-':'')+Math.abs(v).toLocaleString('en-US',{maximumFractionDigits:2});
+    return `<div dir="rtl" style="background:#fff;padding:8px;font-family:Cairo,Calibri,sans-serif"><div style="text-align:center;font-weight:800;font-size:20px;margin-bottom:6px">أرصدة العملاء حتى ${dmy(asOf)}</div>
+    <table style="border-collapse:collapse;width:100%;max-width:560px;margin:0 auto"><tr><td style="${B}${G}">اسم العميل</td><td style="${B}${G}">اجمالي المديونية</td></tr>
+    ${L.map(x=>`<tr><td style="${B}">${esc(x.n)}</td><td style="${B};direction:ltr;${x.b<0?'color:#b91c1c':''}">${f(x.b)}</td></tr>`).join('')}
+    <tr><td style="${B}font-weight:800">إجمالي اللي لينا (عليهم)</td><td style="${B}font-weight:800;direction:ltr">${f(lena)}</td></tr>
+    <tr><td style="${B}font-weight:800">إجمالي اللي علينا (ليهم)</td><td style="${B}font-weight:800;direction:ltr;color:#b91c1c">${f(alena)}</td></tr>
+    <tr><td style="${B}${G}">الاجماليات</td><td style="${B}${G}direction:ltr">${f(lena+alena)}</td></tr></table></div>`; }
+function balSheetOpen(){ document.getElementById('bals-modal')?.remove(); const m=document.createElement('div'); m.id='bals-modal';
+    m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:12px';
+    m.onclick=e=>{ if(e.target===m) m.remove(); };
+    m.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:14px;max-width:640px;width:100%;padding:14px"><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px"><b>حتى يوم</b><input type="date" id="bals-date" value="${todayISO()}" onchange="document.getElementById('bals-body').innerHTML=balSheetHtml(this.value)" style="border:1px solid #cbd5e1;border-radius:8px;padding:4px 8px">
+    <button onclick="shareCard('bals-body','أرصدة العملاء')" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">واتساب</button><button onclick="printHtml(document.getElementById('bals-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="document.getElementById('bals-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✕</button></div>
+    <div id="bals-body">${balSheetHtml(todayISO())}</div></div>`; document.body.appendChild(m); }
 function csLogo(){ return document.querySelector('link[rel=icon]')?.getAttribute('href')||''; }
 function csClosedTo(name){ const x=(db.clientStmts||[]).filter(x=>normName(x.name)===normName(name) && x.to).sort((a,b)=>b.to.localeCompare(a.to))[0]; return x?x.to:''; }
 function getClientAccountRowsAll(name){
