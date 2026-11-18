@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1119</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1120</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1317,7 +1317,9 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
                 <button type="button" id="subnav-inventory-form" class="subnav-btn active" onclick="switchSub('inventory','form')">📤 صرف من المخزن</button>
                 <button type="button" id="subnav-inventory-log" class="subnav-btn" onclick="switchSub('inventory','log')">📊 الأرصدة والكشوف</button>
                 <button type="button" id="subnav-inventory-mv" class="subnav-btn" onclick="switchSub('inventory','mv')">📒 كشف حركة صنف (وارد وصادر)</button>
+                <button type="button" id="subnav-inventory-eq" class="subnav-btn" onclick="switchSub('inventory','eq')">🚜 كشف حساب المعدات</button>
             </div>
+            <div id="sub-inventory-eq" class="subpage"><div id="sub-ledger-eq-in" class="flex flex-col gap-4"></div></div>
 
             <div id="sub-inventory-form" class="subpage active">
             <!-- فورم صرف من المخزون -->
@@ -1885,10 +1887,10 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
             <div class="subnav-bar">
                 <button type="button" id="subnav-ledger-form" class="subnav-btn active" onclick="switchSub('ledger','form')">📄 كشف حساب</button>
                 <button type="button" id="subnav-ledger-log" class="subnav-btn" onclick="switchSub('ledger','log')">👥 أرصدة العملاء</button>
-                <button type="button" id="subnav-ledger-eq" class="subnav-btn" onclick="switchSub('ledger','eq')">🚜 كشف حساب المعدات</button>
+                <button type="button" id="subnav-ledger-bal" class="subnav-btn" onclick="switchSub('ledger','bal')">📋 كشف الأرصدة (لينا وعلينا)</button>
                 <button type="button" id="subnav-ledger-cx" class="subnav-btn" style="display:none" onclick="switchSub('ledger','cx')">🧾 مستخلص عميل</button>
             </div>
-            <div id="sub-ledger-eq" class="subpage"><div id="sub-ledger-eq-in" class="flex flex-col gap-4"></div></div>
+            <div id="sub-ledger-bal" class="subpage"><div class="bg-white rounded-xl border border-slate-200 shadow-sm p-3"><div id="bals-tools" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px"></div><div id="bals-body" style="overflow-x:auto"></div></div></div>
             <div id="sub-ledger-cx" class="subpage">
             <div class="bg-white rounded-xl border border-emerald-200 shadow-sm overflow-hidden">
                 <div class="p-4 border-b border-emerald-100 bg-emerald-50 flex flex-wrap items-center gap-2">
@@ -1947,7 +1949,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
             <div class="grid grid-cols-1 gap-6">
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="p-4 bg-cyan-50 border-b border-cyan-100">
-                        <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="font-bold text-slate-900"><i class="fa-solid fa-user-tie text-cyan-600"></i> حسابات العملاء </h3><button type="button" onclick="balSheetOpen()" class="bg-amber-500 text-white font-bold rounded px-3 py-1 text-xs">📋 كشف الأرصدة (لينا وعلينا)</button>
+                        <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="font-bold text-slate-900"><i class="fa-solid fa-user-tie text-cyan-600"></i> حسابات العملاء </h3>
                         <select id="acct-clients-status" onchange="renderAccounts()" class="bg-white border border-cyan-200 rounded px-2 py-1 text-xs font-bold"><option value="ALL">كل العملاء</option><option value="ON">عليهم فلوس</option><option value="FOR">ليهم (مقدم)</option><option value="ZERO">خالص</option></select></div>
                     </div>
                     <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100 sticky top-0"><tr><th class="p-3">العميل</th><th class="p-3">إجمالي المبيعات</th><th class="p-3">المحصّل</th><th class="p-3">الرصيد</th></tr></thead><tbody id="tbody-acct-clients"></tbody></table></div>
@@ -3697,7 +3699,8 @@ function renderAll(){
     try{ renderCollectionsLog(); }catch(e){ console.warn(e); }
     try{ renderExpensesTable(); }catch(e){ console.warn(e); }
     try{ if(activeTab==='payroll') renderPayrollTab(); }catch(e){ console.warn(e); }
-    try{ if(activeTab==='ledger' && document.getElementById('sub-ledger-eq')?.classList.contains('active')) renderEquipmentTab(); }catch(e){ console.warn(e); }
+    try{ if(activeTab==='inventory' && document.getElementById('sub-inventory-eq')?.classList.contains('active')) renderEquipmentTab(); }catch(e){ console.warn(e); }
+    try{ if(activeTab==='ledger' && document.getElementById('sub-ledger-bal')?.classList.contains('active')) balSheetPage(true); }catch(e){ console.warn(e); } /* أي حركة جديدة تظهر في كشف الأرصدة على طول */
     try{ if(activeTab==='extracts'){ renderWeeklyReport(); renderCtrExtracts(); } }catch(e){ console.warn(e); }
     try{ renderPaymentsTable(); }catch(e){ console.warn(e); }
     try{ renderSupplierAccounts(); }catch(e){ console.warn(e); }
@@ -3808,7 +3811,7 @@ function fitBonForm(){
     }catch(e){}
 }
 window.addEventListener('resize', ()=>{ try{ fitBonForm(); }catch(e){} });
-function switchSub(tab, which){ if(tab==='ledger' && which==='cx') which='form'; /* صفحة مستخلص عميل اتخفت (محمد 2026-11-14) */ if(tab==='ledger' && which==='cx'){ try{ setTimeout(cxcRender,0); }catch(e){} } if(tab==='ledger' && which==='eq'){ try{ eqMoveToLedger(); renderEquipmentTab(); }catch(e){ console.warn(e); } } /* محمد 2026-11-13: كشف حساب المعدات جوه تاب كشف الحساب، والصرف من المخزون */ try{ if(tab==='dailylog' && which==='coll'){ renderCollectionsLog(); showClientCollectionBalance(); const cd=document.getElementById('coll-date'); if(cd && !cd.value) cd.value=todayISO(); } }catch(e){} try{ if(tab==='inventory') renderMashoon(); }catch(e){} try{ if(tab==='extracts') renderXd(); }catch(e){}
+function switchSub(tab, which){ if(tab==='ledger' && which==='cx') which='form'; /* صفحة مستخلص عميل اتخفت (محمد 2026-11-14) */ if(tab==='ledger' && which==='cx'){ try{ setTimeout(cxcRender,0); }catch(e){} } if(tab==='ledger' && which==='eq'){ tab='inventory'; try{ switchTab('inventory'); }catch(_){} } if(tab==='inventory' && which==='eq'){ try{ eqMoveToLedger(); renderEquipmentTab(); }catch(e){ console.warn(e); } } if(tab==='ledger' && which==='bal'){ try{ balSheetPage(); }catch(e){ console.warn(e); } } /* محمد 2026-11-18: كشف الأرصدة مكان كشف المعدات، وكشف المعدات في المخزون */ /* محمد 2026-11-13: كشف حساب المعدات جوه تاب كشف الحساب، والصرف من المخزون */ try{ if(tab==='dailylog' && which==='coll'){ renderCollectionsLog(); showClientCollectionBalance(); const cd=document.getElementById('coll-date'); if(cd && !cd.value) cd.value=todayISO(); } }catch(e){} try{ if(tab==='inventory') renderMashoon(); }catch(e){} try{ if(tab==='extracts') renderXd(); }catch(e){}
     const panel = document.getElementById('tab-'+tab); if(!panel) return;
     panel.querySelectorAll(':scope > .subpage').forEach(p=>p.classList.remove('active'));
     panel.querySelector('#sub-'+tab+'-'+which)?.classList.add('active');
@@ -5795,6 +5798,11 @@ function balSheetHtml(asOf, from){ asOf=asOf||todayISO(); from=from||weekStart(a
     <tr><td style="${B}${G}">الاجماليات</td><td style="${N}${G}">${f(sum('prev'))}</td><td style="${N}${G}">${f(sum('deb'))}</td><td style="${N}${G}">${f(sum('cr'))}</td><td style="${N}${G}">${f(lena+alena)}</td></tr>
     <tr><td colspan="4" style="${B}font-weight:800">إجمالي اللي لينا (عليهم)</td><td style="${N}font-weight:800">${f(lena)}</td></tr>
     <tr><td colspan="4" style="${B}font-weight:800">إجمالي اللي علينا (ليهم / مدفوع مقدم)</td><td style="${N}font-weight:800;color:#b91c1c">${f(alena)}</td></tr></table></div>`; }
+function balSheetPage(keep){ const T=document.getElementById('bals-tools'); if(!T) return; const rr="document.getElementById('bals-body').innerHTML=balSheetHtml(document.getElementById('bals-date').value, document.getElementById('bals-from').value)";
+    if(!document.getElementById('bals-from')){ const t=todayISO(); T.innerHTML=`<b>من</b><input type="date" id="bals-from" value="${weekStart(t)}" onchange="${rr}" style="border:1px solid #cbd5e1;border-radius:8px;padding:4px 8px"><b>إلى</b><input type="date" id="bals-date" value="${t}" onchange="${rr}" style="border:1px solid #cbd5e1;border-radius:8px;padding:4px 8px">
+    <button onclick="shareCard('bals-body','أرصدة العملاء')" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">واتساب</button><button onclick="printHtml(document.getElementById('bals-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button>`; }
+    if(!keep){ const t=todayISO(); document.getElementById('bals-date').value=t; document.getElementById('bals-from').value=weekStart(t); } /* بيفتح دايماً على الأرصدة الحالية لحد النهارده */
+    document.getElementById('bals-body').innerHTML=balSheetHtml(document.getElementById('bals-date').value, document.getElementById('bals-from').value); }
 function balSheetOpen(){ document.getElementById('bals-modal')?.remove(); const m=document.createElement('div'); m.id='bals-modal';
     m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:12px';
     m.onclick=e=>{ if(e.target===m) m.remove(); };
@@ -12013,7 +12021,7 @@ function exportPartyExcel(){
         if(tabId==='cashday'){ _switchTab.call(this,'treasury'); setTreasuryView('journal'); return; }
         if(tabId==='sales'){ tabId='dailylog'; arguments[0]='dailylog'; }
         if(tabId==='dailylog'){ try{ if(document.getElementById('sub-dailylog-coll')?.classList.contains('active')) switchSub('dailylog','form'); }catch(e){} }
-        if(tabId==='equipment'){ _switchTab.call(this,'ledger'); try{ switchSub('ledger','eq'); }catch(e){} return; }
+        if(tabId==='equipment'){ _switchTab.call(this,'inventory'); try{ switchSub('inventory','eq'); }catch(e){} return; }
         if(tabId==='collections'){ _switchTab.call(this,'dailylog'); try{ switchSub('dailylog','coll'); renderCollectionsLog(); showClientCollectionBalance(); }catch(e){} return; }
         _switchTab.apply(this, arguments);
         try{
