@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<style>html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation}body{overflow-x:hidden}</style>
+<style>html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation}body{overflow-x:hidden}#acct-clients-tbl th,#acct-clients-tbl td{border:1px solid #475569 !important}#acct-clients-tbl{border-collapse:collapse}
+</style>
 <script>(function(){var b=function(e){e.preventDefault();};document.addEventListener("gesturestart",b,{passive:false});document.addEventListener("gesturechange",b,{passive:false});document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});document.addEventListener("wheel",function(e){if(e.ctrlKey)e.preventDefault();},{passive:false});document.addEventListener("keydown",function(e){if((e.ctrlKey||e.metaKey)&&["+","-","=","_","0"].indexOf(e.key)>=0)e.preventDefault();});var lt=0;document.addEventListener("touchend",function(e){var n=Date.now();if(n-lt<300&&!(e.target.closest&&e.target.closest("input,textarea,select")))e.preventDefault();lt=n;},{passive:false});})();</script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1f4b73">
@@ -569,7 +570,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1125</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1126</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1950,9 +1951,9 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="p-4 bg-cyan-50 border-b border-cyan-100">
                         <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="font-bold text-slate-900"><i class="fa-solid fa-user-tie text-cyan-600"></i> حسابات العملاء </h3>
-                        <select id="acct-clients-status" onchange="renderAccounts()" class="bg-white border border-cyan-200 rounded px-2 py-1 text-xs font-bold"><option value="ALL">كل العملاء</option><option value="ON">عليهم فلوس</option><option value="FOR">ليهم (مقدم)</option><option value="ZERO">خالص</option></select></div>
+                        <select id="acct-clients-status" onchange="renderAccounts()" class="bg-white border border-cyan-200 rounded px-2 py-1 text-xs font-bold"><option value="ALL">عليهم وليهم</option><option value="ON">عليهم فلوس</option><option value="FOR">ليهم (مقدم)</option></select></div>
                     </div>
-                    <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100 sticky top-0"><tr><th class="p-3">العميل</th><th class="p-3">إجمالي المبيعات</th><th class="p-3">المحصّل</th><th class="p-3">الرصيد</th></tr></thead><tbody id="tbody-acct-clients"></tbody></table></div>
+                    <div class="overflow-x-auto"><table id="acct-clients-tbl" class="w-full text-sm text-right"><thead class="bg-slate-100 sticky top-0"><tr><th class="p-3">العميل</th><th class="p-3">إجمالي المبيعات</th><th class="p-3">المحصّل</th><th class="p-3">الرصيد</th></tr></thead><tbody id="tbody-acct-clients"></tbody></table></div>
                 </div>
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="p-4 bg-indigo-50 border-b border-indigo-100">
@@ -6396,10 +6397,10 @@ function renderAccountsOverview(){
     const rowHtml = (type, name, a, b, c, cls) => `<tr class="border-b border-slate-50 hover:bg-slate-50 cursor-pointer" data-n="${esc(name)}" onclick="openAcct('${type}', this.dataset.n)">
         <td class="p-3 font-bold text-slate-800">${esc(name)}</td><td class="p-3">${fmt(a)}</td><td class="p-3">${fmt(b)}</td><td class="p-3 ${cls}">${fmt(c)}</td></tr>`;
     const st = document.getElementById('acct-clients-status')?.value || 'ALL';
-    const clients = acctNames('client').filter(n=>textMatch([n], term)).map(n=>({n, t:acctTotals(getClientAccountRows(n)), b:clientBons(n).length})).filter(r=>r.t.debit||r.t.credit||r.b)
-        .filter(r=> st==='ALL' || (st==='ON' && r.t.balance>0.5) || (st==='FOR' && r.t.balance<-0.5) || (st==='ZERO' && Math.abs(r.t.balance)<=0.5));
+    const clients = acctNames('client').filter(n=>textMatch([n], term)).map(n=>{ const R=getClientAccountRows(n); return {n, t:acctTotals(R), b:clientBons(n).length, cr:R.filter(r=>r.credit>0 && !r.openAdj).sort((x,y)=>(x.date||'').localeCompare(y.date||''))}; }).filter(r=>r.t.debit||r.t.credit||r.b)
+        .filter(r=> (st==='ALL' && Math.abs(r.t.balance)>0.5) || (st==='ON' && r.t.balance>0.5) || (st==='FOR' && r.t.balance<-0.5) || (st==='ZERO' && Math.abs(r.t.balance)<=0.5));
     cEl.innerHTML = clients.map(r=>`<tr class="border-b border-slate-50 hover:bg-slate-50 cursor-pointer" data-n="${esc(r.n)}" onclick="openAcct('client', this.dataset.n)">
-        <td class="p-3 font-bold text-slate-800">${esc(r.n)}<div class="text-[10px] text-slate-400 font-normal">${r.b} بون</div></td><td class="p-3">${fmt(r.t.debit)}</td><td class="p-3">${fmt(r.t.credit)}</td><td class="p-3">${balHtml(r.t.balance)}</td></tr>`).join('')
+        <td class="p-3 font-bold text-slate-800">${esc(r.n)}<div class="text-[10px] text-slate-400 font-normal">${r.b} بون</div></td><td class="p-3">${fmt(r.t.debit)}</td><td class="p-3">${r.cr.length ? r.cr.map(c=>`<div style="white-space:nowrap">${fmt(c.credit)} <span class="text-[11px] text-slate-500">${dmy(c.date)}</span></div>`).join('')+(r.cr.length>1?`<div class="font-bold border-t border-slate-200 mt-1 pt-1">${fmt(r.t.credit)}</div>`:'') : fmt(r.t.credit)}</td><td class="p-3">${balHtml(r.t.balance)}</td></tr>`).join('') /* محمد 2026-11-18: كل تحصيلة تحت التانية بتاريخها */
         || '<tr><td colspan="4" class="p-4 text-center text-slate-400">لا توجد بيانات</td></tr>';
     const persons = acctNames('person').filter(n=>textMatch([n], term)).map(n=>({n, t:acctTotals(getPersonAccountRows(n))})).filter(r=>r.t.debit||r.t.credit);
     pEl.innerHTML = persons.map(r=>rowHtml('person', r.n, r.t.debit, r.t.credit, r.t.balance, 'font-bold text-violet-700')).join('')
