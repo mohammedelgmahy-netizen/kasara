@@ -570,7 +570,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1135</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1136</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -10915,10 +10915,10 @@ function ctrWeeklySheetHtml0(name, from, to){
     const nb = contractorBons(name).filter(r=>(!from||(r.date||'')>=from) && (!to||(r.date||'')<=to)).length;
     const work=[]; let dayQ=0, dayV=0, dayN=0, dayP=0;
     W.forEach(r=>{ if(r.day){ dayQ+=r.sin||0; dayV+=r.credit||0; dayN+=r.n||0; dayP=r.price||dayP; }
-        else if(r.xk==='ext') work.push({l:'صافي السن'+(r.xlbl?' — '+r.xlbl:'')+(nb?` (${nfmt(nb)} بون)`:'')+(r.xnotes?' — '+r.xnotes:''), q:nfmt(r.sin)+' متر', p:r.xprice?nfmt(r.xprice):'', v:r.credit||0});
+        else if(r.xk==='ext') work.push({l:'صافي السن'+(r.xlbl?' — '+r.xlbl:'')+(r.xnotes?' — '+r.xnotes:''), q:nfmt(r.sin)+' متر', p:r.xprice?nfmt(r.xprice):'', v:r.credit||0});
         else if(r.xk==='extra') work.push({l:r.xlbl, q:r.xqty?nfmt(r.xqty):'', p:r.xprice?nfmt(r.xprice):'', v:r.credit||0});
         else if((r.credit||0)>0) work.push({l:r.desc, q:'', p:'', v:r.credit}); });
-    if(dayN || dayV) work.unshift({l:`صافي السن (${nfmt(dayN)} بون)`, q:nfmt(Math.round(dayQ*100)/100)+' متر', p:dayP?nfmt(dayP):'', v:dayV});
+    if(dayN || dayV) work.unshift({l:`صافي السن`, q:nfmt(Math.round(dayQ*100)/100)+' متر', p:dayP?nfmt(dayP):'', v:dayV});
     const sol=W.filter(r=>r.item && (r.debit||0)>0), paid=W.filter(r=>!r.item && (r.debit||0)>0);
     const tw=work.reduce((a,x)=>a+x.v,0), ts=sol.reduce((a,r)=>a+r.debit,0), tp=paid.reduce((a,r)=>a+r.debit,0), fin=prev+tw-ts-tp;
     const balTxt = v => n0(Math.abs(v)) + (Math.round(v)<0 ? ' عليه' : Math.round(v)>0 ? ' ليه' : '');
@@ -10927,7 +10927,7 @@ function ctrWeeklySheetHtml0(name, from, to){
     const days={}; contractorBons(name).filter(r=>(!from||(r.date||'')>=from) && (!to||(r.date||'')<=to)).forEach(r=>{ const d=days[r.date]||(days[r.date]={n:0,q:0}); d.n++; d.q+=bonNetSin(r); });
     const DK=Object.keys(days).sort(); let tn=0, tq=0;
     const B2=B.replace('9px 10px','7px 8px');
-    const sinTbl = DK.length ? `<div style="font-weight:800;margin:14px 0 6px;font-size:17px">تفصيل السن اليومي</div><table style="width:100%;border-collapse:collapse;font-size:16px"><tr><th style="${TH}">اليوم</th><th style="${TH}">التاريخ</th><th style="${TH}">عدد البونات</th><th style="${TH}">صافي السن</th></tr>${DK.map(d=>{ tn+=days[d].n; tq+=days[d].q; return `<tr><td style="${B2}">${dayNameAr(d)}</td><td style="${B2}">${dmy(d)}</td><td style="${B2}">${days[d].n}</td><td style="${B2}">${nfmt(Math.round(days[d].q*100)/100)}</td></tr>`; }).join('')}<tr style="background:#fef9c3;font-weight:800"><td style="${B2}" colspan="2">الإجمالي</td><td style="${B2}">${tn}</td><td style="${B2}">${nfmt(Math.round(tq*100)/100)}</td></tr></table>` : '';
+    const sinTbl = DK.length ? `<div style="font-weight:800;margin:14px 0 6px;font-size:17px">تفصيل السن اليومي</div><table style="width:100%;border-collapse:collapse;font-size:16px"><tr><th style="${TH}">اليوم</th><th style="${TH}">التاريخ</th><th style="${TH}">صافي السن</th></tr>${DK.map(d=>{ tn+=days[d].n; tq+=days[d].q; return `<tr><td style="${B2}">${dayNameAr(d)}</td><td style="${B2}">${dmy(d)}</td><td style="${B2}">${nfmt(Math.round(days[d].q*100)/100)}</td></tr>`; }).join('')}<tr style="background:#fef9c3;font-weight:800"><td style="${B2}" colspan="2">الإجمالي</td><td style="${B2}">${nfmt(Math.round(tq*100)/100)}</td></tr></table>` : '';
     const big=B+'font-size:22px;font-weight:800;';
     return `<div style="direction:rtl;color:#111;font-size:19px;min-width:600px">
       <table style="width:100%;border-collapse:collapse;margin-bottom:6px"><tr>
