@@ -570,7 +570,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1127</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1128</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1948,9 +1948,10 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
             </div>
             <div id="sub-ledger-log" class="subpage">
             <div class="grid grid-cols-1 gap-6">
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div id="acct-clients-card" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="p-4 bg-cyan-50 border-b border-cyan-100">
                         <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="font-bold text-slate-900"><i class="fa-solid fa-user-tie text-cyan-600"></i> حسابات العملاء </h3>
+                        <button type="button" onclick="shareCard('acct-clients-card','حسابات العملاء')" class="bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold px-3 py-1.5 text-xs"><i class="fa-brands fa-whatsapp"></i> واتساب حسابات العملاء</button>
                         <select id="acct-clients-status" onchange="renderAccounts()" class="bg-white border border-cyan-200 rounded px-2 py-1 text-xs font-bold"><option value="ALL">عليهم وليهم</option><option value="ON">عليهم فلوس</option><option value="FOR">ليهم (مقدم)</option></select></div>
                     </div>
                     <div class="overflow-x-auto"><table id="acct-clients-tbl" class="w-full text-sm text-right"><thead class="bg-slate-100 sticky top-0"><tr><th class="p-3">العميل</th><th class="p-3">إجمالي المبيعات</th><th class="p-3">المحصّل</th><th class="p-3">الرصيد</th></tr></thead><tbody id="tbody-acct-clients"></tbody></table></div>
