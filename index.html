@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1113</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1114</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1938,7 +1938,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
                     </table>
                 </div>
             </div>
-            <div id="cst-card" style="display:none" class="bg-white rounded-xl border border-cyan-200 shadow-sm overflow-hidden">
+            <div id="cst-card" class="bg-white rounded-xl border border-cyan-200 shadow-sm overflow-hidden">
                 <div class="px-4 pt-3 pb-2 flex flex-wrap items-center gap-2 bg-cyan-50 border-b border-cyan-100"><span class="text-xs font-bold text-slate-700">كشوفات العملاء المحفوظة:</span><select id="cst-filter" onchange="renderClientStmts()" class="bg-white border border-cyan-200 rounded px-2 py-1 text-xs font-bold min-w-[10rem]"><option value="">كل العملاء</option></select><input id="cst-search" type="search" oninput="renderClientStmts()" placeholder="🔍 بحث: اسم أو تاريخ (مثلاً 22/10)" class="bg-white border border-cyan-200 rounded px-2 py-1 text-xs flex-1 min-w-[10rem]"></div>
                 <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100"><tr><th class="p-2">التاريخ</th><th class="p-2">العميل</th><th class="p-2">الفترة</th><th class="p-2">البونات</th><th class="p-2">السن</th><th class="p-2">المطلوب</th><th class="p-2">المحصّل</th><th class="p-2">الرصيد</th><th class="p-2"></th></tr></thead><tbody id="tbody-cst"></tbody></table></div>
             </div>
@@ -6015,7 +6015,7 @@ function renderClientStmts(){
     const XA=A.filter(x=>(!fs||!fs.value||x.name===fs.value) && qm(x)).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.to||'').localeCompare(a.to||''));
     const LIM=10, cut=!qv && !(fs&&fs.value) && XA.length>LIM, X=cut?XA.slice(0,LIM):XA;
     tb.innerHTML=(X.length ? X.map(x=>`<tr class="border-b border-slate-50 cursor-pointer hover:bg-cyan-50" onclick="openClientStmtView('${x.id}')"><td class="p-2 text-xs">${dmy(x.date)}</td><td class="p-2 font-bold">${esc(x.name)}</td><td class="p-2 text-xs">${dmy(x.from)} → ${dmy(x.to)}</td><td class="p-2">${nfmt(x.n)}</td><td class="p-2">${nfmt(x.sin)}</td><td class="p-2">${mfmt(x.req)}</td><td class="p-2 text-emerald-700">${mfmt(x.col)}</td><td class="p-2 font-extrabold ${x.bal>0?'text-rose-700':'text-emerald-700'}">${mfmt(Math.abs(x.bal))} <span class="text-xs">${x.bal>0?'عليه':x.bal<0?'ليه':''}</span></td><td class="p-2"><button onclick="event.stopPropagation();deleteClientStmt('${x.id}')" class="text-rose-600 text-xs">🗑</button></td></tr>`).join('')
-        : `<tr><td colspan="9" class="p-3 text-center text-slate-400">${A.length?'مفيش كشوفات بالبحث ده':'لسه مفيش كشوفات محفوظة — اختار العميل والأسبوع فوق ودوس «حفظ الكشف»'}</td></tr>`)
+        : `<tr><td colspan="9" class="p-3 text-center text-slate-400">${A.length?'مفيش كشوفات بالبحث ده':'لسه مفيش كشوفات محفوظة — اختار العميل والتواريخ فوق ودوس «💾 حفظ الكشف وترحيل المتبقي»'}</td></tr>`)
         + (cut?`<tr><td colspan="9" class="p-3 text-center text-slate-500 text-xs font-bold">ظاهر آخر ${LIM} كشوفات بس من ${XA.length} — اكتب اسم العميل أو التاريخ في البحث عشان تلاقي الأقدم</td></tr>`:'');
 }
 function openClientStmtView(id){
@@ -9187,7 +9187,7 @@ async function reportImageFiles(d){
         const box=document.createElement('div'); box.style.cssText='position:fixed;left:-10000px;top:0;width:900px;background:#fff;padding:18px;direction:rtl;color:#000';
         box.innerHTML = html.replace('class="rep-sec"','class="rep-sec" style="page-break-before:auto"'); document.body.appendChild(box);
         try{
-            const canvas = await html2canvas(box, {backgroundColor:'#ffffff', scale:2});
+            const canvas = await H2C(box);
             const blob = await new Promise(r=>canvas.toBlob(r,'image/png'));
             files.push(new File([blob], `${name}-${d}.png`, {type:'image/png'}));
         } finally { box.remove(); }
@@ -9552,6 +9552,8 @@ function deleteDailyLog(id){
 
 /* ===================== إضافات احترافية ===================== */
 /* ---- صور + واتساب لأي كارت ---- */
+// html2canvas بيقيس خط الأساس بـimg؛ Tailwind بيخلي img block فالنص بينزل لتحت في الصورة — نصلحه وقت الرسم بس
+async function H2C(box){ const st=document.createElement('style'); st.textContent='img{display:inline-block !important}'; document.head.appendChild(st); try{ return await html2canvas(box,{backgroundColor:'#ffffff',scale:2}); } finally{ st.remove(); } }
 async function elementToFile(el, name){
     await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
     const box=document.createElement('div'); box.style.cssText='position:fixed;left:-10000px;top:0;width:900px;background:#fff;padding:18px;direction:rtl;color:#000;font-family:inherit';
@@ -9568,7 +9570,7 @@ async function elementToFile(el, name){
     box.appendChild(c);
     if(!c.querySelector('.sig-line') && !/sig-line/.test(c.innerHTML)){ const sg=document.createElement('div'); sg.innerHTML=SIG_LINE; box.appendChild(sg.firstChild); } // الإمضا تحت أي صورة واتس (محمد 2026-11-10)
     document.body.appendChild(box);
-    try{ const canvas=await html2canvas(box,{backgroundColor:'#ffffff',scale:2}); const blob=await new Promise(r=>canvas.toBlob(r,'image/png')); return new File([blob], (name||'كشف').replace(/[\\/:*?"<>|]/g,'-')+'.png', {type:'image/png'}); }
+    try{ const canvas=await H2C(box); const blob=await new Promise(r=>canvas.toBlob(r,'image/png')); return new File([blob], (name||'كشف').replace(/[\\/:*?"<>|]/g,'-')+'.png', {type:'image/png'}); }
     finally{ box.remove(); }
 }
 function shareImagesModal(title, filesPromise){
@@ -9599,7 +9601,7 @@ async function reportPartFiles(names, d){
     for(const [name, html] of dailyReportSections(d).filter(([n])=>names.includes(n))){
         const box=document.createElement('div'); box.style.cssText='position:fixed;left:-10000px;top:0;width:900px;background:#fff;padding:18px;direction:rtl;color:#000';
         box.innerHTML=html; document.body.appendChild(box);
-        try{ const canvas=await html2canvas(box,{backgroundColor:'#ffffff',scale:2}); const blob=await new Promise(r=>canvas.toBlob(r,'image/png')); files.push(new File([blob], `${name}-${d}.png`, {type:'image/png'})); }
+        try{ const canvas=await H2C(box); const blob=await new Promise(r=>canvas.toBlob(r,'image/png')); files.push(new File([blob], `${name}-${d}.png`, {type:'image/png'})); }
         finally{ box.remove(); }
     }
     return files;
@@ -11255,7 +11257,7 @@ async function htmlToFiles(sections){
     for(const [name, html] of sections){
         const box=document.createElement('div'); box.style.cssText='position:fixed;left:-10000px;top:0;width:900px;background:#fff;padding:18px;direction:rtl;color:#000';
         box.innerHTML=html; document.body.appendChild(box);
-        try{ const canvas=await html2canvas(box,{backgroundColor:'#ffffff',scale:2}); const blob=await new Promise(r=>canvas.toBlob(r,'image/png')); files.push(new File([blob], name.replace(/[\\/:*?"<>|]/g,'-')+'.png', {type:'image/png'})); }
+        try{ const canvas=await H2C(box); const blob=await new Promise(r=>canvas.toBlob(r,'image/png')); files.push(new File([blob], name.replace(/[\\/:*?"<>|]/g,'-')+'.png', {type:'image/png'})); }
         finally{ box.remove(); }
     }
     return files;
