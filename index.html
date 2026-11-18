@@ -570,7 +570,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1131</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1132</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -10979,13 +10979,14 @@ function openCtrWeekView(name, from, to){
     m.onclick=e=>{ if(e.target===m) m.remove(); };
     m.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:14px;max-width:760px;width:100%;padding:14px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:16px">${esc(name)} — من ${dmy(from)} إلى ${dmy(to)}</b>
-        <span style="display:flex;gap:6px"><button onclick="shareCard('cxv-body','مستخلص '+${JSON.stringify(name).replace(/"/g,'&quot;')})" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px"><i class="fa-brands fa-whatsapp"></i> واتساب</button><button onclick="printHtml(document.getElementById('cxv-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="deleteCtrExtractWeek(${JSON.stringify(name).replace(/"/g,'&quot;')},'${from}','${to}')" style="background:#dc2626;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🗑 حذف المستخلص</button><button onclick="document.getElementById('cxv-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✕</button></span></div>
+        <span style="display:flex;gap:6px"><button onclick="shareCard('cxv-body','مستخلص '+${JSON.stringify(name).replace(/"/g,'&quot;')})" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px"><i class="fa-brands fa-whatsapp"></i> واتساب</button><button onclick="printHtml(document.getElementById('cxv-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button>${(db.ctrExtracts||[]).some(x=>normName(x.name)===normName(name) && (x.from||x.date)===from && (x.to||x.date)===to)?'':'<!--'}<button onclick="deleteCtrExtractWeek(${JSON.stringify(name).replace(/"/g,'&quot;')},'${from}','${to}')" style="background:#dc2626;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🗑 حذف المستخلص</button>${(db.ctrExtracts||[]).some(x=>normName(x.name)===normName(name) && (x.from||x.date)===from && (x.to||x.date)===to)?'':'-->'}<button onclick="document.getElementById('cxv-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✕</button></span></div>
         <div id="cxv-body" style="overflow-x:auto;background:#fff;padding:6px">${body}</div></div>`;
     document.body.appendChild(m);
 }
 function cxFormSheet(){ const g=id=>document.getElementById(id), name=g('cx-name')?.value, from=g('cx-from')?.value, to=g('cx-to')?.value; if(!name) return true;
-    const has=(db.ctrExtracts||[]).some(x=>normName(x.name)===normName(name) && (x.to||x.date)>=from && (x.to||x.date)<=to);
-    if(!has){ alert('احفظ المستخلص الأول وبعدين ابعته أو اطبعه، عشان يفضل محفوظ في البرنامج.'); return true; }
+    const has=(db.ctrExtracts||[]).some(x=>normName(x.name)===normName(name) && (x.from||x.date)<=to && (x.to||x.date)>=from);
+    if(!has){ alert('الفترة دي مفيهاش مستخلص محفوظ خالص — احفظ المستخلص الأول عشان الشغل يظهر فيه.'); return true; }
+    /* محمد 2026-11-18: «لو عاوز أبعته واتس يتبعت، لكن ما ينفعش أحفظه لو محفوظ أو متقاطع» — الواتساب والطباعة شغالين لأي فترة من غير حفظ */
     openCtrWeekView(name, from, to); return true; }
 function cxFormActive(){ const t=document.querySelector('.tab-content.active'); return !!(t && t.querySelector('#sub-extracts-form.active')); }
 /* إجمالي كل أصحاب المعدات: له (شغل + الحساب القديم) − المدفوع له = الباقي له (محمد 2026-11-10) */
