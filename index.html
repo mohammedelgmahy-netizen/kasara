@@ -570,7 +570,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1128</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1129</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1553,7 +1553,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
             <div id="sub-extracts-log" class="subpage">
             <div class="bg-white rounded-xl border border-indigo-200 shadow-sm overflow-hidden">
                 <div class="p-4 border-b border-indigo-100 bg-indigo-50 flex flex-wrap items-center gap-2"><h3 class="font-bold text-slate-900 ml-2">📒 المستخلصات المحفوظة</h3><select id="cx-filter" onchange="renderCtrExtracts()" class="bg-white border border-indigo-200 rounded px-2 py-1 text-xs font-bold min-w-[10rem]"><option value="">كل أصحاب المعدات</option></select><input id="cx-search" type="search" oninput="renderCtrExtracts()" placeholder="🔍 بحث: اسم أو تاريخ (مثلاً 22/10)" class="bg-white border border-indigo-200 rounded px-2 py-1 text-xs flex-1 min-w-[10rem]"></div>
-                <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100"><tr><th class="p-2">التاريخ</th><th class="p-2">يتحاسب مع</th><th class="p-2">المعدة</th><th class="p-2">الفترة</th><th class="p-2">الأمتار</th><th class="p-2 rate-col">السعر</th><th class="p-2">المبلغ</th><th class="p-2">ملاحظات</th><th class="p-2"></th></tr></thead><tbody id="tbody-cx"></tbody></table></div>
+                <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100"><tr><th class="p-2">التاريخ</th><th class="p-2">صاحب المعدة</th><th class="p-2">الفترة</th><th class="p-2">رصيد سابق</th><th class="p-2">شغل الأسبوع</th><th class="p-2">سولار وأصناف</th><th class="p-2">المدفوع</th><th class="p-2">المتبقي (يترحل)</th><th class="p-2"></th></tr></thead><tbody id="tbody-cx"></tbody></table></div>
             </div>
             <div id="ctr-stmt-card" class="bg-white rounded-xl border border-violet-200 shadow-sm overflow-hidden" style="display:none"><!-- اتشال من الشاشة بطلب محمد 2026-11-07: الكشف بيظهر لما تدوس على المستخلص -->
                 <div class="p-4 border-b border-violet-100 bg-violet-50 flex flex-wrap items-center gap-2">
@@ -10696,9 +10696,18 @@ function renderCtrExtracts(){
     /* محمد 2026-11-14: سطر «الأصناف قليلة السن» بيتجمع على سطر مستخلصه (سطر واحد بالإجمالي)؛ التفصيل جوه المستخلص */
     const __mainOf=l=>X.find(m=>!m.extra && m.name===l.name && (m.from||'')===(l.from||'') && (m.to||'')===(l.to||'') && (m.equip||'')===(l.lowOf!==undefined?l.lowOf:(m.equip||''))) , __add={};
     const X1=X.filter(x=>{ if(!(x.extra && x.low)) return true; const m=__mainOf(x); if(!m) return true; __add[m.id]=(__add[m.id]||0)+(Number(x.amount)||0); return false; });
-    const LIM=10, XA=X1; const cut=!qv && !(fs&&fs.value) && XA.length>LIM; const X2=cut?XA.slice(0,LIM):XA; // القايمة قصيرة: آخر 10 بس، والباقي بالبحث (محمد 2026-11-07)
-    document.getElementById('tbody-cx').innerHTML = (X2.length ? X2.map(x=>`<tr class="border-b border-slate-50 cursor-pointer hover:bg-indigo-50" onclick="openCtrExtractView('${x.id}')"><td class="p-2 text-xs">${dmy(x.date)}</td><td class="p-2 font-bold">${esc(x.name)}</td><td class="p-2">${x.extra?'⭐ '+esc(x.equip):(x.equip?esc(ctrEqName(x.name,x.equip)):'')}</td><td class="p-2 text-xs">${x.from?dmy(x.from)+' → '+dmy(x.to):'—'}</td><td class="p-2 font-bold">${__add[x.id]?'':nfmt(x.qty)}</td><td class="p-2 rate-col">${__add[x.id]?'':nfmt(x.rate)}</td><td class="p-2 font-extrabold text-emerald-700">${mfmt((Number(x.amount)||0)+(__add[x.id]||0))}</td><td class="p-2 text-xs">${esc(x.notes||'')}</td><td class="p-2"><button onclick="event.stopPropagation();${__add[x.id]?`deleteCtrExtractWeek('${esc(x.name)}','${x.from}','${x.to}')`:`deleteCtrExtract('${x.id}')`}" style="background:#dc2626;color:#fff;padding:5px 10px;border-radius:6px;font-weight:800;font-size:13px;white-space:nowrap">🗑 حذف</button></td></tr>`).join('')
-        : '<tr><td colspan="9" class="p-3 text-center text-slate-400">مفيش مستخلصات بالبحث ده</td></tr>') + (cut?`<tr><td colspan="9" class="p-3 text-center text-slate-500 text-xs font-bold">ظاهر آخر ${LIM} مستخلصات بس من ${XA.length} — اكتب اسم المقاول أو التاريخ في البحث عشان تلاقي الأقدم</td></tr>`:'');
+    /* محمد 2026-11-18: «اعملي المستخلصات زي كشف الحساب — كل أسبوع منفصل بمستخلصاته وترحيل الأرصدة»: القايمة متقسمة بشريط لكل أسبوع (خميس → أربع)،
+       سطر واحد لكل صاحب معدة في الأسبوع بالرصيد السابق والشغل والسولار والمدفوع والمتبقي اللي بيترحل للأسبوع اللي بعده. عرض بس — نفس أرقام المستخلص الأسبوعي (ctrWeekNums) */
+    const G=[], GK={};
+    X1.filter(x=>!(x.extra && x.daily)).forEach(x=>{ const f=x.from||x.date, t=x.to||x.date, k=normName(x.name)+'|'+f+'|'+t; let g=GK[k]; if(!g){ g=GK[k]={name:x.name, from:f, to:t, date:x.date||'', ids:[]}; G.push(g); } g.ids.push(x.id); if((x.date||'')>g.date) g.date=x.date||''; });
+    X1.filter(x=>x.extra && x.daily).forEach(x=>{ const d=x.to||x.date, g=G.find(g=>normName(g.name)===normName(x.name) && g.from<=d && g.to>=d); if(g) return; const k=normName(x.name)+'|'+(x.from||x.date)+'|'+d; let h=GK[k]; if(!h){ h=GK[k]={name:x.name, from:x.from||x.date, to:d, date:x.date||'', ids:[], daily:true}; G.push(h); } h.ids.push(x.id); });
+    G.sort((a,b)=>b.to.localeCompare(a.to)||a.name.localeCompare(b.name,'ar'));
+    const LIM=10, cut=!qv && !(fs&&fs.value) && G.length>LIM; let G2=G; if(cut){ const lw=weekStart(G[LIM-1].to); G2=G.filter(g=>weekStart(g.to)>=lw); }
+    const bt=v=>`${mfmt(Math.abs(v))} <span class="text-xs">${Math.round(v)<0?'عليه':Math.round(v)>0?'ليه':''}</span>`, q=v=>JSON.stringify(v).replace(/"/g,'&quot;');
+    let wk=''; const wkRow=g=>{ const w=weekStart(g.to); if(w===wk) return ''; wk=w; return `<tr class="bg-indigo-100"><td colspan="9" class="p-2 font-extrabold text-slate-800 text-sm">📅 أسبوع ${dmy(w)} → ${dmy(addDays(w,6))}</td></tr>`; };
+    document.getElementById('tbody-cx').innerHTML = (G2.length ? G2.map(g=>{ const N=ctrWeekNums(g.name, g.from, g.to);
+        return wkRow(g)+`<tr class="border-b border-slate-100 cursor-pointer hover:bg-indigo-50" onclick="openCtrWeekView(${q(g.name)},'${g.from}','${g.to}')"><td class="p-2 text-xs">${dmy(g.date)}</td><td class="p-2 font-bold">${esc(g.name)}</td><td class="p-2 text-xs whitespace-nowrap">${dmy(g.from)} → ${dmy(g.to)}</td><td class="p-2">${bt(N.prev)}</td><td class="p-2 text-emerald-700 font-bold">${mfmt(N.work)}</td><td class="p-2 text-rose-700">${mfmt(N.sol)}</td><td class="p-2 text-rose-700">${mfmt(N.paid)}</td><td class="p-2 font-extrabold ${Math.round(N.fin)<0?'text-rose-700':'text-emerald-700'}">${bt(N.fin)}</td><td class="p-2"><button onclick="event.stopPropagation();${g.daily?`deleteCtrExtract('${g.ids[0]}')`:`deleteCtrExtractWeek(${q(g.name)},'${g.from}','${g.to}')`}" style="background:#dc2626;color:#fff;padding:4px 10px;border-radius:6px;font-weight:700;font-size:12px">🗑 حذف</button></td></tr>`; }).join('')
+        : '<tr><td colspan="9" class="p-3 text-center text-slate-400">مفيش مستخلصات بالبحث ده</td></tr>') + (cut?`<tr><td colspan="9" class="p-3 text-center text-slate-500 text-xs font-bold">ظاهر آخر الأسابيع بس — اكتب اسم صاحب المعدة أو التاريخ في البحث عشان تلاقي الأقدم</td></tr>`:'');
 }
 const CX_EQUIPS = ['سيارة برتقالي','سيارة بيضاء','لودر محجر','لودر أرضية'];
 const EQ_QUICK_DEF=['سيارة برتقالي','سيارة بيضاء','سيارة','لودر محجر','لودر أرضية','حفار'];
@@ -10889,6 +10898,11 @@ function __saveCtrExtractCore(){
 }
 /* لما تدوس على مستخلص محفوظ تظهر تفاصيله (محمد 2026-11-07) */
 /* المستخلص الأسبوعي (محمد وافق على الصورة 2026-11-13): شغل الأسبوع، سولار الأسبوع، المدفوع في الأسبوع، وصندوق الحساب (باقي من قبل + شغل − سولار − مدفوع = الباقي). عرض بس من نفس حركات كشفه */
+/* أرقام المستخلص الأسبوعي (نفس حساب ctrWeeklySheetHtml0): رصيد سابق، شغل، سولار وأصناف، مدفوع، المتبقي — عرض بس */
+function ctrWeekNums(name, from, to){ const {rows}=contractorStmtRows(name); let prev=0, work=0, sol=0, paid=0;
+    rows.forEach(r=>{ const e=r.eff||r.date||''; if(r.ord<0 || (from && e<from)) { prev += (r.credit||0)-(r.debit||0); return; } if(to && e>to) return;
+        if(r.day || r.xk || (r.credit||0)>0) work += r.credit||0; if((r.debit||0)>0){ if(r.item) sol += r.debit; else paid += r.debit; } });
+    return {prev, work, sol, paid, fin:prev+work-sol-paid}; }
 function ctrWeeklySheetHtml0(name, from, to){
     const {rows} = contractorStmtRows(name);
     const B='border:1px solid #111;padding:9px 10px;text-align:center;', TH=B+'background:#f1f5f9;font-weight:800;';
