@@ -569,7 +569,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1116</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1117</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5754,7 +5754,7 @@ function clientSheetData(name){
             c.q[sz.key]=(c.q[sz.key]||0)+v; tot[sz.key]=(tot[sz.key]||0)+v; c.cnt[sz.key]=(c.cnt[sz.key]||0)+1; totCnt[sz.key]=(totCnt[sz.key]||0)+1; /* عدد العربيات لكل صنف (محمد 2026-11-15) */
             amt[sz.key]=(amt[sz.key]||0)+v*price; (pq[sz.key]=pq[sz.key]||{})[price]=(pq[sz.key][price]||0)+v; });
     });
-    const priceOf=k=>{ const m=pq[k]; if(!m) return 0; const ks=Object.keys(m); return ks.length===1 ? Number(ks[0]) : Math.round((amt[k]||0)/(tot[k]||1)*100)/100; };
+    const priceOf=k=>{ const m=pq[k]; if(!m) return 0; const ks=Object.keys(m); return ks.length===1 ? Number(ks[0]) : 0; }; /* محمد 2026-11-18: «ما تقلبش الرقم» — لو البونات بأسعار مختلفة الخانة فاضية لحد ما يكتب سعره، مش متوسط */
     // الرصيد السابق: كل الحركات قبل بداية الفترة
     const allRows=getClientAccountRowsAll(name);
     const start = from || (bons[0]&&bons[0].date) || '';
@@ -5774,6 +5774,9 @@ function clientSheetData(name){
 }
 function csClosedBefore(name, start){ return (db.clientStmts||[]).filter(x=>normName(x.name)===normName(name) && x.to && x.to<start).sort((a,b)=>b.to.localeCompare(a.to))[0]||null; }
 const CS_BASE_CLOSE='2026-11-11'; /* أرصدة 11/11 اتظبطت على شيت محمد = أول كشف مقفول لكل العملاء */
+/* محمد 2026-11-18: بون مربوط بفاتورة سطر واحد (اتعملت من البون) — السعر من الكشف بيتعدل فيها هي كمان، عشان السعر ما يطلعش متوسط */
+function csSale1(r){ if(!r.saleGroupId) return null; const L=(db.sales||[]).filter(s=>String(s.groupId||s.id)===String(r.saleGroupId)); return L.length===1 && (String(L[0].dailyLogId||'')===String(r.id) || String(L[0].bon||'')===String(r.bon)) ? L[0] : null; }
+function csSetPrice(r, pr){ const s1=csSale1(r); if(s1){ if(pr>0){ s1.price=pr; s1.total=Math.round((Number(s1.qty)||0)*pr*100)/100; } } if(pr>0) r.price=pr; else delete r.price; delete r.total; }
 function csLogo(){ return document.querySelector('link[rel=icon]')?.getAttribute('href')||''; }
 function csClosedTo(name){ const x=(db.clientStmts||[]).filter(x=>normName(x.name)===normName(name) && x.to).sort((a,b)=>b.to.localeCompare(a.to))[0]; return x?x.to:''; }
 function getClientAccountRowsAll(name){
@@ -5926,12 +5929,12 @@ function csSavePrices(quiet){
     document.querySelectorAll('#acct-sheet input[data-csp]').forEach(inp=>{ const key=inp.dataset.csp, pr=Number(String(inp.value).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(',','.'))||0;
         /* محمد 2026-11-16: لو مسح السعر من خانة صنف كان ليه سعر → سعر الصنف ده يتمسح من بوناته في الفترة ويخرج من التجميع */
         const clr=!(pr>0) && String(inp.value).trim()==='' && Number(inp.dataset.orig)>0; if(!(pr>0) && !clr) return;
-        const all=clientBons(name, from, to).filter(r=>(Number((r.q||{})[key])||0)>0 && !(cto && r.date<=cto)); skip+=all.filter(r=>r.saleGroupId).length;
-        const list=all.filter(r=>!r.saleGroupId && (clr ? (Number(r.price)||0)>0 : (Number(r.price)||0)!==pr)); if(list.length) plan.push({key, sz:DL_SIZES.find(x=>x.key===key)||{label:key}, pr, list}); });
+        const all=clientBons(name, from, to).filter(r=>(Number((r.q||{})[key])||0)>0 && !(cto && r.date<=cto)); skip+=all.filter(r=>r.saleGroupId && !csSale1(r)).length;
+        const list=all.filter(r=>(!r.saleGroupId || (csSale1(r) && pr>0)) && (clr ? (Number(r.price)||0)>0 : (Number(r.price)||0)!==pr)); if(list.length) plan.push({key, sz:DL_SIZES.find(x=>x.key===key)||{label:key}, pr, list}); });
     if(!plan.length){ if(!quiet) alert('مفيش سعر جديد يتحفظ'); return; }
     const before=plan.reduce((a,p)=>a+p.list.reduce((b,r)=>b+(Number(bonValue(r))||0),0),0);
     if(!confirm(`هيتسجل السعر على بونات «${name}»${from||to?' من '+(from?dmy(from):'الأول')+' لـ '+(to?dmy(to):'النهارده'):''}:\n`+plan.map(p=>p.pr>0?`• ${p.sz.label}: ${p.list.length} بون × ${nfmt(p.pr)}`:`• ${p.sz.label}: ${p.list.length} بون — السعر هيتمسح ويخرج من الحساب`).join('\n')+(skip?`\n(${skip} بون مربوط بفاتورة مش هيتغير)`:'')+'\n\nتمام؟')) return;
-    let n=0; plan.forEach(p=>p.list.forEach(r=>{ if(p.pr>0) r.price=p.pr; else delete r.price; delete r.total; n++; }));
+    let n=0; plan.forEach(p=>p.list.forEach(r=>{ csSetPrice(r, p.pr); n++; }));
     const after=plan.reduce((a,p)=>a+p.list.reduce((b,r)=>b+(Number(bonValue(r))||0),0),0);
     /* محمد 2026-11-14: «لما أحفظ الباقي يترحل للي جاي» — الحفظ بيعلّم آخر كشف للعميل، فالكشف الجاي بيبدأ من اليوم اللي بعده والباقي بيظهر «المتبقي» من قبل */
     logAudit('update','تعديل سعر من كشف الحساب', `${name} — ${n} بون — `+plan.map(p=>`${p.sz.label} ${p.pr>0?nfmt(p.pr):'مسح السعر'}`).join(' ، '), {total:Math.round(before)}, {total:Math.round(after), from, to});
@@ -5944,7 +5947,7 @@ function csEditPrice(key){
     const sz=DL_SIZES.find(x=>x.key===key)||{label:key};
     const cto=csClosedTo(name);
     const all=clientBons(name, from, to).filter(r=>(Number((r.q||{})[key])||0)>0 && !(cto && r.date<=cto));
-    const list=all.filter(r=>!r.saleGroupId), skip=all.length-list.length;
+    const list=all.filter(r=>!r.saleGroupId || csSale1(r)), skip=all.length-list.length;
     if(!list.length){ alert(cto && from && from<=cto ? `الفترة دي فيها كشف محفوظ لحد ${dmy(cto)} — مقفول ومش بيتعدل.` : skip?'البونات دي مربوطة بفواتير، سعرها بيتعدل من الفاتورة.':'مفيش بونات للمقاس ده في الفترة.'); return; }
     const cur=[...new Set(list.map(r=>Number(r.price)||0))];
     const raw=prompt(`سعر المتر الجديد لـ «${sz.label}» — ${name}\n(${list.length} بون${from||to?' من '+(from?dmy(from):'الأول')+' لـ '+(to?dmy(to):'الآخر'):''})\nالسعر الحالي: ${cur.map(v=>nfmt(v)).join(' ، ')}`, cur.length===1&&cur[0]?cur[0]:'');
@@ -5954,7 +5957,7 @@ function csEditPrice(key){
     const multi=list.filter(r=>Object.values(r.q||{}).filter(v=>Number(v)>0).length>1).length;
     if(!confirm(`هيتغير سعر ${list.length} بون للعميل «${name}» (${sz.label}) لـ ${nfmt(pr)} للمتر.`+(multi?`\n⚠️ ${multi} بون منهم فيه أكتر من مقاس، والسعر بيتغير للبون كله.`:'')+(skip?`\n(${skip} بون مربوط بفاتورة مش هيتغير)`:'')+'\n\nتمام؟')) return;
     const before=list.reduce((a,r)=>a+(Number(bonValue(r))||0),0);
-    list.forEach(r=>{ r.price=pr; delete r.total; });
+    list.forEach(r=>csSetPrice(r, pr));
     const after=list.reduce((a,r)=>a+(Number(bonValue(r))||0),0);
     logAudit('update','تعديل سعر من كشف الحساب', `${name} — ${sz.label} — ${list.length} بون — ${nfmt(pr)}`, {total:before, prices:cur}, {total:after, price:pr, from, to});
     scheduleSave(); renderAll(); try{ renderAccountStatement(); }catch(e){}
