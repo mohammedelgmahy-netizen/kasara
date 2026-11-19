@@ -570,7 +570,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1139</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1140</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5817,11 +5817,12 @@ function csAddCube(html, x){ try{ const d=document.createElement('div'); d.inner
     const cubeOf=(tr,tl)=>{ const V=(db.vehicles||[]).find(v=>String(v.plate)===String(tr)); return [...new Set(bons.filter(r=>(r.tractor||'-')===tr && (r.trailer||'-')===tl).map(r=>String(r.cube||(V&&V.cube)||'').replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/[^0-9.]/g,'')).filter(Boolean))].map(v=>nfmt(Number(v))).join(' / '); };
     let started=false;
     [...tb.rows].forEach((row,i)=>{ const c=[...row.cells]; if(!c.length) return;
-        if(row===hr){ const n=document.createElement(c[1].tagName); n.setAttribute('style',c[1].getAttribute('style')||''); n.textContent='التكعيب'; c[1].after(n); started=true; return; }
+        if(row===hr){ const n=document.createElement(c[1].tagName); n.setAttribute('style',c[1].getAttribute('style')||''); n.textContent='التكعيب'; (c[2]||c[1]).after(n); started=true; return; }
         if(!started){ const w=c.find(t=>Number(t.getAttribute('colspan')||1)>1); if(w) w.setAttribute('colspan', Number(w.getAttribute('colspan'))+1); return; }
         const span=Number(c[0].getAttribute('colspan')||1);
+        if(span===2 && c[1]){ const n=document.createElement('td'); n.setAttribute('style',c[1].getAttribute('style')||''); c[1].after(n); return; } /* سطر الإجمالي: العدد تحت العدد والتكعيب فاضي */
         if(span>1){ c[0].setAttribute('colspan', span+1); return; }
-        if(c.length>=2){ const n=document.createElement('td'); n.setAttribute('style',c[1].getAttribute('style')||''); n.textContent=cubeOf(c[0].textContent.trim(), c[1].textContent.trim()); c[1].after(n); } });
+        if(c.length>=3){ const n=document.createElement('td'); n.setAttribute('style',c[2].getAttribute('style')||''); n.textContent=cubeOf(c[0].textContent.trim(), c[1].textContent.trim()); c[2].after(n); } });
     return d.innerHTML; }catch(e){ return html; } }
 function csLogo(){ return document.querySelector('link[rel=icon]')?.getAttribute('href')||''; }
 function csClosedTo(name){ const x=(db.clientStmts||[]).filter(x=>normName(x.name)===normName(name) && x.to).sort((a,b)=>b.to.localeCompare(a.to))[0]; return x?x.to:''; }
@@ -5843,11 +5844,11 @@ function clientSheetHtml0(name){
     const tbPct=(()=>{ const P=[...new Set(clientBons(name, D.from, D.to).filter(r=>Number((r.q||{}).tabaqa)>0).map(r=>Number(r.tabaqaPct)||50))].sort((a,b)=>a-b); return P.length?P.map(v=>v+'%').join(' / ')+' سن':''; })();
     /* محمد 2026-11-19: «عاوز تكعيب البونات في كشف الحساب» — تكعيب بونات كل عربية في الفترة */
     const cubeOf=c=>{ const V=(db.vehicles||[]).find(v=>String(v.plate)===String(c.tractor)); const S=[...new Set(clientBons(name, D.from, D.to).filter(r=>(r.tractor||'-')===c.tractor && (r.trailer||'-')===c.trailer).map(r=>String(r.cube||(V&&V.cube)||'').replace(/[^0-9.٠-٩]/g,'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d))).filter(Boolean))]; return S.map(v=>nfmt(Number(v))).join(' / '); };
-    const head=`<tr><th style="${B}">سيارة</th><th style="${B}">مقطورة</th><th style="${B}">التكعيب</th><th style="${B}">العدد</th>${sz.map(x=>`<th style="${B}">${esc(x.label)}${x.key==='tabaqa'&&tbPct?' '+tbPct:''}</th>`).join('')}</tr>`;
-    const rows=D.cars.map((c,ci)=>`<tr style="cursor:pointer" title="دوس لتعديل كميات بونات العربية" onclick="csCarBons(${ci})"><td style="${B}">${esc(c.tractor)}</td><td style="${B}">${esc(c.trailer)}</td><td style="${B}">${cubeOf(c)}</td><td style="${B}">${nfmt(c.n)}</td>${sz.map(x=>`<td style="${B}">${nb(c.q[x.key])}</td>`).join('')}</tr>`); /* محمد 2026-11-18: عدد نقلات كل صنف جنب كميته */
+    const head=`<tr><th style="${B}">سيارة</th><th style="${B}">مقطورة</th><th style="${B}">العدد</th><th style="${B}">التكعيب</th>${sz.map(x=>`<th style="${B}">${esc(x.label)}${x.key==='tabaqa'&&tbPct?' '+tbPct:''}</th>`).join('')}</tr>`;
+    const rows=D.cars.map((c,ci)=>`<tr style="cursor:pointer" title="دوس لتعديل كميات بونات العربية" onclick="csCarBons(${ci})"><td style="${B}">${esc(c.tractor)}</td><td style="${B}">${esc(c.trailer)}</td><td style="${B}">${nfmt(c.n)}</td><td style="${B}">${cubeOf(c)}</td>${sz.map(x=>`<td style="${B}">${nb(c.q[x.key])}</td>`).join('')}</tr>`); /* محمد 2026-11-18: عدد نقلات كل صنف جنب كميته */
     while(rows.length<4) rows.push(`<tr>${('<td style="'+B+'height:30px"></td>').repeat(4+sz.length)}</tr>`);
     /* محمد 2026-11-18: عدد عربيات كل صنف فوق إجمالي تكعيبه */
-    const totRow=`<tr style="font-weight:800"><td style="${B}" colspan="3">الإجمالي</td><td style="${B}">${D.n?nfmt(D.n):''}</td>${sz.map(x=>`<td style="${B}">${sz.length>1?n0(D.tot[x.key]):''}</td>`).join('')}</tr>`; /* محمد 2026-11-16: إجمالي كل عمود صنف لما يبقى فيه أكتر من صنف (صنف واحد = نفس «إجمالي الكميات») — وعمود «التكعيب» اتشال */
+    const totRow=`<tr style="font-weight:800"><td style="${B}" colspan="2">الإجمالي</td><td style="${B}">${D.n?nfmt(D.n):''}</td><td style="${B}"></td>${sz.map(x=>`<td style="${B}">${sz.length>1?n0(D.tot[x.key]):''}</td>`).join('')}</tr>`; /* محمد 2026-11-16: إجمالي كل عمود صنف لما يبقى فيه أكتر من صنف (صنف واحد = نفس «إجمالي الكميات») — وعمود «التكعيب» اتشال */
     const qAll=sz.reduce((t,x)=>t+(Number(D.tot[x.key])||0),0);
     const qtyRow=`<tr style="font-weight:800;background:#f1f5f9"><td style="${B}" colspan="4">إجمالي الكميات (متر)</td><td style="${B};font-size:1.1em" colspan="${sz.length||1}">${n0(qAll)}</td></tr>`;
     const priceRow=`<tr><td style="${B};font-weight:800" colspan="4">السعر</td>${sz.map(x=>D.tot[x.key]?(window.__csEditing?`<td style="${B};background:#fef9c3;padding:2px"><input class="csp-in" data-csp="${x.key}" data-orig="${Number(D.priceOf(x.key))||''}" type="number" step="any" min="0" value="${Number(D.priceOf(x.key))||''}" placeholder="السعر" oninput="csAmtLive(this)" style="width:90px;font-size:18px;font-weight:800;text-align:center;border:2px solid #16a34a;border-radius:4px;background:#fff;color:#000"></td>`:`<td style="${B}">${n0(D.priceOf(x.key))||'—'}</td>`):`<td style="${B}"></td>`).join('')}</tr>`;
