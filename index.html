@@ -570,7 +570,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1138</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1139</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5808,6 +5808,21 @@ function balSheetOpen(){ document.getElementById('bals-modal')?.remove(); const 
     m.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:14px;max-width:900px;width:100%;padding:14px"><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px"><b>من</b><input type="date" id="bals-from" value="${fr}" onchange="${rr}" style="border:1px solid #cbd5e1;border-radius:8px;padding:4px 8px"><b>إلى</b><input type="date" id="bals-date" value="${t}" onchange="${rr}" style="border:1px solid #cbd5e1;border-radius:8px;padding:4px 8px">
     <button onclick="shareCard('bals-body','أرصدة العملاء')" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">واتساب</button><button onclick="printHtml(document.getElementById('bals-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="document.getElementById('bals-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✕</button></div>
     <div id="bals-body" style="overflow-x:auto">${balSheetHtml(t, fr)}</div></div>`; document.body.appendChild(m); }
+/* محمد 2026-11-19: «عاوز التكعيب يظهر في كشوفات الحساب اللي حفظتها» — عمود التكعيب بيتضاف للكشف المحفوظ وقت العرض بس (الأرقام المحفوظة ما بتتغيرش) */
+function csAddCube(html, x){ try{ const d=document.createElement('div'); d.innerHTML=html;
+    const isHead=r=>/سيارة/.test(r.textContent) && /مقطورة/.test(r.textContent);
+    const tb=[...d.querySelectorAll('table')].find(t=>[...t.rows].some(isHead)); if(!tb) return html;
+    const hr=[...tb.rows].find(isHead); if(/التكعيب/.test(hr.textContent)) return html;
+    const bons=clientBons(x.name, x.from, x.to);
+    const cubeOf=(tr,tl)=>{ const V=(db.vehicles||[]).find(v=>String(v.plate)===String(tr)); return [...new Set(bons.filter(r=>(r.tractor||'-')===tr && (r.trailer||'-')===tl).map(r=>String(r.cube||(V&&V.cube)||'').replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/[^0-9.]/g,'')).filter(Boolean))].map(v=>nfmt(Number(v))).join(' / '); };
+    let started=false;
+    [...tb.rows].forEach((row,i)=>{ const c=[...row.cells]; if(!c.length) return;
+        if(row===hr){ const n=document.createElement(c[1].tagName); n.setAttribute('style',c[1].getAttribute('style')||''); n.textContent='التكعيب'; c[1].after(n); started=true; return; }
+        if(!started){ const w=c.find(t=>Number(t.getAttribute('colspan')||1)>1); if(w) w.setAttribute('colspan', Number(w.getAttribute('colspan'))+1); return; }
+        const span=Number(c[0].getAttribute('colspan')||1);
+        if(span>1){ c[0].setAttribute('colspan', span+1); return; }
+        if(c.length>=2){ const n=document.createElement('td'); n.setAttribute('style',c[1].getAttribute('style')||''); n.textContent=cubeOf(c[0].textContent.trim(), c[1].textContent.trim()); c[1].after(n); } });
+    return d.innerHTML; }catch(e){ return html; } }
 function csLogo(){ return document.querySelector('link[rel=icon]')?.getAttribute('href')||''; }
 function csClosedTo(name){ const x=(db.clientStmts||[]).filter(x=>normName(x.name)===normName(name) && x.to).sort((a,b)=>b.to.localeCompare(a.to))[0]; return x?x.to:''; }
 function getClientAccountRowsAll(name){
@@ -6068,7 +6083,7 @@ function renderClientStmts(){
 }
 function openClientStmtView(id){
     const x=(db.clientStmts||[]).find(r=>String(r.id)===String(id)); if(!x) return;
-    const body=(x.html && x.html.split('@@LOGO@@').join(csLogo())) || withAcctRange(x.from, x.to, ()=>clientSheetHtml(x.name)); /* الكشف المحفوظ بيتعرض زي ما اتحفظ */
+    const body=(x.html && csAddCube(x.html.split('@@LOGO@@').join(csLogo()), x)) || withAcctRange(x.from, x.to, ()=>clientSheetHtml(x.name)); /* الكشف المحفوظ بيتعرض زي ما اتحفظ */
     document.getElementById('cstv-modal')?.remove();
     const m=document.createElement('div'); m.id='cstv-modal';
     m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:12px';
