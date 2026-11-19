@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1147</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1148</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -2302,6 +2302,11 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
                 </div>
             </div>
             <label id="master-prepaid-wrap" class="hidden flex items-center gap-2 text-sm font-bold text-slate-700 bg-amber-50 border border-amber-200 rounded-lg p-2"><input id="master-prepaid" type="checkbox" class="w-4 h-4"> يدفع مقدم (مايسحبش أكتر من فلوسه)</label>
+            <div id="master-wa-wrap" class="hidden bg-green-50 border border-green-200 rounded-lg p-2 flex flex-col gap-2">
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">رقم موبايل العميل (واتساب)</label><input id="master-phone" type="tel" dir="ltr" placeholder="01xxxxxxxxx" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm"></div>
+                <label class="flex items-start gap-2 text-sm font-bold text-slate-800"><input id="master-wa-optin" type="checkbox" class="w-5 h-5 mt-0.5 shrink-0"><span id="master-wa-text"></span></label>
+                <div id="master-wa-state" class="text-xs font-bold text-slate-500"></div>
+            </div>
             <div id="master-cprices-wrap" class="hidden bg-emerald-50 border border-emerald-200 rounded-lg p-2">
                 <div class="text-sm font-bold text-slate-800 mb-2">💲 سعر المتر للعميل — بيتملى لوحده في البون (اللي تسيبه فاضي يتسجل من غير سعر)</div>
                 <div id="master-cprices" class="grid grid-cols-3 gap-2"></div>
@@ -3893,12 +3898,13 @@ function renderMasterData(){
     [...Object.keys(MASTER_META), 'persons'].forEach(cat=>{
         const dbCat = cat==='persons' ? 'names' : cat;
         const src = cat==='persons' ? (db.names||[]) : cat==='names' ? [] : (db[cat]||[]); // الأفراد = الموظفين (محمد 2026-11-08): قائمة واحدة
-        const items = [...src].filter(it=>!(cat==='expenses' && it.name==='إيراد')).filter(it=>!(cat==='clients' && clientHidden(it.name))).filter(it=>textMatch([it.name, it.code], term)).sort((a,b)=>a.code-b.code);
+        const items = [...src].filter(it=>!(cat==='expenses' && it.name==='إيراد')).filter(it=>!(cat==='clients' && clientHidden(it.name))).filter(it=>!(cat==='clients' && window.__waFilter && waStatusOf(it)!==window.__waFilter)).filter(it=>textMatch([it.name, it.code], term)).sort((a,b)=>a.code-b.code);
         const rowOf = it=>{
             let badge = '';
             let contractLine = '';
             if(cat==='contractors' && isCrusherCtr(it.name)) badge = `<span class="bg-teal-100 text-teal-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">معدات الكسارة</span>` + ((it.equips||[]).length?`<span class="bg-amber-50 text-amber-900 border border-amber-200 text-xs px-2 py-0.5 rounded-lg font-bold whitespace-normal inline-block">🔧 ${esc(it.equips.join('، '))}</span>`:'');
             else if(cat==='contractors') badge = `<span class="${it.sinOwner?'bg-amber-100 text-amber-800':'bg-sky-100 text-sky-800'} text-xs px-2 py-0.5 rounded-full font-bold shrink-0">${it.sinOwner?'صاحب سن':'معدة'}</span>` + (false?`<span class="bg-rose-100 text-rose-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">${nfmt(it.deductSin)} م قديم مش محسوب</span>`:'') + (it.done?`<span class="bg-rose-100 text-rose-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">⛔ متوقف</span>`:'')+(it.notStarted?`<span class="bg-slate-200 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">لسه مابدأش</span>`:it.startFrom?`<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">من ${dmy(it.startFrom)}</span>`:'') + `<span class="bg-sky-100 text-sky-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">${ctrKindLabel(it)}</span>` + ((it.equips||[]).length?`<span class="bg-amber-50 text-amber-900 border border-amber-200 text-xs px-2 py-0.5 rounded-lg font-bold whitespace-normal inline-block" style="min-width:180px">🚜 ${esc(it.equips.join('، '))}</span>`:'') + (isCrusherCtr(it.name)?'':`<span class="bg-violet-100 text-violet-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">${it.rate?nfmt(it.rate)+' ج/متر':'السعر بعدين'}</span>`);
+            if(cat==='clients'){ const ws=waStatusOf(it); badge = `<button type="button" onclick="waClientOpen(${it.code})" class="${WA_ST[ws][1]} text-xs px-2 py-0.5 rounded-full font-bold shrink-0" title="مجتمع الواتساب"><i class="fa-brands fa-whatsapp"></i> ${WA_ST[ws][0]}</button>`; }
             if(cat==='supplies') badge = `<span class="bg-slate-200 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">${it.unit}</span>`;
             if(cat==='expenses') badge = '';
             if(cat==='clients' && it.contractValue){
@@ -4000,7 +4006,7 @@ function renderMasterData(){
     const head = `<div class="flex items-center justify-between gap-2 mb-2"><div class="font-extrabold text-slate-900">${GROUPS.find(g=>g[0]===cur)[1]} ${cur==='expenses'?'المصروفات':cur==='persons'?'الأفراد':MASTER_META[cur].label}</div><button type="button" onclick="openAddMasterModal(); document.getElementById('master-type').value='${cur==='persons'?'names':cur}'; toggleMasterFields();" class="bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg text-sm font-bold">＋ إضافة</button></div>`;
     const content = catHtml[cur];
     if(cur==='fixedassets'){ container.innerHTML = bar + `<div class="bg-white border border-slate-200 rounded-xl p-3"><div class="font-extrabold text-slate-900 mb-2">🏗️ الأصول الثابتة</div>${content}</div>`; return; }
-    container.innerHTML = bar + `<div class="bg-white border border-slate-200 rounded-xl p-3">${head}${content}</div>`;
+    container.innerHTML = bar + `<div class="bg-white border border-slate-200 rounded-xl p-3">${head}${cur==='clients'?waFilterHtml():''}${content}</div>`;
 }
 /* الرصيد جنب كل بند في الدليل */
 function masterBal(cat, it){
@@ -4054,6 +4060,7 @@ function openAddMasterModal(){
     document.getElementById('master-modal-submit').textContent = 'تكويد وحفظ';
     document.getElementById('master-type').disabled = false;
     document.getElementById('master-name').value = '';
+    document.getElementById('master-phone').value = ''; document.getElementById('master-wa-optin').checked = false; document.getElementById('master-wa-state').textContent = '';
     document.getElementById('master-ctrkind').value = 'equip'; document.getElementById('master-autobill').checked = false; document.getElementById('master-ctr-equips').value = '';
     document.getElementById('master-notstarted').checked = false; document.getElementById('master-startfrom').value = '';
     document.getElementById('master-low-on').checked=false; document.getElementById('master-low-rate').value=''; document.getElementById('master-low-pct').value='';
@@ -4089,6 +4096,8 @@ function openEditMasterModal(cat, code){
         if(item.nameType) document.getElementById('master-name-type').value = item.nameType;
     }
     if(cat==='clients') document.getElementById('master-contract').value = item.contractValue || '';
+    document.getElementById('master-phone').value = cat==='clients' ? (item.phone||'') : ''; document.getElementById('master-wa-optin').checked = cat==='clients' && waConsentOk(item);
+    document.getElementById('master-wa-state').textContent = cat==='clients' ? 'الحالة دلوقتي: '+WA_ST[waStatusOf(item)][0] : '';
     document.getElementById('master-prepaid').checked = cat==='clients' && !!item.prepaid; cpricesFill(cat==='clients' ? (item.prices||{}) : {});
     document.getElementById('master-salary').value = cat==='names' ? (item.salary || '') : '';
     document.getElementById('master-rate').value = cat==='contractors' ? (item.rate || '') : '';
@@ -4166,6 +4175,7 @@ function toggleMasterFields(){
     document.getElementById('master-plbucket-wrap').classList.toggle('hidden', !(type==='expenses' && plType==='operating'));
     document.getElementById('master-contract-wrap').classList.toggle('hidden', !(type==='clients'));
     document.getElementById('master-prepaid-wrap').classList.toggle('hidden', !(type==='clients')); document.getElementById('master-cprices-wrap').classList.add('hidden');
+    document.getElementById('master-wa-wrap').classList.toggle('hidden', type!=='clients'); document.getElementById('master-wa-text').textContent = waConsentText();
     document.getElementById('master-salary-wrap').classList.toggle('hidden', type!=='names');
     document.getElementById('master-rate-wrap').classList.toggle('hidden', type!=='contractors'); try{ renderCtrEqQuick(); }catch(e){}
     document.getElementById('master-account-wrap')?.classList.toggle('hidden', type!=='accounts');
@@ -4268,6 +4278,16 @@ function saveMasterItem(e){
             const cv = Number(document.getElementById('master-contract').value);
             if(cv>0) item.contractValue = cv;
             if(document.getElementById('master-prepaid').checked) item.prepaid = true;
+            /* مجتمع الواتساب (محمد 2026-11-19): اختياري — الحفظ ماشي سواء وافق ولا لأ */
+            { const old = editCode ? (db.clients||[]).find(it=>it.code===Number(editCode)) : null;
+              if(old){ ['phone','waStatus','waAt','waLog'].forEach(k=>{ if(old[k]!==undefined) item[k]=old[k]; }); }
+              const ph=document.getElementById('master-phone').value.trim(); if(ph) item.phone=ph; else delete item.phone;
+              const on=document.getElementById('master-wa-optin').checked, st=waStatusOf(item);
+              const mark=(s)=>{ item.waStatus=s; item.waAt=new Date().toISOString(); item.waLog=[...(item.waLog||[]), {st:s, at:item.waAt, note:'من فورم العميل'}]; };
+              if(on && !waConsentOk(item)) mark('optin');
+              else if(!on && waConsentOk(item)) mark('withdrawn');
+              else if(!on && !old && st==='none') mark('declined');
+              window.__waAfterSave = (on && item.waStatus==='optin' && waPhoneIntl(item.phone) && waGroup()) ? item.code : null; }
 
         }
         const acts = [...document.querySelectorAll('.name-activity-check:checked')].map(cb=>cb.value);
@@ -4328,6 +4348,7 @@ function saveMasterItem(e){
         filterExpenseSubFields();
     }
     closeAddMasterModal();
+    if(type==='clients' && window.__waAfterSave){ const wc=window.__waAfterSave; window.__waAfterSave=null; if(confirm('العميل وافق على الانضمام لمجتمع الواتساب. أبعتله رسالة الدعوة دلوقتي؟')) waSendInvite(wc); }
 }
 
 /* تغيير الاسم في كل الحركات */
@@ -9702,8 +9723,52 @@ function addShareButtons(root){
 }
 document.addEventListener('DOMContentLoaded', ()=>{ try{ addShareButtons(); }catch(e){} });
 /* رابط جروب الواتساب — بيتحفظ مرة واحدة على الجهاز من الثلاث نقط، والبرنامج بيفتح الجروب لوحده بعد كده (محمد 2026-11-19). إعداد جهاز بس، مفيش بيانات */
-const WA_GROUP_KEY='kasara-wa-group';
-function waGroup(){ try{ return localStorage.getItem(WA_GROUP_KEY)||''; }catch(e){ return ''; } }
+const WA_GROUP_KEY='kasara-wa-group', WA_GROUP_DEF='https://chat.whatsapp.com/IkHhFcQFRC9GjXct8LUrgo'; /* الرابط اللي بعته محمد 2026-11-19 */
+function waGroup(){ try{ const v=localStorage.getItem(WA_GROUP_KEY); return v===null ? WA_GROUP_DEF : v; }catch(e){ return WA_GROUP_DEF; } }
+/* نص الموافقة ونص الدعوة — بيتعدلوا من الثلاث نقط ← رابط جروب الواتساب (محمد 2026-11-19) */
+const WA_CONSENT_KEY='kasara-wa-consent', WA_INVITE_KEY='kasara-wa-invite';
+const WA_CONSENT_DEF='أوافق على الانضمام إلى مجتمع WhatsApp الخاص بالمحل واستقبال العروض والخصومات والتحديثات الحصرية من خلاله.';
+const WA_INVITE_DEF='أهلاً {الاسم} 👋\nانضم لمجتمع -Mobily على واتساب عشان توصلك العروض أول بأول:\n{الرابط}\n\n-Mobily – 01000840969';
+function waLsGet(k,d){ try{ const v=localStorage.getItem(k); return v ? v : d; }catch(e){ return d; } }
+function waConsentText(){ return waLsGet(WA_CONSENT_KEY, WA_CONSENT_DEF); }
+function waInviteText(){ return waLsGet(WA_INVITE_KEY, WA_INVITE_DEF); }
+/* حالة العميل في مجتمع الواتساب: optin وافق، sent الدعوة اتبعتت، joined انضم، declined ما وافقش، withdrawn سحب موافقته. من غير حالة = عميل قديم ما اتسألش */
+const WA_ST={optin:['وافق على الانضمام','bg-sky-100 text-sky-800'],sent:['الدعوة اتبعتت','bg-amber-100 text-amber-800'],joined:['انضم','bg-emerald-100 text-emerald-800'],declined:['ما وافقش','bg-slate-200 text-slate-600'],withdrawn:['سحب موافقته','bg-rose-100 text-rose-800'],none:['ما اتسألش','bg-slate-100 text-slate-500']};
+function waStatusOf(c){ return (c && WA_ST[c.waStatus]) ? c.waStatus : 'none'; }
+function waConsentOk(c){ return ['optin','sent','joined'].includes(waStatusOf(c)); }
+function waPhoneIntl(ph){ let d=String(ph||'').replace(/[^0-9]/g,''); if(d.startsWith('00')) d=d.slice(2); if(/^0\d{10}$/.test(d)) d='2'+d; return d.length>=10 ? d : ''; }
+function waSetStatus(c, st, note){ const before={waStatus:c.waStatus||null}; c.waStatus=st; c.waAt=new Date().toISOString(); (c.waLog=c.waLog||[]).push({st, at:c.waAt, note:note||''}); logAudit('update','مجتمع الواتساب',c.name,before,{waStatus:st}); }
+function waSendInvite(code){ const c=(db.clients||[]).find(x=>x.code===Number(code)); if(!c) return;
+    if(!waConsentOk(c)){ alert('العميل ده ما وافقش على الانضمام — مش هتتبعت له دعوة.'); return; }
+    const ph=waPhoneIntl(c.phone); if(!ph){ alert('اكتب رقم موبايل العميل الأول (تعديل العميل في دليل الأكواد).'); return; }
+    const g=waGroup(); if(!g){ alert('حط رابط مجتمع الواتساب الأول من الثلاث نقط ← رابط جروب الواتساب.'); return; }
+    const txt=waInviteText().replace(/\{الاسم\}/g,c.name).replace(/\{الرابط\}/g,g);
+    waOpenUrl('https://wa.me/'+ph+'?text='+encodeURIComponent(txt));
+    if(waStatusOf(c)!=='joined') waSetStatus(c,'sent','دعوة على '+ph);
+    scheduleSave(); try{ renderMasterData(); }catch(e){} document.getElementById('waclient')?.remove(); }
+function waClientSet(code, st){ const c=(db.clients||[]).find(x=>x.code===Number(code)); if(!c) return;
+    if(st==='withdrawn' && !confirm('تسحب موافقة '+c.name+'؟ مش هتتبعت له دعوات ولا رسايل تاني.')) return;
+    waSetStatus(c, st); scheduleSave(); try{ renderMasterData(); }catch(e){} document.getElementById('waclient')?.remove(); }
+function waClientOpen(code){ const c=(db.clients||[]).find(x=>x.code===Number(code)); if(!c) return; document.getElementById('waclient')?.remove();
+    const st=waStatusOf(c), ok=waConsentOk(c), b=(fn,lbl,bg,fg)=>`<button type="button" onclick="${fn}" style="flex:1;min-width:140px;padding:11px;font-size:15px;font-weight:800;border:none;border-radius:10px;background:${bg};color:${fg}">${lbl}</button>`;
+    const log=(c.waLog||[]).slice(-5).reverse().map(l=>`<div>• ${esc((WA_ST[l.st]||[''])[0])} — ${esc(dmy(String(l.at).slice(0,10)))}</div>`).join('');
+    const m=document.createElement('div'); m.id='waclient'; m.dir='rtl'; m.onclick=e=>{ if(e.target===m) m.remove(); };
+    m.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:14px';
+    m.innerHTML=`<div style="background:#fff;max-width:460px;width:100%;padding:18px;border-radius:14px">
+      <div style="font-weight:800;font-size:18px"><i class="fa-brands fa-whatsapp" style="color:#16a34a"></i> مجتمع الواتساب — ${esc(c.name)}</div>
+      <div style="margin:8px 0;font-size:15px">الحالة: <b>${esc(WA_ST[st][0])}</b> · الموبايل: <b dir="ltr">${esc(c.phone||'—')}</b></div>
+      ${log?`<div style="font-size:13px;color:#475569;margin-bottom:8px">${log}</div>`:''}
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${ok&&st!=='joined'?b(`waSendInvite(${c.code})`,(st==='sent'?'ابعت الدعوة تاني':'ابعت الدعوة'),'#16a34a','#fff'):''}
+        ${ok&&st!=='joined'?b(`waClientSet(${c.code},'joined')`,'انضم ✓','#d1fae5','#065f46'):''}
+        ${ok?b(`waClientSet(${c.code},'withdrawn')`,'سحب الموافقة','#fee2e2','#b91c1c'):''}
+        ${!ok?b(`waClientSet(${c.code},'optin')`,'العميل وافق','#e0f2fe','#075985'):''}
+        ${!ok&&st!=='declined'?b(`waClientSet(${c.code},'declined')`,'ما وافقش','#f1f5f9','#334155'):''}
+        ${b(`document.getElementById('waclient').remove()`,'إغلاق','#e2e8f0','#0f172a')}
+      </div></div>`;
+    document.body.appendChild(m); }
+function waFilterHtml(){ const f=window.__waFilter||''; const n=k=>(db.clients||[]).filter(c=>!clientHidden(c.name)&&waStatusOf(c)===k).length;
+    return `<div class="flex items-center gap-2 mb-2 text-sm"><span class="font-bold text-slate-700"><i class="fa-brands fa-whatsapp text-green-600"></i> مجتمع الواتساب:</span><select onchange="window.__waFilter=this.value; renderMasterData()" class="border border-slate-300 rounded-lg p-1.5 text-sm font-bold"><option value="">كل العملاء</option>${Object.keys(WA_ST).map(k=>`<option value="${k}" ${f===k?'selected':''}>${WA_ST[k][0]} (${n(k)})</option>`).join('')}</select></div>`; }
 function waOpenUrl(u){ const a=document.createElement('a'); a.href=u; a.target='_blank'; a.rel='noopener'; document.body.appendChild(a); a.click(); a.remove(); }
 function waOpenGroup(){ const g=waGroup(); if(g) waOpenUrl(g); return !!g; }
 function waNote(msg){ const d=document.createElement('div'); d.dir='rtl'; d.textContent=msg; d.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:100000;background:#166534;color:#fff;font-weight:800;font-size:16px;padding:12px 18px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:90vw;text-align:center'; document.body.appendChild(d); setTimeout(()=>d.remove(),4500); }
@@ -9716,8 +9781,10 @@ function waGroupOpen(){ document.getElementById('wagrp')?.remove(); const cur=wa
     m.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:14px';
     m.innerHTML=`<div style="background:#fff;max-width:480px;width:100%;padding:18px;border-radius:14px">
       <div style="font-weight:800;font-size:19px;margin-bottom:6px"><i class="fa-brands fa-whatsapp" style="color:#16a34a"></i> رابط جروب الواتساب</div>
-      <div style="color:#475569;font-size:14px;margin-bottom:10px">الصق رابط دعوة الجروب مرة واحدة. بعد كده زرار «افتح جروب الواتساب» بيظهر في شاشة الإرسال، والرسايل المكتوبة بتتنسخ والجروب بيتفتح لوحده.</div>
+      <div style="color:#475569;font-size:14px;margin-bottom:10px">الصق رابط دعوة الجروب أو المجتمع مرة واحدة. بعد كده زرار «افتح جروب الواتساب» بيظهر في شاشة الإرسال، والرسايل المكتوبة بتتنسخ والجروب بيتفتح لوحده.</div>
       <input id="wagrp-in" type="url" dir="ltr" placeholder="https://chat.whatsapp.com/..." value="${esc(cur)}" style="width:100%;padding:10px;font-size:16px;border:1px solid #94a3b8;border-radius:8px">
+      <label style="display:block;font-weight:700;font-size:14px;margin-top:10px">نص الموافقة اللي بيظهر للعميل في التسجيل<textarea id="wagrp-consent" rows="3" style="width:100%;padding:8px;font-size:15px;border:1px solid #94a3b8;border-radius:8px;margin-top:4px">${esc(waConsentText())}</textarea></label>
+      <label style="display:block;font-weight:700;font-size:14px;margin-top:8px">رسالة الدعوة للعميل ({الاسم} = اسم العميل، {الرابط} = رابط المجتمع)<textarea id="wagrp-invite" rows="5" style="width:100%;padding:8px;font-size:15px;border:1px solid #94a3b8;border-radius:8px;margin-top:4px">${esc(waInviteText())}</textarea></label>
       <div id="wagrp-msg" style="min-height:20px;font-size:14px;font-weight:700;margin-top:6px"></div>
       <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
         <button type="button" onclick="waGroupSave()" style="flex:2;padding:11px;font-size:16px;font-weight:800;color:#fff;background:#16a34a;border:none;border-radius:10px">حفظ</button>
@@ -9726,10 +9793,11 @@ function waGroupOpen(){ document.getElementById('wagrp')?.remove(); const cur=wa
       </div></div>`;
     document.body.appendChild(m); }
 function waGroupSave(clear){ const msg=document.getElementById('wagrp-msg');
-    if(clear){ try{ localStorage.removeItem(WA_GROUP_KEY); }catch(e){} document.getElementById('wagrp')?.remove(); waNote('رابط الجروب اتمسح'); return; }
+    if(clear){ try{ localStorage.setItem(WA_GROUP_KEY,''); }catch(e){} document.getElementById('wagrp')?.remove(); waNote('رابط الجروب اتمسح'); return; }
     let v=(document.getElementById('wagrp-in').value||'').trim(); const mm=v.match(/https?:\/\/\S+/); if(mm) v=mm[0];
     if(!/^https?:\/\/([a-z0-9-]+\.)*(whatsapp\.com|wa\.me)\//i.test(v)){ msg.style.color='#b91c1c'; msg.textContent='ده مش رابط واتساب — لازم يبدأ بـ https://chat.whatsapp.com/'; return; }
-    try{ localStorage.setItem(WA_GROUP_KEY, v); }catch(e){ msg.style.color='#b91c1c'; msg.textContent='مقدرتش أحفظ على الجهاز ده'; return; }
+    try{ localStorage.setItem(WA_GROUP_KEY, v); const ct=(document.getElementById('wagrp-consent').value||'').trim(), it=(document.getElementById('wagrp-invite').value||'').trim();
+        localStorage.setItem(WA_CONSENT_KEY, ct||WA_CONSENT_DEF); localStorage.setItem(WA_INVITE_KEY, it||WA_INVITE_DEF); }catch(e){ msg.style.color='#b91c1c'; msg.textContent='مقدرتش أحفظ على الجهاز ده'; return; }
     document.getElementById('wagrp')?.remove(); waNote('رابط الجروب اتحفظ ✓'); }
 function waSig(t){ return String(t==null?'':t).replace(/معلق عماد ناجي/g,'المعلق'); } /* محمد 2026-11-16: من غير إمضا */ // الإمضا تحت أي رسالة واتس (محمد 2026-11-10)
 function shareCard(id, title){ const el=document.getElementById(id); if(!el) return; shareImagesModal(title, elementToFile(el, title)); }
@@ -12670,7 +12738,7 @@ function printCardEl(card){
 })();
 </script>
 <script>
-const SW_KEEP='kasara-v5'; /* لازم يساوي VER في sw.js — أي كاش برنامج باسم تاني بيتمسح من الجهاز، وأي service worker قديم بيتحدث (محمد 2026-11-13). مفيش بيانات بتتمس */
+const SW_KEEP='kasara-v6'; /* لازم يساوي VER في sw.js — أي كاش برنامج باسم تاني بيتمسح من الجهاز، وأي service worker قديم بيتحدث (محمد 2026-11-13). مفيش بيانات بتتمس */
 if('serviceWorker' in navigator && /^https?:/.test(location.protocol)){ window.addEventListener('load',async()=>{
     try{ const ks=await caches.keys(); await Promise.all(ks.filter(k=>!k.startsWith(SW_KEEP+'-')).map(k=>caches.delete(k))); }catch(e){}
     try{ const rs=await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.filter(r=>!/\/sw\.js$/.test((r.active||r.waiting||r.installing||{}).scriptURL||'')).map(r=>r.unregister())); }catch(e){}
