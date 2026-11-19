@@ -570,7 +570,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1140</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1141</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3487,6 +3487,11 @@ const todayISO = () => new Date().toISOString().slice(0,10);
 /* محمد 2026-11-17: تحت كل حركة يتكتب من أنهي خزنة «الدرج» أو «البنك» */
 /* محمد 2026-11-17: السجلات بترتيب التسجيل — الأيام الأحدث فوق، وجوه اليوم الحركات بالترتيب اللي اتسجلت بيه (الأول فوق) */
 function regOrder(a,b){ const t=x=>{ const v=x&&x._at; return typeof v==='number'?new Date(v).toISOString():String(v||''); }; return String(b.date||'').localeCompare(String(a.date||'')) || t(a).localeCompare(t(b)) || String(a.id).localeCompare(String(b.id),undefined,{numeric:true}); }
+/* محمد 2026-11-19: سجلات التسجيل (مصروفات، إيرادات، تحصيلات، سلف، صرف مخزون، تحويلات): شريط فاصل لكل يوم زي شريط الأسبوع،
+   والترتيب ثابت: اليوم الأحدث فوق، وجوه اليوم آخر حاجة اتسجلت فوق (بوقت التسجيل الأصلي _at — التعديل بيحافظ عليه). عرض بس */
+function regAtKey(x){ const v=x&&x._at; return typeof v==='number'?new Date(v).toISOString():String(v||''); }
+function regSortDesc(L, src){ const pos=new Map((src||L).map((x,i)=>[x,i])); return L.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')) || regAtKey(b).localeCompare(regAtKey(a)) || ((pos.get(b)??-1)-(pos.get(a)??-1))); }
+function dayBarMaker(cols){ let last=null; return date=>{ const d=String(date||''); if(d===last) return ''; last=d; return `<tr class="day-bar bg-cyan-100"><td colspan="${cols}" class="px-2 py-1 font-extrabold text-slate-800 text-xs">📅 ${d?(dayNameAr(d)+' '+dmy(d)):'من غير تاريخ'}</td></tr>`; }; }
 function accShort(n){ n=n||((db.accounts&&db.accounts[0]&&db.accounts[0].name)||''); return /درج/.test(n) ? 'الدرج' : (catLabel(n)==='البنك' ? 'البنك' : n); }
 function catLabel(n){ return n==='مقاولين' ? 'أصحاب المعدات' : n==='معلق عماد ناجي' ? 'البنك' : n; } // اسم العرض بس، البيانات زي ما هي
 /* محمد 2026-11-13: عملاء «اتشالوا من البرنامج» — إخفاء من القوايم بس، حركاتهم وأرصدتهم محسوبة زي ما هي */
@@ -4985,11 +4990,11 @@ function renderCollectionsLog(){
         if(!Number(x.paid)) return false;   // بونات آجل (مفيهاش تحصيل) مش تحصيلات — والرد (سالب) بيظهر
         if(fc!=='ALL' && fc && x.name!==fc) return false;
         return true;
-    }).slice().map((x,i)=>[x,i]).sort((A,B)=>{ const ka=A[0]._at||'', kb=B[0]._at||''; return kb.localeCompare(ka) || B[1]-A[1]; }).map(p=>p[0]) /* آخر حاجة اتسجلت فوق (محمد 2026-11-13) */;
+    }); const rows2 = regSortDesc(rows, db.expensesData); rows.length=0; rows.push(...rows2); const dbar=dayBarMaker(5) /* اليوم الأحدث فوق وجوه اليوم آخر حاجة اتسجلت فوق (محمد 2026-11-13/19) */;
     const totalPaid = rows.reduce((s,x)=>s+x.paid,0);
     const tbody = document.getElementById('tbody-collections');
     if(!tbody) return;
-    tbody.innerHTML = rows.map(x=>`
+    tbody.innerHTML = rows.map(x=>`${dbar(x.date)}
         <tr class="border-b border-slate-50 hover:bg-slate-50">
             <td class="p-3">${esc(x.name)}</td>
             <td class="p-3 font-bold ${x.paid<0?'text-rose-700':'text-cyan-700'}">${fmt(x.paid)}${x.paid<0?' <span class="text-xs">(رد للعميل)</span>':''}</td>
@@ -5044,12 +5049,12 @@ function renderExpensesTable(){
         if(fFrom && x.date < fFrom) return false;
         if(fTo && x.date > fTo) return false;
         return true;
-    }).slice().sort(regOrder);
+    }); const rows2 = regSortDesc(rows, db.expensesData); rows.length=0; rows.push(...rows2); const dbar=dayBarMaker(7);
 
     const totalPaid = rows.reduce((s,x)=>s+x.paid,0);
     const totalDebt = rows.reduce((s,x)=>s+(x.remaining||0),0);
     document.getElementById('tbody-expenses').innerHTML =
-        rows.map(x=>`
+        rows.map(x=>`${dbar(x.date)}
         <tr class="border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onclick="if(!event.target.closest('button')) this.nextElementSibling.classList.toggle('hidden')">
             <td class="p-3">${esc(catLabel(x.category))}</td>
             <td class="p-3">${esc(x.name)}</td>
@@ -7285,16 +7290,16 @@ function renderStockIssues(){
     const fi = document.getElementById('filter-stock-item')?.value || 'ALL';
     const fn = document.getElementById('filter-stock-name')?.value || 'ALL';
     const typeCode = t => t==='asset' ? 'a' : t==='vehicle' ? 'v' : t==='contractor' ? 'c' : 'p';
-    const rows = [...db.stockIssues].reverse().filter(x=>
+    const rows = regSortDesc(db.stockIssues.filter(x=>
         (fi==='ALL'||x.item===fi) &&
         (fn==='ALL' || `${typeCode(x.recipientType)}::${x.name}`===fn)
-    );
+    ), db.stockIssues); const dbar=dayBarMaker(7);
     let grandTotal = 0;
     tbody.innerHTML = rows.length
         ? rows.map(x=>{
             const value = x.qty * stockIssuePrice(x);
             grandTotal += value;
-            return `<tr class="border-b border-slate-50 hover:bg-slate-50">
+            return `${dbar(x.date)}<tr class="border-b border-slate-50 hover:bg-slate-50">
             <td class="p-3 font-bold">${esc(x.item)}</td>
             <td class="p-3">${x.qty.toLocaleString('ar-EG')} ${esc(x.unit||'')}</td>
             <td class="p-3 text-teal-700">${fmt(value)}</td>
@@ -7619,8 +7624,8 @@ function renderIncomes(){
     const as=g('inc-account'); const pv=as.value; fillSelect('inc-account', db.accounts||[]); as.value = pv || SARI_ACC; if(!as.value && as.options.length) as.selectedIndex=0;
     if(!g('inc-date').value) g('inc-date').value=todayISO();
     /* محمد 2026-11-13: إيرادات الفترة قبل 11/11 بند واحد في قائمة الدخل ومش بتظهر في السجل ده (عرض بس) */
-    const L=(db.incomes||[]).filter(x=>(x.date||'')>INC_OLD_CUT).sort(regOrder);
-    g('tbody-inc').innerHTML = L.length ? L.map(x=>`<tr class="border-b border-slate-50"><td class="p-2 text-xs">${dmy(x.date)}</td><td class="p-2 font-bold">${esc(x.type)}</td><td class="p-2">${esc(x.notes||'')}</td><td class="p-2 text-teal-700">${esc(x.account||'')}</td><td class="p-2 font-extrabold text-emerald-700">${mfmt(x.amount)}</td><td class="p-2"><button onclick="deleteIncome('${x.id}')" class="text-red-500">🗑</button></td></tr>`).join('')
+    const L=regSortDesc((db.incomes||[]).filter(x=>(x.date||'')>INC_OLD_CUT), db.incomes||[]); const dbar=dayBarMaker(6);
+    g('tbody-inc').innerHTML = L.length ? L.map(x=>`${dbar(x.date)}<tr class="border-b border-slate-50"><td class="p-2 text-xs">${dmy(x.date)}</td><td class="p-2 font-bold">${esc(x.type)}</td><td class="p-2">${esc(x.notes||'')}</td><td class="p-2 text-teal-700">${esc(x.account||'')}</td><td class="p-2 font-extrabold text-emerald-700">${mfmt(x.amount)}</td><td class="p-2"><button onclick="deleteIncome('${x.id}')" class="text-red-500">🗑</button></td></tr>`).join('')
         + `<tr class="bg-slate-50 font-extrabold"><td class="p-2" colspan="4">الإجمالي</td><td class="p-2 text-emerald-700">${mfmt(L.reduce((a,x)=>a+(Number(x.amount)||0),0))}</td><td></td></tr>` : '<tr><td colspan="6" class="p-3 text-center text-slate-400">—</td></tr>';
 }
 function addIncomeType(){
@@ -7666,8 +7671,8 @@ function renderAdvRecent(){
     /* بعد تسجيل صرف المرتبات (بند الأجور والمرتبات من غير اسم = الكل، أو راتب باسم موظف = هو بس) السلف اللي قبله بتختفي من القايمة دي بس — الحركات نفسها زي ما هي في الحسابات (محمد 2026-11-13) */
     const E=db.expensesData||[]; let cutAll=-1; const cutBy={};
     E.forEach((x,i)=>{ if(!x || !Number(x.paid)) return; if(x.category===SAL_CAT && x.name){ cutBy[x.name]=i; return; } if(!x.name && /أجور|اجور|مرتب|رواتب/.test(x.category||'')) cutAll=i; });
-    const L=E.map((x,i)=>[x,i]).filter(p=>isAdvRec(p[0]) && (p[0].date||'').startsWith(m) && p[1]>cutAll && !(cutBy[p[0].name]>p[1])).sort((A,B)=>String(B[0]._at||'').localeCompare(String(A[0]._at||'')) || B[1]-A[1]).map(p=>p[0]);
-    tb.innerHTML = L.length ? L.map(x=>`<tr class="border-b border-slate-100"><td class="p-3 font-bold">${esc(x.name)}</td><td class="p-3 font-bold text-rose-700">${fmt(x.paid)}</td><td class="p-3">${esc(x.date||'')}</td><td class="p-3">${esc(x.notes||'')}</td><td class="p-3 whitespace-nowrap">${x.category===ADV_CAT?advBtns(x):`<button onclick="startEdit('exp', ${x.id})" class="text-blue-500 ml-3" title="تعديل">✏️</button><button onclick="deleteByRef('exp', ${x.id})" style="color:#dc2626" title="حذف"><i class="fa-solid fa-trash"></i></button>`}</td></tr>`).join('') : '<tr><td colspan="5" class="p-4 text-center text-slate-400">مفيش سلف مفتوحة</td></tr>';
+    const L=E.map((x,i)=>[x,i]).filter(p=>isAdvRec(p[0]) && (p[0].date||'').startsWith(m) && p[1]>cutAll && !(cutBy[p[0].name]>p[1])).map(p=>p[0]); const L2=regSortDesc(L, E); L.length=0; L.push(...L2); const dbar=dayBarMaker(5);
+    tb.innerHTML = L.length ? L.map(x=>`${dbar(x.date)}<tr class="border-b border-slate-100"><td class="p-3 font-bold">${esc(x.name)}</td><td class="p-3 font-bold text-rose-700">${fmt(x.paid)}</td><td class="p-3">${esc(x.date||'')}</td><td class="p-3">${esc(x.notes||'')}</td><td class="p-3 whitespace-nowrap">${x.category===ADV_CAT?advBtns(x):`<button onclick="startEdit('exp', ${x.id})" class="text-blue-500 ml-3" title="تعديل">✏️</button><button onclick="deleteByRef('exp', ${x.id})" style="color:#dc2626" title="حذف"><i class="fa-solid fa-trash"></i></button>`}</td></tr>`).join('') : '<tr><td colspan="5" class="p-4 text-center text-slate-400">مفيش سلف مفتوحة</td></tr>';
 }
 /* تحت تسجيل السلفة: كل موظف مرتبه كام وواخد كام وفاضل كام (الشهر الحالي، نفس حساب كشف الرواتب) — محمد 2026-11-12 */
 function renderAdvSummary(){
@@ -10392,7 +10397,7 @@ function renderTransfers(){
     const f = document.getElementById('xfer-from'), t = document.getElementById('xfer-to');
     if(f.value===t.value && t.options.length>1) t.selectedIndex = f.selectedIndex===0 ? 1 : 0;
     if(!document.getElementById('xfer-date').value) document.getElementById('xfer-date').value = todayISO();
-    body.innerHTML = (db.cashTransfers||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(x=>`<tr class="border-b border-slate-50 hover:bg-slate-50">
+    const dbar=dayBarMaker(6); body.innerHTML = regSortDesc(db.cashTransfers||[]).map(x=>`${dbar(x.date)}<tr class="border-b border-slate-50 hover:bg-slate-50">
         <td class="p-2 text-xs text-slate-500">${dmy(x.date)}</td><td class="p-2">${esc(x.from)}</td><td class="p-2">${esc(x.to)}</td>
         <td class="p-2 font-bold">${mfmt(x.amount)}</td><td class="p-2 text-slate-500">${esc(x.notes||'')}</td>
         <td class="p-2"><button onclick="startEdit('xfer', ${x.id})" class="text-blue-500 hover:text-blue-700 text-xs ml-2" title="تعديل">✏️</button><button onclick="deleteCashTransfer(${x.id})" class="text-red-400 hover:text-red-600 text-xs">🗑</button></td></tr>`).join('')
