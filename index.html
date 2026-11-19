@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1146</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1147</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -7977,7 +7977,7 @@ function waAllSuppliersStmt(){
     const txt = [`📒 ${siteName()} — إجمالي حساب موردي قطع الغيار والسولار`, allSuppliersPeriodLbl(from,to), '',
         ...rows.map(r=>`• ${r.name}: مشتريات ${mfmt(r.buy)} — مدفوع ${mfmt(r.paid)} — الباقي ${mfmt(r.closing)}`), '',
         `رصيد أول المدة: ${mfmt(T.opening)} ج.م`, `إجمالي المشتريات: ${mfmt(T.buy)} ج.م`, `إجمالي المدفوع: ${mfmt(T.paid)} ج.م`, `إجمالي الباقي لموردي قطع الغيار والسولار: ${mfmt(T.closing)} ج.م`].join('\n');
-    const a = document.createElement('a'); a.href = 'https://wa.me/?text='+encodeURIComponent(waSig(txt)); a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove();
+    waSendText(txt);
 }
 
 /* ================= مستخلصات المعدات + كشف السولار ================= */
@@ -9301,11 +9301,11 @@ async function shareViaWhatsApp(day){
     m.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:16px;max-width:380px;width:100%;padding:18px;text-align:center">
         <div style="font-weight:800;font-size:17px;margin-bottom:10px">تقرير يوم ${dmy(d)}</div>
         <div id="wa-status" style="color:#475569;font-size:14px;margin-bottom:14px">بجهّز الصور...</div>
-        <button id="wa-send" disabled style="width:100%;background:#25D366;color:#fff;font-weight:800;font-size:16px;padding:13px;border-radius:12px;opacity:.5"><i class="fa-brands fa-whatsapp"></i> ابعت</button>
+        <button id="wa-send" disabled style="width:100%;background:#25D366;color:#fff;font-weight:800;font-size:16px;padding:13px;border-radius:12px;opacity:.5"><i class="fa-brands fa-whatsapp"></i> ابعت</button>${waGroupBtnHtml()}
         <button onclick="document.getElementById('wa-modal').remove()" style="margin-top:8px;color:#64748b;font-weight:700;padding:6px">إلغاء</button>
     </div>`;
     document.body.appendChild(m);
-    const openText=()=>{ const w=document.createElement('a'); w.href='https://wa.me/?text='+encodeURIComponent(waSig(txt)); w.target='_blank'; w.rel='noopener'; document.body.appendChild(w); w.click(); w.remove(); };
+    const openText=()=>waSendText(txt);
     let files=[]; try{ files = await reportImageFiles(d); }catch(e){ console.warn('report images', e); }
     const st=document.getElementById('wa-status'), btn=document.getElementById('wa-send'); if(!st) return;
     const canFiles = files.length && navigator.canShare && navigator.canShare({files});
@@ -9315,7 +9315,7 @@ async function shareViaWhatsApp(day){
         if(canFiles){
             try{ await navigator.share({files}); m.remove(); return; }catch(e){ if(e && e.name==='AbortError') return; }
         }
-        if(files.length){ files.forEach(f=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(f); a.download=f.name; document.body.appendChild(a); a.click(); a.remove(); }); st.textContent='الصور اتنزلت — ابعتها من واتساب.'; }
+        if(files.length){ files.forEach(f=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(f); a.download=f.name; document.body.appendChild(a); a.click(); a.remove(); }); st.textContent='الصور اتنزلت — ابعتها من واتساب.'; if(waOpenGroup()) st.textContent='الصور اتنزلت والجروب اتفتح — ابعتها فيه.'; }
         else m.remove();
     };
 }
@@ -9652,7 +9652,7 @@ function shareImagesModal(title, filesPromise){
     m.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:16px;max-width:380px;width:100%;padding:18px;text-align:center">
         <div style="font-weight:800;font-size:17px;margin-bottom:10px">${esc(title)}</div>
         <div id="wa-status" style="color:#475569;font-size:14px;margin-bottom:14px">بجهّز الصورة...</div>
-        <button id="wa-send" disabled style="width:100%;background:#25D366;color:#fff;font-weight:800;font-size:16px;padding:13px;border-radius:12px;opacity:.5"><i class="fa-brands fa-whatsapp"></i> ابعت</button>
+        <button id="wa-send" disabled style="width:100%;background:#25D366;color:#fff;font-weight:800;font-size:16px;padding:13px;border-radius:12px;opacity:.5"><i class="fa-brands fa-whatsapp"></i> ابعت</button>${waGroupBtnHtml()}
         <button onclick="document.getElementById('wa-modal').remove()" style="margin-top:8px;color:#64748b;font-weight:700;padding:6px">إلغاء</button></div>`;
     document.body.appendChild(m);
     Promise.resolve(filesPromise).then(f=>[].concat(f||[])).catch(e=>{ console.warn(e); return []; }).then(files=>{
@@ -9662,7 +9662,7 @@ function shareImagesModal(title, filesPromise){
         btn.disabled=false; btn.style.opacity='1';
         btn.onclick=async()=>{
             if(canFiles){ try{ await navigator.share({files}); m.remove(); return; }catch(e){ if(e && e.name==='AbortError') return; } }
-            if(files.length){ files.forEach(f=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(f); a.download=f.name; document.body.appendChild(a); a.click(); a.remove(); }); st.textContent='الصورة اتنزلت — ابعتها من واتساب.'; }
+            if(files.length){ files.forEach(f=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(f); a.download=f.name; document.body.appendChild(a); a.click(); a.remove(); }); st.textContent='الصورة اتنزلت — ابعتها من واتساب.'; if(waOpenGroup()) st.textContent='الصورة اتنزلت والجروب اتفتح — ابعتها فيه.'; }
             else m.remove();
         };
     });
@@ -9701,6 +9701,36 @@ function addShareButtons(root){
     });
 }
 document.addEventListener('DOMContentLoaded', ()=>{ try{ addShareButtons(); }catch(e){} });
+/* رابط جروب الواتساب — بيتحفظ مرة واحدة على الجهاز من الثلاث نقط، والبرنامج بيفتح الجروب لوحده بعد كده (محمد 2026-11-19). إعداد جهاز بس، مفيش بيانات */
+const WA_GROUP_KEY='kasara-wa-group';
+function waGroup(){ try{ return localStorage.getItem(WA_GROUP_KEY)||''; }catch(e){ return ''; } }
+function waOpenUrl(u){ const a=document.createElement('a'); a.href=u; a.target='_blank'; a.rel='noopener'; document.body.appendChild(a); a.click(); a.remove(); }
+function waOpenGroup(){ const g=waGroup(); if(g) waOpenUrl(g); return !!g; }
+function waNote(msg){ const d=document.createElement('div'); d.dir='rtl'; d.textContent=msg; d.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:100000;background:#166534;color:#fff;font-weight:800;font-size:16px;padding:12px 18px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:90vw;text-align:center'; document.body.appendChild(d); setTimeout(()=>d.remove(),4500); }
+function waSendText(txt){ const t=waSig(txt), g=waGroup();
+    if(g){ try{ navigator.clipboard && navigator.clipboard.writeText(t).catch(()=>{}); }catch(e){} waOpenUrl(g); waNote('الرسالة اتنسخت — افتح الجروب واعمل لصق'); return; }
+    waOpenUrl('https://wa.me/?text='+encodeURIComponent(t)); }
+function waGroupBtnHtml(){ return waGroup() ? `<button type="button" onclick="waOpenGroup()" style="width:100%;margin-top:8px;background:#fff;color:#15803d;border:2px solid #25D366;font-weight:800;font-size:15px;padding:10px;border-radius:12px"><i class="fa-solid fa-users"></i> افتح جروب الواتساب</button>` : ''; }
+function waGroupOpen(){ document.getElementById('wagrp')?.remove(); const cur=waGroup();
+    const m=document.createElement('div'); m.id='wagrp'; m.dir='rtl'; m.onclick=e=>{ if(e.target===m) m.remove(); };
+    m.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:14px';
+    m.innerHTML=`<div style="background:#fff;max-width:480px;width:100%;padding:18px;border-radius:14px">
+      <div style="font-weight:800;font-size:19px;margin-bottom:6px"><i class="fa-brands fa-whatsapp" style="color:#16a34a"></i> رابط جروب الواتساب</div>
+      <div style="color:#475569;font-size:14px;margin-bottom:10px">الصق رابط دعوة الجروب مرة واحدة. بعد كده زرار «افتح جروب الواتساب» بيظهر في شاشة الإرسال، والرسايل المكتوبة بتتنسخ والجروب بيتفتح لوحده.</div>
+      <input id="wagrp-in" type="url" dir="ltr" placeholder="https://chat.whatsapp.com/..." value="${esc(cur)}" style="width:100%;padding:10px;font-size:16px;border:1px solid #94a3b8;border-radius:8px">
+      <div id="wagrp-msg" style="min-height:20px;font-size:14px;font-weight:700;margin-top:6px"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button type="button" onclick="waGroupSave()" style="flex:2;padding:11px;font-size:16px;font-weight:800;color:#fff;background:#16a34a;border:none;border-radius:10px">حفظ</button>
+        ${cur?`<button type="button" onclick="waOpenGroup()" style="flex:2;padding:11px;font-size:16px;font-weight:800;color:#15803d;background:#fff;border:2px solid #25D366;border-radius:10px">افتح الجروب</button><button type="button" onclick="waGroupSave(true)" style="flex:1;padding:11px;font-size:16px;font-weight:800;color:#b91c1c;background:#fee2e2;border:none;border-radius:10px">مسح</button>`:''}
+        <button type="button" onclick="document.getElementById('wagrp').remove()" style="flex:1;padding:11px;font-size:16px;font-weight:800;background:#e2e8f0;border:none;border-radius:10px">إغلاق</button>
+      </div></div>`;
+    document.body.appendChild(m); }
+function waGroupSave(clear){ const msg=document.getElementById('wagrp-msg');
+    if(clear){ try{ localStorage.removeItem(WA_GROUP_KEY); }catch(e){} document.getElementById('wagrp')?.remove(); waNote('رابط الجروب اتمسح'); return; }
+    let v=(document.getElementById('wagrp-in').value||'').trim(); const mm=v.match(/https?:\/\/\S+/); if(mm) v=mm[0];
+    if(!/^https?:\/\/([a-z0-9-]+\.)*(whatsapp\.com|wa\.me)\//i.test(v)){ msg.style.color='#b91c1c'; msg.textContent='ده مش رابط واتساب — لازم يبدأ بـ https://chat.whatsapp.com/'; return; }
+    try{ localStorage.setItem(WA_GROUP_KEY, v); }catch(e){ msg.style.color='#b91c1c'; msg.textContent='مقدرتش أحفظ على الجهاز ده'; return; }
+    document.getElementById('wagrp')?.remove(); waNote('رابط الجروب اتحفظ ✓'); }
 function waSig(t){ return String(t==null?'':t).replace(/معلق عماد ناجي/g,'المعلق'); } /* محمد 2026-11-16: من غير إمضا */ // الإمضا تحت أي رسالة واتس (محمد 2026-11-10)
 function shareCard(id, title){ const el=document.getElementById(id); if(!el) return; shareImagesModal(title, elementToFile(el, title)); }
 
@@ -12508,6 +12538,7 @@ function toggleMoreMenu(){
     const ex=document.getElementById('more-menu'); if(ex){ ex.remove(); return; }
     const items=[
         ['fa-brands fa-whatsapp','#16a34a','مشاركة واتساب','shareViaWhatsApp()'],
+        ['fa-solid fa-link','#16a34a',waGroup()?'رابط جروب الواتساب ✓':'رابط جروب الواتساب','waGroupOpen()'],
         ...(currentRole==='admin'?[['fa-solid fa-users-gear','#0f766e','المستخدمين'+(window.__pendingN?' ('+window.__pendingN+')':''),"switchTab('users')"]]:[]),
         ...(window.__isStandalone?[]:[['fa-solid fa-mobile-screen-button','#16a34a','تثبيت التطبيق على الجهاز','installApp()']]),
         ['fa-solid fa-file-export','#2563eb','تصدير نسخة احتياطية','exportData()'],
@@ -12639,7 +12670,7 @@ function printCardEl(card){
 })();
 </script>
 <script>
-const SW_KEEP='kasara-v4'; /* لازم يساوي VER في sw.js — أي كاش برنامج باسم تاني بيتمسح من الجهاز، وأي service worker قديم بيتحدث (محمد 2026-11-13). مفيش بيانات بتتمس */
+const SW_KEEP='kasara-v5'; /* لازم يساوي VER في sw.js — أي كاش برنامج باسم تاني بيتمسح من الجهاز، وأي service worker قديم بيتحدث (محمد 2026-11-13). مفيش بيانات بتتمس */
 if('serviceWorker' in navigator && /^https?:/.test(location.protocol)){ window.addEventListener('load',async()=>{
     try{ const ks=await caches.keys(); await Promise.all(ks.filter(k=>!k.startsWith(SW_KEEP+'-')).map(k=>caches.delete(k))); }catch(e){}
     try{ const rs=await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.filter(r=>!/\/sw\.js$/.test((r.active||r.waiting||r.installing||{}).scriptURL||'')).map(r=>r.unregister())); }catch(e){}
