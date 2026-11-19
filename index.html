@@ -19,6 +19,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>/* محمد 2026-11-19: في أي إكسيل خزنة «معلق عماد ناجي» تتكتب «المعلق» — عرض بس */
+try{ (function(){ const U=window.XLSX&&XLSX.utils; if(!U||U.__mlq) return; const f=U.aoa_to_sheet; U.aoa_to_sheet=function(d,o){ try{ d=(d||[]).map(r=>Array.isArray(r)?r.map(v=>typeof v==='string'?v.replace(/معلق عماد ناجي/g,'المعلق'):v):r); }catch(e){} return f.call(this,d,o); }; U.__mlq=1; })(); }catch(e){}</script>
 <style>
 body{font-family:'Cairo',sans-serif;background:#f8fafc;}
 ::-webkit-scrollbar{width:6px;height:6px;}
@@ -571,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1145</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1146</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -658,7 +660,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
                     <h3 class="font-bold text-slate-900">سجل حركات الخزينة <button onclick="document.getElementById('dash-moves-card').style.display='none'" class="pl-no-print-hide text-xs text-slate-400 hover:text-slate-700 mr-2">✕ إخفاء</button></h3>
                     <div class="flex flex-wrap gap-2 pl-no-print-hide">
                         <button data-dmf="ALL" onclick="setDashMoveFilter('ALL')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">الكل</button>
-                        <button data-dmf="sari" onclick="setDashMoveFilter('sari')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">البنك</button>
+                        <button data-dmf="sari" onclick="setDashMoveFilter('sari')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">المعلق</button>
                         <button data-dmf="drawer" onclick="setDashMoveFilter('drawer')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">درج المكتب</button>
                         <span id="dmf-others" class="contents"></span>
                         <button data-dmf="loans" onclick="setDashMoveFilter('loans')" class="dmf-btn px-3 py-1.5 rounded-lg text-xs font-bold">السلف</button>
@@ -3485,7 +3487,7 @@ const fmt = n => __sepFix(__NFm.format(Math.round(Number(n)||0))) + ' ج.م';  /
 const esc = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const todayISO = () => new Date().toISOString().slice(0,10);
 
-/* محمد 2026-11-17: تحت كل حركة يتكتب من أنهي خزنة «الدرج» أو «البنك» */
+/* محمد 2026-11-17: تحت كل حركة يتكتب من أنهي خزنة «الدرج» أو «المعلق» (محمد 2026-11-19: «البنك» بقى «المعلق») */
 /* محمد 2026-11-17: السجلات بترتيب التسجيل — الأيام الأحدث فوق، وجوه اليوم الحركات بالترتيب اللي اتسجلت بيه (الأول فوق) */
 function regOrder(a,b){ const t=x=>{ const v=x&&x._at; return typeof v==='number'?new Date(v).toISOString():String(v||''); }; return String(b.date||'').localeCompare(String(a.date||'')) || t(a).localeCompare(t(b)) || String(a.id).localeCompare(String(b.id),undefined,{numeric:true}); }
 /* محمد 2026-11-19: سجلات التسجيل (مصروفات، إيرادات، تحصيلات، سلف، صرف مخزون، تحويلات): شريط فاصل لكل يوم زي شريط الأسبوع،
@@ -3493,8 +3495,8 @@ function regOrder(a,b){ const t=x=>{ const v=x&&x._at; return typeof v==='number
 function regAtKey(x){ const v=x&&x._at; return typeof v==='number'?new Date(v).toISOString():String(v||''); }
 function regSortDesc(L, src){ const pos=new Map((src||L).map((x,i)=>[x,i])); return L.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')) || regAtKey(b).localeCompare(regAtKey(a)) || ((pos.get(b)??-1)-(pos.get(a)??-1))); }
 function dayBarMaker(cols){ let last=null; return date=>{ const d=String(date||''); if(d===last) return ''; last=d; return `<tr class="day-bar bg-cyan-100"><td colspan="${cols}" class="px-2 py-1 font-extrabold text-slate-800 text-xs">📅 ${d?(dayNameAr(d)+' '+dmy(d)):'من غير تاريخ'}</td></tr>`; }; }
-function accShort(n){ n=n||((db.accounts&&db.accounts[0]&&db.accounts[0].name)||''); return /درج/.test(n) ? 'الدرج' : (catLabel(n)==='البنك' ? 'البنك' : n); }
-function catLabel(n){ return n==='مقاولين' ? 'أصحاب المعدات' : n==='معلق عماد ناجي' ? 'البنك' : n; } // اسم العرض بس، البيانات زي ما هي
+function accShort(n){ n=n||((db.accounts&&db.accounts[0]&&db.accounts[0].name)||''); return /درج/.test(n) ? 'الدرج' : (catLabel(n)==='المعلق' ? 'المعلق' : n); }
+function catLabel(n){ return n==='مقاولين' ? 'أصحاب المعدات' : n==='معلق عماد ناجي' ? 'المعلق' : n; } // اسم العرض بس، البيانات زي ما هي
 /* محمد 2026-11-13: عملاء «اتشالوا من البرنامج» — إخفاء من القوايم بس، حركاتهم وأرصدتهم محسوبة زي ما هي */
 const HIDE_CLIENTS = new Set(['حاتم ماهر','عماد ناجى']); /* م\\اسامه شلبى رجع ظاهر 2026-11-14: محمد «عليه 55,200» */
 function clientHidden(n){ return HIDE_CLIENTS.has(String(n||'').trim()); }
@@ -3775,8 +3777,8 @@ function homeKpisHtml(){
     /* درج المكتب والسلف كروت لوحدهم في الرئيسية (محمد 2026-11-10) */
     const K=[
         ['treasury','fa-money-bill-wave','#16a37b','#e2f5ee','الكاش',fmt(drawer),'في درج المكتب'],
-        ['treasury','fa-building-columns','#0284c7','#e0f2fe','البنك',fmt(sari),'في الحساب البنكي'],
-        ['treasury','fa-sack-dollar','#7c3aed','#f3e8ff','إجمالي الخزنتين',fmt(sari+drawer),'الدرج + البنك'],
+        ['treasury','fa-building-columns','#0284c7','#e0f2fe','المعلق',fmt(sari),'رصيد المعلق'],
+        ['treasury','fa-sack-dollar','#7c3aed','#f3e8ff','إجمالي الخزنتين',fmt(sari+drawer),'الدرج + المعلق'],
         ['treasury','fa-hand-holding-dollar','#b45309','#fef3c7','السلف المستحقة',fmt(loans),'سلف عماد ناجي'],
         ['dailylog','fa-truck','#1f4b73','#e6eff7','مبيعات الشهر ده',fmt(salesVal),nfmt(bons.length)+' بون · '+nfmt(qty)+' م'],
         ['incomes','fa-hand-holding-dollar','#7457d9','#efebfc','تحصيلات الشهر ده',fmt(collM),'فلوس دخلت الخزينة'],
@@ -6548,7 +6550,7 @@ function exportTreasuryExcel(){
         ['التاريخ','البيان','الحساب','مدين','دائن','الرصيد','رقم المستند'],
         [fromD?dmy(fromD):'', fromD?'رصيد أول المدة':'الرصيد الافتتاحي','','','',st.opening,'']
     ];
-    st.rows.forEach(e=>aoa.push([dmy(e.date), e.desc, e.account, e.inflow||'', e.outflow||'', e.balance, e.doc||'']));
+    st.rows.forEach(e=>aoa.push([dmy(e.date), String(e.desc||'').replace(/معلق عماد ناجي/g,'المعلق'), catLabel(e.account||''), e.inflow||'', e.outflow||'', e.balance, e.doc||'']));
     aoa.push(['الإجمالي','','',st.debit,st.credit,st.closing,'']);
     xlsxSave(aoa, 'كشف حساب الخزينة', `كشف-حساب-الخزينة-${todayISO()}.xlsx`);
 }
@@ -9699,7 +9701,7 @@ function addShareButtons(root){
     });
 }
 document.addEventListener('DOMContentLoaded', ()=>{ try{ addShareButtons(); }catch(e){} });
-function waSig(t){ return t; } /* محمد 2026-11-16: من غير إمضا */ // الإمضا تحت أي رسالة واتس (محمد 2026-11-10)
+function waSig(t){ return String(t==null?'':t).replace(/معلق عماد ناجي/g,'المعلق'); } /* محمد 2026-11-16: من غير إمضا */ // الإمضا تحت أي رسالة واتس (محمد 2026-11-10)
 function shareCard(id, title){ const el=document.getElementById(id); if(!el) return; shareImagesModal(title, elementToFile(el, title)); }
 
 /* ---- قفل الفترات ---- */
@@ -10235,7 +10237,7 @@ function exportAllExcel(){
     /* أرصدة العملاء */
     try{ const aoa=[['العميل','إجمالي المبيعات','المحصّل','الباقي عليه']]; (db.clients||[]).forEach(c=>{ const t=acctTotals(getClientAccountRows(c.name)); if(t.debit||t.credit) aoa.push([c.name, r2(t.debit), r2(t.credit), r2(t.balance)]); }); add('أرصدة العملاء', aoa); }catch(e){}
     /* حركة الخزينة */
-    try{ const st=buildCashStatement('','','ALL'); add('حركة الخزينة', [['التاريخ','البيان','الخزنة','وارد','منصرف','الرصيد'], ...st.rows.map(e=>[e.date||'', String(e.desc||'').replace(/معلق عماد ناجي/g,'البنك'), catLabel(e.account||''), e.inflow||'', e.outflow||'', r2(e.balance)])]); }catch(e){}
+    try{ const st=buildCashStatement('','','ALL'); add('حركة الخزينة', [['التاريخ','البيان','الخزنة','وارد','منصرف','الرصيد'], ...st.rows.map(e=>[e.date||'', String(e.desc||'').replace(/معلق عماد ناجي/g,'المعلق'), catLabel(e.account||''), e.inflow||'', e.outflow||'', r2(e.balance)])]); }catch(e){}
     /* باقي الجداول زي ما هي */
     const generic=(name,arr)=>{ arr=(arr||[]).filter(x=>x&&typeof x==='object'); if(!arr.length) return; const keys=[]; arr.forEach(x=>Object.keys(x).forEach(k=>{ if(!keys.includes(k) && k[0]!=='_') keys.push(k); }));
         add(name, [keys, ...arr.map(x=>keys.map(k=>{ const v=x[k]; return v==null?'':(typeof v==='object'?JSON.stringify(v):v); }))]); };
@@ -11754,7 +11756,7 @@ function applyCashBatch(id){
     if(!db.imports) db.imports = {}; if(!db.imports.batches) db.imports.batches = {}; db.imports.batches[id] = true;
     logAudit('create','تسجيل خزنة من الدفتر', `${x.label} — ${n} حركة`);
     box.remove(); scheduleSave(); try{ initDropdowns(); }catch(e){} renderAll();
-    alert(`✅ اتسجل ${n} حركة.\nمعلق عماد ناجي: ${fmt(accBalance(SARI_ACC))}\nالدرج: ${fmt(accBalance(DRAWER_ACC))}`);
+    alert(`✅ اتسجل ${n} حركة.\nالمعلق: ${fmt(accBalance(SARI_ACC))}\nالدرج: ${fmt(accBalance(DRAWER_ACC))}`);
 }
 function renderBatchBtn(){
     const b = document.getElementById('batch-bons-btn'); if(!b) return;
@@ -12672,7 +12674,7 @@ async function installApp(){
 try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
 
 /* محمد 2026-11-12: خزنة «معلق عماد ناجي» تتعرض باسم «البنك» — عرض بس، الاسم في البيانات زي ما هو */
-(function(){ const RE=/معلق عماد ناجي/g, T='البنك';
+(function(){ const RE=/معلق عماد ناجي/g, T='المعلق'; /* محمد 2026-11-19: «شيل كلمة البنك وسميها المعلق» */
     function fix(n){ if(!n) return; if(n.nodeType===3){ if(n.nodeValue && n.nodeValue.indexOf('معلق عماد ناجي')>=0) n.nodeValue=n.nodeValue.replace(RE,T); return; }
         if(n.nodeType!==1 || n.tagName==='SCRIPT' || n.tagName==='STYLE' || n.tagName==='TEXTAREA') return;
         const w=document.createTreeWalker(n, NodeFilter.SHOW_TEXT); let t; while((t=w.nextNode())){ const pt=t.parentNode&&t.parentNode.tagName; if(pt==='SCRIPT'||pt==='STYLE'||pt==='TEXTAREA') continue; if(t.nodeValue.indexOf('معلق عماد ناجي')>=0) t.nodeValue=t.nodeValue.replace(RE,T); } }
