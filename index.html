@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1151</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1152</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -10920,12 +10920,14 @@ function __saveCtrExtractCore(){
     if(from && to){ /* محمد 2026-11-18: «حفظت من 12 لـ18 مينفعش أحفظ واحد تاني من 15 لـ20» — أي فترة متداخلة لنفس صاحب المعدة بتترفض (أي معدة؛ الإضافي اليومي مش داخل) */ const dup=(db.ctrExtracts||[]).find(e=>normName(e.name)===normName(name) && !e.daily && e.from && e.to && e.from<=to && e.to>=from);
         if(dup){ alert(`فيه مستخلص متحفظ لـ ${name} من ${dmy(dup.from)} إلى ${dmy(dup.to)}، والفترة دي داخلة فيه.\nمش هيتحفظ تاني.`); try{ openCtrExtractView(dup.id); }catch(e){} return; } }
     let firstId=null;
-    L.forEach(x=>{ const rec={id:String(newId()), name, equip:x.e, date:todayISO(), from, to, qty:x.q, rate:x.rt, amount:Math.round(x.q*x.rt), notes};
+    /* محمد 2026-11-20: تاريخ المستخلص = تاريخ «إلى» اللي اختاره (نهاية الفترة) مش يوم الحفظ */
+    const xDate=to||todayISO();
+    L.forEach(x=>{ const rec={id:String(newId()), name, equip:x.e, date:xDate, from, to, qty:x.q, rate:x.rt, amount:Math.round(x.q*x.rt), notes};
         if(!firstId) firstId=rec.id;
         db.ctrExtracts.push(rec); addMgmtFee(rec); logAudit('create','مستخلص مقاول',`${name} ${x.e} ${x.q}×${x.rt}`,null,rec); });
-    if(LOW){ const rec={id:String(newId()), name, extra:true, low:true, equip:LOW.d, date:todayISO(), from, to, qty:LOW.q, rate:LOW.rt, amount:Math.round(LOW.q*LOW.rt*100)/100, notes};
+    if(LOW){ const rec={id:String(newId()), name, extra:true, low:true, equip:LOW.d, date:xDate, from, to, qty:LOW.q, rate:LOW.rt, amount:Math.round(LOW.q*LOW.rt*100)/100, notes};
         if(!firstId) firstId=rec.id; db.ctrExtracts.push(rec); logAudit('create','مستخلص مقاول',`${name} ${LOW.d} ${LOW.q}×${LOW.rt}`,null,rec); }
-    EX.forEach(x=>{ const rec={id:String(newId()), name, extra:true, equip:x.d, date:todayISO(), from, to, qty:x.q, rate:x.rt, amount:Math.round(x.q*x.rt*100)/100, notes};
+    EX.forEach(x=>{ const rec={id:String(newId()), name, extra:true, equip:x.d, date:xDate, from, to, qty:x.q, rate:x.rt, amount:Math.round(x.q*x.rt*100)/100, notes};
         if(!firstId) firstId=rec.id;
         db.ctrExtracts.push(rec); logAudit('create','عمل إضافي مقاول',`${name} ${x.d} ${x.q}×${x.rt}`,null,rec); }); // من غير بدل إدارة لأنه مش أمتار سن
     g('cx-notes').value=''; cxExtraClear(); scheduleSave(); renderAll(); cxDefaults();
@@ -11102,7 +11104,7 @@ function saveQuickExtracts(){
     extractableCtrs().forEach((c,i)=>ctrEquips(c.name).forEach((e,k)=>{
         const q=Number(document.querySelector(`#qx-modal [data-qi="${i}-${k}"]`).value)||0, rt=Number(document.querySelector(`#qx-modal [data-ri="${i}-${k}"]`).value)||0;
         if(!(q>0)) return; if(!(rt>0)){ miss.push(c.name+' — '+ctrEqName(c.name,e)); return; }
-        recs.push({id:String(newId()), name:c.name, equip:e, date:todayISO(), from:f, to:t, qty:q, rate:rt, amount:Math.round(q*rt), notes:'مستخلص سريع'});
+        recs.push({id:String(newId()), name:c.name, equip:e, date:t||todayISO(), from:f, to:t, qty:q, rate:rt, amount:Math.round(q*rt), notes:'مستخلص سريع'});
     }));
     if(miss.length){ alert('اكتب السعر لـ: '+miss.join('، ')); return; }
     recs.forEach(r=>{ db.ctrExtracts.push(r); addMgmtFee(r); }); n=recs.length;
