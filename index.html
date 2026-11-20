@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1158</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1159</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1210,6 +1210,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
             <div class="subnav-bar">
                 <button type="button" id="subnav-purchases-form" class="subnav-btn active" onclick="switchSub('purchases','form')">🛒 فواتير الشراء</button>
                 <button type="button" id="subnav-purchases-log" class="subnav-btn" onclick="switchSub('purchases','log')">💳 مدفوعات وكشف الموردين</button>
+                <button type="button" id="subnav-purchases-ret" class="subnav-btn" onclick="switchSub('purchases','ret')">↩️ مرتجعات مشتريات</button>
             </div>
             <div id="sub-purchases-form" class="subpage active">
             <div class="bg-white p-5 rounded-xl border border-emerald-200 shadow-sm">
@@ -1310,6 +1311,45 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
                 </div>
             </div>
             </div><!-- /sub-purchases-log -->
+
+            <!-- مرتجع مشتريات (محمد 2026-11-20): بيتسجل فاتورة بالسالب → بينزل من رصيد المورد ومن المخزون في كل الشاشات بنفس الحسابات -->
+            <div id="sub-purchases-ret" class="subpage">
+            <div class="bg-white p-5 rounded-xl border border-rose-200 shadow-sm">
+                <h3 class="font-bold text-slate-900 mb-1">↩️ تسجيل مرتجع مشتريات <span id="ret-edit-lbl" class="text-xs font-bold text-blue-700"></span></h3>
+                <p class="text-xs text-slate-500 mb-3">الصنف بيخرج من المخزون والمبلغ بينزل من حساب المورد. لو المورد رجّع فلوس اختار «رجّع فلوس» والخزنة اللي دخلت فيها.</p>
+                <form id="ret-form" onsubmit="addPurchReturn(event)" class="grid grid-cols-2 md:grid-cols-4 gap-3 items-end">
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="ret-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">المورد</label><select id="ret-supplier" required onchange="retInfo()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"></select></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">الصنف</label><select id="ret-item" required onchange="retItemChanged()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">الكمية المرتجعة</label><input id="ret-qty" type="number" step="any" min="0" required oninput="retCalc('q')" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">سعر الوحدة</label><input id="ret-price" type="number" step="any" min="0" oninput="this.dataset.touched=1; retCalc('p')" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">المبلغ</label><input id="ret-amount" type="number" step="any" min="0" required oninput="retCalc('a')" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">المبلغ ده</label><div class="flex gap-1"><button type="button" id="ret-mode-credit" onclick="retMode('credit')" class="flex-1 rounded-lg p-2 text-sm font-bold border">يتخصم من حسابه</button><button type="button" id="ret-mode-cash" onclick="retMode('cash')" class="flex-1 rounded-lg p-2 text-sm font-bold border">رجّع فلوس</button></div><input type="hidden" id="ret-mode" value="credit"></div>
+                    <div id="ret-account-wrap" style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">الفلوس دخلت في</label><select id="ret-account" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
+                    <div class="col-span-2 md:col-span-4"><label class="block text-xs font-bold text-slate-600 mb-1">ملاحظات</label><input id="ret-notes" type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                    <div id="ret-info" class="col-span-2 md:col-span-4 text-sm font-bold text-slate-700"></div>
+                    <div class="col-span-2 md:col-span-4 flex items-center justify-end gap-2">
+                        <button type="button" id="ret-cancel" onclick="retReset()" style="display:none" class="bg-slate-100 border border-slate-300 text-slate-700 font-bold px-4 py-2.5 rounded-lg text-sm">إلغاء التعديل</button>
+                        <button type="submit" id="ret-submit" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm">حفظ المرتجع</button>
+                    </div>
+                </form>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3">
+                    <span class="font-bold text-slate-800">سجل مرتجعات المشتريات</span>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="ret-filter-sup" onchange="renderPurchReturns()" class="bg-white border border-slate-200 rounded px-2 py-1 text-xs"></select>
+                        <span id="ret-total" class="text-xs font-bold text-rose-700"></span>
+                    </div>
+                </div>
+                <div class="overflow-x-auto max-h-[28rem]">
+                    <table class="w-full text-sm text-right">
+                        <thead class="bg-slate-800 text-white sticky top-0"><tr><th class="p-2">التاريخ</th><th class="p-2">رقم</th><th class="p-2">المورد</th><th class="p-2">الصنف</th><th class="p-2">الكمية</th><th class="p-2">السعر</th><th class="p-2">المبلغ</th><th class="p-2">النوع</th><th class="p-2">ملاحظات</th><th class="p-2"></th></tr></thead>
+                        <tbody id="tbody-ret"></tbody>
+                    </table>
+                </div>
+            </div>
+            </div><!-- /sub-purchases-ret -->
 
 
 
@@ -3822,7 +3862,7 @@ function fitBonForm(){
     }catch(e){}
 }
 window.addEventListener('resize', ()=>{ try{ fitBonForm(); }catch(e){} });
-function switchSub(tab, which){ if(tab==='ledger' && which==='cx') which='form'; /* صفحة مستخلص عميل اتخفت (محمد 2026-11-14) */ if(tab==='ledger' && which==='cx'){ try{ setTimeout(cxcRender,0); }catch(e){} } if(tab==='ledger' && which==='eq'){ tab='inventory'; try{ switchTab('inventory'); }catch(_){} } if(tab==='inventory' && which==='eq'){ try{ eqMoveToLedger(); renderEquipmentTab(); }catch(e){ console.warn(e); } } if(tab==='ledger' && which==='bal'){ try{ balSheetPage(); }catch(e){ console.warn(e); } } /* محمد 2026-11-18: كشف الأرصدة مكان كشف المعدات، وكشف المعدات في المخزون */ /* محمد 2026-11-13: كشف حساب المعدات جوه تاب كشف الحساب، والصرف من المخزون */ try{ if(tab==='dailylog' && which==='coll'){ renderCollectionsLog(); showClientCollectionBalance(); const cd=document.getElementById('coll-date'); if(cd && !cd.value) cd.value=todayISO(); } }catch(e){} try{ if(tab==='inventory') renderMashoon(); }catch(e){} try{ if(tab==='extracts') renderXd(); }catch(e){}
+function switchSub(tab, which){ if(tab==='ledger' && which==='cx') which='form'; /* صفحة مستخلص عميل اتخفت (محمد 2026-11-14) */ if(tab==='ledger' && which==='cx'){ try{ setTimeout(cxcRender,0); }catch(e){} } if(tab==='ledger' && which==='eq'){ tab='inventory'; try{ switchTab('inventory'); }catch(_){} } if(tab==='inventory' && which==='eq'){ try{ eqMoveToLedger(); renderEquipmentTab(); }catch(e){ console.warn(e); } } if(tab==='ledger' && which==='bal'){ try{ balSheetPage(); }catch(e){ console.warn(e); } } /* محمد 2026-11-18: كشف الأرصدة مكان كشف المعدات، وكشف المعدات في المخزون */ /* محمد 2026-11-13: كشف حساب المعدات جوه تاب كشف الحساب، والصرف من المخزون */ try{ if(tab==='dailylog' && which==='coll'){ renderCollectionsLog(); showClientCollectionBalance(); const cd=document.getElementById('coll-date'); if(cd && !cd.value) cd.value=todayISO(); } }catch(e){} try{ if(tab==='inventory') renderMashoon(); }catch(e){} try{ if(tab==='extracts') renderXd(); }catch(e){} try{ if(tab==='purchases' && which==='ret') renderPurchReturns(); }catch(e){}
     const panel = document.getElementById('tab-'+tab); if(!panel) return;
     panel.querySelectorAll(':scope > .subpage').forEach(p=>p.classList.remove('active'));
     panel.querySelector('#sub-'+tab+'-'+which)?.classList.add('active');
@@ -3861,7 +3901,7 @@ function switchTab(tabId){
     if(tabId==='inventory'){ renderInventory(); renderStockIssues(); }
     if(tabId==='payroll'){ renderPayrollTab(); }
     if(tabId==='equipment'){ try{ renderEquipmentTab(); }catch(e){ console.warn(e); } try{ fillEquipSelects(); renderEqStatement(); }catch(e){} }
-    if(tabId==='purchases'){ try{ renderQuickPurchases(); renderPaymentsTable(); renderSupplierStmt(); }catch(e){ console.warn(e); } }
+    if(tabId==='purchases'){ try{ renderQuickPurchases(); renderPaymentsTable(); renderSupplierStmt(); }catch(e){ console.warn(e); } try{ renderPurchReturns(); }catch(e){ console.warn(e); } }
     if(tabId==='production'){ renderProductions(); updateProdTotalPreview(); }
     if(tabId==='fleet'){ renderVehicles(); renderTrips(); }
     if(tabId==='masterdata'){ window.__mdTab=''; /* محمد 2026-11-16: الدليل بيفتح وكل المجموعات مقفولة */ try{ renderMasterData(); }catch(e){} try{ renderVehicles(); }catch(e){} try{ renderSitesCard(); }catch(e){} }
@@ -5115,6 +5155,7 @@ function treasuryEvents(){
         events.push({date:r.date, desc:`مبيعات نقدي — بون ${r.bon||'-'}`, project:r.project||'-', account:acc, inflow:v, outflow:0, grp:'sales'});
     });
     db.payments.forEach(pay=>{
+        if(pay.retRefund){ const a=-(Number(pay.amount)||0); events.push({at:pay._at, date:pay.date, desc:`مرتجع من ${pay.supplier}${pay.notes?' — '+pay.notes:''}`, project:'-', account:pay.account||defaultAccount, inflow:Math.max(a,0), outflow:Math.max(-a,0), doc:docRef('د',pay.id)}); return; } /* فلوس مرتجع مشتريات رجعت من المورد (محمد 2026-11-20) */
         events.push({at:pay._at, date:pay.date, desc:`سداد ${pay.supplier}${pay.notes?' — '+pay.notes:''}`, project:pay.project||'-', account:pay.account||defaultAccount, inflow:0, outflow:pay.amount, doc:docRef('د',pay.id)});
     });
     // العهدة = خروج نقدي فعلي وقت الصرف (سواء لسه معلقة أو اتسوّت)
@@ -5171,7 +5212,7 @@ function treasuryEvents(){
     /* شراء آجل: يظهر في اليومية وارد وصادر بنفس القيمة (زي الدفتر) */
     { const paidG=new Set((db.payments||[]).filter(p=>p.procGroupId).map(p=>p.procGroupId));
     /* محمد 2026-11-15: الفاتورة سطر واحد بإجماليها (التفاصيل بتظهر وقت الصرف من المخزن) */
-    const BG={}; (db.procurements||[]).forEach(x=>{ if(!x||!x.date||x.payCash===true||paidG.has(x.groupId)) return; const v=Math.round((Number(x.qty)||0)*(Number(x.price)||0)); if(!v) return; const k=x.groupId!=null?x.groupId:('p'+x.id);
+    const BG={}; (db.procurements||[]).forEach(x=>{ if(!x||!x.date||x.ret||x.payCash===true||paidG.has(x.groupId)) return; const v=Math.round((Number(x.qty)||0)*(Number(x.price)||0)); if(!v) return; const k=x.groupId!=null?x.groupId:('p'+x.id);
         const g=BG[k]||(BG[k]={at:x._at, gid:x.groupId, date:x.date, sup:x.supplier||'', inv:x.invoiceNumber||'', items:[], v:0}); g.v+=v; g.items.push(x.item); });
     Object.values(BG).forEach(g=>{ const it=g.items.length===1?g.items[0]:`${g.items.length} أصناف`; const d=`فاتورة ${g.sup}${g.inv?' رقم '+g.inv:''} (${it}) (آجل)`.replace(/\s+/g,' ');
         events.push({at:g.at, ref:['buy',g.gid], date:g.date, desc:'وارد '+d, project:'-', account:defaultAccount, inflow:g.v, outflow:0, fuel:true});
@@ -5405,7 +5446,9 @@ function computePL(projectFilter, dateFrom, dateTo){
     const closeStock = stockValueAt(dateTo || '');
     const directLines = [];
     if(openStock) directLines.push({ num:num(), label:'مخزون أول المدة', value:Math.round(openStock*100)/100 });
-    directLines.push({ num:num(), label:'مشتريات سولار وأصناف', value:materialsCost });
+    { const retCost=db.procurements.filter(p=>p.ret && match(p)).reduce((s,p)=>s+(p.qty*p.price),0); /* مرتجع مشتريات سطر لوحده (بالسالب) — نفس المجموع */
+      directLines.push({ num:num(), label:'مشتريات سولار وأصناف', value:materialsCost-retCost });
+      if(retCost) directLines.push({ num:num(), label:'ناقص: مرتجع مشتريات', value:retCost }); }
     /* الفواتير القديمة من الرصيد الافتتاحي بتتحسب مشتريات في قائمة الدخل (محمد 2026-11-10: «اعتبرها مشتريات جديدة») */
     { const oldInv=(db.suppliers||[]).filter(x=>x.openDate && matchDate({date:x.openDate})).reduce((a,x)=>a+(Number(x.openTotal)||0),0);
       if(oldInv) directLines.push({ num:num(), label:'فواتير موردي قطع الغيار والسولار القديمة (رصيد افتتاحي)', value:oldInv });
@@ -6482,8 +6525,8 @@ function jrData(){
     (db.dailyLog||[]).forEach(r=>{ const v=Number(bonValue(r))||0; if(!v) return; const cash=cashBonUnposted(r)&&!r.noCashIn;
         const q=DL_SIZES.reduce((a,z)=>a+(Number((r.q||{})[z.key])||0),0);
         add(r.date,'مبيعات',`بون ${r.bon||'-'}${q?' — '+nfmt(q)+' م':''}${r.price?' × '+nfmt(r.price):''}`, cash?((db.accounts||[]).some(a=>a.name===DRAWER_ACC)?DRAWER_ACC:defAcc):'العملاء / '+(r.client||'-'), 'مبيعات الكسارة', v); });
-    (db.procurements||[]).forEach(x=>{ if(!x) return; add(x.date,'مشتريات',`${x.item||''} ${nfmt(x.qty)} ${x.unit||''} × ${nfmt(x.price)}`.replace(/\s+/g,' '), 'مشتريات / '+(x.item||'-'), 'الموردين / '+(x.supplier||'-'), (Number(x.qty)||0)*(Number(x.price)||0)); });
-    (db.payments||[]).forEach(p=>add(p.date,'دفعة مورد','سداد '+(p.supplier||'')+(p.notes?' — '+p.notes:''), 'الموردين / '+(p.supplier||'-'), p.account||defAcc, p.amount));
+    (db.procurements||[]).forEach(x=>{ if(!x) return; add(x.date,x.ret?'مرتجع مشتريات':'مشتريات',`${x.item||''} ${nfmt(x.ret?-(Number(x.qty)||0):x.qty)} ${x.unit||''} × ${nfmt(x.price)}`.replace(/\s+/g,' '), 'مشتريات / '+(x.item||'-'), 'الموردين / '+(x.supplier||'-'), (Number(x.qty)||0)*(Number(x.price)||0)); });
+    (db.payments||[]).forEach(p=>add(p.date,p.retRefund?'فلوس مرتجع':'دفعة مورد',(p.retRefund?'من ':'سداد ')+(p.supplier||'')+(p.notes?' — '+p.notes:''), 'الموردين / '+(p.supplier||'-'), p.account||defAcc, p.amount));
     (db.ownerLoans||[]).forEach(l=>{ const who=(l.lender||'').trim()||'عماد ناجي', isIn=l.type==='in', acc=l.account||defAcc;
         add(l.date,'سلفة',(isIn?'سلفة من ':'رد سلفة لـ ')+who+(l.notes?' — '+l.notes:''), isIn?acc:'سلف / '+who, isIn?'سلف / '+who:acc, l.amount); });
     (db.incomes||[]).forEach(x=>add(x.date,'إيراد',(x.type||'إيراد')+(x.notes?' — '+x.notes:''), x.account||defAcc, 'إيرادات أخرى / '+(x.type||''), x.amount));
@@ -7262,6 +7305,7 @@ function fifoIssuePrice(item, skipId){
     (db.procurements||[]).filter(x=>x && x.item===item && Number(x.qty)>0 && after(x)).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||((a._at||0)-(b._at||0))).forEach(x=>lots.push({q:Number(x.qty), p:Number(x.price)||0}));
     if(!lots.length) return 0;
     let used=(db.stockIssues||[]).filter(x=>x && x.item===item && after(x) && String(x.id)!==String(skipId)).reduce((a,x)=>a+(Number(x.qty)||0),0);
+    used+=(db.procurements||[]).filter(x=>x && x.ret && x.item===item && after(x)).reduce((a,x)=>a-(Number(x.qty)||0),0); /* مرتجع مشتريات = خارج من المخزن */
     try{ used+=(db.equipExpenses||[]).filter(x=>x && Number(x.qty)>0 && after(x) && String(x.id)!==String(skipId) && eqeItem(x.desc)===item).reduce((a,x)=>a+Number(x.qty),0); }catch(e){}
     for(const L of lots){ if(used < L.q - 1e-9) return L.p; used-=L.q; }
     return lots[lots.length-1].p;
@@ -7565,7 +7609,7 @@ function itemMovementRows(item, from, to){
     const after=d=>!last || (d||'')>last;
     if(last){ const L=C.filter(x=>x.date===last), Ls=L.filter(isSetCount); const q=Ls.length?(Number(Ls.sort((a,b)=>(a._at||0)-(b._at||0)).pop().qty)||0):L.reduce((a,x)=>a+(Number(x.qty)||0),0); rows.push({date:last, kind:'جرد', desc:'رصيد الجرد', inQ:q, outQ:0, ord:0}); }
     (db.stockCounts||[]).filter(x=>x && x.item===item && x.add && !isSetCount(x) && x.date && (!last || x.date>=last)).forEach(x=>rows.push({date:x.date, kind:'إضافة', desc:x.notes||'إضافة على المخزون', inQ:Math.max(Number(x.qty)||0,0), outQ:Math.max(-(Number(x.qty)||0),0), ord:1}));
-    (db.procurements||[]).filter(p=>p.item===item && after(p.date)).forEach(p=>rows.push({date:p.date, kind:'وارد (شراء)', desc:`${p.supplier||''}${p.notes?' — '+p.notes:''}`, inQ:Number(p.qty)||0, outQ:0, ord:1}));
+    (db.procurements||[]).filter(p=>p.item===item && after(p.date)).forEach(p=>rows.push(p.ret ? {date:p.date, kind:'مرتجع للمورد', desc:`${p.supplier||''}${p.invoiceNumber?' — '+p.invoiceNumber:''}${p.notes?' — '+p.notes:''}`, inQ:0, outQ:-(Number(p.qty)||0), ord:2} : {date:p.date, kind:'وارد (شراء)', desc:`${p.supplier||''}${p.notes?' — '+p.notes:''}`, inQ:Number(p.qty)||0, outQ:0, ord:1}));
     (db.productions||[]).forEach(o=>{ if(!after(o.date)) return;
         (o.outputs||[]).filter(x=>x.item===item).forEach(x=>rows.push({date:o.date, kind:'إنتاج', desc:'أمر إنتاج', inQ:Number(x.qty)||0, outQ:0, ord:1}));
         (o.materials||[]).filter(x=>x.item===item).forEach(x=>rows.push({date:o.date, kind:'استهلاك إنتاج', desc:'أمر إنتاج', inQ:0, outQ:Number(x.qty)||0, ord:2}));
@@ -8042,6 +8086,84 @@ function buyItemChanged(){
     const last = (db.procurements||[]).filter(p=>p.item===item).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id-a.id))[0];
     if(last){ if(!g('buy-supplier').value && last.supplier) g('buy-supplier').value = last.supplier; if(!g('buy-price').value) g('buy-price').value = last.price; buyTotal(); }
 }
+/* ================= مرتجع مشتريات (محمد 2026-11-20) =================
+   المرتجع = سطر في db.procurements بكمية بالسالب (ret:true) → بينزل من رصيد المورد ومن المخزون والمشتريات بنفس الدوال في كل الشاشات.
+   لو المورد رجّع فلوس: دفعة بالسالب في db.payments (retRefund) → وارد في الخزنة اللي اختارها، وحساب المورد يرجع زي ما كان. */
+function retModeSync(){ const v=(document.getElementById('ret-mode')||{}).value||'credit'; [['credit','bg-amber-600 text-white border-amber-600'],['cash','bg-emerald-600 text-white border-emerald-600']].forEach(([k,on])=>{ const b=document.getElementById('ret-mode-'+k); if(b) b.className='flex-1 rounded-lg p-2 text-sm font-bold border '+(k===v?on:'bg-white text-slate-600 border-slate-200'); }); const w=document.getElementById('ret-account-wrap'); if(w) w.style.display=v==='cash'?'':'none'; }
+function retMode(v){ const s=document.getElementById('ret-mode'); if(!s) return; s.value=v; retModeSync(); }
+function retCalc(src){ const g=id=>document.getElementById(id); const q=Number(g('ret-qty').value)||0, p=Number(g('ret-price').value)||0, a=Number(g('ret-amount').value)||0;
+    if((src==='q'||src==='p') && q && p) g('ret-amount').value=Math.round(q*p*100)/100;
+    else if(src==='a' && q && a) g('ret-price').value=Math.round(a/q*10000)/10000;
+    retInfo(); }
+function retItemChanged(){ const g=id=>document.getElementById(id), it=g('ret-item').value, sup=g('ret-supplier').value;
+    const L=(db.procurements||[]).filter(p=>p.item===it && !p.ret && Number(p.qty)>0 && Number(p.price)>0);
+    const last=(L.filter(p=>!sup||p.supplier===sup).length?L.filter(p=>!sup||p.supplier===sup):L).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id-a.id))[0];
+    if(last){ if(!sup && last.supplier) g('ret-supplier').value=last.supplier; if(!g('ret-price').dataset.touched) g('ret-price').value=last.price; }
+    retCalc('p'); }
+function retInfo(){ const g=id=>document.getElementById(id), box=g('ret-info'); if(!box) return; const sup=g('ret-supplier').value, it=g('ret-item').value; const parts=[];
+    if(sup){ try{ parts.push(`رصيد ${esc(sup)} النهارده: ${fmt(supBalAt(sup, todayISO()))}`); }catch(e){} }
+    if(it && (db.supplies||[]).some(s=>s.name===it)){ try{ const u=((db.supplies||[]).find(s=>s.name===it)||{}).unit||''; parts.push(`المخزن: ${nfmt(itemStockBalance(it).balance)} ${esc(u)}`); }catch(e){} }
+    box.innerHTML=parts.join(' &nbsp;·&nbsp; '); }
+function retReset(){ const g=id=>document.getElementById(id); window.__retEdit=null; ['ret-qty','ret-price','ret-amount','ret-notes'].forEach(id=>{ const e=g(id); if(e){ e.value=''; delete e.dataset.touched; } });
+    if(g('ret-date')) g('ret-date').value=todayISO(); retMode('credit'); if(g('ret-cancel')) g('ret-cancel').style.display='none'; if(g('ret-edit-lbl')) g('ret-edit-lbl').textContent=''; if(g('ret-submit')) g('ret-submit').textContent='حفظ المرتجع'; retInfo(); }
+function addPurchReturn(e){
+    e.preventDefault(); if(isRO()) return;
+    const g=id=>document.getElementById(id);
+    const supplier=g('ret-supplier').value, item=g('ret-item').value, qty=Number(g('ret-qty').value)||0, amount=Number(g('ret-amount').value)||0;
+    const date=g('ret-date').value||todayISO(), notes=g('ret-notes').value.trim(), cash=g('ret-mode').value==='cash', account=g('ret-account').value||DRAWER_ACC;
+    if(!supplier || !item || !(qty>0) || !(amount>0)){ alert('اختار المورد والصنف واكتب الكمية والمبلغ'); return; }
+    const price=amount/qty, edit=window.__retEdit;
+    if((db.supplies||[]).some(s=>s.name===item)){ let bal=0; try{ bal=itemStockBalance(item).balance; }catch(_){}
+        if(edit){ const o=(db.procurements||[]).find(p=>p.ret && p.groupId===edit); if(o && o.item===item) bal+=-(Number(o.qty)||0); }
+        if(qty>bal+1e-9 && !confirm(`الكمية المرتجعة (${nfmt(qty)}) أكتر من اللي في المخزن (${nfmt(bal)}). تسجلها برضه؟`)) return; }
+    if(!db.procurements) db.procurements=[]; if(!db.payments) db.payments=[];
+    if(!db.nextId.proc) db.nextId.proc=(db.procurements||[]).reduce((m,p)=>Math.max(m,p.id||0),0)+1;
+    if(!db.nextId.pay) db.nextId.pay=(db.payments||[]).reduce((m,p)=>Math.max(m,p.id||0),0)+1;
+    let old=null, groupId, invoiceNumber;
+    if(edit){ old=(db.procurements||[]).find(p=>p.ret && p.groupId===edit); if(!old){ retReset(); return; } groupId=old.groupId; invoiceNumber=old.invoiceNumber;
+        old={rec:old, pay:(db.payments||[]).find(p=>p.retRefund && p.procGroupId===groupId)||null};
+        db.procurements=db.procurements.filter(p=>!(p.ret && p.groupId===groupId)); db.payments=db.payments.filter(p=>!(p.retRefund && p.procGroupId===groupId)); }
+    else { if(!db.nextId.retNo) db.nextId.retNo=1; groupId=Date.now(); invoiceNumber='RT-'+String(db.nextId.retNo++).padStart(5,'0'); }
+    const unit=((db.supplies||[]).find(s=>s.name===item)||{}).unit||'';
+    const rec={id:old?old.rec.id:db.nextId.proc++, groupId, invoiceNumber, item, supplier, project:(db.projects&&db.projects[0]&&db.projects[0].name)||'', qty:-qty, unit, price, date, notes, ret:true, retCash:cash};
+    if(old && old.rec._at) rec._at=old.rec._at;
+    db.procurements.push(rec);
+    if(cash) db.payments.push({id:(old&&old.pay)?old.pay.id:db.nextId.pay++, supplier, amount:-Math.round(amount*100)/100, project:null, account, date, notes:`فلوس مرتجع ${item} ${invoiceNumber}${notes?' — '+notes:''}`, procGroupId:groupId, retRefund:true});
+    logAudit(old?'update':'create','مرتجع مشتريات',`${supplier} - ${item} ${nfmt(qty)} = ${fmt(amount)} (${cash?'رجّع فلوس في '+account:'خصم من حسابه'})`, old, rec);
+    retReset(); scheduleSave(); renderAll(); renderPurchReturns();
+}
+function editPurchReturn(groupId){ if(isRO()) return; const r=(db.procurements||[]).find(p=>p.ret && p.groupId===groupId); if(!r) return; const g=id=>document.getElementById(id);
+    const pay=(db.payments||[]).find(p=>p.retRefund && p.procGroupId===groupId);
+    window.__retEdit=groupId; g('ret-date').value=r.date||''; g('ret-supplier').value=r.supplier||''; g('ret-item').value=r.item||'';
+    const q=-(Number(r.qty)||0); g('ret-qty').value=q; g('ret-price').value=Math.round((Number(r.price)||0)*10000)/10000; g('ret-price').dataset.touched=1; g('ret-amount').value=Math.round(q*(Number(r.price)||0)*100)/100; g('ret-notes').value=r.notes||'';
+    retMode(pay?'cash':'credit'); if(pay) g('ret-account').value=pay.account||'';
+    g('ret-cancel').style.display=''; g('ret-edit-lbl').textContent='(تعديل '+(r.invoiceNumber||'')+')'; g('ret-submit').textContent='حفظ التعديل'; retInfo();
+    try{ g('ret-form').scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){} }
+function deletePurchReturn(groupId){ if(isRO()) return;
+    const r=(db.procurements||[]).find(p=>p.ret && p.groupId===groupId); if(!r) return;
+    if(!confirm(`حذف المرتجع ${r.invoiceNumber||''} (${r.supplier} - ${r.item})؟ الكمية هترجع المخزون والمبلغ يرجع على حساب المورد.`)) return;
+    const pay=(db.payments||[]).find(p=>p.retRefund && p.procGroupId===groupId);
+    db.procurements=db.procurements.filter(p=>!(p.ret && p.groupId===groupId)); db.payments=(db.payments||[]).filter(p=>!(p.retRefund && p.procGroupId===groupId));
+    logAudit('delete','مرتجع مشتريات',`${r.supplier} - ${r.item}`,{rec:r, pay},null);
+    if(window.__retEdit===groupId) retReset(); scheduleSave(); renderAll(); renderPurchReturns(); }
+function renderPurchReturns(){
+    const g=id=>document.getElementById(id), tb=g('tbody-ret'); if(!tb) return;
+    { const s=g('ret-supplier'); if(s){ const pv=s.value; s.innerHTML='<option value="">— اختار المورد —</option>'+(db.suppliers||[]).map(x=>`<option value="${esc(x.name)}">${esc(x.name)}</option>`).join(''); if([...s.options].some(o=>o.value===pv)) s.value=pv; } }
+    { const s=g('ret-item'); if(s){ const pv=s.value; const names=[...new Set([...(db.supplies||[]).map(x=>x.name), ...(db.procurements||[]).filter(p=>!p.ret && !p.discount).map(p=>p.item)].filter(n=>n && n!=='خصم'))]; s.innerHTML='<option value="">— اختار الصنف —</option>'+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join(''); if([...s.options].some(o=>o.value===pv)) s.value=pv; } }
+    { const s=g('ret-account'); if(s){ const pv=s.value; s.innerHTML=(db.accounts||[]).map(a=>`<option value="${esc(a.name)}">${esc(a.name)}</option>`).join(''); if([...s.options].some(o=>o.value===pv)) s.value=pv; else if((db.accounts||[]).some(a=>a.name===SARI_ACC)) s.value=SARI_ACC; } }
+    const R=(db.procurements||[]).filter(p=>p && p.ret);
+    { const s=g('ret-filter-sup'); if(s){ const pv=s.value; s.innerHTML='<option value="ALL">كل الموردين</option>'+[...new Set(R.map(p=>p.supplier))].filter(Boolean).map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join(''); if([...s.options].some(o=>o.value===pv)) s.value=pv; } }
+    const d=g('ret-date'); if(d && !d.value) d.value=todayISO(); retModeSync();
+    const fs=(g('ret-filter-sup')||{}).value||'ALL', rows=R.filter(p=>fs==='ALL'||p.supplier===fs).sort(regOrder);
+    const v=p=>Math.round(-(Number(p.qty)||0)*(Number(p.price)||0)*100)/100;
+    if(g('ret-total')) g('ret-total').textContent=rows.length?`الإجمالي: ${fmt(rows.reduce((a,p)=>a+v(p),0))}`:'';
+    tb.innerHTML=rows.map(p=>{ const pay=(db.payments||[]).find(x=>x.retRefund && x.procGroupId===p.groupId);
+        return `<tr class="border-b border-slate-50"><td class="p-2 text-xs text-slate-500">${dmy(p.date)}</td><td class="p-2 text-xs">${esc(p.invoiceNumber||'')}</td><td class="p-2 text-xs font-bold text-amber-800">${esc(p.supplier||'-')}</td><td class="p-2 font-bold">${esc(p.item)}</td><td class="p-2">${nfmt(-(Number(p.qty)||0))} ${esc(p.unit||'')}</td><td class="p-2">${nfmt(Math.round((Number(p.price)||0)*100)/100)}</td><td class="p-2 font-bold text-rose-700">${mfmt(v(p))}</td>
+        <td class="p-2 text-xs font-bold ${pay?'text-emerald-700':'text-amber-700'}">${pay?'رجّع فلوس ('+esc(pay.account||'')+')':'خصم من حسابه'}</td><td class="p-2 text-xs">${esc(p.notes||'')}</td>
+        <td class="p-2 whitespace-nowrap"><button onclick="editPurchReturn(${p.groupId})" class="text-blue-500 hover:text-blue-700 text-xs ml-2" title="تعديل">✏️</button><button onclick="deletePurchReturn(${p.groupId})" class="text-red-400 hover:text-red-600 text-xs" title="حذف">🗑</button></td></tr>`; }).join('')
+        || '<tr><td colspan="10" class="p-4 text-center text-slate-400">مفيش مرتجعات</td></tr>';
+    retInfo();
+}
 /* رصيد افتتاحي للمورد من التكويد: حسابه يبدأ من openDate بالرصيد المكتوب (محمد 2026-11-09) */
 /* رصيد المورد زي كشفه والمركز المالي: الحساب القديم من التكويد + الفواتير − الدفعات من تاريخ الافتتاح (عرض بس) */
 function supBalAt(name, D){ const {ob:sOB, od:sOD}=supOpen(name); const ok=p=>(!D || (p.date||'')<=D) && (!sOD || (p.date||'')>=sOD); const i=(db.procurements||[]).filter(p=>p.supplier===name && ok(p)).reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0); const pd=(db.payments||[]).filter(p=>p.supplier===name && ok(p)).reduce((a,p)=>a+(Number(p.amount)||0),0); return (sOD && (!D || sOD<=D)?sOB:0)+i-pd; }
@@ -8055,8 +8177,8 @@ function renderSupplierStmt(){
     if(name==='__ALL__'){ if(tblWrap) tblWrap.style.display='none'; renderAllSuppliersStmt(from, to); return; }
     if(tblWrap) tblWrap.style.display='';
     const ev = []; const {ob:sOB, od:sOD} = supOpen(name); const after = d => !sOD || (d||'')>=sOD;
-    (db.procurements||[]).filter(p=>p.supplier===name && after(p.date)).forEach(p=>ev.push({date:p.date, id:p.id, desc:`${p.item}${p.invoiceNumber?' — '+p.invoiceNumber:''}${p.notes?' — '+p.notes:''}`, qty:p.qty, unit:p.unit, price:p.price, debit:Math.round((Number(p.qty)||0)*(Number(p.price)||0)), credit:0, item:p.item}));
-    (db.payments||[]).filter(p=>p.supplier===name && after(p.date)).forEach(p=>ev.push({date:p.date, id:p.id+0.5, desc:p.notes||'دفعة', debit:0, credit:Math.round(Number(p.amount)||0)}));
+    (db.procurements||[]).filter(p=>p.supplier===name && after(p.date)).forEach(p=>{ if(p.ret){ ev.push({date:p.date, id:p.id, desc:`مرتجع: ${p.item}${p.invoiceNumber?' — '+p.invoiceNumber:''}${p.notes?' — '+p.notes:''}`, qty:-(Number(p.qty)||0), unit:p.unit, price:p.price, debit:0, credit:Math.round(-(Number(p.qty)||0)*(Number(p.price)||0)), ret:true}); return; } ev.push({date:p.date, id:p.id, desc:`${p.item}${p.invoiceNumber?' — '+p.invoiceNumber:''}${p.notes?' — '+p.notes:''}`, qty:p.qty, unit:p.unit, price:p.price, debit:Math.round((Number(p.qty)||0)*(Number(p.price)||0)), credit:0, item:p.item}); });
+    (db.payments||[]).filter(p=>p.supplier===name && after(p.date)).forEach(p=>{ if(p.retRefund){ const rr=(db.procurements||[]).find(x=>x.ret && x.groupId===p.procGroupId); ev.push({date:p.date, id:(rr?rr.id:p.id)+0.6, desc:p.notes||'فلوس مرتجع', debit:Math.round(-(Number(p.amount)||0)), credit:0, refund:true}); return; } ev.push({date:p.date, id:p.id+0.5, desc:p.notes||'دفعة', debit:0, credit:Math.round(Number(p.amount)||0)}); });
     ev.sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.id-b.id));
     const _ss=(db.suppliers||[]).find(x=>x.name===name)||{}, sOT=Number(_ss.openTotal)||0, sOP=Number(_ss.openPaid)||0;
     if(sOD && (sOT||sOP)){ if(sOP) ev.unshift({date:sOD, id:-0.5, desc:'المدفوع له من القديم', debit:0, credit:Math.round(sOP)}); if(sOT) ev.unshift({date:sOD, id:-1, desc:'إجمالي فواتيره القديمة', debit:Math.round(sOT), credit:0}); }
@@ -8064,9 +8186,12 @@ function renderSupplierStmt(){
     let bal = 0, opening = 0; const rows = [];
     ev.forEach(e=>{ bal += e.debit - e.credit; if(from && (e.date||'')<from){ opening = bal; return; } if(to && (e.date||'')>to) return; rows.push({...e, bal}); });
     const tD = rows.reduce((s,r)=>s+r.debit,0), tC = rows.reduce((s,r)=>s+r.credit,0), closing = opening + tD - tC;
+    const tRet = rows.filter(r=>r.ret).reduce((s,r)=>s+r.credit,0), tRef = rows.filter(r=>r.refund).reduce((s,r)=>s+r.debit,0); /* مرتجع مشتريات (محمد 2026-11-20): كارت لوحده لو فيه مرتجع — نفس الباقي */
     g('ss-summary').innerHTML = `<div class="bg-slate-50 rounded p-2"><div class="text-[11px] font-bold text-slate-600">رصيد أول المدة</div><div class="font-bold">${fmt(opening)}</div></div>
-        <div class="bg-amber-50 rounded p-2"><div class="text-[11px] font-bold text-amber-700">مشتريات</div><div class="font-bold">${fmt(tD)}</div></div>
-        <div class="bg-emerald-50 rounded p-2"><div class="text-[11px] font-bold text-emerald-700">مدفوع</div><div class="font-bold">${fmt(tC)}</div></div>
+        <div class="bg-amber-50 rounded p-2"><div class="text-[11px] font-bold text-amber-700">مشتريات</div><div class="font-bold">${fmt(tD-tRef)}</div></div>${tRet?`
+        <div class="bg-rose-50 rounded p-2"><div class="text-[11px] font-bold text-rose-700">مرتجع</div><div class="font-bold">${fmt(tRet)}</div></div>`:''}
+        <div class="bg-emerald-50 rounded p-2"><div class="text-[11px] font-bold text-emerald-700">مدفوع</div><div class="font-bold">${fmt(tC-tRet)}</div></div>${tRef?`
+        <div class="bg-sky-50 rounded p-2"><div class="text-[11px] font-bold text-sky-700">فلوس مرتجع رجعت لنا</div><div class="font-bold">${fmt(tRef)}</div></div>`:''}
         <div class="bg-rose-50 rounded p-2 border border-rose-200"><div class="text-[11px] font-bold text-rose-700">الباقي له</div><div class="font-bold text-lg">${fmt(closing)}</div></div>`;
     tb.innerHTML = rows.slice().reverse().map(r=>`<tr class="border-b border-slate-50"><td class="p-2 text-xs text-slate-500">${dmy(r.date)}</td><td class="p-2">${esc(r.desc)}</td>
         <td class="p-2">${r.qty!=null?nfmt(r.qty)+' '+esc(r.unit||''):''}</td><td class="p-2">${r.price!=null?nfmt(r.price):''}</td>
