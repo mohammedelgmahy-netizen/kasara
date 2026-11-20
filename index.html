@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1149</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1150</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5549,7 +5549,7 @@ function renderPLInner(){
         `<tr><td colspan="3" class="px-3 py-2 bg-slate-800 text-white font-bold">${title}</td></tr>`;
     const itemRow = (num, label, value, sub) =>
         `<tr class="border-b border-slate-100 text-slate-700">
-            <td class="px-3 py-1.5 w-12 text-slate-400">${num}</td><td class="px-3 py-1.5">${esc(label)}${sub ? `<div class="text-xs text-slate-500">قيمة المستخلصات ${fmt(sub.gross)} − سولار مخصوم ${fmt(sub.ded)}</div>` : ''}</td><td class="px-3 py-1.5 text-left font-medium">${fmt(value)}</td>
+            <td class="px-3 py-1.5 w-12 text-slate-400">${num}</td><td class="px-3 py-1.5">${esc(label)}${sub ? `<div>قيمة المستخلصات ${fmt(sub.gross)} − سولار مخصوم ${fmt(sub.ded)}</div>` : ''}</td><td class="px-3 py-1.5 text-left font-medium">${fmt(value)}</td>
         </tr>`;
     const totalRow = (label, value, colorClass) =>
         `<tr class="font-bold border-t-2 border-slate-300 ${colorClass||'bg-slate-100'}">
@@ -6414,7 +6414,7 @@ document.addEventListener('DOMContentLoaded', ()=>{ const f=document.getElementB
 /* ===== v260.9: كل شاشة تسجيل تدخل في الشاشة من غير تمرير (زي فورم البون) — الكشوف الطويلة بس هي اللي بتتمرر لتحت ===== */
 function fitPage(){ try{ const m=document.querySelector('main'), t=document.querySelector('main .tab-content.active')||document.getElementById('tab-'+activeTab); if(!m||!t) return;
     const dc=document.getElementById('exp-sap-day-card'), box=document.getElementById('exp-sap-day');
-    if(innerWidth<901 || activeTab==='dailylog' || (window.matchMedia && matchMedia('(pointer:coarse)').matches)){ t.style.zoom=''; m.style.overflowY=''; if(dc) dc.style.display=''; if(box) box.style.height=''; return; }
+    if(innerWidth<901 || activeTab==='dailylog' || activeTab==='pl' || activeTab==='bs' /* قائمة الدخل والمركز المالي بحجمهم الكامل من غير تصغير — بتتمرر لتحت (محمد 2026-11-20، نظره ضعيف) */ || (window.matchMedia && matchMedia('(pointer:coarse)').matches)){ t.style.zoom=''; m.style.overflowY=''; if(dc) dc.style.display=''; if(box) box.style.height=''; return; }
     /* الحجم بيتثبت لكل شاشة: يصغر لو احتاج، وعمره ما يكبر تاني وانت شغال فيها؛ ولو الشاشة دخلت كلها التمرير بيتقفل خالص (محمد 2026-11-13) */
     const F=window.__fitZ||(window.__fitZ={}), sub=t.querySelector(':scope > .subpage.active'), key=activeTab+'|'+(sub?sub.id:'')+'|'+innerWidth+'x'+innerHeight, prev=F[key]||1, st=m.scrollTop;
     const fits=()=>m.scrollHeight<=m.clientHeight, useDay=!!(dc && box && activeTab==='expenses' && sub && sub.id==='sub-expenses-form');
