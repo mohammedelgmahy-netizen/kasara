@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1154</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1155</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5843,13 +5843,13 @@ function cdiffData(asOf){ asOf=asOf||todayISO(); const r2=v=>Math.round(v*100)/1
         L.push({n:c.name, sh, bs:r2(bs), pS, pB, d, why, hidden}); });
     L.sort((a,b)=>Math.abs(b.d)-Math.abs(a.d) || Math.abs(b.bs-b.sh)-Math.abs(a.bs-a.sh));
     let sheetTot=0; try{ visClients().forEach(c=>{ const b=Math.round(clientBalAt(c.name, asOf)*100)/100; if(b>0) sheetTot+=b; }); }catch(e){}
-    let bsTot=0; try{ const x=balanceSheetData(asOf).A.find(a=>a.name==='مستحقات على العملاء'); bsTot=x?x.v:0; }catch(e){}
+    let bsTot=0; try{ bsTot=balanceSheetData(asOf).recOld||0; }catch(e){}
     return {asOf, L, sheetTot:r2(sheetTot), bsTot:r2(bsTot)}; }
 function cdiffHtml(asOf){ const D=cdiffData(asOf); const f=v=>(v<0?'-':'')+Math.abs(Math.round(v*100)/100).toLocaleString('en-US',{maximumFractionDigits:2});
     const B='border:1px solid #000;padding:6px 8px;font-size:18px;text-align:center;line-height:1.4;', G='background:#C9A227 !important;color:#000;font-weight:800;';
     const sumD=D.L.reduce((a,x)=>a+x.d,0);
     return `<div dir="rtl" style="background:#fff;padding:8px;font-family:Cairo,Calibri,sans-serif"><div style="text-align:center;font-weight:800;font-size:22px;margin-bottom:4px">بيان فروق العملاء حتى ${dmy(D.asOf)}</div>
-    <div style="text-align:center;font-size:17px;margin-bottom:8px">كشف أرصدة العملاء (اللي لينا) <b dir="ltr">${f(D.sheetTot)}</b> — المركز المالي (مستحقات على العملاء) <b dir="ltr">${f(D.bsTot)}</b> — الفرق <b dir="ltr">${f(D.bsTot-D.sheetTot)}</b></div>
+    <div style="text-align:center;font-size:17px;margin-bottom:8px">كشف أرصدة العملاء (اللي لينا) <b dir="ltr">${f(D.sheetTot)}</b> — حساب الحركات (قبل التسوية) <b dir="ltr">${f(D.bsTot)}</b> — الفرق <b dir="ltr">${f(D.bsTot-D.sheetTot)}</b></div>
     <table style="border-collapse:collapse;width:100%"><tr><td style="${B}${G}">#</td><td style="${B}${G}">اسم العميل</td><td style="${B}${G}">رصيده في كشف الأرصدة</td><td style="${B}${G}">رصيده في المركز المالي</td><td style="${B}${G}">الفرق</td><td style="${B}${G}">سبب الفرق</td></tr>
     ${D.L.map((x,i)=>`<tr><td style="${B}">${i+1}</td><td style="${B}font-weight:700">${esc(x.n)}</td><td style="${B}direction:ltr;${x.sh<0?'color:#b91c1c':''}">${f(x.sh)}</td><td style="${B}direction:ltr;${x.bs<0?'color:#b91c1c':''}">${f(x.bs)}</td><td style="${B}direction:ltr;font-weight:800">${f(x.d)}</td><td style="${B}text-align:right;font-size:16px">${x.why.map(esc).join('<br>')}</td></tr>`).join('')}
     <tr><td style="${B}font-weight:800" colspan="2">إجمالي اللي لينا (الموجب بس)</td><td style="${B}font-weight:800;direction:ltr">${f(D.sheetTot)}</td><td style="${B}font-weight:800;direction:ltr">${f(D.bsTot)}</td><td style="${B}font-weight:800;direction:ltr">${f(sumD)}</td><td style="${B}font-size:15px;text-align:right">الفرق = (رصيد المركز لو موجب) − (رصيد الكشف لو موجب)، فمجموعه = فرق الرقمين</td></tr></table>
@@ -6163,7 +6163,10 @@ function balanceSheetData(D){
     // العملاء
     let rec=0, adv=0;
     (db.clients||[]).forEach(c=>{ let b=0; try{ getClientAccountRowsAll(c.name).forEach(r=>{ if(!r.openAdj && le(r.date)) b+=(r.debit||0)-(r.credit||0); }); }catch(e){} if(b>0) rec+=b; else adv-=b; });
-    if(Math.round(rec)) A.push({g:'العملاء', name:'مستحقات على العملاء', v:rec});
+    /* محمد 2026-11-20: «مستحقات على العملاء» = إجمالي اللي لينا في كشف أرصدة العملاء (clientBalAt) — والفرق عن حساب الحركات بيتحط في حقوق الملكية «تسوية أرباح وخسائر فترة سابقة» عشان الميزانية تفضل متزنة */
+    let recSheet=0; const recList=[]; try{ visClients().forEach(c=>{ const b=Math.round(clientBalAt(c.name, D||todayISO())*100)/100; if(b>0){ recSheet+=b; recList.push({name:c.name, v:b}); } }); }catch(e){ recSheet=rec; }
+    const recDiff=recSheet-rec;
+    if(Math.round(recSheet)) A.push({g:'العملاء', name:'مستحقات على العملاء', v:recSheet});
     // المخزون (بمتوسط سعر الشراء)
     const _cnt=stockCountAt(D||''); if(_cnt){ _cnt.items.forEach(it=>A.push({g:'المخزون', name:'مخزون '+it.item+' ('+(it.moved?'الرصيد بعد حركة الشراء والصرف من جرد '+_cnt.date:'جرد '+_cnt.date)+': '+Number(it.qty||0).toLocaleString('ar-EG')+' '+(it.unit||'')+')', v:Number(it.value)||0})); } else {
     let inv=0; (db.supplies||[]).forEach(x=>{ try{ const q=itemStockBalance(x.name).balance; if(q<=0) return; const P=(db.procurements||[]).filter(p=>p.item===x.name); const qq=P.reduce((a,p)=>a+(Number(p.qty)||0),0); const avg=qq?P.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0)/qq:0; inv+=q*avg; }catch(e){} });
@@ -6206,10 +6209,11 @@ function balanceSheetData(D){
     E.push({name:'صافي الربح (من قائمة الدخل)', v:profit, part:true});
     E.push({name:'(−) أرباح المساهمين (توزيعات'+(Math.round(approved)?' مصروفة ومعتمدة':'')+')', v:-dividends, part:true});
     E.push({name:'الأرباح المحتجزة', v:retained});
+    if(Math.round(recDiff)) E.push({name:'تسوية أرباح وخسائر فترة سابقة', v:recDiff});
     // محمد: «مفيش راس مال» — السطر ده مقفول على صفر، والفروق لو فيه بتبان من عدم اتزان الميزانية
     E.push({name:'رأس المال وأرصدة أول المدة', v:0, note:true});
     const tE=E.filter(x=>!x.part).reduce((a,x)=>a+x.v,0);
-    return {A,L,E,tA,tL:tL2,tE};
+    return {A,L,E,tA,tL:tL2,tE,recOld:rec,recList};
 }
 /* إضافة (أو تنزيل بالسالب) على مخزون السن المشون — محمد بيكتب الكمية والقيمة بإيده */
 function sopenItems(){ return [...new Set([...(db.supplies||[]).map(x=>x.name), ...(db.procurements||[]).map(p=>p.item)].filter(n=>n && n!=='سن مشون'))]; }
@@ -6311,7 +6315,8 @@ function tbData(D){
     const sum = (L,f) => L.filter(f).reduce((a,x)=>a+x.v,0);
     const near = (a,b) => Math.abs(a-b) < 1;
     const aV = n => S.A.filter(x=>x.name===n).reduce((a,x)=>a+x.v,0), lV = n => S.L.filter(x=>x.name===n).reduce((a,x)=>a+x.v,0);
-    const okC = near(sum(cl,x=>x.v>0), aV('مستحقات على العملاء')) && near(-sum(cl,x=>x.v<0), lV('دفعات مقدمة من العملاء'));
+    const clP = S.recList || cl.filter(x=>x.v>0);
+    const okC = near(sum(clP,x=>true), aV('مستحقات على العملاء')) && near(-sum(cl,x=>x.v<0), lV('دفعات مقدمة من العملاء'));
     const okS = near(sum(su,x=>x.v>0), lV('موردي قطع الغيار والسولار')) && near(-sum(su,x=>x.v<0), aV('دفعات مقدمة لموردي قطع الغيار والسولار'));
     const okT = near(sum(ct,x=>x.v>0), lV('مستحقات أصحاب المعدات')) && near(-sum(ct,x=>x.v<0), aV('عهد ومقدمات عند أصحاب المعدات'));
     // الأصول (مدين)
@@ -6321,7 +6326,7 @@ function tbData(D){
         if(okT && x.name==='عهد ومقدمات عند أصحاب المعدات') return;
         put(x.g || 'الأصول', x.name, x.v, 'dr');
     });
-    if(okC) cl.forEach(x=>put('العملاء', x.name, x.v, 'dr'));
+    if(okC){ clP.forEach(x=>put('العملاء', x.name, x.v, 'dr')); cl.filter(x=>x.v<0).forEach(x=>put('العملاء', x.name, x.v, 'dr')); }
     if(okS) su.forEach(x=>put('موردي قطع الغيار والسولار', x.name, x.v, 'cr'));
     if(okT) ct.forEach(x=>put('أصحاب المعدات', x.name, x.v, 'cr'));
     // الخصوم (دائن)
