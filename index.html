@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1153</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1154</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5811,7 +5811,7 @@ function balSheetHtml(asOf){ asOf=asOf||todayISO();
     <tr><td style="${B}font-weight:800">إجمالي اللي علينا (ليهم)</td><td style="${B}font-weight:800;direction:ltr;color:#b91c1c">${f(alena)}</td></tr></table></div>`; }
 function balSheetPage(keep){ const T=document.getElementById('bals-tools'); if(!T) return; const rr="document.getElementById('bals-body').innerHTML=balSheetHtml(document.getElementById('bals-date').value)";
     if(!document.getElementById('bals-date')){ T.innerHTML=`<b>حتى يوم</b><input type="date" id="bals-date" value="${todayISO()}" onchange="${rr}" style="border:1px solid #cbd5e1;border-radius:8px;padding:4px 8px">
-    <button onclick="shareCard('bals-body','أرصدة العملاء')" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">واتساب</button><button onclick="printHtml(document.getElementById('bals-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button>`; }
+    <button onclick="shareCard('bals-body','أرصدة العملاء')" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">واتساب</button><button onclick="printHtml(document.getElementById('bals-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="cdiffOpen()" style="background:#7c3aed;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">📋 بيان فروق العملاء</button>`; }
     if(!keep) document.getElementById('bals-date').value=todayISO(); /* بيفتح دايماً على الأرصدة الحالية */
     document.getElementById('bals-body').innerHTML=balSheetHtml(document.getElementById('bals-date').value); }
 function balSheetOpen(){ document.getElementById('bals-modal')?.remove(); const m=document.createElement('div'); m.id='bals-modal';
@@ -5821,6 +5821,50 @@ function balSheetOpen(){ document.getElementById('bals-modal')?.remove(); const 
     m.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:14px;max-width:900px;width:100%;padding:14px"><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px"><b>من</b><input type="date" id="bals-from" value="${fr}" onchange="${rr}" style="border:1px solid #cbd5e1;border-radius:8px;padding:4px 8px"><b>إلى</b><input type="date" id="bals-date" value="${t}" onchange="${rr}" style="border:1px solid #cbd5e1;border-radius:8px;padding:4px 8px">
     <button onclick="shareCard('bals-body','أرصدة العملاء')" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">واتساب</button><button onclick="printHtml(document.getElementById('bals-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="document.getElementById('bals-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✕</button></div>
     <div id="bals-body" style="overflow-x:auto">${balSheetHtml(t, fr)}</div></div>`; document.body.appendChild(m); }
+/* محمد 2026-11-20: «بيان بالفروق — العملاء — كشف كشف» — كل عميل: رصيده في كشف الأرصدة (clientBalAt) ورصيده في المركز المالي (نفس حسبة balanceSheetData) والفرق وسببه. عرض بس، مفيش أي بيانات بتتغير */
+function cdiffData(asOf){ asOf=asOf||todayISO(); const r2=v=>Math.round(v*100)/100;
+    const L=[]; (db.clients||[]).forEach(c=>{ let rows=[]; try{ rows=getClientAccountRowsAll(c.name); }catch(e){}
+        const bs=rows.filter(r=>!r.openAdj && (!r.date||r.date<=asOf)).reduce((a,r)=>a+(r.debit||0)-(r.credit||0),0);
+        const hidden=clientHidden(c.name); const sh=hidden?0:r2(clientBalAt(c.name, asOf));
+        const adj=Number(c.openAdj)||0;
+        const live=rows.filter(r=>r.openAdj || (r.date||'')<=asOf).reduce((a,r)=>a+(r.debit||0)-(r.credit||0),0);
+        const cl=(db.clientStmts||[]).filter(x=>normName(x.name)===normName(c.name) && x.to && x.to<=asOf).sort((a,b)=>b.to.localeCompare(a.to))[0];
+        let stEff=0, dbl=0; if(cl && !hidden){ stEff=sh-live; dbl=-rows.filter(r=>!r.openAdj && r.credit>0 && (r.date||'')>cl.to && (r.date||'')<=(cl.date||'') && (r.date||'')<=asOf).reduce((a,r)=>a+r.credit,0); }
+        const pS=Math.max(0,sh), pB=Math.max(0,r2(bs)), d=r2(pB-pS);
+        if(Math.abs(d)<0.5 && Math.abs(r2(bs)-sh)<0.5) return;
+        const why=[]; const f=v=>(v<0?'-':'')+Math.round(Math.abs(v)).toLocaleString('en-US');
+        if(hidden) why.push('عميل مخفي — مش ظاهر في كشف الأرصدة، والمركز المالي بيحسبه');
+        else { if(adj && !cl) why.push(`تعديل رصيد أولاني ${f(adj)} — كشف الأرصدة بيحسبه والمركز المالي لا`);
+            if(cl){ if(adj) why.push(`تعديل رصيد أولاني ${f(adj)} داخل في رصيد الكشف المحفوظ — المركز المالي لا`);
+                const rest=stEff-dbl; if(Math.abs(dbl)>=0.5) why.push(`تحصيلات بعد ${dmy(cl.to)} اتخصمت في كشف ${dmy(cl.from)}→${dmy(cl.to)} المحفوظ يوم ${dmy(cl.date)} واتخصمت تاني بعده: ${f(dbl)}`);
+                if(Math.abs(rest)>=0.5) why.push(`كشف ${dmy(cl.from)}→${dmy(cl.to)} المحفوظ رصيده ${f(cl.bal)} — مختلف عن حركات البرنامج الحالية بـ ${f(rest)} (بونات/تحصيلات اتعدلت أو اتسجلت في فترته بعد حفظه)`); } }
+        if(!why.length) why.push('غيره');
+        if(sh<0 || bs<0) why.push(`رصيد بالسالب (له) ما بيدخلش في «اللي لينا»: كشف ${f(sh)} / مركز ${f(bs)}`);
+        L.push({n:c.name, sh, bs:r2(bs), pS, pB, d, why, hidden}); });
+    L.sort((a,b)=>Math.abs(b.d)-Math.abs(a.d) || Math.abs(b.bs-b.sh)-Math.abs(a.bs-a.sh));
+    let sheetTot=0; try{ visClients().forEach(c=>{ const b=Math.round(clientBalAt(c.name, asOf)*100)/100; if(b>0) sheetTot+=b; }); }catch(e){}
+    let bsTot=0; try{ const x=balanceSheetData(asOf).A.find(a=>a.name==='مستحقات على العملاء'); bsTot=x?x.v:0; }catch(e){}
+    return {asOf, L, sheetTot:r2(sheetTot), bsTot:r2(bsTot)}; }
+function cdiffHtml(asOf){ const D=cdiffData(asOf); const f=v=>(v<0?'-':'')+Math.abs(Math.round(v*100)/100).toLocaleString('en-US',{maximumFractionDigits:2});
+    const B='border:1px solid #000;padding:6px 8px;font-size:18px;text-align:center;line-height:1.4;', G='background:#C9A227 !important;color:#000;font-weight:800;';
+    const sumD=D.L.reduce((a,x)=>a+x.d,0);
+    return `<div dir="rtl" style="background:#fff;padding:8px;font-family:Cairo,Calibri,sans-serif"><div style="text-align:center;font-weight:800;font-size:22px;margin-bottom:4px">بيان فروق العملاء حتى ${dmy(D.asOf)}</div>
+    <div style="text-align:center;font-size:17px;margin-bottom:8px">كشف أرصدة العملاء (اللي لينا) <b dir="ltr">${f(D.sheetTot)}</b> — المركز المالي (مستحقات على العملاء) <b dir="ltr">${f(D.bsTot)}</b> — الفرق <b dir="ltr">${f(D.bsTot-D.sheetTot)}</b></div>
+    <table style="border-collapse:collapse;width:100%"><tr><td style="${B}${G}">#</td><td style="${B}${G}">اسم العميل</td><td style="${B}${G}">رصيده في كشف الأرصدة</td><td style="${B}${G}">رصيده في المركز المالي</td><td style="${B}${G}">الفرق</td><td style="${B}${G}">سبب الفرق</td></tr>
+    ${D.L.map((x,i)=>`<tr><td style="${B}">${i+1}</td><td style="${B}font-weight:700">${esc(x.n)}</td><td style="${B}direction:ltr;${x.sh<0?'color:#b91c1c':''}">${f(x.sh)}</td><td style="${B}direction:ltr;${x.bs<0?'color:#b91c1c':''}">${f(x.bs)}</td><td style="${B}direction:ltr;font-weight:800">${f(x.d)}</td><td style="${B}text-align:right;font-size:16px">${x.why.map(esc).join('<br>')}</td></tr>`).join('')}
+    <tr><td style="${B}font-weight:800" colspan="2">إجمالي اللي لينا (الموجب بس)</td><td style="${B}font-weight:800;direction:ltr">${f(D.sheetTot)}</td><td style="${B}font-weight:800;direction:ltr">${f(D.bsTot)}</td><td style="${B}font-weight:800;direction:ltr">${f(sumD)}</td><td style="${B}font-size:15px;text-align:right">الفرق = (رصيد المركز لو موجب) − (رصيد الكشف لو موجب)، فمجموعه = فرق الرقمين</td></tr></table>
+    <div style="font-size:15px;margin-top:6px">العملاء اللي رصيدهم واحد في الاتنين مش ظاهرين. البيان عرض بس — مفيش أي رقم اتغير.</div></div>`; }
+function cdiffExcel(){ const asOf=document.getElementById('cdiff-date')?.value||todayISO(), D=cdiffData(asOf);
+    const aoa=[['بيان فروق العملاء حتى '+dmy(asOf)],[],['#','اسم العميل','رصيده في كشف الأرصدة','رصيده في المركز المالي','الفرق','سبب الفرق']];
+    D.L.forEach((x,i)=>aoa.push([i+1,x.n,x.sh,x.bs,x.d,x.why.join(' | ')]));
+    aoa.push([],['','إجمالي اللي لينا (الموجب بس)',D.sheetTot,D.bsTot,Math.round((D.bsTot-D.sheetTot)*100)/100,'']); xlsxSave(aoa,'فروق العملاء',`بيان-فروق-العملاء-${asOf}.xlsx`); }
+function cdiffOpen(){ document.getElementById('cdiff-modal')?.remove(); const m=document.createElement('div'); m.id='cdiff-modal';
+    m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:12px';
+    m.onclick=e=>{ if(e.target===m) m.remove(); };
+    const t=document.getElementById('bals-date')?.value||todayISO(), rr="document.getElementById('cdiff-body').innerHTML=cdiffHtml(document.getElementById('cdiff-date').value)", S='color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:14px';
+    m.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:14px;max-width:1100px;width:100%;padding:14px"><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px"><b>حتى يوم</b><input type="date" id="cdiff-date" value="${t}" onchange="${rr}" style="border:1px solid #cbd5e1;border-radius:8px;padding:4px 8px">
+    <button onclick="cdiffExcel()" style="background:#15803d;${S}">📊 إكسيل</button><button onclick="shareCard('cdiff-body','بيان فروق العملاء')" style="background:#16a34a;${S}">واتساب</button><button onclick="printHtml(document.getElementById('cdiff-body').innerHTML)" style="background:#1e293b;${S}">🖨️ طباعة</button><button onclick="document.getElementById('cdiff-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:14px">✕</button></div>
+    <div id="cdiff-body" style="overflow-x:auto">${cdiffHtml(t)}</div></div>`; document.body.appendChild(m); }
 /* محمد 2026-11-19: «عاوز التكعيب يظهر في كشوفات الحساب اللي حفظتها» — عمود التكعيب بيتضاف للكشف المحفوظ وقت العرض بس (الأرقام المحفوظة ما بتتغيرش) */
 function csAddCube(html, x){ try{ const d=document.createElement('div'); d.innerHTML=html;
     const isHead=r=>/سيارة/.test(r.textContent) && /مقطورة/.test(r.textContent);
