@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1152</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1153</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3694,7 +3694,7 @@ function renderAll(){
         (db.contractors||[]).forEach(c=>{ const e=R(c.equips); if(e!==c.equips){ c.equips=e; ch=true; } });
         (db.stockIssues||[]).forEach(x=>{ if(x&&x.equip==='سيارة الكسارة'){ x.equip='كسارة الديار'; ch=true; } });
         if(ch) scheduleSave(); }catch(e){}
-    try{ emadCleanAuto(); }catch(e){} try{ ensureCrusherCode(); }catch(e){}
+    try{ emadCleanAuto(); }catch(e){} try{ ensureCrusherCode(); }catch(e){} try{ fixEmadExtDate1118(); }catch(e){}
     try{ buyPaySync(); }catch(e){}
     try{ [['exp-src','exp-account'],['pay-src','pay-account']].forEach(([a,b])=>{ const S=document.getElementById(a), A=document.getElementById(b); if(S&&A&&!S.dataset.touched) S.value=A.value===SARI_ACC?'sari':'cash'; }); }catch(e){}
     try{ fixDupOps(); }catch(e){}
@@ -10852,6 +10852,11 @@ function meterBalTxt(mb){
 /* مرتب عماد ناجي = 4 ج × صافي سن البونات مباشرة، مش من المستخلصات (محمد 2026-11-10) — من بداية البرنامج الجديد */
 const MGMT_FEE_CTR='حفارات عماد', MGMT_FEE_RATE=4, MGMT_FEE_FROM='2026-11-05';
 function emadSalary(from,to){ let m=0; (db.dailyLog||[]).forEach(r=>{ const d=r.date||''; if(!d || d<MGMT_FEE_FROM) return; if(from && d<from) return; if(to && d>to) return; m+=bonNetSin(r); }); m=Math.round(m*100)/100; return {m, v:Math.round(m*MGMT_FEE_RATE*100)/100}; }
+/* محمد 2026-11-20 (أمر صريح، التاريخ بس): مستخلص «حفارات عماد» 12–18/11 اتحفظ بتاريخ يوم الحفظ 20/11 → يتصحح لـ18/11 زي باقي المستخلصات. مفيش أي حقل تاني بيتلمس؛ نسخة قبل التعديل في localStorage + auditLog */
+function fixEmadExtDate1118(){ if(currentRole!=='admin') return; const L=(db.ctrExtracts||[]).filter(x=>x && /حفارات\s*عماد/.test(String(x.name||'')) && x.from==='2026-11-12' && x.to==='2026-11-18' && x.date==='2026-11-20');
+    if(!L.length) return; try{ localStorage.setItem('kasara-before-datefix-1118', JSON.stringify(L)); }catch(e){}
+    L.forEach(x=>{ const old=Object.assign({},x); x.date='2026-11-18'; try{ logAudit('edit','تاريخ مستخلص (تصحيح)',`${x.name} ${x.equip||''}: 20/11/2026 → 18/11/2026`,old,Object.assign({},x)); }catch(e){} });
+    scheduleSave(); }
 function emadCleanAuto(){ try{ const nmP=(db.names||[]).find(x=>x.name===COM_PERSON); if(nmP && !(Number(nmP.perMeter)>0)){ nmP.perMeter=MGMT_FEE_RATE; scheduleSave(); }
     const n0=(db.expensesData||[]).length;
     db.expensesData=(db.expensesData||[]).filter(x=>!(x.category===COM_CAT && x.extractId!=null));
