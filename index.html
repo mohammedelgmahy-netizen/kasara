@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1157</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1158</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5797,8 +5797,7 @@ const CS_BASE_CLOSE='2026-11-11'; /* أرصدة 11/11 اتظبطت على شيت
 function csSale1(r){ if(!r.saleGroupId) return null; const L=(db.sales||[]).filter(s=>String(s.groupId||s.id)===String(r.saleGroupId)); return L.length===1 && (String(L[0].dailyLogId||'')===String(r.id) || String(L[0].bon||'')===String(r.bon)) ? L[0] : null; }
 function csSetPrice(r, pr){ const s1=csSale1(r); if(s1){ if(pr>0){ s1.price=pr; s1.total=Math.round((Number(s1.qty)||0)*pr*100)/100; } } if(pr>0) r.price=pr; else delete r.price; delete r.total; }
 /* محمد 2026-11-18: «كشف بعد كل أسبوع بالإجماليات اللي لينا واللي علينا وإجماليهم في الآخر» — زي جدول الإكسيل بتاعه (اسم العميل + إجمالي المديونية) */
-/* محمد 2026-11-20: رصيد يوم قديم بيقف على آخر كشف كان محفوظ لحد اليوم ده بس — كشف اتحفظ بعده رصيده فيه تحصيلات بعد اليوم ده */
-function clientBalAt(name, asOf){ const rows=getClientAccountRowsAll(name); const cl=(db.clientStmts||[]).filter(x=>normName(x.name)===normName(name) && x.to && x.to<=asOf && (!x.date || String(x.date).slice(0,10)<=asOf)).sort((a,b)=>b.to.localeCompare(a.to))[0];
+function clientBalAt(name, asOf){ const rows=getClientAccountRowsAll(name); const cl=(db.clientStmts||[]).filter(x=>normName(x.name)===normName(name) && x.to && x.to<=asOf).sort((a,b)=>b.to.localeCompare(a.to))[0];
     if(cl) return (Number(cl.bal)||0) + rows.filter(r=>!r.openAdj && (r.date||'')>cl.to && (r.date||'')<=asOf).reduce((a,r)=>a+(r.debit||0)-(r.credit||0),0);
     return rows.filter(r=>r.openAdj || (r.date||'')<=asOf).reduce((a,r)=>a+(r.debit||0)-(r.credit||0),0); }
 function balSheetHtml(asOf){ asOf=asOf||todayISO();
@@ -6255,9 +6254,8 @@ function balanceSheetData(D){
     let rec=0, adv=0;
     (db.clients||[]).forEach(c=>{ let b=0; try{ getClientAccountRowsAll(c.name).forEach(r=>{ if(!r.openAdj && le(r.date)) b+=(r.debit||0)-(r.credit||0); }); }catch(e){} if(b>0) rec+=b; else adv-=b; });
     /* محمد 2026-11-20: «مستحقات على العملاء» = إجمالي اللي لينا في كشف أرصدة العملاء (clientBalAt) — والفرق عن حساب الحركات بيتحط في حقوق الملكية «تسوية أرباح وخسائر فترة سابقة» عشان الميزانية تفضل متزنة */
-    let recSheet=0, advSheet=0; const recList=[], advList=[]; try{ visClients().forEach(c=>{ const b=Math.round(clientBalAt(c.name, D||todayISO())*100)/100; if(b>0){ recSheet+=b; recList.push({name:c.name, v:b}); } else if(b<0){ advSheet-=b; advList.push({name:c.name, v:b}); } }); }catch(e){ recSheet=rec; advSheet=adv; }
-    /* محمد 2026-11-20 «علشان كله يبقى متساوي»: «دفعات مقدمة من العملاء» كمان من كشف الأرصدة، والفرق كله في «تسوية أرباح وخسائر فترة سابقة» */
-    const recDiff=(recSheet-advSheet)-(rec-adv); adv=advSheet;
+    let recSheet=0; const recList=[]; try{ visClients().forEach(c=>{ const b=Math.round(clientBalAt(c.name, D||todayISO())*100)/100; if(b>0){ recSheet+=b; recList.push({name:c.name, v:b}); } }); }catch(e){ recSheet=rec; }
+    const recDiff=recSheet-rec;
     if(Math.round(recSheet)) A.push({g:'العملاء', name:'مستحقات على العملاء', v:recSheet});
     // المخزون (بمتوسط سعر الشراء)
     const _cnt=stockCountAt(D||''); if(_cnt){ _cnt.items.forEach(it=>A.push({g:'المخزون', name:'مخزون '+it.item+' ('+(it.moved?'الرصيد بعد حركة الشراء والصرف من جرد '+_cnt.date:'جرد '+_cnt.date)+': '+Number(it.qty||0).toLocaleString('ar-EG')+' '+(it.unit||'')+')', v:Number(it.value)||0})); } else {
@@ -6305,7 +6303,7 @@ function balanceSheetData(D){
     // محمد: «مفيش راس مال» — السطر ده مقفول على صفر، والفروق لو فيه بتبان من عدم اتزان الميزانية
     E.push({name:'رأس المال وأرصدة أول المدة', v:0, note:true});
     const tE=E.filter(x=>!x.part).reduce((a,x)=>a+x.v,0);
-    return {A,L,E,tA,tL:tL2,tE,recOld:rec,recList,advList};
+    return {A,L,E,tA,tL:tL2,tE,recOld:rec,recList};
 }
 /* إضافة (أو تنزيل بالسالب) على مخزون السن المشون — محمد بيكتب الكمية والقيمة بإيده */
 function sopenItems(){ return [...new Set([...(db.supplies||[]).map(x=>x.name), ...(db.procurements||[]).map(p=>p.item)].filter(n=>n && n!=='سن مشون'))]; }
@@ -6407,8 +6405,8 @@ function tbData(D){
     const sum = (L,f) => L.filter(f).reduce((a,x)=>a+x.v,0);
     const near = (a,b) => Math.abs(a-b) < 1;
     const aV = n => S.A.filter(x=>x.name===n).reduce((a,x)=>a+x.v,0), lV = n => S.L.filter(x=>x.name===n).reduce((a,x)=>a+x.v,0);
-    const clP = S.recList || cl.filter(x=>x.v>0), clN = S.advList || cl.filter(x=>x.v<0);
-    const okC = near(sum(clP,x=>true), aV('مستحقات على العملاء')) && near(-sum(clN,x=>true), lV('دفعات مقدمة من العملاء'));
+    const clP = S.recList || cl.filter(x=>x.v>0);
+    const okC = near(sum(clP,x=>true), aV('مستحقات على العملاء')) && near(-sum(cl,x=>x.v<0), lV('دفعات مقدمة من العملاء'));
     const okS = near(sum(su,x=>x.v>0), lV('موردي قطع الغيار والسولار')) && near(-sum(su,x=>x.v<0), aV('دفعات مقدمة لموردي قطع الغيار والسولار'));
     const okT = near(sum(ct,x=>x.v>0), lV('مستحقات أصحاب المعدات')) && near(-sum(ct,x=>x.v<0), aV('عهد ومقدمات عند أصحاب المعدات'));
     // الأصول (مدين)
@@ -6418,7 +6416,7 @@ function tbData(D){
         if(okT && x.name==='عهد ومقدمات عند أصحاب المعدات') return;
         put(x.g || 'الأصول', x.name, x.v, 'dr');
     });
-    if(okC){ clP.forEach(x=>put('العملاء', x.name, x.v, 'dr')); clN.forEach(x=>put('العملاء', x.name, x.v, 'dr')); }
+    if(okC){ clP.forEach(x=>put('العملاء', x.name, x.v, 'dr')); cl.filter(x=>x.v<0).forEach(x=>put('العملاء', x.name, x.v, 'dr')); }
     if(okS) su.forEach(x=>put('موردي قطع الغيار والسولار', x.name, x.v, 'cr'));
     if(okT) ct.forEach(x=>put('أصحاب المعدات', x.name, x.v, 'cr'));
     // الخصوم (دائن)
