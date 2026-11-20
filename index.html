@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1156</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1157</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -4007,8 +4007,8 @@ function renderMasterData(){
 function masterBal(cat, it){
     const chip=(t,c)=>`<span class="text-xs font-extrabold px-2 py-0.5 rounded-full ${c} shrink-0">${t}</span>`;
     try{
-        if(cat==='clients'){ const r=clientSalesBalance(it.name).remaining; return Math.abs(r)<1?'':(r>0?chip('عليه '+mfmt(r),'bg-rose-50 text-rose-700'):chip('له '+mfmt(-r),'bg-emerald-50 text-emerald-700')); }
-        if(cat==='suppliers'){ const r=supplierBalance(it.name).remaining; return Math.abs(r)<1?'':(r>0?chip('ليه '+mfmt(r),'bg-amber-50 text-amber-700'):chip('دافعين زيادة '+mfmt(-r),'bg-sky-50 text-sky-700')); }
+        if(cat==='clients'){ const r=clientBalAt(it.name, todayISO()); /* نفس كشف الأرصدة والمركز المالي (محمد 2026-11-20) */ return Math.abs(r)<1?'':(r>0?chip('عليه '+mfmt(r),'bg-rose-50 text-rose-700'):chip('له '+mfmt(-r),'bg-emerald-50 text-emerald-700')); }
+        if(cat==='suppliers'){ const r=supBalAt(it.name, todayISO()); /* نفس كشف المورد والمركز المالي (محمد 2026-11-20) */ return Math.abs(r)<1?'':(r>0?chip('ليه '+mfmt(r),'bg-amber-50 text-amber-700'):chip('دافعين زيادة '+mfmt(-r),'bg-sky-50 text-sky-700')); }
         if(cat==='contractors'){ const R=contractorStmtRows(it.name).rows; const b=R.length?R[R.length-1].bal:0; return Math.abs(b)<1?'':(b>0?chip('ليه '+mfmt(b),'bg-emerald-50 text-emerald-700'):chip('عليه '+mfmt(-b),'bg-rose-50 text-rose-700')); }
         if(cat==='accounts'){ return chip(mfmt(accBalance(it.name)),'bg-teal-50 text-teal-700'); }
         if(cat==='supplies'){ const b=itemStockBalance(it.name).balance; return b?chip(nfmt(b)+' '+(it.unit||''),'bg-slate-100 text-slate-700'):''; }
@@ -5797,7 +5797,8 @@ const CS_BASE_CLOSE='2026-11-11'; /* أرصدة 11/11 اتظبطت على شيت
 function csSale1(r){ if(!r.saleGroupId) return null; const L=(db.sales||[]).filter(s=>String(s.groupId||s.id)===String(r.saleGroupId)); return L.length===1 && (String(L[0].dailyLogId||'')===String(r.id) || String(L[0].bon||'')===String(r.bon)) ? L[0] : null; }
 function csSetPrice(r, pr){ const s1=csSale1(r); if(s1){ if(pr>0){ s1.price=pr; s1.total=Math.round((Number(s1.qty)||0)*pr*100)/100; } } if(pr>0) r.price=pr; else delete r.price; delete r.total; }
 /* محمد 2026-11-18: «كشف بعد كل أسبوع بالإجماليات اللي لينا واللي علينا وإجماليهم في الآخر» — زي جدول الإكسيل بتاعه (اسم العميل + إجمالي المديونية) */
-function clientBalAt(name, asOf){ const rows=getClientAccountRowsAll(name); const cl=(db.clientStmts||[]).filter(x=>normName(x.name)===normName(name) && x.to && x.to<=asOf).sort((a,b)=>b.to.localeCompare(a.to))[0];
+/* محمد 2026-11-20: رصيد يوم قديم بيقف على آخر كشف كان محفوظ لحد اليوم ده بس — كشف اتحفظ بعده رصيده فيه تحصيلات بعد اليوم ده */
+function clientBalAt(name, asOf){ const rows=getClientAccountRowsAll(name); const cl=(db.clientStmts||[]).filter(x=>normName(x.name)===normName(name) && x.to && x.to<=asOf && (!x.date || String(x.date).slice(0,10)<=asOf)).sort((a,b)=>b.to.localeCompare(a.to))[0];
     if(cl) return (Number(cl.bal)||0) + rows.filter(r=>!r.openAdj && (r.date||'')>cl.to && (r.date||'')<=asOf).reduce((a,r)=>a+(r.debit||0)-(r.credit||0),0);
     return rows.filter(r=>r.openAdj || (r.date||'')<=asOf).reduce((a,r)=>a+(r.debit||0)-(r.credit||0),0); }
 function balSheetHtml(asOf){ asOf=asOf||todayISO();
@@ -5877,7 +5878,7 @@ function recoData(D){ D=D||todayISO(); const r2=v=>Math.round((Number(v)||0)*100
     const diff=(a,b)=>a!=null && b!=null && Math.abs(a-b)>=0.5;
     /* ===== العملاء ===== */
     const C=(db.clients||[]).map(c=>{ let rows=[]; try{ rows=getClientAccountRowsAll(c.name); }catch(e){}
-        const hid=clientHidden(c.name); let sheet=null; try{ sheet=hid?null:r2(clientBalAt(c.name, D)); }catch(e){}
+        const hid=clientHidden(c.name); let sheet=null; let chip=null; try{ chip=hid?null:r2(clientBalAt(c.name, todayISO())); }catch(e){} try{ sheet=hid?null:r2(clientBalAt(c.name, D)); }catch(e){}
         const live=r2(rows.filter(r=>r.openAdj || (r.date||'')<=D).reduce((a,r)=>a+(r.debit||0)-(r.credit||0),0));
         const mov=r2(rows.filter(r=>!r.openAdj && (!r.date || r.date<=D)).reduce((a,r)=>a+(r.debit||0)-(r.credit||0),0));
         const why=[];
@@ -5888,21 +5889,21 @@ function recoData(D){ D=D||todayISO(); const r2=v=>Math.round((Number(v)||0)*100
                 if(dbl>=0.5) why.push(`تحصيلات ${f(dbl)} بتاريخ بعد ${dmy(cl.to)} اتخصمت في الكشف المحفوظ يوم ${dmy(cl.date)} واتخصمت تاني بعده`);
                 const rest=sheet-live+dbl; if(Math.abs(rest)>=0.5) why.push(`كشف ${dmy(cl.from)}→${dmy(cl.to)} المحفوظ رصيده ${f(cl.bal)} — مختلف عن الحركات الحالية بـ ${f(rest)} (بون أو تحصيل اتعدل/اتسجل في فترته بعد حفظه)`); }
             else why.push('غيره'); }
-        return {n:c.name, hid, sheet, live, mov, why, bad:why.length>0}; });
+        return {n:c.name, hid, sheet, chip, live, mov, why, bad:why.length>0}; });
     const cG={ title:'العملاء', unitP:'لينا عندهم', unitN:'علينا ليهم', places:[
         {lbl:'كشف أرصدة العملاء (كشف الحساب)', ...PN(C.filter(x=>!x.hid),'sheet')},
         {lbl:'المركز المالي', p:aV('مستحقات على العملاء'), n:lV('دفعات مقدمة من العملاء')},
         {lbl:'ميزان المراجعة', ...(tbS('العملاء',['مستحقات على العملاء','دفعات مقدمة من العملاء'])||{p:null,n:null})},
-        {lbl:'دليل الأكواد وشريط التحصيل (رصيد كل عميل)', ...PN(C.filter(x=>!x.hid),'live')},
+        {lbl:'دليل الأكواد (رصيد كل عميل)', ...PN(C.filter(x=>!x.hid),'chip')},
         {lbl:'حساب الحركات من غير تسوية (مرجع)', ...PN(C,'mov'), ref:true} ],
-        cols:[['sheet','كشف الأرصدة'],['live','الدليل/كشف الحساب'],['mov','حساب الحركات']], L:C.filter(x=>x.bad) };
+        cols:[['sheet','كشف الأرصدة'],['live','كل الحركات'],['mov','حساب الحركات']], L:C.filter(x=>x.bad) };
     /* ===== موردي قطع الغيار والسولار ===== */
     let AS={rows:[]}; try{ AS=allSuppliersStmtData('', D); }catch(e){}
     const sNames=[...new Set([...(db.suppliers||[]).map(x=>x.name), ...(db.procurements||[]).map(p=>p.supplier), ...(db.payments||[]).map(p=>p.supplier)].filter(Boolean))];
     const SU=sNames.map(n=>{ const coded=(db.suppliers||[]).some(x=>x.name===n);
         let bs=null; if(coded){ const {ob:sOB, od:sOD}=supOpen(n); const ok=p=>(p.date||'')<=D && (!sOD || (p.date||'')>=sOD); const i=(db.procurements||[]).filter(p=>p.supplier===n && ok(p)).reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0); const pd=(db.payments||[]).filter(p=>p.supplier===n && ok(p)).reduce((a,p)=>a+(Number(p.amount)||0),0); bs=r2((sOD && sOD<=D?sOB:0)+i-pd); }
         const st=AS.rows.find(r=>r.name===n); const stmt=st?r2(st.closing):0;
-        let chip=null; if(coded){ try{ chip=r2(supplierBalance(n).remaining); }catch(e){} }
+        let chip=null; if(coded){ try{ chip=r2(supBalAt(n, todayISO())); }catch(e){} }
         const why=[];
         if(!coded && Math.abs(stmt)>=0.5) why.push('اسم في المشتريات/الدفعات مش متكود في دليل الأكواد: داخل في كشف الموردين ومش داخل في المركز المالي');
         if(coded && diff(chip,bs)){ const {od:sOD}=supOpen(n); why.push(sOD ? `رصيد الدليل بيتحسب من غير الحساب القديم (افتتاحي ${dmy(sOD)}) وبيحسب الحركات اللي قبله — فرق ${f(chip-bs)}` : `فرق ${f(chip-bs)} بين الدليل والكشف`); }
@@ -5918,13 +5919,13 @@ function recoData(D){ D=D||todayISO(); const r2=v=>Math.round((Number(v)||0)*100
     let AC={rows:[]}; try{ AC=allContractorsStmtData(); }catch(e){}
     const CT=(db.contractors||[]).map(c=>{ let R=[]; try{ R=contractorStmtRows(c.name).rows; }catch(e){}
         const stmt=r2(R.filter(r=>(r.date||'')<=D).reduce((a,r)=>a+(r.credit||0)-(r.debit||0),0));
-        const tr=AC.rows.find(r=>r.name===c.name); const tot=tr?r2(tr.bal):null;
+        const tr=AC.rows.find(r=>r.name===c.name); const tot=tr?r2(tr.bal):0;
         let wk=null; try{ wk=r2(ctrWeekNums(c.name,'',D).fin); }catch(e){}
-        const why=[]; const ex=isCrusherCtr(c.name)?'من معدات الكسارة':(c.done?'متوقف (علامة «متوقف» في الدليل)':'');
+        const why=[]; const ex='';
         if(ex && Math.abs(stmt)>=0.5) why.push(`${ex}: مش ظاهر في «إجمالي حساب أصحاب المعدات»، بس رصيده داخل في المركز المالي`);
         if(diff(wk,stmt)) why.push(`فرق ${f(wk-stmt)} بين المستخلص الأسبوعي والكشف: حركة متسجلة بتاريخ بعد ${dmy(D)} أو مستخلص فترته بتخلص بعده`);
         if(!ex && tot!=null && diff(tot, r2(R.reduce((a,r)=>a+(r.credit||0)-(r.debit||0),0))) ) why.push('حركات بتاريخ بعد يوم المطابقة');
-        return {n:c.name, stmt, tot:ex?null:(tot==null?0:tot), wk, why, bad:why.length>0}; });
+        return {n:c.name, stmt, tot, wk, why, bad:why.length>0}; });
     let eqOther=0; try{ Object.entries(equipmentDebtBalances()).filter(([k])=>!k.startsWith('contractor::')).forEach(([,t])=>{ const b=(t.supplied||0)-(t.repaid||0); if(b>0) eqOther+=b; }); }catch(e){}
     const tG={ title:'أصحاب المعدات', unitP:'علينا ليهم', unitN:'لينا عندهم (عهد ومقدمات)', places:[
         {lbl:'كشف كل صاحب معدة / المستخلص الأسبوعي', ...PN(CT,'stmt')},
@@ -6254,8 +6255,9 @@ function balanceSheetData(D){
     let rec=0, adv=0;
     (db.clients||[]).forEach(c=>{ let b=0; try{ getClientAccountRowsAll(c.name).forEach(r=>{ if(!r.openAdj && le(r.date)) b+=(r.debit||0)-(r.credit||0); }); }catch(e){} if(b>0) rec+=b; else adv-=b; });
     /* محمد 2026-11-20: «مستحقات على العملاء» = إجمالي اللي لينا في كشف أرصدة العملاء (clientBalAt) — والفرق عن حساب الحركات بيتحط في حقوق الملكية «تسوية أرباح وخسائر فترة سابقة» عشان الميزانية تفضل متزنة */
-    let recSheet=0; const recList=[]; try{ visClients().forEach(c=>{ const b=Math.round(clientBalAt(c.name, D||todayISO())*100)/100; if(b>0){ recSheet+=b; recList.push({name:c.name, v:b}); } }); }catch(e){ recSheet=rec; }
-    const recDiff=recSheet-rec;
+    let recSheet=0, advSheet=0; const recList=[], advList=[]; try{ visClients().forEach(c=>{ const b=Math.round(clientBalAt(c.name, D||todayISO())*100)/100; if(b>0){ recSheet+=b; recList.push({name:c.name, v:b}); } else if(b<0){ advSheet-=b; advList.push({name:c.name, v:b}); } }); }catch(e){ recSheet=rec; advSheet=adv; }
+    /* محمد 2026-11-20 «علشان كله يبقى متساوي»: «دفعات مقدمة من العملاء» كمان من كشف الأرصدة، والفرق كله في «تسوية أرباح وخسائر فترة سابقة» */
+    const recDiff=(recSheet-advSheet)-(rec-adv); adv=advSheet;
     if(Math.round(recSheet)) A.push({g:'العملاء', name:'مستحقات على العملاء', v:recSheet});
     // المخزون (بمتوسط سعر الشراء)
     const _cnt=stockCountAt(D||''); if(_cnt){ _cnt.items.forEach(it=>A.push({g:'المخزون', name:'مخزون '+it.item+' ('+(it.moved?'الرصيد بعد حركة الشراء والصرف من جرد '+_cnt.date:'جرد '+_cnt.date)+': '+Number(it.qty||0).toLocaleString('ar-EG')+' '+(it.unit||'')+')', v:Number(it.value)||0})); } else {
@@ -6303,7 +6305,7 @@ function balanceSheetData(D){
     // محمد: «مفيش راس مال» — السطر ده مقفول على صفر، والفروق لو فيه بتبان من عدم اتزان الميزانية
     E.push({name:'رأس المال وأرصدة أول المدة', v:0, note:true});
     const tE=E.filter(x=>!x.part).reduce((a,x)=>a+x.v,0);
-    return {A,L,E,tA,tL:tL2,tE,recOld:rec,recList};
+    return {A,L,E,tA,tL:tL2,tE,recOld:rec,recList,advList};
 }
 /* إضافة (أو تنزيل بالسالب) على مخزون السن المشون — محمد بيكتب الكمية والقيمة بإيده */
 function sopenItems(){ return [...new Set([...(db.supplies||[]).map(x=>x.name), ...(db.procurements||[]).map(p=>p.item)].filter(n=>n && n!=='سن مشون'))]; }
@@ -6405,8 +6407,8 @@ function tbData(D){
     const sum = (L,f) => L.filter(f).reduce((a,x)=>a+x.v,0);
     const near = (a,b) => Math.abs(a-b) < 1;
     const aV = n => S.A.filter(x=>x.name===n).reduce((a,x)=>a+x.v,0), lV = n => S.L.filter(x=>x.name===n).reduce((a,x)=>a+x.v,0);
-    const clP = S.recList || cl.filter(x=>x.v>0);
-    const okC = near(sum(clP,x=>true), aV('مستحقات على العملاء')) && near(-sum(cl,x=>x.v<0), lV('دفعات مقدمة من العملاء'));
+    const clP = S.recList || cl.filter(x=>x.v>0), clN = S.advList || cl.filter(x=>x.v<0);
+    const okC = near(sum(clP,x=>true), aV('مستحقات على العملاء')) && near(-sum(clN,x=>true), lV('دفعات مقدمة من العملاء'));
     const okS = near(sum(su,x=>x.v>0), lV('موردي قطع الغيار والسولار')) && near(-sum(su,x=>x.v<0), aV('دفعات مقدمة لموردي قطع الغيار والسولار'));
     const okT = near(sum(ct,x=>x.v>0), lV('مستحقات أصحاب المعدات')) && near(-sum(ct,x=>x.v<0), aV('عهد ومقدمات عند أصحاب المعدات'));
     // الأصول (مدين)
@@ -6416,7 +6418,7 @@ function tbData(D){
         if(okT && x.name==='عهد ومقدمات عند أصحاب المعدات') return;
         put(x.g || 'الأصول', x.name, x.v, 'dr');
     });
-    if(okC){ clP.forEach(x=>put('العملاء', x.name, x.v, 'dr')); cl.filter(x=>x.v<0).forEach(x=>put('العملاء', x.name, x.v, 'dr')); }
+    if(okC){ clP.forEach(x=>put('العملاء', x.name, x.v, 'dr')); clN.forEach(x=>put('العملاء', x.name, x.v, 'dr')); }
     if(okS) su.forEach(x=>put('موردي قطع الغيار والسولار', x.name, x.v, 'cr'));
     if(okT) ct.forEach(x=>put('أصحاب المعدات', x.name, x.v, 'cr'));
     // الخصوم (دائن)
@@ -8043,6 +8045,8 @@ function buyItemChanged(){
     if(last){ if(!g('buy-supplier').value && last.supplier) g('buy-supplier').value = last.supplier; if(!g('buy-price').value) g('buy-price').value = last.price; buyTotal(); }
 }
 /* رصيد افتتاحي للمورد من التكويد: حسابه يبدأ من openDate بالرصيد المكتوب (محمد 2026-11-09) */
+/* رصيد المورد زي كشفه والمركز المالي: الحساب القديم من التكويد + الفواتير − الدفعات من تاريخ الافتتاح (عرض بس) */
+function supBalAt(name, D){ const {ob:sOB, od:sOD}=supOpen(name); const ok=p=>(!D || (p.date||'')<=D) && (!sOD || (p.date||'')>=sOD); const i=(db.procurements||[]).filter(p=>p.supplier===name && ok(p)).reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0); const pd=(db.payments||[]).filter(p=>p.supplier===name && ok(p)).reduce((a,p)=>a+(Number(p.amount)||0),0); return (sOD && (!D || sOD<=D)?sOB:0)+i-pd; }
 function supOpen(name){ const s=(db.suppliers||[]).find(x=>x.name===name)||{}; const any=(Number(s.openBal)||0)||(Number(s.openTotal)||0)||(Number(s.openPaid)||0); return {ob:Number(s.openBal)||0, od:(any?(s.openDate||''):'')}; }
 /* كشف حساب مورد: المشتريات (ليه) − المدفوع = الرصيد له */
 function renderSupplierStmt(){
@@ -11166,7 +11170,7 @@ function cxFormSheet(){ const g=id=>document.getElementById(id), name=g('cx-name
 function cxFormActive(){ const t=document.querySelector('.tab-content.active'); return !!(t && t.querySelector('#sub-extracts-form.active')); }
 /* إجمالي كل أصحاب المعدات: له (شغل + الحساب القديم) − المدفوع له = الباقي له (محمد 2026-11-10) */
 function allContractorsStmtData(){
-    const rows=(db.contractors||[]).filter(c=>!isCrusherCtr(c.name) && !c.done).map(c=>{ const R=contractorStmtRows(c.name).rows; /* المتوقف مبيظهرش في الحسابات (محمد 2026-11-13) */
+    const rows=(db.contractors||[]).map(c=>{ const R=contractorStmtRows(c.name).rows; /* محمد 2026-11-20 «علشان كله يبقى متساوي»: الإجمالي فيه كل أصحاب المعدات حتى المتوقفين، زي المركز المالي */
         const tot=R.reduce((s,r)=>s+(Number(r.credit)||0),0), paid=R.reduce((s,r)=>s+(Number(r.debit)||0),0);
         return {name:c.name, tot, paid, bal:tot-paid}; }).filter(r=>r.tot||r.paid)
         .sort((a,b)=>b.tot-a.tot);
