@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1162</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1163</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -766,7 +766,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
                 <form onsubmit="addDailyLog(event)" autocomplete="off" class="flex flex-col gap-3">
                     <div id="dl-row1" class="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="dl-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">رقم البون</label><div class="flex gap-1"><input id="dl-bon" type="text" readonly class="w-full bg-slate-100 border border-slate-200 rounded-lg p-2 text-sm font-extrabold text-slate-800"><button type="button" id="dl-bon-manual" onclick="toggleManualBon()" title="رقم بون نسيته" class="shrink-0 bg-amber-100 border border-amber-300 text-amber-900 rounded-lg px-2 text-xs font-bold whitespace-nowrap">بون فات</button></div></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">رقم البون</label><div class="flex gap-1"><input id="dl-bon" type="text" inputmode="numeric" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-sm font-extrabold text-slate-800" title="الرقم بيتكتب لوحده، وتقدر تغيره بإيدك لأي رقم مش متسجل"><button type="button" id="dl-bon-manual" onclick="toggleManualBon()" title="رقم بون نسيته" class="shrink-0 bg-amber-100 border border-amber-300 text-amber-900 rounded-lg px-2 text-xs font-bold whitespace-nowrap">بون فات</button></div></div>
                         <div class="col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">اسم العميل</label><select id="dl-client" required onchange="dlClientPrice(); dlClientBal()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select><div id="dl-client-bal" class="text-xs font-bold mt-1"></div></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">رقم الجرار</label><input id="dl-tractor" type="text" list="dl-tractor-list" oninput="dlTractorFill()" autocomplete="off" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"><datalist id="dl-tractor-list"></datalist></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">رقم المقطورة</label><input id="dl-trailer" type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
@@ -9879,8 +9879,11 @@ function addDailyLog(e){
         const mn=bonNum({bon:g('dl-bon').value}); if(!isFinite(mn)){ alert('اكتب رقم البون'); g('dl-bon').focus(); return; }
         if(db.dailyLog.some(r=>bonNum(r)===mn)){ alert('البون رقم '+mn+' متسجل فعلاً'); return; }
         if(cancelledList().some(x=>x.n===mn)){ alert('البون رقم '+mn+' متسجل ملغي — شيله من الملغي الأول'); return; }
-        if(!missingBons().includes(mn)){ const nx=nextBonNo(); alert(nx!==''&&mn>=nx ? `مينفعش تعدّي التسلسل — البون اللي عليه الدور ${nx}` : 'الرقم ده مش من البونات الناقصة'); return; }
-    } else if(!EB){ const fm=window.__fillMissing; if(fm && !db.dailyLog.some(r=>bonNum(r)===fm)) g('dl-bon').value=fm; else if(nextBonNo()!=='') g('dl-bon').value=nextBonNo(); }
+    } else if(!EB){ const fm=window.__fillMissing; if(fm && !db.dailyLog.some(r=>bonNum(r)===fm)) g('dl-bon').value=fm; else if(!g('dl-bon').value.trim() && nextBonNo()!=='') g('dl-bon').value=nextBonNo();
+        /* محمد 2026-11-21: أي رقم مش متسجل ينفع (البون اللي اتنسى يتسجل بعدين برقمه) — الممنوع بس رقم متسجل أو ملغي */
+        const mn=bonNum({bon:g('dl-bon').value}); if(!isFinite(mn)){ alert('اكتب رقم البون'); g('dl-bon').focus(); return; }
+        if(db.dailyLog.some(r=>bonNum(r)===mn)){ alert('البون رقم '+mn+' متسجل فعلاً'); g('dl-bon').focus(); return; }
+        if(cancelledList().some(x=>x.n===mn)){ alert('البون رقم '+mn+' متسجل ملغي — شيله من الملغي الأول'); return; } }
     const bon = EB ? String(EB.bon||'') : g('dl-bon').value.trim();
     if(EB){ // تعديل: لو البون الأصلي رجع (مزامنة) نشيله، ونحفظ بنفس الرقم ونفس الـ id من غير أسئلة
         const old = db.dailyLog.find(r=>r.id===EB.id);
@@ -9908,7 +9911,7 @@ function addDailyLog(e){
     e.target.reset();
     g('dl-date').value = keepDate; g('dl-project').value = keepProject; window.__dlSel=new Set(); try{ renderSizeBtns(); }catch(x){}
     window.__fillMissing=null; if(window.__manualBon){ window.__manualBon=false; const mb=g('dl-bon-manual'); if(mb) mb.textContent='بون فات'; g('dl-bon').placeholder=''; } g('dl-bon').style.background=''; g('dl-bon').style.borderColor='';
-    g('dl-bon').value = nextBonNo(); g('dl-bon').readOnly = true;
+    g('dl-bon').value = nextBonNo(); g('dl-bon').dataset.auto = String(g('dl-bon').value); g('dl-bon').readOnly = false;
     window.__editBon = null;
     delete g('dl-price').dataset.touched; delete g('dl-tip').dataset.touched; delete g('dl-price').dataset.auto; dlPayToggle();
     scheduleSave();
@@ -10372,13 +10375,14 @@ function toggleManualBon(){
     if(typeof __editSnap!=='undefined' && __editSnap) return;
     window.__manualBon=!window.__manualBon;
     if(window.__manualBon){ el.readOnly=false; el.value=''; el.style.background='#fef3c7'; el.style.borderColor='#d97706'; el.placeholder='اكتب رقم البون'; el.focus(); if(b) b.textContent='إلغاء'; }
-    else { el.readOnly=true; el.style.background=''; el.style.borderColor=''; el.placeholder=''; if(b) b.textContent='بون فات'; fillNextBon(); }
+    else { el.readOnly=false; el.style.background=''; el.style.borderColor=''; el.placeholder=''; if(b) b.textContent='بون فات'; el.value=''; fillNextBon(); }
 }
 function fillNextBon(){ const el = document.getElementById('dl-bon'); if(!el || __editSnap) return;
     if(window.__manualBon) return;
     if(window.__fillMissing){ if((db.dailyLog||[]).some(r=>bonNum(r)===window.__fillMissing)){ window.__fillMissing=null; el.style.background=''; el.style.borderColor=''; } else { el.value=window.__fillMissing; return; } }
-    const nx = nextBonNo(); el.readOnly = nx!==''; // أول بون بس اللي بيتكتب بإيدك
-    if(nx!=='') el.value = nx; }
+    /* محمد 2026-11-21: «لو نسيت البون 85 وكملت… يتسجل برقمه» — الخانة مفتوحة: الرقم المقترح آخر+1، وهو يقدر يكتب أي رقم مش متسجل. ما نكتبش فوق رقم هو كتبه بإيده */
+    const nx = nextBonNo(); el.readOnly = false;
+    if(nx!=='' && (el.value==='' || el.value===el.dataset.auto)){ el.value = nx; el.dataset.auto = String(nx); } }
 function calcBons(){
     const g=id=>document.getElementById(id), box=g('bc-res'); if(!box) return;
     const cs=g('bc-client'); if(cs && cs.options.length!==(db.clients||[]).length+1){ const pv=cs.value; fillSelect('bc-client', db.clients||[], 'كل العملاء'); cs.value=pv||'ALL'; }
@@ -11818,7 +11822,7 @@ function startEdit(kind, id){
         window.__editBon = {id:r.id, bon:r.bon}; window.__dlSel=new Set();
         silentDelete(()=>deleteDailyLog(id)); tab='dailylog'; formAnchor='dl-bon';
         try{ renderShares(Array.isArray(r.shares) ? r.shares : sharedContractors().map(c=>c.name)); }catch(e){}
-        setVal('dl-date', r.date); setVal('dl-bon', r.bon); setVal('dl-client', r.client); setVal('dl-tractor', r.tractor); setVal('dl-trailer', r.trailer); setVal('dl-worker', r.worker==='شغل الكسارة' ? 'الكسارة' : (r.worker||''));
+        setVal('dl-date', r.date); setVal('dl-bon', r.bon); { const be=document.getElementById('dl-bon'); if(be) be.readOnly=true; } setVal('dl-client', r.client); setVal('dl-tractor', r.tractor); setVal('dl-trailer', r.trailer); setVal('dl-worker', r.worker==='شغل الكسارة' ? 'الكسارة' : (r.worker||''));
         DL_SIZES.forEach(s=>setVal('dl-q-'+s.key, (r.q||{})[s.key]||''));
         setVal('dl-tip', r.tip||''); setVal('dl-price', r.price||''); try{ document.getElementById('dl-price').dataset.touched=1; }catch(e){} setVal('dl-notes', r.notes||''); setVal('dl-pay', r.paidCash?'cash':'credit'); try{ dlPayToggle(); }catch(e){}
         const v = (db.vehicles||[]).find(x=>normPlate(x.plate)===normPlate(r.tractor)); setVal('dl-cube', (r.cube!=null && r.cube!=='') ? r.cube : (v&&v.cube||''));
