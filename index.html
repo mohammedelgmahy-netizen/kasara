@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1159</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1160</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -2649,6 +2649,9 @@ const SYNC_BASE_KEY = 'kasara-synced::' + STORAGE_KEY;
 function rememberSynced(){ try{ if(__lastSynced) localStorage.setItem(SYNC_BASE_KEY, __lastSynced); }catch(e){} }
 let __syncInit = false, __cloudOK = false, __cloudEmpty = false, __lastSynced = null, __dirty = false;
 const __eq = (a,b)=>JSON.stringify(a)===JSON.stringify(b);
+/* محمد 2026-11-21: جهاز قديم كرر 2,469 بون لأن نسخته كان عليها _by/_at بس — المقارنة دي بتتجاهل علامات التسجيل */
+const __coreStr = o=>{ if(!o||typeof o!=='object') return JSON.stringify(o); const c={}; Object.keys(o).sort().forEach(k=>{ if(k!=='id'&&k!=='_by'&&k!=='_at'&&k!=='_live') c[k]=o[k]; }); return JSON.stringify(c); };
+const __eqCore = (a,b)=>__coreStr(a)===__coreStr(b);
 function __mergeArr(b,l,r){
     const idOf = x => (x && typeof x==='object' && x.id!=null) ? String(x.id) : null;
     if(![...(l||[]),...(r||[])].every(x=>idOf(x)!==null)) return l;
@@ -2659,7 +2662,7 @@ function __mergeArr(b,l,r){
         const id=idOf(x), bx=bM.get(id);
         if(bx===undefined){ // اتضاف على الجهاز ده
             if(!oM.has(id)){ out.push(x); oM.set(id,out.length-1); }
-            else if(!__eq(out[oM.get(id)],x)){ // نفس الرقم اتاخد على جهاز تاني
+            else if(!__eq(out[oM.get(id)],x) && !__eqCore(out[oM.get(id)],x)){ // نفس الرقم اتاخد على جهاز تاني (محمد 2026-11-21: لو نفس الحركة بالظبط ومختلفة في علامة «اتسجل بواسطة/إمتى» بس ما تتكررش)
                 const nx=Object.assign({},x); if(typeof x.id==='number'){ nx.id=Math.max(0,...numIds())+1; } else nx.id=String(x.id)+'-'+Date.now().toString(36);
                 out.push(nx);
             }
@@ -2808,7 +2811,7 @@ async function decideReq(id, ok){
             let arr = Array.isArray(db[k]) ? db[k] : (db[k]=[]);
             const delIds=new Set(c.del.map(idOf)); arr = arr.filter(x=>!delIds.has(idOf(x)));
             c.mod.forEach(x=>{ const i=arr.findIndex(y=>idOf(y)===idOf(x)); if(i>=0) arr[i]=x; else arr.push(x); });
-            c.add.forEach(x=>{ if(arr.some(y=>idOf(y)===idOf(x))){ const n=Object.assign({},x); n.id = typeof x.id==='number' ? Math.max(0,...arr.map(y=>Number(y.id)).filter(v=>isFinite(v)&&v<1e12))+1 : x.id+'-'+Date.now().toString(36); arr.push(n); } else arr.push(x); });
+            c.add.forEach(x=>{ if(arr.some(y=>idOf(y)===idOf(x)&&__eqCore(y,x))) return; if(arr.some(y=>idOf(y)===idOf(x))){ const n=Object.assign({},x); n.id = typeof x.id==='number' ? Math.max(0,...arr.map(y=>Number(y.id)).filter(v=>isFinite(v)&&v<1e12))+1 : x.id+'-'+Date.now().toString(36); arr.push(n); } else arr.push(x); });
             db[k]=arr;
         });
         try{ db.nextId=db.nextId||{}; [['exp','expensesData'],['pay','payments'],['proc','procurements']].forEach(([c,a])=>{ const m=Math.max(0,...(db[a]||[]).map(x=>Number(x.id)).filter(n=>isFinite(n)&&n<1e9)); if(!(db.nextId[c]>m)) db.nextId[c]=m+1; }); }catch(e){}
@@ -3658,6 +3661,7 @@ window.onload = async function(){
     try{ await zeroTxOnce(); renderAll(); }catch(e){ console.warn('zero', e); }
     try{ restorePendingEdit(); }catch(e){ console.warn('pend', e); }
     try{ restoreBon3737(); }catch(e){ console.warn('3737', e); }
+    try{ await dedup1121Once(); }catch(e){ console.warn('dedup1121', e); }
     setTimeout(()=>{ try{ autoDailyBackup(); refreshPendingBadge(); }catch(e){} }, 3000);
     ensureCrusherPaperData();
     ensureWeeklyCustody();
@@ -3684,6 +3688,28 @@ function fixDupIds(){
         if(k==='expensesData' && num && db.nextId && db.nextId.exp<=mx) db.nextId.exp=mx+1;
     });
     if(changed) scheduleSave();
+}
+/* محمد 2026-11-21 «ايوة»: جهاز عليه نسخة قديمة اتزامن 21/11 الساعة 15:13:49 UTC فكرر 2,469 بون قديم + 2 مستخلص + 2 إيراد بأرقام جديدة، و«يوسف جبر» اتضاف تاني بكود 7044.
+   مرة واحدة: نسخة احتياطية على السحابة الأول (لو فشلت ما يتمسحش حاجة)، وبعدين يتمسح المكرر بس = اللي عليه نفس التوقيت بالظبط وليه أصل مطابق في كل حاجة غير الرقم */
+const DEDUP1121_AT='2026-11-21T15:13:49.812Z';
+async function dedup1121Once(){
+    if(!db || (db.imports&&db.imports.dedup1121)) return;
+    const KS=['dailyLog','ctrExtracts','incomes'], kill={}; let n=0;
+    KS.forEach(k=>{ const L=db[k]; if(!Array.isArray(L)) return; const orig=new Set(L.filter(x=>x&&x._at!==DEDUP1121_AT).map(__coreStr));
+        kill[k]=new Set(L.filter(x=>x&&x._at===DEDUP1121_AT&&orig.has(__coreStr(x))).map(x=>String(x.id))); n+=kill[k].size; });
+    const yj=(db.clients||[]).filter(c=>String(c.name||'').trim()==='يوسف جبر'), yDup=yj.length>1 ? yj.find(c=>Number(c.code)===7044 && Object.keys(c).every(k=>k==='code'||k==='name')) : null;
+    if(!n && !yDup){ if(!db.imports) db.imports={}; return; }
+    if(!SUPABASE_URL || !__cloudOK) return; /* لازم السحابة تكون شغالة عشان النسخة الاحتياطية */
+    const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-21-before-dedup', value:JSON.stringify(db), updated_at:new Date().toISOString()})});
+    if(!res.ok){ console.warn('dedup1121: النسخة الاحتياطية فشلت', res.status); return; }
+    const before={}; KS.forEach(k=>{ before[k]=(db[k]||[]).length; });
+    KS.forEach(k=>{ if(!kill[k]||!kill[k].size) return; db[k]=db[k].filter(x=>!(x&&kill[k].has(String(x.id)))); kill[k].forEach(id=>tombstone(k,id)); });
+    if(yDup) db.clients=db.clients.filter(c=>c!==yDup);
+    if(!db.imports) db.imports={}; db.imports.dedup1121=true;
+    const msg=KS.map(k=>k+': '+before[k]+' → '+(db[k]||[]).length).join('، ')+(yDup?'، يوسف جبر (7044)':'');
+    logAudit('delete','مسح المكرر 21/11 (بأمر محمد)', msg, null, null);
+    window.__allowShrink=true; try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    scheduleSave(); try{ initDropdowns(); renderAll(); }catch(e){}
 }
 function restoreBon3737(){
     if(db.restored3737) return;
