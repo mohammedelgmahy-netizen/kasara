@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1169</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1170</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3763,7 +3763,7 @@ async function fixMagdyName1122Once(){
     if(!db || (db.imports&&db.imports.magdy1122)) return;
     const OLD='مجدي غبد الغني', NEW='مجدي عبد الغني';
     if(!(db.names||[]).some(n=>n.name===OLD)){ if((db.names||[]).some(n=>n.name===NEW)){ if(!db.imports) db.imports={}; db.imports.magdy1122=true; scheduleSave(); } return; }
-    if(db.imports && !db.imports.ramadan1122) return; /* سلفة الـ30,000 تتنقل الأول */
+    if(!(db.imports&&db.imports.ramadan1122) && (db.expensesData||[]).some(r=>r && Number(r.id)===RAM1122_ID && String(r.name||'').includes('رمضان'))) return; /* سلفة الـ30,000 تتنقل الأول لو لسه موجودة على رمضان */
     if(!SUPABASE_URL || !__cloudOK) return;
     const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-22-before-magdy-name', value:JSON.stringify(db), updated_at:new Date().toISOString()})});
     if(!res.ok){ console.warn('magdy1122: النسخة الاحتياطية فشلت', res.status); return; }
