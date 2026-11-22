@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1170</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1171</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3672,7 +3672,7 @@ window.onload = async function(){
     try{ await fixRamadan1122Once(); }catch(e){ console.warn('ramadan1122', e); }
     try{ await fixBaqala1122Once(); }catch(e){ console.warn('baqala1122', e); }
     try{ await fixMagdyName1122Once(); }catch(e){ console.warn('magdy1122', e); }
-    /* addMagdy50k1122Once اتوقفت (2026-11-22): التليفون عليه 5,000 يوم 20/11 مش 50,000 — مستني تأكيد محمد */
+    try{ await addMagdy50k1122Once(); }catch(e){ console.warn('magdy50k', e); }
     setTimeout(()=>{ try{ autoDailyBackup(); refreshPendingBadge(); }catch(e){} }, 3000);
     ensureCrusherPaperData();
     ensureWeeklyCustody();
@@ -3779,18 +3779,22 @@ async function fixMagdyName1122Once(){
 }
 /* محمد 2026-11-22: «يوم 20 خد 50,000» — سلفة مجدي عبد الغني 50,000 بتاريخ 20/11 من المعلق ما كانتش متسجلة. رقم ثابت عشان ما تتكررش من جهازين */
 async function addMagdy50k1122Once(){
+    /* محمد 2026-11-22: «أخد 50 ما أخدش 5، أنا سجلتها غلط» → سلفة مجدي يوم 20/11 المتسجلة 5,000 تبقى 50,000 (نفس الحركة، مش حركة جديدة) */
     if(!db || (db.imports&&db.imports.magdy50k1122)) return;
-    const ID=1795000000500001, NM='مجدي عبد الغني', ACC='معلق عماد ناجي';
-    if(!(db.names||[]).some(n=>n.name===NM)) return; /* تصحيح الاسم الأول */
+    const isM=x=>x && x.category===ADV_CAT && /^مجدي [عغ]بد الغني$/.test(String(x.name||'').trim()) && x.date==='2026-11-20';
     const done=()=>{ if(!db.imports) db.imports={}; db.imports.magdy50k1122=true; };
-    if((db.expensesData||[]).some(x=>x && (Number(x.id)===ID || (x.category===ADV_CAT && x.name===NM && x.date==='2026-11-20' && Number(x.paid)===50000)))){ done(); scheduleSave(); return; }
-    if(accBalance(ACC) < 50000){ console.warn('magdy50k: رصيد المعلق مش مكفي'); return; }
+    const L=(db.expensesData||[]).filter(isM);
+    if(L.some(x=>Number(x.paid)===50000)){ done(); scheduleSave(); return; }
+    const x=L.find(x=>Number(x.paid)===5000);
+    if(!x) return; /* لسه ما وصلتش للجهاز ده — ما نضيفش حاجة من عندنا */
+    const acc=x.account||'معلق عماد ناجي';
+    if(accBalance(acc) < 45000){ console.warn('magdy50k: رصيد الخزنة مش مكفي'); return; }
     if(!SUPABASE_URL || !__cloudOK) return;
     const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-22-before-magdy-50000', value:JSON.stringify(db), updated_at:new Date().toISOString()})});
     if(!res.ok){ console.warn('magdy50k: النسخة الاحتياطية فشلت', res.status); return; }
-    const x={id:ID, category:ADV_CAT, activity:'', name:NM, project:'كسارة ديار', total:50000, paid:50000, remaining:0, account:ACC, date:'2026-11-20', notes:'دفعة من مرتب مجدي عبد الغني', desc:'دفعة من مرتب مجدي عبد الغني', _by:'المدير', _at:'2026-11-22T23:58:00.000Z'};
-    db.expensesData.push(x); done();
-    logAudit('create','سلفة موظف (بأمر محمد)', NM+' - 50000 (20/11)', null, Object.assign({},x));
+    const old=Object.assign({},x);
+    x.total=50000; x.paid=50000; x.remaining=0; done();
+    logAudit('update','سلفة موظف (تصحيح بأمر محمد)', String(x.name)+' 20/11: 5,000 ← 50,000', old, Object.assign({},x));
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
     scheduleSave(); try{ renderAll(); }catch(e){}
 }
