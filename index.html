@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1165</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1166</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3670,6 +3670,7 @@ window.onload = async function(){
     try{ restoreBon3737(); }catch(e){ console.warn('3737', e); }
     try{ await dedup1121Once(); }catch(e){ console.warn('dedup1121', e); }
     try{ await fixRamadan1122Once(); }catch(e){ console.warn('ramadan1122', e); }
+    try{ await fixBaqala1122Once(); }catch(e){ console.warn('baqala1122', e); }
     setTimeout(()=>{ try{ autoDailyBackup(); refreshPendingBadge(); }catch(e){} }, 3000);
     ensureCrusherPaperData();
     ensureWeeklyCustody();
@@ -3735,6 +3736,22 @@ async function fixRamadan1122Once(){
     x.name=RAM1122_TO; x.date='2026-11-11'; x.notes=x.desc='من مرتب مجدي عبد الغني — استلمها يوم 9/11 واتسجلت 11/11';
     if(!db.imports) db.imports={}; db.imports.ramadan1122=true;
     logAudit('update','سلفة موظف (نقل الاسم بأمر محمد)', 'سلفة 30,000 بتاريخ 11/11: على رمضان ← '+RAM1122_TO, old, Object.assign({},x));
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    scheduleSave(); try{ renderAll(); }catch(e){}
+}
+/* محمد 2026-11-22 «البقالة 760، عدلها»: «بقالة المكتب» 19/11 اتسجلت 4,670 والدفتر 4,760 (فرق 90 في الرصيد المرحل من 20/11). المبلغ بس */
+async function fixBaqala1122Once(){
+    if(!db || (db.imports&&db.imports.baqala1122)) return;
+    const x=(db.expensesData||[]).find(r=>r && Number(r.id)===1795000000300409);
+    if(!x) return;
+    if(!(Number(x.total)===4670 && x.date==='2026-11-19')){ if(!db.imports) db.imports={}; db.imports.baqala1122=true; scheduleSave(); return; }
+    if(!SUPABASE_URL || !__cloudOK) return;
+    const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-22-before-baqala-4760', value:JSON.stringify(db), updated_at:new Date().toISOString()})});
+    if(!res.ok){ console.warn('baqala1122: النسخة الاحتياطية فشلت', res.status); return; }
+    const old=Object.assign({},x);
+    x.total=4760; x.paid=4760; x.remaining=0;
+    if(!db.imports) db.imports={}; db.imports.baqala1122=true;
+    logAudit('update','مصروف (تصحيح بأمر محمد)', 'بقالة المكتب 19/11: 4,670 ← 4,760', old, Object.assign({},x));
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
     scheduleSave(); try{ renderAll(); }catch(e){}
 }
