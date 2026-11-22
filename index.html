@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1166</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1167</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3671,6 +3671,7 @@ window.onload = async function(){
     try{ await dedup1121Once(); }catch(e){ console.warn('dedup1121', e); }
     try{ await fixRamadan1122Once(); }catch(e){ console.warn('ramadan1122', e); }
     try{ await fixBaqala1122Once(); }catch(e){ console.warn('baqala1122', e); }
+    try{ await fixMagdyName1122Once(); }catch(e){ console.warn('magdy1122', e); }
     setTimeout(()=>{ try{ autoDailyBackup(); refreshPendingBadge(); }catch(e){} }, 3000);
     ensureCrusherPaperData();
     ensureWeeklyCustody();
@@ -3722,12 +3723,13 @@ async function dedup1121Once(){
 }
 /* محمد 2026-11-22 «ضروري تظبطها دلوقتي»: سلفة 30,000 (13/11، بتاريخ 11/11، المعلق) بيانها «من مرتب مجدي عبد الغني» اتسجلت على «على رمضان» بالغلط.
    مرة واحدة: نسخة احتياطية على السحابة الأول (لو فشلت ما يتغيرش حاجة)، وبعدين الاسم بس يتغير لمجدي — المبلغ والتاريخ والخزنة زي ما هم */
-const RAM1122_ID=1795000000300087, RAM1122_TO='مجدي غبد الغني';
+const RAM1122_ID=1795000000300087; let RAM1122_TO='مجدي غبد الغني';
 async function fixRamadan1122Once(){
     if(!db || (db.imports&&db.imports.ramadan1122)) return;
     const x=(db.expensesData||[]).find(r=>r && Number(r.id)===RAM1122_ID);
     if(!x){ return; } /* البيانات لسه ما اتحملتش */
     if(!(String(x.name||'').includes('رمضان') && Number(x.total)===30000)){ if(!db.imports) db.imports={}; db.imports.ramadan1122=true; scheduleSave(); return; }
+    if((db.names||[]).some(n=>n.name==='مجدي عبد الغني')) RAM1122_TO='مجدي عبد الغني';
     if(!(db.names||[]).some(n=>n.name===RAM1122_TO)) return;
     if(!SUPABASE_URL || !__cloudOK) return;
     const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-22-before-ramadan-30000', value:JSON.stringify(db), updated_at:new Date().toISOString()})});
@@ -3754,6 +3756,25 @@ async function fixBaqala1122Once(){
     logAudit('update','مصروف (تصحيح بأمر محمد)', 'بقالة المكتب 19/11: 4,670 ← 4,760', old, Object.assign({},x));
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
     scheduleSave(); try{ renderAll(); }catch(e){}
+}
+/* محمد 2026-11-22 «صلح الاسم في كل حركاته»: «مجدي غبد الغني» (غين بالغلط) ← «مجدي عبد الغني» في التكويد وكل الحركات. الاسم بس، ولا مبلغ ولا تاريخ */
+async function fixMagdyName1122Once(){
+    if(!db || (db.imports&&db.imports.magdy1122)) return;
+    const OLD='مجدي غبد الغني', NEW='مجدي عبد الغني';
+    if(!(db.names||[]).some(n=>n.name===OLD)){ if((db.names||[]).some(n=>n.name===NEW)){ if(!db.imports) db.imports={}; db.imports.magdy1122=true; scheduleSave(); } return; }
+    if(db.imports && !db.imports.ramadan1122) return; /* سلفة الـ30,000 تتنقل الأول */
+    if(!SUPABASE_URL || !__cloudOK) return;
+    const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-22-before-magdy-name', value:JSON.stringify(db), updated_at:new Date().toISOString()})});
+    if(!res.ok){ console.warn('magdy1122: النسخة الاحتياطية فشلت', res.status); return; }
+    let n=0;
+    const walk=o=>{ if(Array.isArray(o)){ o.forEach((v,i)=>{ if(v===OLD){ o[i]=NEW; n++; } else if(v&&typeof v==='object') walk(v); }); return; }
+        if(o&&typeof o==='object') Object.keys(o).forEach(k=>{ const v=o[k]; if(v===OLD){ o[k]=NEW; n++; } else if(v&&typeof v==='object') walk(v);
+            if(k===OLD){ if(!(NEW in o)) o[NEW]=o[k]; delete o[k]; n++; } }); };
+    Object.keys(db).forEach(k=>{ if(k==='auditLog'||k==='__del') return; const v=db[k]; if(v===OLD){ db[k]=NEW; n++; } else if(v&&typeof v==='object') walk(v); });
+    if(!db.imports) db.imports={}; db.imports.magdy1122=true;
+    logAudit('update','تصحيح اسم (بأمر محمد)', OLD+' ← '+NEW+' ('+n+' مكان)', null, null);
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    scheduleSave(); try{ initDropdowns(); renderAll(); }catch(e){}
 }
 function restoreBon3737(){
     if(db.restored3737) return;
