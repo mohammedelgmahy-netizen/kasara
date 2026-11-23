@@ -110,7 +110,7 @@ aside#sidebar,#side-backdrop{display:none !important;}
 #more-menu .mm button{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;font-weight:700;font-size:15px;color:#0f172a;border-bottom:1px solid #f1f5f9;text-align:right}
 #more-menu .mm button i{width:22px;text-align:center;font-size:17px}
 @media (max-width:1100px){
-  header .hdr-actions > *:not(#save-indicator):not(#more-btn){display:none !important;}
+  header .hdr-actions > *:not(#save-indicator):not(#more-btn):not(#exit-btn){display:none !important;}
   #more-btn{display:flex}
 }
 #side-backdrop{display:none;}
@@ -424,6 +424,11 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
 </style>
 <style>/* محمد 2026-11-16: طباعة كشف الحساب من غير الشريط اللي فوق، وكلمة «كشف الحساب» في النص */
 @media print{ #acct-card > div:first-child{justify-content:center!important} #acct-card > div:first-child > h3{width:100%;text-align:center!important;justify-content:center!important;font-size:42px!important;font-weight:900!important;color:#000!important} #acct-card > div:first-child > h3 i{display:none!important} #cs-unpriced-bar{display:none!important} }</style>
+<style>/* محمد 2026-11-23: زرار خروج واضح */
+body > header .hdr-actions > button#exit-btn{background:#dc2626 !important;border:1px solid #b91c1c !important;color:#fff !important;font-weight:800;font-size:15px;padding:6px 14px;border-radius:8px;white-space:nowrap}
+body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important}
+@media (max-width:900px){ body > header .hdr-actions > button#exit-btn{padding:8px 10px !important;font-size:14px} }
+</style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col">
 <!-- ACTIVATION GATE -->
@@ -441,6 +446,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
                 class="w-full text-center bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm">
             <input id="login-pass" type="password" required minlength="6" placeholder="الباسورد" autocomplete="current-password" dir="ltr"
                 class="w-full text-center bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm">
+            <p id="gate-bye" style="display:none;background:#dcfce7;color:#166534;border:1px solid #86efac;border-radius:10px;padding:12px;text-align:center;font-weight:800;font-size:17px">✅ خرجت من البرنامج</p>
             <p id="activation-error" class="hidden text-rose-600 text-xs text-center font-bold"></p>
             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-lg text-sm">دخول</button>
             <button type="button" onclick="handleLogin(event,'signup')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-3 rounded-lg text-sm">أول مرة؟ اعمل حساب</button>
@@ -466,7 +472,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
     </div>
     <div class="hdr-actions flex items-center gap-4 text-sm">
         <button id="users-btn" type="button" onclick="switchTab('users')" title="المستخدمين" style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:4px 8px;font-size:16px">👥</button>
-        <button type="button" onclick="logoutUser()" title="خروج / تغيير المستخدم" style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:4px 8px;font-size:12px;font-weight:700"><span id="who-name"></span> ⎋</button>
+        <button type="button" id="exit-btn" onclick="exitApp()" title="خروج من البرنامج">🚪 خروج<span id="who-name" style="display:none"></span></button>
         <button id="cloud-btn" type="button" hidden style="display:none" onclick="openCloudSettings()" title="الربط أونلاين" style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:4px 8px;font-size:16px">☁️</button>
         <div id="save-indicator" class="bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -573,7 +579,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1178</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1179</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3359,6 +3365,11 @@ async function handleLogin(e, mode){
         }
         saveSession(r.j); location.reload();
     }catch(err){ show('مفيش نت. جرّب تاني.'); }
+}
+async function exitApp(){
+    try{ if(typeof __dirty!=='undefined' && __dirty && SUPABASE_URL){ await cloudSaveMerged(); } }catch(e){}
+    try{ sessionStorage.setItem('kasara-bye','1'); }catch(e){}
+    logoutUser();
 }
 function logoutUser(){
     try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
@@ -13275,5 +13286,6 @@ setInterval(()=>{ if(!document.hidden) odCheck(); }, 15000);
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) setTimeout(odCheck,2500); });
 window.addEventListener('load',()=>setTimeout(odCheck,6000));
 </script>
+<script>try{ if(sessionStorage.getItem('kasara-bye')){ sessionStorage.removeItem('kasara-bye'); const b=document.getElementById('gate-bye'); if(b) b.style.display='block'; } }catch(e){}</script>
 </body>
 </html>
