@@ -104,7 +104,9 @@ body{font-family:'Cairo',sans-serif;background:#f8fafc;}
 .subnav-btn.active{background:#f59e0b;color:#fff;box-shadow:0 2px 6px rgba(245,158,11,.3)}
 #menu-toggle{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:#1e293b;color:#fff;font-size:18px;border:none;flex-shrink:0;}
 aside#sidebar,#side-backdrop{display:none !important;}
-#more-btn{display:none}
+/* محمد 2026-11-23: قايمة الثلاث نقط تظهر على اللابتوب كمان زي التليفون */
+#more-btn{display:flex}
+header .hdr-actions > *:not(#save-indicator):not(#more-btn):not(#exit-btn){display:none !important;}
 #more-menu{position:fixed;inset:0;z-index:9998;background:rgba(15,23,42,.5);display:flex;align-items:flex-start;justify-content:flex-start;padding:70px 10px 10px}
 #more-menu .mm{background:#fff;border-radius:16px;min-width:240px;max-width:92vw;box-shadow:0 20px 50px rgba(0,0,0,.3);overflow:hidden}
 #more-menu .mm button{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;font-weight:700;font-size:15px;color:#0f172a;border-bottom:1px solid #f1f5f9;text-align:right}
@@ -579,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1182</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1183</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
