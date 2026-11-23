@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1177</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1178</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3713,6 +3713,7 @@ window.onload = async function(){
     try{ await dedup1121Once(); }catch(e){ console.warn('dedup1121', e); }
     try{ await fixRamadan1122Once(); }catch(e){ console.warn('ramadan1122', e); }
     try{ await fixBaqala1122Once(); }catch(e){ console.warn('baqala1122', e); }
+    try{ await drawerToBank1123Once(); }catch(e){ console.warn('drj1123', e); }
     try{ await fixMagdyName1122Once(); }catch(e){ console.warn('magdy1122', e); }
     try{ await addMagdy50k1122Once(); }catch(e){ console.warn('magdy50k', e); }
     try{ await aliPrev1123Once(); }catch(e){ console.warn('ali1123', e); }
@@ -3792,6 +3793,23 @@ async function fixRamadan1122Once(){
     scheduleSave(); try{ renderAll(); }catch(e){}
 }
 /* محمد 2026-11-22 «البقالة 760، عدلها»: «بقالة المكتب» 19/11 اتسجلت 4,670 والدفتر 4,760 (فرق 90 في الرصيد المرحل من 20/11). المبلغ بس */
+/* محمد 2026-11-23 02:38: «كل الحاجات اللي سجلتها النهارده من الدرج خليها من المعلق» — 9 مصروفات بس، الخزنة بس اللي بتتغير (ولا مبلغ ولا تاريخ) */
+const DRJ1123=[[2000,'وليد'],[810,'اسطوان'],[430,'عفش'],[40,'حبار'],[880,'بقال'],[200,'خبز'],[1400,'عش'],[300,'لاكور'],[450,'خرطوم']];
+async function drawerToBank1123Once(){
+    if(!db || (db.imports&&db.imports.drj1123) || Date.now()>Date.parse('2026-11-26')) return;
+    const C=(db.expensesData||[]).filter(r=>r && (r.date==='2026-11-22'||r.date==='2026-11-23') && r.account==='درج المكتب' && r.category!=='إيراد' && r.type!=='income');
+    const hits=[], miss=[], used=new Set();
+    DRJ1123.forEach(([amt,kw])=>{ let m=C.filter(r=>!used.has(r) && Number(r.total)===amt); if(m.length>1){ const k=m.filter(r=>[r.category,r.name,r.notes,r.activity].join(' ').includes(kw)); if(k.length) m=k; } if(m.length) { used.add(m[0]); hits.push(m[0]); } else miss.push(amt); });
+    if(!hits.length) return;
+    if(!SUPABASE_URL || !__cloudOK) return;
+    const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-23-before-drawer-to-bank', value:JSON.stringify(db), updated_at:new Date().toISOString()})});
+    if(!res.ok){ console.warn('drj1123: النسخة الاحتياطية فشلت', res.status); return; }
+    hits.forEach(x=>{ const old=Object.assign({},x); x.account='معلق عماد ناجي'; logAudit('update','مصروف (تحويل خزنة بأمر محمد)', (x.category||'')+' '+(x.name||'')+' '+x.total+': درج المكتب ← المعلق', old, Object.assign({},x)); });
+    if(!db.imports) db.imports={}; db.imports.drj1123={moved:hits.map(x=>x.id), miss};
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    scheduleSave(); try{ renderAll(); }catch(e){}
+    setTimeout(()=>{ try{ document.getElementById('save-indicator').innerHTML='<span>اتحولت '+hits.length+' حركة من الدرج للمعلق'+(miss.length?' — ما لقيتش: '+miss.join('، '):'')+'</span>'; }catch(e){} }, 2500);
+}
 async function fixBaqala1122Once(){
     if(!db || (db.imports&&db.imports.baqala1122)) return;
     const x=(db.expensesData||[]).find(r=>r && Number(r.id)===1795000000300409);
