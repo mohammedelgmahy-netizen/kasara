@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1173</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1174</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3692,6 +3692,7 @@ window.onload = async function(){
     try{ await fixBaqala1122Once(); }catch(e){ console.warn('baqala1122', e); }
     try{ await fixMagdyName1122Once(); }catch(e){ console.warn('magdy1122', e); }
     try{ await addMagdy50k1122Once(); }catch(e){ console.warn('magdy50k', e); }
+    try{ await aliPrev1123Once(); }catch(e){ console.warn('ali1123', e); }
     setTimeout(()=>{ try{ autoDailyBackup(); refreshPendingBadge(); }catch(e){} }, 3000);
     ensureCrusherPaperData();
     ensureWeeklyCustody();
@@ -3826,7 +3827,7 @@ async function addMagdy50k1122Once(){
 /* مسحوبات موظف (محمد 2026-11-23): كل اللي اتصرف للموظف (سلف + مرتبات) بتاريخه وخزنته — نفس اللي بيتحسب في «واخد». عرض بس */
 function wdRows(n, from, to){
     const E=db.expensesData||[];
-    return E.filter(x=>x && x.name===n.name && Number(x.paid) && (x.category===SAL_CAT || (Number(n.perMeter)>0 ? true : isAdvRec(x))) && (!from || (x.date||'')>=from) && (!to || (x.date||'')<=to))
+    return E.filter(x=>x && x.name===n.name && !x.prevMonth && Number(x.paid) && (x.category===SAL_CAT || (Number(n.perMeter)>0 ? true : isAdvRec(x))) && (!from || (x.date||'')>=from) && (!to || (x.date||'')<=to))
         .sort((a,b)=>(a.date||'').localeCompare(b.date||'') || (String(a._at||'')).localeCompare(String(b._at||'')));
 }
 function wdRender(){
@@ -3841,6 +3842,22 @@ function wdRender(){
     document.getElementById('wd-title').textContent=`مسحوبات ${n.name} — من ${dmy(f.value)}${t.value?' إلى '+dmy(t.value):' لحد النهارده'}`;
     tb.innerHTML = (L.length ? L.map((x,i)=>{ tot+=Number(x.paid)||0; return `<tr class="border-b border-slate-100"><td class="p-2 text-slate-500">${i+1}</td><td class="p-2 whitespace-nowrap">${dmy(x.date)}</td><td class="p-2 font-bold text-rose-700">${nfmt(x.paid)}</td><td class="p-2">${esc(x.account||'')}</td><td class="p-2">${esc(x.notes||x.desc||'')}${x.category===SAL_CAT?' <span class="text-xs text-emerald-700">(راتب)</span>':''}</td></tr>`; }).join('') : '<tr><td colspan="5" class="p-4 text-center text-slate-400">مفيش مسحوبات في الفترة دي</td></tr>')
         + `<tr class="bg-indigo-50 font-extrabold"><td class="p-2" colspan="2">الإجمالي (${nfmt(L.length)} مرة)</td><td class="p-2 text-rose-700">${nfmt(tot)}</td><td colspan="2"></td></tr>`;
+}
+/* محمد 2026-11-23: «علي رمضان الـ5,400 باقيين من الشهر اللي فات… نكتبها باقي الشهر اللي فات» → علامة prevMonth + البيان:
+   ما تدخلش في مرتبات/مسحوبات شهر 11. تاريخها (11/11) وخزنتها زي ما هم فالرصيد المرحل ما يتغيرش */
+async function aliPrev1123Once(){
+    if(!db || (db.imports&&db.imports.aliPrev1123)) return;
+    const x=(db.expensesData||[]).find(r=>r && Number(r.id)===1795000000300083);
+    if(!x) return;
+    if(x.prevMonth || !(String(x.name||'').includes('رمضان') && Number(x.paid)===5400)){ if(!db.imports) db.imports={}; db.imports.aliPrev1123=true; scheduleSave(); return; }
+    if(!SUPABASE_URL || !__cloudOK) return;
+    const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-23-before-ali-prev', value:JSON.stringify(db), updated_at:new Date().toISOString()})});
+    if(!res.ok){ console.warn('ali1123: النسخة الاحتياطية فشلت', res.status); return; }
+    const old=Object.assign({},x); x.prevMonth='2026-10'; x.notes=x.desc='باقي مرتب علي رمضان عن الشهر اللي فات';
+    if(!db.imports) db.imports={}; db.imports.aliPrev1123=true;
+    logAudit('update','سلفة موظف (بأمر محمد)', 'على رمضان 5,400 (11/11) = باقي الشهر اللي فات، مش من مرتب شهر 11', old, Object.assign({},x));
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    scheduleSave(); try{ renderAll(); }catch(e){}
 }
 function restoreBon3737(){
     if(db.restored3737) return;
@@ -8019,7 +8036,7 @@ function renderAdvRecent(){
     /* بعد تسجيل صرف المرتبات (بند الأجور والمرتبات من غير اسم = الكل، أو راتب باسم موظف = هو بس) السلف اللي قبله بتختفي من القايمة دي بس — الحركات نفسها زي ما هي في الحسابات (محمد 2026-11-13) */
     const E=db.expensesData||[]; let cutAll=-1; const cutBy={};
     E.forEach((x,i)=>{ if(!x || !Number(x.paid)) return; if(x.category===SAL_CAT && x.name){ cutBy[x.name]=i; return; } if(!x.name && /أجور|اجور|مرتب|رواتب/.test(x.category||'')) cutAll=i; });
-    const L=E.map((x,i)=>[x,i]).filter(p=>isAdvRec(p[0]) && (p[0].date||'').startsWith(m) && p[1]>cutAll && !(cutBy[p[0].name]>p[1])).map(p=>p[0]); const L2=regSortDesc(L, E); L.length=0; L.push(...L2); const dbar=dayBarMaker(5);
+    const L=E.map((x,i)=>[x,i]).filter(p=>isAdvRec(p[0]) && !p[0].prevMonth && (p[0].date||'').startsWith(m) && p[1]>cutAll && !(cutBy[p[0].name]>p[1])).map(p=>p[0]); const L2=regSortDesc(L, E); L.length=0; L.push(...L2); const dbar=dayBarMaker(5);
     tb.innerHTML = L.length ? L.map(x=>`${dbar(x.date)}<tr class="border-b border-slate-100"><td class="p-3 font-bold">${esc(x.name)}</td><td class="p-3 font-bold text-rose-700">${fmt(x.paid)}</td><td class="p-3">${esc(x.date||'')}</td><td class="p-3">${esc(x.notes||'')}</td><td class="p-3 whitespace-nowrap">${x.category===ADV_CAT?advBtns(x):`<button onclick="startEdit('exp', ${x.id})" class="text-blue-500 ml-3" title="تعديل">✏️</button><button onclick="deleteByRef('exp', ${x.id})" style="color:#dc2626" title="حذف"><i class="fa-solid fa-trash"></i></button>`}</td></tr>`).join('') : '<tr><td colspan="5" class="p-4 text-center text-slate-400">مفيش سلف مفتوحة</td></tr>';
 }
 /* تحت تسجيل السلفة: كل موظف مرتبه كام وواخد كام وفاضل كام (الشهر الحالي، نفس حساب كشف الرواتب) — محمد 2026-11-12 */
@@ -8104,7 +8121,7 @@ function payMonth(n, m){
     const ded = Math.round((a + h/2)*(sal/30));
     const E = db.expensesData||[];
     // بالمتر (عماد): أي فلوس اتصرفت باسمه من أي بند بتتخصم من اللي ليه (محمد 2026-11-08)
-    const adv = E.filter(x=>x.name===n.name && (Number(n.perMeter)>0 ? x.category!==SAL_CAT : isAdvRec(x)) && (x.date||'').startsWith(m)).reduce((s,x)=>s+(Number(x.paid)||0),0);
+    const adv = E.filter(x=>x.name===n.name && !x.prevMonth && (Number(n.perMeter)>0 ? x.category!==SAL_CAT : isAdvRec(x)) && (x.date||'').startsWith(m)).reduce((s,x)=>s+(Number(x.paid)||0),0);
     const paid = E.filter(x=>x.name===n.name && x.category===SAL_CAT && x.salaryMonth===m).reduce((s,x)=>s+(Number(x.paid)||0),0);
     return {a,h,ded,adv,paid,net:sal-ded-adv-paid};
 }
@@ -8112,7 +8129,7 @@ function payMonth(n, m){
 function payStartMonth(n){
     const ms=[];
     Object.keys(db.attendance||{}).forEach(d=>{ if((db.attendance[d]||{})[n.name]) ms.push(d.slice(0,7)); });
-    (db.expensesData||[]).filter(x=>x.name===n.name && (isAdvRec(x) || x.category===SAL_CAT || Number(n.perMeter)>0)).forEach(x=>{ ms.push((x.date||'').slice(0,7)); if(x.salaryMonth) ms.push(x.salaryMonth); });
+    (db.expensesData||[]).filter(x=>x.name===n.name && !x.prevMonth && (isAdvRec(x) || x.category===SAL_CAT || Number(n.perMeter)>0)).forEach(x=>{ ms.push((x.date||'').slice(0,7)); if(x.salaryMonth) ms.push(x.salaryMonth); });
     if(Number(n.perMeter)>0){ const d=(db.dailyLog||[]).map(r=>r.date||'').filter(x=>x && x>=MGMT_FEE_FROM).sort()[0]; if(d) ms.push(d.slice(0,7)); } // بالمتر: من أول بون في البرنامج الجديد
     return ms.filter(Boolean).sort()[0] || '';
 }
@@ -8127,7 +8144,7 @@ function payCarry(n, m){
 function shareSlip(name, m){
     const n=payrollPeople().find(x=>x.name===name); if(!n) return;
     const {a,h,ded,adv,paid}=payMonth(n,m), cr=payCarry(n,m), net=salaryOf(n,m)+cr-ded-adv-paid;
-    const advs=(db.expensesData||[]).filter(x=>x.name===name && (Number(n.perMeter)>0 ? x.category!==SAL_CAT : isAdvRec(x)) && (x.date||'').startsWith(m)).sort((x,y)=>(x.date||'').localeCompare(y.date||''));
+    const advs=(db.expensesData||[]).filter(x=>x.name===name && !x.prevMonth && (Number(n.perMeter)>0 ? x.category!==SAL_CAT : isAdvRec(x)) && (x.date||'').startsWith(m)).sort((x,y)=>(x.date||'').localeCompare(y.date||''));
     const row=(l,v,c)=>`<tr><td style="padding:8px 12px;border:1px solid #cbd5e1;font-weight:700;background:#f8fafc;width:45%">${l}</td><td style="padding:8px 12px;border:1px solid #cbd5e1;font-weight:800;${c?'color:'+c:''}">${v}</td></tr>`;
     const html=`<div class="rep-sec">${repHeadTxt('كشف راتب', name+' — شهر '+m)}
         <table style="width:100%;border-collapse:collapse;font-size:15px;margin-top:8px">
@@ -8166,7 +8183,7 @@ function renderPayroll(){
         : '<tr><td colspan="10" class="p-4 text-center text-slate-400">—</td></tr>';
     const ta = document.getElementById('tbody-advances');
     if(ta){
-        const L=(db.expensesData||[]).filter(x=>(isAdvRec(x) && inM(x)) || (x.category===SAL_CAT && x.salaryMonth===m)).sort((x,y)=>(y.date||'').localeCompare(x.date||''));
+        const L=(db.expensesData||[]).filter(x=>(isAdvRec(x) && inM(x) && !x.prevMonth) || (x.category===SAL_CAT && x.salaryMonth===m)).sort((x,y)=>(y.date||'').localeCompare(x.date||''));
         ta.innerHTML = L.length ? L.map(x=>`<tr class="border-b border-slate-50"><td class="p-2">${esc(x.date||'')}</td><td class="p-2 font-bold">${esc(x.name)}</td><td class="p-2">${nfmt(x.paid)}${x.category===SAL_CAT?' <span class="text-xs text-emerald-700">(راتب)</span>':''}</td><td class="p-2">${esc(x.notes||'')}</td><td class="p-2 whitespace-nowrap">${x.category===ADV_CAT?advBtns(x):`<button onclick="deleteSalaryEntry(${x.id})" style="color:#dc2626"><i class="fa-solid fa-trash"></i></button>`}</td></tr>`).join('')
             : '<tr><td colspan="5" class="p-4 text-center text-slate-400">—</td></tr>';
     }
