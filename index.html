@@ -579,7 +579,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1179</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1180</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3807,19 +3807,29 @@ async function fixRamadan1122Once(){
 /* محمد 2026-11-23 02:38: «كل الحاجات اللي سجلتها النهارده من الدرج خليها من المعلق» — 9 مصروفات بس، الخزنة بس اللي بتتغير (ولا مبلغ ولا تاريخ) */
 const DRJ1123=[[2000,'وليد'],[810,'اسطوان'],[430,'عفش'],[40,'حبار'],[880,'بقال'],[200,'خبز'],[1400,'عش'],[300,'لاكور'],[450,'خرطوم']];
 async function drawerToBank1123Once(){
-    if(!db || (db.imports&&db.imports.drj1123) || Date.now()>Date.parse('2026-11-26')) return;
-    const C=(db.expensesData||[]).filter(r=>r && (r.date==='2026-11-22'||r.date==='2026-11-23') && r.account==='درج المكتب' && r.category!=='إيراد' && r.type!=='income');
-    const hits=[], miss=[], used=new Set();
-    DRJ1123.forEach(([amt,kw])=>{ let m=C.filter(r=>!used.has(r) && Number(r.total)===amt); if(m.length>1){ const k=m.filter(r=>[r.category,r.name,r.notes,r.activity].join(' ').includes(kw)); if(k.length) m=k; } if(m.length) { used.add(m[0]); hits.push(m[0]); } else miss.push(amt); });
-    if(!hits.length) return;
-    if(!SUPABASE_URL || !__cloudOK) return;
-    const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-23-before-drawer-to-bank', value:JSON.stringify(db), updated_at:new Date().toISOString()})});
-    if(!res.ok){ console.warn('drj1123: النسخة الاحتياطية فشلت', res.status); return; }
-    hits.forEach(x=>{ const old=Object.assign({},x); x.account='معلق عماد ناجي'; logAudit('update','مصروف (تحويل خزنة بأمر محمد)', (x.category||'')+' '+(x.name||'')+' '+x.total+': درج المكتب ← المعلق', old, Object.assign({},x)); });
-    if(!db.imports) db.imports={}; db.imports.drj1123={moved:hits.map(x=>x.id), miss};
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
-    scheduleSave(); try{ renderAll(); }catch(e){}
-    setTimeout(()=>{ try{ document.getElementById('save-indicator').innerHTML='<span>اتحولت '+hits.length+' حركة من الدرج للمعلق'+(miss.length?' — ما لقيتش: '+miss.join('، '):'')+'</span>'; }catch(e){} }, 2500);
+    if(!db || Date.now()>Date.parse('2026-11-26')) return;
+    const st=db.imports&&db.imports.drj1123; if(st&&st.done) return;
+    /* اللي اتسجل «النهارده» = وقت التسجيل من 22/11 (بتوقيت مصر) لحد طلبه 02:39 يوم 23 — أو تاريخه 22/23 لو ملوش وقت تسجيل */
+    const inWin=r=> r._at ? (r._at>='2026-11-21T22:00:00Z' && r._at<='2026-11-23T00:39:40Z') : (r.date==='2026-11-22'||r.date==='2026-11-23');
+    const ALL=(db.expensesData||[]).filter(r=>r && r.category!=='إيراد' && r.type!=='income' && inWin(r));
+    const rows=[], used=new Set(), hits=[];
+    DRJ1123.forEach(([amt,kw])=>{ let m=ALL.filter(r=>!used.has(r) && Number(r.total)===amt); if(m.length>1){ const k=m.filter(r=>[r.category,r.name,r.notes,r.activity].join(' ').includes(kw)); if(k.length) m=k; } const d=m.find(r=>r.account==='درج المكتب'), x=d||m[0];
+        if(x){ used.add(x); if(x.account==='درج المكتب') hits.push(x); } rows.push({amt,kw,x}); });
+    if(hits.length){
+        if(!SUPABASE_URL || !__cloudOK) return;
+        const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-23-before-drawer-to-bank-'+Date.now(), value:JSON.stringify(db), updated_at:new Date().toISOString()})});
+        if(!res.ok){ console.warn('drj1123: النسخة الاحتياطية فشلت', res.status); return; }
+        hits.forEach(x=>{ const old=Object.assign({},x); x.account='معلق عماد ناجي'; logAudit('update','مصروف (تحويل خزنة بأمر محمد)', (x.category||'')+' '+(x.name||'')+' '+x.total+': درج المكتب ← المعلق', old, Object.assign({},x)); });
+    }
+    const allOk=rows.every(r=>r.x && r.x.account!=='درج المكتب');
+    if(!db.imports) db.imports={}; db.imports.drj1123={done:allOk, moved:hits.map(x=>x.id), miss:rows.filter(r=>!r.x).map(r=>r.amt)};
+    if(hits.length || !(st&&st.shown)){ db.imports.drj1123.shown=true;
+        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){} scheduleSave(); try{ renderAll(); }catch(e){}
+        const tr=rows.map(r=>`<tr><td>${r.x?((r.x.category||'')+(r.x.name?' — '+r.x.name:'')):r.kw}</td><td style="text-align:left">${r.amt.toLocaleString('en-US')}</td><td>${r.x?(r.x.date||''):''}</td><td style="font-weight:800;color:${!r.x?'#b91c1c':(r.x.account==='درج المكتب'?'#b91c1c':'#166534')}">${!r.x?'ما اتلقتش':(r.x.account==='معلق عماد ناجي'?'المعلق ✓':r.x.account)}</td></tr>`).join('');
+        const m=document.createElement('div'); m.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:12px';
+        m.innerHTML=`<div dir="rtl" style="background:#fff;color:#111;max-width:620px;width:100%;max-height:88vh;overflow:auto;border-radius:10px;padding:16px;font-size:16px"><div style="font-weight:800;font-size:19px;margin-bottom:10px">تحويل حركات الدرج للمعلق — اتحول ${hits.length}</div><table style="width:100%;border-collapse:collapse" border="1" cellpadding="6"><tr style="background:#f3f4f6"><th>البند</th><th>المبلغ</th><th>التاريخ</th><th>الخزنة دلوقتي</th></tr>${tr}</table><div style="text-align:left;margin-top:12px"><button type="button" style="background:#1f4b73;color:#fff;border:0;border-radius:8px;padding:10px 24px;font-size:16px;font-weight:700">قفل</button></div></div>`;
+        m.querySelector('button').onclick=()=>m.remove(); setTimeout(()=>document.body.appendChild(m),3000);
+    }
 }
 async function fixBaqala1122Once(){
     if(!db || (db.imports&&db.imports.baqala1122)) return;
