@@ -573,7 +573,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1172</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1173</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1023,6 +1023,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
             <div class="subnav-bar">
                 <button type="button" id="subnav-payroll-form" class="subnav-btn active" onclick="switchSub('payroll','form')">📝 سلف الموظفين</button>
                 <button type="button" id="subnav-payroll-log" class="subnav-btn" onclick="switchSub('payroll','log')">💰 كشف الرواتب</button>
+                <button type="button" id="subnav-payroll-wd" class="subnav-btn" onclick="switchSub('payroll','wd'); wdRender()">📋 مسحوبات موظف</button>
             </div>
             <div id="sub-payroll-form" class="subpage active">
             <div id="att-card" style="display:none !important" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-3"><!-- قائمة حضور الموظفين اتخفت بطلب محمد 2026-11-12: «ملهمش لازمة هنا» -->
@@ -1080,6 +1081,24 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
                 <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100"><tr><th class="p-2">التاريخ</th><th class="p-2">الموظف</th><th class="p-2">المبلغ</th><th class="p-2">ملاحظات</th><th class="p-2"></th></tr></thead><tbody id="tbody-advances"></tbody></table></div>
             </div>
             </div><!-- /sub-payroll-log -->
+            <div id="sub-payroll-wd" class="subpage"><!-- محمد 2026-11-23: «سجل لكل موظف بالمسحوبات بتاعته» -->
+            <div id="wd-card" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 bg-indigo-50 border-b border-indigo-100 flex flex-wrap justify-between items-center gap-2">
+                    <h3 class="font-bold text-slate-900">📋 مسحوبات موظف</h3>
+                    <div class="flex flex-wrap gap-2 items-center pl-no-print-hide">
+                        <select id="wd-name" onchange="wdRender()" class="bg-white border border-indigo-200 rounded px-2 py-1 text-sm"></select>
+                        <label class="text-xs font-bold text-slate-600">من <input id="wd-from" type="date" onchange="wdRender()" class="bg-white border border-indigo-200 rounded px-1 py-1 text-xs"></label>
+                        <label class="text-xs font-bold text-slate-600">إلى <input id="wd-to" type="date" onchange="wdRender()" class="bg-white border border-indigo-200 rounded px-1 py-1 text-xs"></label>
+                        <button type="button" onclick="shareCard('wd-card','مسحوبات '+(document.getElementById('wd-name').value||''))" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-bold"><i class="fa-brands fa-whatsapp"></i> واتساب</button>
+                        <button onclick="printSection('wd-card')" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1 rounded text-xs font-bold">🖨️ طباعة</button>
+                    </div>
+                </div>
+                <div id="wd-title" class="px-4 pt-3 font-extrabold text-slate-900" style="font-size:1.1rem"></div>
+                <div class="overflow-x-auto p-3"><table class="w-full text-right" style="font-size:1.05rem;border-collapse:collapse">
+                    <thead class="bg-slate-800 text-white"><tr><th class="p-2">#</th><th class="p-2">التاريخ</th><th class="p-2">المبلغ</th><th class="p-2">الخزنة</th><th class="p-2">البيان</th></tr></thead>
+                    <tbody id="tbody-wd"></tbody></table></div>
+            </div>
+            </div><!-- /sub-payroll-wd -->
         </div>
 
         <!-- EXPENSES -->
@@ -3803,6 +3822,25 @@ async function addMagdy50k1122Once(){
     logAudit('update','سلفة موظف (تصحيح بأمر محمد)', String(x.name)+' 20/11: 5,000 ← 50,000', old, Object.assign({},x));
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
     scheduleSave(); try{ renderAll(); }catch(e){}
+}
+/* مسحوبات موظف (محمد 2026-11-23): كل اللي اتصرف للموظف (سلف + مرتبات) بتاريخه وخزنته — نفس اللي بيتحسب في «واخد». عرض بس */
+function wdRows(n, from, to){
+    const E=db.expensesData||[];
+    return E.filter(x=>x && x.name===n.name && Number(x.paid) && (x.category===SAL_CAT || (Number(n.perMeter)>0 ? true : isAdvRec(x))) && (!from || (x.date||'')>=from) && (!to || (x.date||'')<=to))
+        .sort((a,b)=>(a.date||'').localeCompare(b.date||'') || (String(a._at||'')).localeCompare(String(b._at||'')));
+}
+function wdRender(){
+    const sel=document.getElementById('wd-name'), tb=document.getElementById('tbody-wd'); if(!sel||!tb) return;
+    const ppl=payrollPeople(); const cur=sel.value;
+    sel.innerHTML=ppl.map(n=>`<option value="${esc(n.name)}">${esc(n.name)}</option>`).join('');
+    if(cur && ppl.some(n=>n.name===cur)) sel.value=cur;
+    const f=document.getElementById('wd-from'), t=document.getElementById('wd-to');
+    if(!f.value) f.value=todayISO().slice(0,7)+'-01';
+    const n=ppl.find(x=>x.name===sel.value); if(!n){ tb.innerHTML='<tr><td colspan="5" class="p-4 text-center text-slate-400">—</td></tr>'; return; }
+    const L=wdRows(n, f.value, t.value); let tot=0;
+    document.getElementById('wd-title').textContent=`مسحوبات ${n.name} — من ${dmy(f.value)}${t.value?' إلى '+dmy(t.value):' لحد النهارده'}`;
+    tb.innerHTML = (L.length ? L.map((x,i)=>{ tot+=Number(x.paid)||0; return `<tr class="border-b border-slate-100"><td class="p-2 text-slate-500">${i+1}</td><td class="p-2 whitespace-nowrap">${dmy(x.date)}</td><td class="p-2 font-bold text-rose-700">${nfmt(x.paid)}</td><td class="p-2">${esc(x.account||'')}</td><td class="p-2">${esc(x.notes||x.desc||'')}${x.category===SAL_CAT?' <span class="text-xs text-emerald-700">(راتب)</span>':''}</td></tr>`; }).join('') : '<tr><td colspan="5" class="p-4 text-center text-slate-400">مفيش مسحوبات في الفترة دي</td></tr>')
+        + `<tr class="bg-indigo-50 font-extrabold"><td class="p-2" colspan="2">الإجمالي (${nfmt(L.length)} مرة)</td><td class="p-2 text-rose-700">${nfmt(tot)}</td><td colspan="2"></td></tr>`;
 }
 function restoreBon3737(){
     if(db.restored3737) return;
