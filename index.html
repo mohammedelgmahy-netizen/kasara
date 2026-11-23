@@ -579,7 +579,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1181</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1182</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1028,6 +1028,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         <div id="tab-payroll" class="tab-content flex-col gap-4">
             <div class="subnav-bar">
                 <button type="button" id="subnav-payroll-form" class="subnav-btn active" onclick="switchSub('payroll','form')">📝 سلف الموظفين</button>
+                <button type="button" id="subnav-payroll-abs" class="subnav-btn" onclick="switchSub('payroll','abs'); absRender()">🗓️ الغياب</button>
                 <button type="button" id="subnav-payroll-log" class="subnav-btn" onclick="switchSub('payroll','log')">💰 كشف الرواتب</button>
                 <button type="button" id="subnav-payroll-wd" class="subnav-btn" onclick="switchSub('payroll','wd'); wdRender()">📋 مسحوبات موظف</button>
             </div>
@@ -1054,7 +1055,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto"><table class="w-full text-right" style="font-size:1.05rem">
-                    <thead class="bg-slate-800 text-white"><tr><th class="p-3">الموظف</th><th class="p-3">مرتبه</th><th class="p-3">واخد</th><th class="p-3">فاضل</th></tr></thead>
+                    <thead class="bg-slate-800 text-white"><tr><th class="p-3">الموظف</th><th class="p-3">مرتبه</th><th class="p-3">غياب</th><th class="p-3">واخد</th><th class="p-3">فاضل</th></tr></thead>
                     <tbody id="tbody-adv-sum"></tbody></table></div>
             </div>
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -1065,6 +1066,24 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
             </div>
             </div>
             </div><!-- /sub-payroll-form -->
+            <div id="sub-payroll-abs" class="subpage"><!-- محمد 2026-11-23: «يوم الغياب يتخصم من المرتب بقيمة اليوم» — قيمة اليوم = المرتب ÷ 30 (نفس حساب كشف الرواتب) -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <h3 class="font-bold text-slate-900 mb-3">🗓️ تسجيل غياب</h3>
+                <form onsubmit="absAdd(event)" class="grid grid-cols-2 md:grid-cols-4 gap-3 items-end">
+                    <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-600 mb-1">الموظف</label><select id="abs-name" required onchange="absInfo()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">اليوم</label><input id="abs-date" type="date" required onchange="absInfo()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">النوع</label><select id="abs-kind" onchange="absInfo()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"><option value="a">غايب يوم كامل</option><option value="h">نص يوم</option></select></div>
+                    <button type="submit" class="col-span-2 md:col-span-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg p-2 font-bold">تسجيل الغياب</button>
+                    <div id="abs-info" class="col-span-2 md:col-span-4 text-sm font-bold text-slate-600"></div>
+                </form>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-3 border-b border-slate-100 font-bold flex flex-wrap items-center justify-between gap-2"><span>غياب الشهر</span><input id="abs-month" type="month" onchange="absRender()" class="bg-slate-50 border border-slate-200 rounded px-2 py-1 text-xs"></div>
+                <div class="overflow-x-auto"><table class="w-full text-right" style="font-size:1.05rem">
+                    <thead class="bg-slate-800 text-white"><tr><th class="p-3">الموظف</th><th class="p-3">الأيام</th><th class="p-3">عدد الأيام</th><th class="p-3">قيمة اليوم</th><th class="p-3">الخصم</th></tr></thead>
+                    <tbody id="tbody-abs"></tbody></table></div>
+            </div>
+            </div><!-- /sub-payroll-abs -->
             <div id="sub-payroll-log" class="subpage">
             <div id="payroll-card" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-indigo-50 border-b border-indigo-100 flex flex-wrap justify-between items-center gap-2">
@@ -8089,7 +8108,7 @@ function renderPayrollTab(){
     const ad=document.getElementById('att-date'); if(ad && !ad.value) ad.value=todayISO();
     const dd=document.getElementById('adv-date'); if(dd && !dd.value) dd.value=todayISO();
     fillSelect('adv-name', payrollPeople()); fillSelect('adv-account', db.accounts||[]); try{ advPartyBal(); }catch(e){}
-    renderAttendance(); renderPayroll(); renderAdvSummary(); renderAdvRecent();
+    renderAttendance(); renderPayroll(); renderAdvSummary(); renderAdvRecent(); try{ absRender(); }catch(e){ console.warn(e); }
     if(window.__advEdit){ const v=window.__advEdit; window.__advEdit=null; try{ switchSub('payroll','form'); }catch(e){} setVal('adv-name',v.name); setVal('adv-amount',v.amount); setVal('adv-date',v.date); setVal('adv-account',v.account); setVal('adv-notes',v.notes); try{ advPartyBal(); }catch(e){} }
 }
 /* سلف الشهر تحت فورم السلفة بتعديل وحذف، آخر حاجة اتسجلت فوق (محمد 2026-11-13) */
@@ -8106,10 +8125,10 @@ function renderAdvRecent(){
 /* تحت تسجيل السلفة: كل موظف مرتبه كام وواخد كام وفاضل كام (الشهر الحالي، نفس حساب كشف الرواتب) — محمد 2026-11-12 */
 function renderAdvSummary(){
     const tb=document.getElementById('tbody-adv-sum'); if(!tb) return;
-    const m=todayISO().slice(0,7); let S=0,K=0,R=0;
-    const rows=payrollPeople().map(n=>{ const {ded,adv,paid}=payMonth(n,m), cr=payCarry(n,m), sal=salaryOf(n,m), took=adv+paid, rem=sal+cr-ded-took; S+=sal; K+=took; R+=rem;
-        return `<tr class="border-b border-slate-100"><td class="p-3 font-bold text-slate-900">${esc(n.name)}</td><td class="p-3 font-bold">${fmt(sal)}</td><td class="p-3 font-bold text-rose-700">${took?fmt(took):'—'}</td><td class="p-3 font-extrabold ${rem<0?'text-rose-700':'text-emerald-700'}">${fmt(Math.abs(rem))}${rem<0?' عليه':''}</td></tr>`; });
-    tb.innerHTML = rows.length ? rows.join('')+`<tr class="bg-indigo-50 font-extrabold"><td class="p-3">الإجمالي</td><td class="p-3">${fmt(S)}</td><td class="p-3 text-rose-700">${fmt(K)}</td><td class="p-3">${fmt(R)}</td></tr>` : '<tr><td colspan="4" class="p-4 text-center text-slate-400">—</td></tr>';
+    const m=todayISO().slice(0,7); let S=0,K=0,R=0,D=0;
+    const rows=payrollPeople().map(n=>{ const {ded,adv,paid}=payMonth(n,m), cr=payCarry(n,m), sal=salaryOf(n,m), took=adv+paid, rem=sal+cr-ded-took; S+=sal; K+=took; R+=rem; D+=ded;
+        return `<tr class="border-b border-slate-100"><td class="p-3 font-bold text-slate-900">${esc(n.name)}</td><td class="p-3 font-bold">${fmt(sal)}</td><td class="p-3 font-bold text-rose-700">${ded?fmt(ded):'—'}</td><td class="p-3 font-bold text-rose-700">${took?fmt(took):'—'}</td><td class="p-3 font-extrabold ${rem<0?'text-rose-700':'text-emerald-700'}">${fmt(Math.abs(rem))}${rem<0?' عليه':''}</td></tr>`; });
+    tb.innerHTML = rows.length ? rows.join('')+`<tr class="bg-indigo-50 font-extrabold"><td class="p-3">الإجمالي</td><td class="p-3">${fmt(S)}</td><td class="p-3 text-rose-700">${D?fmt(D):'—'}</td><td class="p-3 text-rose-700">${fmt(K)}</td><td class="p-3">${fmt(R)}</td></tr>` : '<tr><td colspan="5" class="p-4 text-center text-slate-400">—</td></tr>';
 }
 function renderAttendance(){
     const box=document.getElementById('att-list'); if(!box) return;
@@ -8130,6 +8149,34 @@ function renderAttendance(){
         <div style="flex:none;display:flex;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;background:#fff">${seg(n.name,'p',0)}${seg(n.name,'h',1)}${seg(n.name,'a',1)}</div></div>`; }).join('')+'</div>'
         : '<div class="text-slate-400 text-sm">—</div>';
 }
+/* ===== الغياب (محمد 2026-11-23): بيتسجل في db.attendance نفسه، وpayMonth بيخصم (غياب + نص يوم÷2) × المرتب÷30 ===== */
+function absDayVal(n, m){ return Math.round(salaryOf(n,m)/30*100)/100; }
+function absInfo(){ const g=id=>document.getElementById(id), box=g('abs-info'); if(!box) return;
+    const n=payrollPeople().find(x=>x.name===g('abs-name').value), d=g('abs-date').value; if(!n || !d){ box.textContent=''; return; }
+    const v=absDayVal(n,d.slice(0,7)), k=g('abs-kind').value, cur=((db.attendance||{})[d]||{})[n.name];
+    box.innerHTML=`قيمة اليوم = ${nfmt(salaryOf(n,d.slice(0,7)))} ÷ ${nfmt(30)} = <span class="text-rose-700">${nfmt(v)}</span> — هيتخصم <span class="text-rose-700">${nfmt(Math.round(k==='h'?v/2:v))}</span>${cur?` <span class="text-amber-700">(متسجل ${cur==='h'?'نص يوم':'غياب'} في اليوم ده)</span>`:''}`; }
+function absAdd(e){ e.preventDefault(); if(isRO()) return;
+    const g=id=>document.getElementById(id), name=g('abs-name').value, d=g('abs-date').value, k=g('abs-kind').value==='h'?'h':'a';
+    if(!name || !d) return;
+    if(!db.attendance) db.attendance={}; if(!db.attendance[d]) db.attendance[d]={};
+    const old=db.attendance[d][name]||null; db.attendance[d][name]=k;
+    logAudit(old?'update':'create','غياب',`${name} ${d} ${k==='h'?'نص يوم':'يوم'}`,old,k);
+    g('abs-date').value=''; const am=g('abs-month'); if(am) am.value=d.slice(0,7);
+    scheduleSave(); renderAll(); renderPayrollTab(); }
+function absDel(name, d){ if(isRO()) return;
+    const old=((db.attendance||{})[d]||{})[name]; if(!old || !confirm(`تشيل غياب ${name} يوم ${dmy(d)}؟`)) return;
+    delete db.attendance[d][name]; if(!Object.keys(db.attendance[d]).length) delete db.attendance[d];
+    logAudit('delete','غياب',`${name} ${d}`,old,null); scheduleSave(); renderAll(); renderPayrollTab(); }
+function absRender(){ const g=id=>document.getElementById(id), tb=g('tbody-abs'); if(!tb) return;
+    const sel=g('abs-name'), pv=sel.value; fillSelect('abs-name', payrollPeople()); if(pv) sel.value=pv;
+    const am=g('abs-month'); if(!am.value) am.value=todayISO().slice(0,7); const m=am.value;
+    const att=db.attendance||{}; let T=0;
+    const rows=payrollPeople().map(n=>{ const ds=Object.keys(att).filter(d=>d.startsWith(m) && att[d][n.name]).sort(); if(!ds.length) return '';
+        const {a,h,ded}=payMonth(n,m); T+=ded; const nm=esc(JSON.stringify(n.name)).replace(/"/g,'&quot;');
+        const chips=ds.map(d=>`<span class="inline-flex items-center gap-1 px-2 py-1 m-0.5 rounded-lg border ${att[d][n.name]==='h'?'border-amber-300 bg-amber-50 text-amber-800':'border-rose-300 bg-rose-50 text-rose-800'} text-sm font-bold">${d.slice(8)}/${d.slice(5,7)}${att[d][n.name]==='h'?' (نص)':''}${isRO()?'':`<button type="button" onclick="absDel(${nm},'${d}')" title="شيل" class="text-rose-500 mr-1">✕</button>`}</span>`).join('');
+        return `<tr class="border-b border-slate-100"><td class="p-3 font-bold">${esc(n.name)}</td><td class="p-3">${chips}</td><td class="p-3 font-bold">${nfmt(a+h/2)}</td><td class="p-3">${nfmt(absDayVal(n,m))}</td><td class="p-3 font-extrabold text-rose-700">${nfmt(ded)}</td></tr>`; }).filter(Boolean);
+    tb.innerHTML = rows.length ? rows.join('')+`<tr class="bg-rose-50 font-extrabold"><td class="p-3" colspan="4">إجمالي خصم الغياب</td><td class="p-3 text-rose-700">${nfmt(T)}</td></tr>` : '<tr><td colspan="5" class="p-4 text-center text-slate-400">مفيش غياب متسجل في الشهر ده</td></tr>';
+    absInfo(); }
 function setAttendance(name, v){
     if(isRO()) return;
     const d=document.getElementById('att-date').value||todayISO();
