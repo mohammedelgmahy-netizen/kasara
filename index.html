@@ -579,7 +579,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1180</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1181</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3366,7 +3366,9 @@ async function handleLogin(e, mode){
         saveSession(r.j); location.reload();
     }catch(err){ show('مفيش نت. جرّب تاني.'); }
 }
-async function exitApp(){
+async function exitApp(go){
+    if(!go && typeof odMineBeforeExit==='function'){ try{ odMineBeforeExit(); return; }catch(e){} }
+    try{ localStorage.removeItem('kasara-od-session::'+STORAGE_KEY); }catch(e){}
     try{ if(typeof __dirty!=='undefined' && __dirty && SUPABASE_URL){ await cloudSaveMerged(); } }catch(e){}
     try{ sessionStorage.setItem('kasara-bye','1'); }catch(e){}
     logoutUser();
@@ -13267,9 +13269,9 @@ const OD_LBL={dailyLog:'بون',expensesData:'مصروف / تحصيل',payments:
 function odDesc(k,x){ const n=x.client||x.name||x.supplier||x.contractor||x.item||x.category||x.desc||''; const b=x.bonNo?('بون '+x.bonNo+' — '):''; return b+(x.category&&n!==x.category?x.category+' — ':'')+n+(x.notes?' ('+String(x.notes).slice(0,40)+')':''); }
 function odAmt(x){ const v=Number(x.total!=null?x.total:(x.amount!=null?x.amount:(x.value!=null?x.value:x.qty))); return isFinite(v)&&v? v.toLocaleString('en-US') : ''; }
 function odFmtAt(iso){ try{ const d=new Date(iso); return d.toLocaleDateString('ar-EG',{weekday:'long',day:'numeric',month:'numeric'})+' '+d.toLocaleTimeString('ar-EG',{hour:'numeric',minute:'2-digit'}); }catch(e){ return ''; } }
-function odCollect(since){ const me=odDevId(), out=[];
-    Object.keys(db||{}).forEach(k=>{ if(k==='auditLog'||!Array.isArray(db[k])) return; db[k].forEach(x=>{ if(x&&typeof x==='object'&&x._dev&&x._dev!==me&&x._at&&x._at>since) out.push({at:x._at,act:'➕ اتسجل',type:OD_LBL[k]||k,date:x.date||'',desc:odDesc(k,x),amt:odAmt(x),dev:x._devN||'جهاز تاني'}); }); });
-    (db.auditLog||[]).forEach(l=>{ if(l&&l.dev&&l.dev!==me&&(l.action==='update'||l.action==='delete')&&l.timestamp>since){ const v=l.newValue||l.oldValue||{}; out.push({at:l.timestamp,act:l.action==='delete'?'🗑 اتحذف':'✏️ اتعدل',type:l.entity||'',date:v.date||'',desc:l.entityName||odDesc('',v),amt:odAmt(v),dev:l.devN||'جهاز تاني'}); } });
+function odCollect(since,mine){ const me=odDevId(), out=[], ok=d=>d&&(mine?d===me:d!==me);
+    Object.keys(db||{}).forEach(k=>{ if(k==='auditLog'||!Array.isArray(db[k])) return; db[k].forEach(x=>{ if(x&&typeof x==='object'&&ok(x._dev)&&x._at&&x._at>since) out.push({at:x._at,act:'➕ اتسجل',type:OD_LBL[k]||k,date:x.date||'',desc:odDesc(k,x),amt:odAmt(x),dev:x._devN||'جهاز تاني'}); }); });
+    (db.auditLog||[]).forEach(l=>{ if(l&&ok(l.dev)&&(l.action==='update'||l.action==='delete')&&l.timestamp>since){ const v=l.newValue||l.oldValue||{}; out.push({at:l.timestamp,act:l.action==='delete'?'🗑 اتحذف':'✏️ اتعدل',type:l.entity||'',date:v.date||'',desc:l.entityName||odDesc('',v),amt:odAmt(v),dev:l.devN||'جهاز تاني'}); } });
     return out.sort((a,b)=>a.at<b.at?1:-1); }
 function odCheck(){ try{
     if(!db||typeof __lastSynced==='undefined'||!__lastSynced) return; if(typeof currentRole==='undefined'||!currentRole) return;
@@ -13279,19 +13281,22 @@ function odCheck(){ try{
     if(!seen){ try{ localStorage.setItem(OD_SEEN_KEY,new Date().toISOString()); }catch(e){} return; }
     const rows=odCollect(seen); if(!rows.length) return; odShow(rows,seen);
 }catch(e){} }
-function odShow(rows,seen){ const devs=[...new Set(rows.map(r=>r.dev))].join(' و');
+function odShow(rows,seen,mine){ const devs=[...new Set(rows.map(r=>r.dev))].join(' و')||odDevName();
     const m=document.createElement('div'); m.id='od-modal';
     m.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:12px';
     const tr=rows.slice(0,200).map(r=>`<tr><td style="white-space:nowrap">${r.act}</td><td>${r.type}</td><td style="white-space:nowrap">${r.date}</td><td>${r.desc}</td><td style="white-space:nowrap;text-align:left">${r.amt}</td><td style="white-space:nowrap">${r.dev}<br><span style="color:var(--muted,#6b7280);font-size:.85em">${odFmtAt(r.at)}</span></td></tr>`).join('');
     m.innerHTML=`<div dir="rtl" style="background:var(--card,#fff);color:var(--text,#111);max-width:900px;width:100%;max-height:88vh;display:flex;flex-direction:column;border:1px solid var(--line,#ddd);border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.3);font-size:16px">
-      <div style="padding:14px 16px;border-bottom:1px solid var(--line,#ddd)"><div style="font-weight:800;font-size:20px">📲 فيه ${rows.length} حركة اتسجلت من ${devs}</div>
-      <div style="margin-top:4px;color:var(--muted,#6b7280)">من آخر مرة فتحت البرنامج على الجهاز ده (${odFmtAt(seen)})</div></div>
+      <div style="padding:14px 16px;border-bottom:1px solid var(--line,#ddd)"><div style="font-weight:800;font-size:20px">${mine?(rows.length?"📝 اتسجل من الجهاز ده ("+odDevName()+"): "+rows.length+" حركة":"📝 مفيش حركات اتسجلت من الجهاز ده ("+odDevName()+")"):"📲 فيه "+rows.length+" حركة اتسجلت من "+devs}</div>
+      <div style="margin-top:4px;color:var(--muted,#6b7280)">${mine?"من ساعة ما دخلت البرنامج على الجهاز ده ("+odFmtAt(seen)+")":"من آخر مرة فتحت البرنامج على الجهاز ده ("+odFmtAt(seen)+")"}</div></div>
       <div style="overflow:auto;flex:1"><table style="width:100%;border-collapse:collapse" class="od-t"><thead><tr><th>العملية</th><th>النوع</th><th>التاريخ</th><th>البيان</th><th>المبلغ</th><th>الجهاز / وقت التسجيل</th></tr></thead><tbody>${tr}</tbody></table></div>
-      <div style="padding:12px 16px;border-top:1px solid var(--line,#ddd);text-align:left"><button type="button" id="od-ok" style="background:var(--od,#4f46e5);color:#fff;border:0;border-radius:8px;padding:10px 26px;font-size:17px;font-weight:700;cursor:pointer">تمام، شوفتهم</button></div></div>`;
+      <div style="padding:12px 16px;border-top:1px solid var(--line,#ddd);text-align:left">${mine?'<button type="button" id="od-back" style="background:#e5e7eb;color:#111;border:0;border-radius:8px;padding:10px 22px;font-size:17px;font-weight:700;cursor:pointer;margin-left:8px">رجوع</button><button type="button" id="od-exit" style="background:#dc2626;color:#fff;border:0;border-radius:8px;padding:10px 26px;font-size:17px;font-weight:700;cursor:pointer">🚪 خروج</button>':'<button type="button" id="od-ok" style="background:var(--od,#4f46e5);color:#fff;border:0;border-radius:8px;padding:10px 26px;font-size:17px;font-weight:700;cursor:pointer">تمام، شوفتهم</button>'}</div></div>`;
     const st=document.createElement('style'); st.textContent='#od-modal .od-t th,#od-modal .od-t td{border:1px solid var(--line,#e5e7eb);padding:7px 8px;vertical-align:top}#od-modal .od-t th{background:var(--card-2,#f3f4f6);position:sticky;top:0;font-weight:700}@media(max-width:640px){#od-modal .od-t thead{display:none}#od-modal .od-t tr{display:block;border-bottom:1px solid var(--line,#e5e7eb);padding:8px 12px}#od-modal .od-t td{border:0;padding:2px 0}#od-modal .od-t td:nth-child(1),#od-modal .od-t td:nth-child(2),#od-modal .od-t td:nth-child(3),#od-modal .od-t td:nth-child(5){display:inline-block;margin-left:10px;font-weight:700}#od-modal .od-t td:nth-child(5){direction:ltr}#od-modal .od-t td:nth-child(4),#od-modal .od-t td:nth-child(6){display:block}#od-modal .od-t td:nth-child(6) br{display:none}#od-modal .od-t td:nth-child(6) span{display:inline-block;margin-inline-start:10px}}'; m.appendChild(st);
     document.body.appendChild(m);
+    if(mine){ document.getElementById('od-back').onclick=()=>m.remove(); document.getElementById('od-exit').onclick=()=>{ m.remove(); exitApp(true); }; return; }
     document.getElementById('od-ok').onclick=()=>{ try{ localStorage.setItem(OD_SEEN_KEY,new Date().toISOString()); }catch(e){} m.remove(); };
 }
+const OD_SES_KEY='kasara-od-session::'+STORAGE_KEY; try{ if(!localStorage.getItem(OD_SES_KEY)) localStorage.setItem(OD_SES_KEY,new Date().toISOString()); }catch(e){}
+function odMineBeforeExit(){ let since=''; try{ since=localStorage.getItem(OD_SES_KEY)||''; }catch(e){} if(!since) since=new Date(Date.now()-864e5).toISOString(); odShow(odCollect(since,true),since,true); }
 setInterval(()=>{ if(!document.hidden) odCheck(); }, 15000);
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) setTimeout(odCheck,2500); });
 window.addEventListener('load',()=>setTimeout(odCheck,6000));
