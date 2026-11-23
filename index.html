@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1183</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1184</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -10804,6 +10804,349 @@ function renderDailyLog(){
             <span class="text-xs text-slate-600 mr-2">(${DL_SIZES.filter(isSinSize).map(s=>`${s.label}: ${nfmt(sums[s.key]||0)}`).join(' + ')} + السن اللي في الطبقة: ${nfmt(tabSin)})</span></td></tr>` : '';
 }
 /* تصدير كل البرنامج في ملف إكسيل واحد (محمد 2026-11-12) */
+/* ================= تصدير الإكسيل الشغال (محمد 2026-11-23: «اربطه» — ملف إكسيل بيشتغل زي البرنامج: الرئيسية + شيتات التسجيل + أرصدة وقوائم بمعادلات حية) =================
+   قراءة بس: مفيش أي تعديل على db. الأرقام الحية = معادلات SUMIFS على شيتات التسجيل + عمود «أرصدة وتسويات من البرنامج» ثابت = رقم البرنامج − حساب الحركات، فكل رصيد يطابق البرنامج لحظة التصدير. */
+function kxLoadScript(urls){ return new Promise((res,rej)=>{ let i=0; const next=()=>{ if(i>=urls.length) return rej(new Error('تعذر تحميل مكتبة الإكسيل — اتأكد من النت')); const s=document.createElement('script'); s.src=urls[i++]; s.onload=()=>res(); s.onerror=()=>{ s.remove(); next(); }; document.head.appendChild(s); }; next(); }); }
+async function kxLibs(){
+    if(typeof ExcelJS==='undefined') await kxLoadScript(['https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js','https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js']);
+    if(typeof JSZip==='undefined') await kxLoadScript(['https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js','https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js']);
+}
+async function exportLiveExcel(){
+    const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center'; ov.innerHTML='<div style="background:#fff;border-radius:14px;padding:18px 26px;font-weight:800;font-size:17px">⏳ بيتعمل ملف الإكسيل…</div>'; document.body.appendChild(ov);
+    try{ await kxLibs(); await new Promise(r=>setTimeout(r,30)); const buf=await kxBuild();
+        const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`كسارة-الديار-برنامج-إكسيل-${todayISO()}.xlsx`; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },4000);
+    }catch(e){ console.error(e); alert('تعذّر عمل ملف الإكسيل: '+e.message); }
+    finally{ ov.remove(); }
+}
+async function kxBuild(){
+    const OD='1F4B73', OD2='2E6A9E', LIGHT='E8EEF5', FOOT='DCE6F0', AUTO='F3F6FA', ADJ='FFF7E6';
+    const NUMF='#,##0;[Red]-#,##0', NUMF2='#,##0.##;[Red]-#,##0.##', DATEF='dd/mm/yyyy', EXTRA=800, HR=4, DR=5;
+    const r2=v=>Math.round((Number(v)||0)*100)/100, A=c=>({argb:'FF'+c});
+    const fill=c=>({type:'pattern',pattern:'solid',fgColor:A(c)}), thin={style:'thin',color:A('B8C4D2')}, BR={top:thin,left:thin,bottom:thin,right:thin};
+    const FN=(o={})=>Object.assign({name:'Arial',size:12},o);
+    const CL=n=>{ let s=''; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26); } return s; };
+    const D=s=>{ if(!s||!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null; const [y,m,d]=s.split('-').map(Number); return new Date(Date.UTC(y,m-1,d)); };
+    const today=todayISO(), ASOF=dmy(today);
+    const accLbl=n=>catLabel(n||'')||n||'';
+    /* ---------- البيانات (من البرنامج نفسه) ---------- */
+    const sizes=DL_SIZES.slice(), NS=sizes.length;
+    const bons=(db.dailyLog||[]).slice().sort(bonOrder).map(r=>({date:r.date,bon:String(r.bon||''),client:r.client||'',tractor:r.tractor||'',trailer:r.trailer||'',q:sizes.map(s=>Number((r.q||{})[s.key])||0),price:Number(r.price)||0,value:r2(bonValue(r)),cash:!!r.paidCash,tip:Number(r.tip)||0}));
+    const coll=(db.expensesData||[]).filter(x=>x.category==='إيراد').sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(x=>({date:x.date,name:x.name||'',amt:r2(x.paid),acc:accLbl(x.account),notes:x.notes||x.desc||''}));
+    const exp=(db.expensesData||[]).filter(x=>x.category!=='إيراد').sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(x=>({date:x.date,cat:x.category||'',name:x.name||'',amt:r2(x.paid),acc:accLbl(x.account),notes:x.notes||x.desc||''}));
+    const proc=(db.procurements||[]).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(x=>({date:x.date,sup:x.supplier||'',item:x.item||'',qty:(x.ret?-1:1)*(Number(x.qty)||0),price:Number(x.price)||0,cash:!!x.payCash,notes:x.notes||''}));
+    const pay=(db.payments||[]).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(x=>({date:x.date,sup:x.supplier||'',amt:r2(x.amount),acc:accLbl(x.account),notes:x.notes||''}));
+    const ext=(db.ctrExtracts||[]).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(x=>({date:x.date,name:x.name||'',from:x.from||'',to:x.to||'',qty:Number(x.qty)||0,rate:Number(x.rate)||0,amt:r2(x.amount),notes:x.notes||''}));
+    const iss=(db.stockIssues||[]).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(x=>({date:x.date,item:x.item||'',qty:Number(x.qty)||0,price:Number(x.price)||0,name:(x.name&&x.name!=='-')?x.name:(x.equip||'الكسارة'),notes:x.notes||''}));
+    const inc=(db.incomes||[]).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(x=>({date:x.date,type:x.type||'',amt:r2(x.amount),acc:accLbl(x.account),notes:x.notes||''}));
+    const trs=(db.cashTransfers||[]).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(x=>({date:x.date,from:accLbl(x.from),to:accLbl(x.to),amt:r2(x.amount),notes:x.notes||''}));
+    const accounts=(db.accounts||[]).map(a=>({name:a.name,label:accLbl(a.name),code:a.code,bal:r2(buildCashStatement('','',a.name).closing)}));
+    const clients=visClients().map(c=>({code:c.code,name:c.name,bal:r2(clientBalAt(c.name,today))}));
+    const sups=allSuppliersStmtData('','').rows.map(x=>({name:x.name,bal:r2(x.closing),code:((db.suppliers||[]).find(s=>s.name===x.name)||{}).code||''}));
+    const ctrs=allContractorsStmtData().rows.map(x=>({name:x.name,bal:r2(x.bal),code:((db.contractors||[]).find(s=>s.name===x.name)||{}).code||''}));
+    const names=(db.names||[]).map(n=>({code:n.code,name:n.name,salary:Number(n.salary)||0}));
+    const cats=(db.expenses||[]).map(c=>({code:c.code,name:c.name}));
+    const items=(db.supplies||[]).map(s=>{ let b=0; try{ b=Number(itemStockBalance(s.name).balance)||0; }catch(e){} return {code:s.code,name:s.name,unit:s.unit||'',bal:b}; });
+    const P=computePL('ALL'), PL={rev:(P.revenueLines||[]),dir:(P.directLines||[]),op:(P.operatingLines||[]),oth:(P.otherLines||[])};
+    const BSd=bsRounded(balanceSheetData(today));
+    const sum=(arr,f,c)=>arr.reduce((t,x)=>t+(!c||c(x)?(Number(f(x))||0):0),0);
+    /* ---------- الملف ---------- */
+    const wb=new ExcelJS.Workbook(); wb.creator='كسارة الديار'; wb.calcProperties.fullCalcOnLoad=true;
+    const SH={};
+    const add=(name,tab,opt={})=>{ const ws=wb.addWorksheet(name,Object.assign({views:[{rightToLeft:true,showGridLines:false}],properties:{tabColor:A(tab||OD)}},opt)); SH[name]=ws; return ws; };
+    const home=add('الرئيسية',OD);
+    const cell=(ws,r,c,v,o={})=>{ const x=ws.getCell(r,c); if(typeof v==='string'&&v.startsWith('=')) x.value={formula:v.slice(1)}; else x.value=(v===undefined?null:v);
+        x.border=BR; x.font=FN({bold:!!o.bold,color:A(o.color||'000000'),size:o.size||12}); if(o.fmt) x.numFmt=o.fmt; if(o.bg) x.fill=fill(o.bg);
+        x.alignment={horizontal:o.al||((typeof v==='number'||o.fmt||(typeof v==='string'&&v.startsWith('=')))?'center':'right'),vertical:'middle'}; return x; };
+    const topbar=(ws,title,sub,ncol)=>{ const e=Math.max(ncol-2,2); ws.getRow(1).height=34; ws.mergeCells(1,1,1,e);
+        const c=ws.getCell(1,1); c.value='كسارة الديار — '+title; c.font=FN({size:17,bold:true,color:A('FFFFFF')}); c.fill=fill(OD); c.alignment={horizontal:'right',vertical:'middle',indent:1};
+        for(let j=e+1;j<=ncol;j++) ws.getCell(1,j).fill=fill(OD);
+        const b=ws.getCell(1,ncol); b.value={text:'الرئيسية ◄',hyperlink:"#'الرئيسية'!A1"}; b.font=FN({bold:true,color:A(OD)}); b.fill=fill('FFFFFF'); b.alignment={horizontal:'center',vertical:'middle'}; b.border=BR;
+        ws.mergeCells(2,1,2,ncol); const s=ws.getCell(2,1); s.value=sub; s.font=FN({size:10,color:A('5B6B80')}); s.alignment={horizontal:'right',wrapText:true,vertical:'middle'}; ws.getRow(2).height=30; };
+    const header=(ws,row,cols,widths,auto=new Set())=>{ cols.forEach((h,i)=>{ const j=i+1, c=ws.getCell(row,j); c.value=h; c.font=FN({bold:true,color:A('FFFFFF')}); c.fill=fill(auto.has(j)?OD2:OD); c.alignment={horizontal:'center',vertical:'middle',wrapText:true}; c.border=BR; ws.getColumn(j).width=widths[i]; }); ws.getRow(row).height=32; };
+    /* دليل الأكواد (مصدر القوايم المنسدلة) */
+    const cod=add('دليل الأكواد','7A5AF8');
+    const LISTS=[['العملاء',clients.map(c=>[c.code,c.name])],['الموردين',sups.map(c=>[c.code,c.name])],['أصحاب المعدات',ctrs.map(c=>[c.code,c.name])],['الموظفين',names.map(c=>[c.code,c.name])],
+        ['بنود المصروفات',[...cats.map(c=>[c.code,c.name]),['','مقاولين']]],['الأصناف',items.map(c=>[c.code,c.name])],['الخزن',accounts.map(a=>[a.code,a.label])],['الدفع',[['','آجل'],['','نقدي']]]];
+    topbar(cod,'دليل الأكواد','القوايم المنسدلة في شيتات التسجيل بتتسحب من هنا — ضيف أي اسم جديد تحت آخر اسم في عموده وهيظهر في القايمة على طول.',2*LISTS.length);
+    const LREF={};
+    LISTS.forEach(([t,arr],i)=>{ const c1=2*i+1; [['الكود',8],[t,26]].forEach(([h,w],j)=>{ const x=cod.getCell(HR,c1+j); x.value=h; x.font=FN({bold:true,color:A('FFFFFF')}); x.fill=fill(OD); x.border=BR; x.alignment={horizontal:'center'}; cod.getColumn(c1+j).width=w; });
+        arr.forEach(([code,n],k)=>{ cell(cod,DR+k,c1,code===''?null:code); cell(cod,DR+k,c1+1,n); }); LREF[t]=`'دليل الأكواد'!$${CL(c1+1)}$${DR}:$${CL(c1+1)}$${DR+300}`; });
+    cod.views=[{rightToLeft:true,showGridLines:false,state:'frozen',ySplit:HR}];
+    const SUBIN=`شيت تسجيل: اكتب أي حركة جديدة في أول سطر فاضي تحت. الأعمدة الزرقا الفاتحة بتتحسب لوحدها. كل الأرصدة والقوايم والرئيسية بتتحدث على طول. البيانات من البرنامج لحد ${ASOF}.`;
+    const inputSheet=(name,tab,cols,widths,rows,autocols,formulas,dvs,datecols,numcols,title)=>{
+        const ws=add(name,tab); topbar(ws,title||name,SUBIN,cols.length); header(ws,HR,cols,widths,autocols);
+        const n=rows.length+EXTRA;
+        for(let i=0;i<n;i++){ const r=DR+i, vals=rows[i]||[]; const row=ws.getRow(r);
+            for(let j=1;j<=cols.length;j++){ let v=vals[j-1]; if(formulas[j]) v={formula:formulas[j](r)}; const c=row.getCell(j); c.value=(v===undefined||v==='')?null:v; c.border=BR; c.font=FN({size:11});
+                if(autocols.has(j)) c.fill=fill(AUTO);
+                if(datecols.has(j)){ c.numFmt=DATEF; c.alignment={horizontal:'center'}; } else if(numcols.has(j)){ c.numFmt=NUMF2; c.alignment={horizontal:'center'}; } else c.alignment={horizontal:'right'}; } }
+        ws.views=[{rightToLeft:true,showGridLines:false,state:'frozen',ySplit:HR}]; ws.autoFilter=`A${HR}:${CL(cols.length)}${DR+n-1}`;
+        dvs.forEach(([col,l])=>ws.dataValidations.add(`${col}${DR}:${col}${DR+n}`,{type:'list',allowBlank:true,showErrorMessage:false,formulae:[LREF[l]]}));
+        datecols.forEach(j=>ws.dataValidations.add(`${CL(j)}${DR}:${CL(j)}${DR+n}`,{type:'date',operator:'greaterThan',allowBlank:true,showErrorMessage:true,errorTitle:'تاريخ',error:'اكتب التاريخ صح زي 23/11/2026',formulae:[new Date(Date.UTC(2020,0,1))]}));
+        return [ws,n]; };
+    const set=a=>new Set(a), rng=(sh,n)=>col=>`'${sh}'!$${col}$${DR}:$${col}$${DR+n}`;
+    /* البونات */
+    const cQ=6+NS, cP=cQ+1, cM=cQ+2, cV=cQ+3, cPay=cQ+4, cT=cQ+5, [Lq,Lp,Lm,Lv,Lpay,Lt]=[cQ,cP,cM,cV,cPay,cT].map(CL), s1=CL(6), s2=CL(5+NS);
+    const brows=bons.map(b=>{ const q=b.q.reduce((a,x)=>a+x,0), calc=r2(q*b.price); return [D(b.date),b.bon,b.client,b.tractor,b.trailer,...b.q.map(x=>x||null),null,b.price||null,(Math.abs(calc-b.value)>0.01?b.value:null),null,b.cash?'نقدي':'آجل',b.tip||null]; });
+    const autoB=set([cQ,cV]), numB=new Set(); for(let j=6;j<=cT;j++) numB.add(j);
+    const [,nb]=inputSheet('البونات','1F7A4D',['التاريخ','رقم البون','العميل','رقم الجرار','رقم المقطورة',...sizes.map(s=>s.label),'إجمالي الكمية','السعر','قيمة يدوية (لو مختلفة)','القيمة','الدفع','إكرامية'],
+        [12,10,22,10,10,...sizes.map(()=>7),11,9,12,13,8,9],brows,autoB,{[cQ]:r=>`IF(COUNT(${s1}${r}:${s2}${r})=0,"",SUM(${s1}${r}:${s2}${r}))`,[cV]:r=>`IF(${Lm}${r}<>"",${Lm}${r},IF(${Lq}${r}="","",${Lq}${r}*${Lp}${r}))`},
+        [['C','العملاء'],[Lpay,'الدفع']],set([1]),numB,'المبيعات — سجل البونات'); const B=rng('البونات',nb);
+    const [,nc]=inputSheet('التحصيلات','1F7A4D',['التاريخ','العميل','المبلغ','الخزنة','البيان'],[12,24,14,14,40],coll.map(x=>[D(x.date),x.name,x.amt,x.acc,x.notes]),set([]),{},[['B','العملاء'],['D','الخزن']],set([1]),set([3]),'تحصيلات العملاء'); const C=rng('التحصيلات',nc);
+    const [,ne]=inputSheet('المصروفات','B42318',['التاريخ','البند','المستفيد (موظف / صاحب معدة / فرد)','المبلغ','الخزنة','البيان'],[12,28,26,14,14,40],exp.map(x=>[D(x.date),x.cat,x.name||null,x.amt,x.acc,x.notes]),set([]),{},[['B','بنود المصروفات'],['E','الخزن']],set([1]),set([4]),'المصروفات والسلف ودفعات أصحاب المعدات'); const E=rng('المصروفات',ne);
+    const [,npr]=inputSheet('المشتريات','B54708',['التاريخ','المورد','الصنف','الكمية','السعر','الإجمالي','الدفع','الخزنة (لو نقدي)','البيان'],[12,24,14,10,10,13,8,14,34],proc.map(x=>[D(x.date),x.sup,x.item,x.qty,x.price,null,x.cash?'نقدي':'آجل',null,x.notes]),set([6]),{6:r=>`IF(D${r}="","",D${r}*E${r})`},[['B','الموردين'],['C','الأصناف'],['G','الدفع'],['H','الخزن']],set([1]),set([4,5,6]),'فواتير الشراء'); const PU=rng('المشتريات',npr);
+    const [,npy]=inputSheet('دفعات الموردين','B54708',['التاريخ','المورد','المبلغ','الخزنة','البيان'],[12,24,14,14,40],pay.map(x=>[D(x.date),x.sup,x.amt,x.acc,x.notes]),set([]),{},[['B','الموردين'],['D','الخزن']],set([1]),set([3])); const PY=rng('دفعات الموردين',npy);
+    const [,nx]=inputSheet('المستخلصات','6941C6',['التاريخ','صاحب المعدة','من','إلى','الأمتار','سعر المتر','قيمة يدوية (لو مختلفة)','قيمة المستخلص','البيان'],[12,24,12,12,10,9,13,14,36],ext.map(x=>[D(x.date),x.name,D(x.from),D(x.to),x.qty||null,x.rate||null,(Math.abs(x.qty*x.rate-x.amt)>0.01?x.amt:null),null,x.notes]),set([8]),{8:r=>`IF(G${r}<>"",G${r},IF(E${r}="","",E${r}*F${r}))`},[['B','أصحاب المعدات']],set([1,3,4]),set([5,6,7,8]),'مستخلصات أصحاب المعدات'); const X=rng('المستخلصات',nx);
+    const [,ni]=inputSheet('صرف المخزون','6941C6',['التاريخ','الصنف','الكمية','السعر','القيمة','المستلم (صاحب معدة / الكسارة)','البيان'],[12,14,10,10,13,26,36],iss.map(x=>[D(x.date),x.item,x.qty,x.price,null,x.name,x.notes]),set([5]),{5:r=>`IF(C${r}="","",C${r}*D${r})`},[['B','الأصناف'],['F','أصحاب المعدات']],set([1]),set([3,4,5])); const I=rng('صرف المخزون',ni);
+    const [,nn]=inputSheet('الإيرادات','1F7A4D',['التاريخ','نوع الإيراد','المبلغ','الخزنة','البيان'],[12,18,14,14,40],inc.map(x=>[D(x.date),x.type,x.amt,x.acc,x.notes]),set([]),{},[['D','الخزن']],set([1]),set([3]),'إيرادات أخرى'); const N=rng('الإيرادات',nn);
+    const [,nt]=inputSheet('التحويلات',OD,['التاريخ','من خزنة','إلى خزنة','المبلغ','البيان'],[12,14,14,14,40],trs.map(x=>[D(x.date),x.from,x.to,x.amt,x.notes]),set([]),{},[['B','الخزن'],['C','الخزن']],set([1]),set([4]),'تحويلات بين الخزن'); const T=rng('التحويلات',nt);
+    const SUBLIVE=`شيت محسوب لوحده من شيتات التسجيل — ما تكتبش فيه. عمود «أرصدة وتسويات من البرنامج» = الأرصدة الافتتاحية والتسويات اللي في البرنامج لحد ${ASOF} (رقم ثابت) عشان الرصيد يطابق البرنامج بالظبط؛ أي حركة جديدة أو تعديل بيتضاف عليه.`;
+    const frz=ws=>{ ws.views=[{rightToLeft:true,showGridLines:false,state:'frozen',ySplit:HR}]; };
+    const redGreen=(ws,ref)=>ws.addConditionalFormatting({ref,rules:[{type:'cellIs',operator:'greaterThan',formulae:['0.5'],style:{font:{color:A('B42318'),bold:true}}},{type:'cellIs',operator:'lessThan',formulae:['-0.5'],style:{font:{color:A('1F7A4D'),bold:true}}}]});
+    /* الخزن */
+    const tz=add('الخزن',OD); topbar(tz,'الخزن',SUBLIVE,10);
+    header(tz,HR,['الخزنة','تحصيلات','مبيعات نقدي + إكرامية','إيرادات','تحويلات داخلة','تحويلات خارجة','مصروفات','دفعات موردين + شراء نقدي','أرصدة وتسويات من البرنامج','الرصيد الحالي'],[16,15,15,14,14,14,15,16,17,17]);
+    const TZROW={};
+    accounts.forEach((a,i)=>{ const r=DR+i, l=a.label; TZROW[l]=r;
+        let live=sum(coll,x=>x.amt,x=>x.acc===l)+sum(inc,x=>x.amt,x=>x.acc===l)+sum(trs,x=>x.amt,x=>x.to===l)-sum(trs,x=>x.amt,x=>x.from===l)-sum(exp,x=>x.amt,x=>x.acc===l)-sum(pay,x=>x.amt,x=>x.acc===l);
+        if(l==='درج المكتب') live+=sum(bons,x=>x.value,x=>x.cash)+sum(bons,x=>x.tip);
+        cell(tz,r,1,l,{bold:true});
+        [`=SUMIFS(${C('C')},${C('D')},$A${r})`,`=IF($A${r}="درج المكتب",SUMIFS(${B(Lv)},${B(Lpay)},"نقدي")+SUM(${B(Lt)}),0)`,`=SUMIFS(${N('C')},${N('D')},$A${r})`,`=SUMIFS(${T('D')},${T('C')},$A${r})`,`=SUMIFS(${T('D')},${T('B')},$A${r})`,`=SUMIFS(${E('D')},${E('E')},$A${r})`,`=SUMIFS(${PY('C')},${PY('D')},$A${r})+SUMIFS(${PU('F')},${PU('G')},"نقدي",${PU('H')},$A${r})`]
+            .forEach((f,j)=>cell(tz,r,j+2,f,{fmt:NUMF,bg:AUTO}));
+        cell(tz,r,9,r2(a.bal-live),{fmt:NUMF,bg:ADJ}); cell(tz,r,10,`=I${r}+B${r}+C${r}+D${r}+E${r}-F${r}-G${r}-H${r}`,{fmt:NUMF,bold:true,bg:FOOT}); });
+    const rT=DR+accounts.length; cell(tz,rT,1,'إجمالي الخزن',{bold:true,bg:FOOT}); for(let j=2;j<=10;j++) cell(tz,rT,j,`=SUM(${CL(j)}${DR}:${CL(j)}${rT-1})`,{fmt:NUMF,bold:true,bg:FOOT});
+    const TZ_TOTAL=`'الخزن'!$J$${rT}`;
+    const rM=rT+3; { const t=tz.getCell(rM-1,1); t.value='حركة الخزن بالشهر (داخل / خارج)'; t.font=FN({bold:true,size:13,color:A(OD)}); }
+    ['الشهر','داخل','خارج','الصافي'].forEach((h,j)=>{ const x=tz.getCell(rM,j+1); x.value=h; x.font=FN({bold:true,color:A('FFFFFF')}); x.fill=fill(OD); x.border=BR; x.alignment={horizontal:'center'}; });
+    const MS='DATE(YEAR(TODAY()),MONTH(TODAY()),1)';
+    for(let k=0;k<12;k++){ const r=rM+1+k; cell(tz,r,1,`=EDATE(${MS},${k-11})`,{fmt:'mmmm yyyy'}); const rg=cd=>`${cd},">="&$A${r},${cd},"<"&EDATE($A${r},1)`;
+        cell(tz,r,2,`=SUMIFS(${C('C')},${rg(C('A'))})+SUMIFS(${N('C')},${rg(N('A'))})+SUMIFS(${B(Lv)},${B(Lpay)},"نقدي",${rg(B('A'))})`,{fmt:NUMF,bg:AUTO});
+        cell(tz,r,3,`=SUMIFS(${E('D')},${rg(E('A'))})+SUMIFS(${PY('C')},${rg(PY('A'))})`,{fmt:NUMF,bg:AUTO}); cell(tz,r,4,`=B${r}-C${r}`,{fmt:NUMF,bold:true}); }
+    frz(tz);
+    /* أرصدة العملاء */
+    const cl=add('أرصدة العملاء','1F7A4D'); topbar(cl,'أرصدة العملاء',SUBLIVE,8);
+    header(cl,HR,['الكود','العميل','عدد البونات','المسحوب آجل','المحصّل','أرصدة وتسويات من البرنامج','الرصيد','الحالة'],[9,26,11,16,16,17,17,12]);
+    clients.forEach((c,i)=>{ const r=DR+i, live=sum(bons,x=>x.value,x=>x.client===c.name&&!x.cash)-sum(coll,x=>x.amt,x=>x.name===c.name);
+        cell(cl,r,1,c.code||null); cell(cl,r,2,c.name,{bold:true}); cell(cl,r,3,`=COUNTIFS(${B('C')},B${r})`,{fmt:NUMF,bg:AUTO}); cell(cl,r,4,`=SUMIFS(${B(Lv)},${B('C')},B${r},${B(Lpay)},"آجل")`,{fmt:NUMF,bg:AUTO});
+        cell(cl,r,5,`=SUMIFS(${C('C')},${C('B')},B${r})`,{fmt:NUMF,bg:AUTO}); cell(cl,r,6,r2(c.bal-live),{fmt:NUMF,bg:ADJ}); cell(cl,r,7,`=F${r}+D${r}-E${r}`,{fmt:NUMF,bold:true,bg:FOOT});
+        cell(cl,r,8,`=IF(ROUND(G${r},0)>0,"عليه",IF(ROUND(G${r},0)<0,"ليه (مقدم)","خالص"))`,{bg:AUTO}); });
+    const nCl=clients.length, rCT=DR+nCl+30;
+    for(let k=DR+nCl;k<rCT;k++){ for(let j=1;j<=8;j++) cl.getCell(k,j).border=BR;
+        const f=(j,v)=>{ const x=cl.getCell(k,j); x.value={formula:v}; x.numFmt=NUMF; x.alignment={horizontal:'center'}; };
+        f(3,`IF(B${k}="","",COUNTIFS(${B('C')},B${k}))`); f(4,`IF(B${k}="","",SUMIFS(${B(Lv)},${B('C')},B${k},${B(Lpay)},"آجل"))`); f(5,`IF(B${k}="","",SUMIFS(${C('C')},${C('B')},B${k}))`); f(7,`IF(B${k}="","",N(F${k})+D${k}-E${k})`); }
+    { const x=cl.getCell(DR+nCl,1); x.value='⬇ عميل جديد: اكتب اسمه في عمود العميل'; x.font=FN({size:9,color:A('5B6B80')}); }
+    cell(cl,rCT,2,'الإجمالي',{bold:true,bg:FOOT}); [3,4,5,6,7].forEach(j=>cell(cl,rCT,j,`=SUM(${CL(j)}${DR}:${CL(j)}${rCT-1})`,{fmt:NUMF,bold:true,bg:FOOT}));
+    cell(cl,rCT+1,2,'إجمالي اللي لينا (عليهم)',{bold:true,bg:FOOT}); cell(cl,rCT+1,7,`=SUMIF(G${DR}:G${rCT-1},">0")`,{fmt:NUMF,bold:true,bg:FOOT});
+    cell(cl,rCT+2,2,'إجمالي اللي علينا (ليهم مقدم)',{bold:true,bg:FOOT}); cell(cl,rCT+2,7,`=-SUMIF(G${DR}:G${rCT-1},"<0")`,{fmt:NUMF,bold:true,bg:FOOT});
+    const CL_REC=`'أرصدة العملاء'!$G$${rCT+1}`, CL_ADV=`'أرصدة العملاء'!$G$${rCT+2}`, CLB=`'أرصدة العملاء'!$B$${DR}:$B$${rCT-1}`, CLG=`'أرصدة العملاء'!$G$${DR}:$G$${rCT-1}`;
+    redGreen(cl,`G${DR}:G${rCT-1}`); frz(cl);
+    /* الموردين */
+    const sp=add('أرصدة الموردين','B54708'); topbar(sp,'أرصدة الموردين',SUBLIVE,7);
+    header(sp,HR,['الكود','المورد','مشتريات آجل','مدفوع','أرصدة وتسويات من البرنامج','الباقي له','الحالة'],[9,26,16,16,17,17,12]);
+    sups.forEach((c,i)=>{ const r=DR+i, live=sum(proc,x=>x.qty*x.price,x=>x.sup===c.name&&!x.cash)-sum(pay,x=>x.amt,x=>x.sup===c.name);
+        cell(sp,r,1,c.code||null); cell(sp,r,2,c.name,{bold:true}); cell(sp,r,3,`=SUMIFS(${PU('F')},${PU('B')},B${r},${PU('G')},"آجل")`,{fmt:NUMF,bg:AUTO}); cell(sp,r,4,`=SUMIFS(${PY('C')},${PY('B')},B${r})`,{fmt:NUMF,bg:AUTO});
+        cell(sp,r,5,r2(c.bal-live),{fmt:NUMF,bg:ADJ}); cell(sp,r,6,`=E${r}+C${r}-D${r}`,{fmt:NUMF,bold:true,bg:FOOT}); cell(sp,r,7,`=IF(ROUND(F${r},0)>0,"ليه",IF(ROUND(F${r},0)<0,"عليه","خالص"))`,{bg:AUTO}); });
+    const rST=DR+sups.length; cell(sp,rST,2,'الإجمالي',{bold:true,bg:FOOT}); [3,4,5,6].forEach(j=>cell(sp,rST,j,`=SUM(${CL(j)}${DR}:${CL(j)}${rST-1})`,{fmt:NUMF,bold:true,bg:FOOT}));
+    const SP_TOT=`'أرصدة الموردين'!$F$${rST}`; redGreen(sp,`F${DR}:F${Math.max(rST-1,DR)}`); frz(sp);
+    /* أصحاب المعدات */
+    const ct=add('أصحاب المعدات','6941C6'); topbar(ct,'أصحاب المعدات (المستخلصات والعهد)',SUBLIVE,8);
+    header(ct,HR,['الكود','صاحب المعدة','قيمة المستخلصات','المدفوع له (عهد ودفعات)','سولار وأصناف اتصرفتله','أرصدة وتسويات من البرنامج','الرصيد','الحالة'],[9,26,16,17,17,17,17,12]);
+    ctrs.forEach((c,i)=>{ const r=DR+i, n=c.name, live=sum(ext,x=>x.amt,x=>x.name===n)-sum(exp,x=>x.amt,x=>x.name===n)-sum(iss,x=>x.qty*x.price,x=>x.name===n);
+        cell(ct,r,1,c.code||null); cell(ct,r,2,n,{bold:true}); cell(ct,r,3,`=SUMIFS(${X('H')},${X('B')},B${r})`,{fmt:NUMF,bg:AUTO}); cell(ct,r,4,`=SUMIFS(${E('D')},${E('C')},B${r})`,{fmt:NUMF,bg:AUTO}); cell(ct,r,5,`=SUMIFS(${I('E')},${I('F')},B${r})`,{fmt:NUMF,bg:AUTO});
+        cell(ct,r,6,r2(c.bal-live),{fmt:NUMF,bg:ADJ}); cell(ct,r,7,`=F${r}+C${r}-D${r}-E${r}`,{fmt:NUMF,bold:true,bg:FOOT}); cell(ct,r,8,`=IF(ROUND(G${r},0)>0,"ليه",IF(ROUND(G${r},0)<0,"عليه (مقدم)","خالص"))`,{bg:AUTO}); });
+    const rCtT=DR+ctrs.length; cell(ct,rCtT,2,'الإجمالي',{bold:true,bg:FOOT}); [3,4,5,6,7].forEach(j=>cell(ct,rCtT,j,`=SUM(${CL(j)}${DR}:${CL(j)}${rCtT-1})`,{fmt:NUMF,bold:true,bg:FOOT}));
+    cell(ct,rCtT+1,2,'مستحقات ليهم',{bold:true,bg:FOOT}); cell(ct,rCtT+1,7,`=SUMIF(G${DR}:G${rCtT-1},">0")`,{fmt:NUMF,bold:true,bg:FOOT});
+    cell(ct,rCtT+2,2,'عهد ومقدمات عندهم',{bold:true,bg:FOOT}); cell(ct,rCtT+2,7,`=-SUMIF(G${DR}:G${rCtT-1},"<0")`,{fmt:NUMF,bold:true,bg:FOOT});
+    const CT_PAY=`'أصحاب المعدات'!$G$${rCtT+1}`, CT_ADV=`'أصحاب المعدات'!$G$${rCtT+2}`, CT_NAMES=`'أصحاب المعدات'!$B$${DR}:$B$${rCtT-1}`, CTG=`'أصحاب المعدات'!$G$${DR}:$G$${rCtT-1}`;
+    redGreen(ct,`G${DR}:G${Math.max(rCtT-1,DR)}`); frz(ct);
+    /* المخزون */
+    const st=add('المخزون','6941C6'); topbar(st,'المخزون',SUBLIVE,9);
+    header(st,HR,['الكود','الصنف','الوحدة','وارد (مشتريات)','منصرف','أرصدة وجرد من البرنامج','الرصيد الحالي','سعر التقييم','القيمة'],[9,16,10,14,14,17,15,12,15]);
+    const bsInv=(BSd.A||[]).filter(x=>x.g==='المخزون'), STR={}, STV={}; let invLive=0;
+    items.forEach((it,i)=>{ const r=DR+i, n=it.name; STR[n]=r; const live=sum(proc,x=>x.qty,x=>x.item===n)-sum(iss,x=>x.qty,x=>x.item===n);
+        const bl=bsInv.find(x=>String(x.name).startsWith('مخзون '.replace('з','ز')+n+' (')), val=bl?Number(bl.v)||0:null;
+        let price=(it.bal&&val)?val/it.bal:0; if(!price){ const lp=proc.slice().reverse().find(x=>x.item===n); price=lp?lp.price:0; }
+        STV[n]=it.bal>0?r2(it.bal*r2(price)):0; invLive+=STV[n];
+        cell(st,r,1,it.code||null); cell(st,r,2,n,{bold:true}); cell(st,r,3,it.unit); cell(st,r,4,`=SUMIFS(${PU('D')},${PU('C')},B${r})`,{fmt:NUMF2,bg:AUTO}); cell(st,r,5,`=SUMIFS(${I('C')},${I('B')},B${r})`,{fmt:NUMF2,bg:AUTO});
+        cell(st,r,6,r2(it.bal-live),{fmt:NUMF2,bg:ADJ}); cell(st,r,7,`=F${r}+D${r}-E${r}`,{fmt:NUMF2,bold:true,bg:FOOT}); cell(st,r,8,r2(price),{fmt:NUMF2}); cell(st,r,9,`=IF(G${r}>0,G${r}*H${r},0)`,{fmt:NUMF,bold:true,bg:FOOT}); });
+    let rr=DR+items.length; const san=bsInv.find(x=>/مشون/.test(x.name)), sanV=san?Number(san.v)||0:0, sanQ=(()=>{ const sc=(db.stockCounts||[]).filter(x=>/مشون/.test(x.item||'')); let q=sc.reduce((a,x)=>a+(Number(x.qty)||0),0); return q||20000; })();
+    cell(st,rr,2,'سن مشون (جرد)',{bold:true}); cell(st,rr,3,'متر'); cell(st,rr,7,sanQ,{fmt:NUMF2}); cell(st,rr,8,sanQ?r2(sanV/sanQ):0,{fmt:NUMF2}); cell(st,rr,9,`=G${rr}*H${rr}`,{fmt:NUMF,bold:true,bg:FOOT}); const rSan=rr; invLive+=r2(sanQ*(sanQ?r2(sanV/sanQ):0));
+    const rStT=rr+1; cell(st,rStT,2,'قيمة المخزون',{bold:true,bg:FOOT}); cell(st,rStT,9,`=SUM(I${DR}:I${rStT-1})`,{fmt:NUMF,bold:true,bg:FOOT});
+    const ST_TOT=`'المخزون'!$I$${rStT}`; frz(st);
+    /* الرواتب */
+    const py=add('الرواتب','B42318'); topbar(py,'الرواتب والسلف','السلف بتتسجل في شيت المصروفات بند «سلف موظفين» واسم الموظف. الشهر بيتغير من الخانة الصفرا.',6);
+    { const a=py.getCell(3,1); a.value='الشهر:'; a.font=FN({bold:true}); const m=py.getCell(3,2); m.value={formula:MS}; m.numFmt='mmmm yyyy'; m.fill=fill('FFF3C4'); m.font=FN({bold:true}); m.border=BR; }
+    header(py,HR,['الكود','الموظف','المرتب','سلف الشهر','الباقي له','كل السلف'],[9,26,14,14,14,14]);
+    names.forEach((n,i)=>{ const r=DR+i; cell(py,r,1,n.code||null); cell(py,r,2,n.name,{bold:true}); cell(py,r,3,n.salary||0,{fmt:NUMF});
+        cell(py,r,4,`=SUMIFS(${E('D')},${E('C')},B${r},${E('B')},"سلف موظفين",${E('A')},">="&$B$3,${E('A')},"<"&EDATE($B$3,1))`,{fmt:NUMF,bg:AUTO}); cell(py,r,5,`=C${r}-D${r}`,{fmt:NUMF,bold:true,bg:FOOT}); cell(py,r,6,`=SUMIFS(${E('D')},${E('C')},B${r},${E('B')},"سلف موظفين")`,{fmt:NUMF,bg:AUTO}); });
+    const rPT=DR+names.length; cell(py,rPT,2,'الإجمالي',{bold:true,bg:FOOT}); [3,4,5,6].forEach(j=>cell(py,rPT,j,`=SUM(${CL(j)}${DR}:${CL(j)}${rPT-1})`,{fmt:NUMF,bold:true,bg:FOOT})); frz(py);
+    /* قائمة الدخل */
+    const pl=add('قائمة الدخل','0E7090'); topbar(pl,'قائمة الدخل',SUBLIVE,5); header(pl,HR,['م','البند','حسب الحركات','أرصدة وتسويات من البرنامج','القيمة'],[6,52,17,17,18]);
+    const catSet=new Set(cats.map(c=>c.name)), ctrSet=new Set(ctrs.map(c=>c.name)); let r=DR, num=0; const PLR={}, LINES=[];
+    const sec=t=>{ pl.mergeCells(r,1,r,5); const x=pl.getCell(r,1); x.value=t; x.font=FN({bold:true,color:A(OD),size:13}); x.fill=fill(LIGHT); r++; };
+    const line=(label,prog,formula,live,side)=>{ num++; cell(pl,r,1,num); cell(pl,r,2,label); cell(pl,r,3,formula||0,{fmt:NUMF,bg:AUTO}); cell(pl,r,4,r2(prog-live),{fmt:NUMF,bg:ADJ}); cell(pl,r,5,`=C${r}+D${r}`,{fmt:NUMF,bold:true}); LINES.push({r,label,side}); r++; };
+    const tot=(label,f,key)=>{ pl.mergeCells(r,1,r,4); cell(pl,r,1,label,{bold:true,bg:FOOT}); cell(pl,r,5,f,{fmt:NUMF,bold:true,bg:FOOT}); PLR[key]=r; r++; };
+    sec('الإيرادات'); let a0=r;
+    PL.rev.forEach(l=>{ const lb=l.label, v=Number(l.value)||0;
+        if(lb==='مبيعات نقدي') line(lb,v,`=SUMIFS(${B(Lv)},${B(Lpay)},"نقدي")`,sum(bons,x=>x.value,x=>x.cash),'c');
+        else if(lb==='مبيعات آجل') line(lb,v,`=SUMIFS(${B(Lv)},${B(Lpay)},"آجل")`,sum(bons,x=>x.value,x=>!x.cash),'c');
+        else if(/إكرامية/.test(lb)) line(lb,v,`=SUM(${B(Lt)})`,sum(bons,x=>x.tip),'c');
+        else line(lb,v,null,0,'c'); });
+    tot('إجمالي الإيرادات',`=SUM(E${a0}:E${r-1})`,'rev');
+    sec('تكلفة التشغيل المباشرة'); a0=r;
+    PL.dir.forEach(l=>{ const lb=l.label, v=Number(l.value)||0;
+        if(lb.startsWith('مشتريات')) line(lb,v,`=SUM(${PU('F')})`,sum(proc,x=>x.qty*x.price),'d');
+        else if(lb.startsWith('ناقص')) line(lb,v,`=-${ST_TOT}`,-invLive,'d');
+        else if(lb.startsWith('شغل أصحاب المعدات (بعد')) line(lb,v,`=SUM(${X('H')})-SUMPRODUCT(SUMIFS(${I('E')},${I('F')},${CT_NAMES}))`,sum(ext,x=>x.amt)-sum(iss,x=>x.qty*x.price,x=>ctrSet.has(x.name)),'d');
+        else line(lb,v,null,0,'d'); });
+    tot('إجمالي تكلفة التشغيل',`=SUM(E${a0}:E${r-1})`,'dir'); tot('مجمل الربح',`=E${PLR.rev}-E${PLR.dir}`,'gross');
+    sec('المصروفات التشغيلية والعمومية'); a0=r; const opStart=r;
+    PL.op.forEach(l=>{ const lb=l.label, v=Number(l.value)||0; if(catSet.has(lb)) line(lb,v,`=SUMIFS(${E('D')},${E('B')},"${lb.replace(/"/g,'""')}")`,sum(exp,x=>x.amt,x=>x.cat===lb),'d'); else line(lb,v,null,0,'d'); });
+    const opEnd=r-1; tot('إجمالي المصروفات',`=SUM(E${a0}:E${r-1})`,'op'); tot('صافي الربح التشغيلي',`=E${PLR.gross}-E${PLR.op}`,'netop');
+    sec('إيرادات ومصروفات أخرى  (الإيراد موجب والمصروف بالسالب)'); a0=r;
+    PL.oth.forEach(l=>{ const lb=l.label, v=-(Number(l.value)||0); if(/إيرادات أخرى/.test(lb)) line(lb,v,`=SUM(${N('C')})`,sum(inc,x=>x.amt),'c'); else line(lb+' (−)',v,null,0,'c'); });
+    tot('صافي الإيرادات والمصروفات الأخرى',`=SUM(E${a0}:E${r-1})`,'oth'); tot('صافي الربح',`=E${PLR.netop}+E${PLR.oth}`,'net');
+    const PL_NET=`'قائمة الدخل'!$E$${PLR.net}`; frz(pl);
+    /* المركز المالي */
+    const bs=add('المركز المالي','0E7090'); topbar(bs,'المركز المالي (الميزانية)',SUBLIVE,4); header(bs,HR,['البند','حسب الحركات','أرصدة وتسويات من البرنامج','القيمة'],[56,17,17,18]);
+    r=DR; const BSR={}, BL=[];
+    const bsec=t=>{ bs.mergeCells(r,1,r,4); const x=bs.getCell(r,1); x.value=t; x.font=FN({bold:true,color:A(OD),size:13}); x.fill=fill(LIGHT); r++; };
+    const bline=(label,prog,formula,live,side,key)=>{ cell(bs,r,1,label); cell(bs,r,2,formula||0,{fmt:NUMF,bg:AUTO}); cell(bs,r,3,r2((Number(prog)||0)-(live||0)),{fmt:NUMF,bg:ADJ}); cell(bs,r,4,`=B${r}+C${r}`,{fmt:NUMF,bold:true}); if(side) BL.push({r,side}); if(key) BSR[key]=r; r++; };
+    const btot=(label,f,key)=>{ cell(bs,r,1,label,{bold:true,bg:FOOT}); cell(bs,r,2,null,{bg:FOOT}); cell(bs,r,3,null,{bg:FOOT}); cell(bs,r,4,f,{fmt:NUMF,bold:true,bg:FOOT}); BSR[key]=r; r++; };
+    const pos=arr=>arr.reduce((t,x)=>t+Math.max(0,x.bal),0), neg=arr=>-arr.reduce((t,x)=>t+Math.min(0,x.bal),0);
+    bsec('الأصول'); a0=r; let g=null;
+    (BSd.A||[]).forEach(x=>{ if(x.g!==g){ g=x.g; cell(bs,r,1,g,{bold:true,color:OD}); r++; } const n=x.name;
+        if(g==='النقدية'){ const l=accLbl(n), ac=accounts.find(a=>a.label===l); bline(l,x.v,TZROW[l]?`='الخزن'!$J$${TZROW[l]}`:null,ac&&TZROW[l]?ac.bal:0,'d'); }
+        else if(n==='مستحقات على العملاء') bline(n,x.v,`=${CL_REC}`,pos(clients),'d');
+        else if(g==='المخزون'){ const it=Object.keys(STR).find(k=>String(n).startsWith('مخزون '+k+' (')); if(it) bline('مخزون '+it,x.v,`='المخزون'!$I$${STR[it]}`,STV[it],'d'); else if(/مشون/.test(n)) bline('مخزون سن مشون',x.v,`='المخزون'!$I$${rSan}`,r2(sanQ*(sanQ?r2(sanV/sanQ):0)),'d'); else bline(n,x.v,null,0,'d'); }
+        else if(/أصحاب المعدات/.test(n)) bline(n,x.v,`=${CT_ADV}`,neg(ctrs),'d');
+        else if(n==='سلف موظفين') bline(n,x.v,`=SUMIFS(${E('D')},${E('B')},"سلف موظفين")`,sum(exp,y=>y.amt,y=>y.cat==='سلف موظفين'),'d');
+        else bline(n,x.v,null,0,'d'); });
+    btot('إجمالي الأصول',`=SUM(D${a0}:D${r-1})`,'A'); r++;
+    bsec('الخصوم (الالتزامات)'); a0=r;
+    (BSd.L||[]).forEach(x=>{ const n=x.name; if(n.startsWith('موردي')) bline(n,x.v,`=${SP_TOT}`,sups.reduce((t,s)=>t+s.bal,0),'c'); else if(/أصحاب المعدات/.test(n)) bline(n,x.v,`=${CT_PAY}`,pos(ctrs),'c'); else if(/عملاء/.test(n)) bline(n,x.v,`=${CL_ADV}`,neg(clients),'c'); else bline(n,x.v,null,0,'c'); });
+    btot('إجمالي الخصوم',`=SUM(D${a0}:D${r-1})`,'L'); r++;
+    bsec('حقوق الملكية'); const EQ=BSd.E||[]; const plNetVal=(Number(P.profitBeforeTax)||0);
+    bline(EQ[0]?EQ[0].name:'صافي الربح (من قائمة الدخل)',EQ[0]?EQ[0].v:plNetVal,`=${PL_NET}`,EQ[0]?EQ[0].v:plNetVal,null,'profit');
+    bline(EQ[1]?EQ[1].name:'(−) أرباح المساهمين (توزيعات)',EQ[1]?EQ[1].v:0,null,0,'d','dist');
+    cell(bs,r,1,EQ[2]?EQ[2].name:'الأرباح المحتجزة',{bold:true}); cell(bs,r,4,`=D${BSR.profit}-D${BSR.dist}`,{fmt:NUMF,bold:true}); BSR.ret=r; r++;
+    const eqs=[BSR.ret]; EQ.slice(3).forEach(x=>{ eqs.push(r); bline(x.name,x.v,null,0,'c'); });
+    btot('إجمالي حقوق الملكية','='+eqs.map(k=>'D'+k).join('+'),'E'); btot('إجمالي الخصوم وحقوق الملكية',`=D${BSR.L}+D${BSR.E}`,'LE');
+    cell(bs,r,1,'الفرق (الأصول − الخصوم وحقوق الملكية)',{bold:true}); cell(bs,r,4,`=D${BSR.A}-D${BSR.LE}`,{fmt:NUMF,bold:true});
+    bs.addConditionalFormatting({ref:`D${r}`,rules:[{type:'cellIs',operator:'notBetween',formulae:['-1','1'],style:{font:{color:A('B42318'),bold:true},fill:fill('FDECEC')}}]}); frz(bs);
+    /* ميزان المراجعة */
+    const tb=add('ميزان المراجعة','0E7090'); topbar(tb,'ميزان المراجعة','محسوب من المركز المالي وقائمة الدخل — بيتحدث لوحده.',3); header(tb,HR,['الحساب','مدين','دائن'],[56,18,18]);
+    r=DR; const t0=r;
+    const tl=(label,ref,side)=>{ cell(tb,r,1,label); cell(tb,r,2,side==='d'?`=MAX(0,${ref})`:`=MAX(0,-(${ref}))`,{fmt:NUMF}); cell(tb,r,3,side==='d'?`=MAX(0,-(${ref}))`:`=MAX(0,${ref})`,{fmt:NUMF}); r++; };
+    BL.forEach(x=>tl(bs.getCell(x.r,1).value,`'المركز المالي'!D${x.r}`,x.side));
+    LINES.forEach(x=>tl(x.label,`'قائمة الدخل'!E${x.r}`,x.side));
+    cell(tb,r,1,'الإجمالي',{bold:true,bg:FOOT}); cell(tb,r,2,`=SUM(B${t0}:B${r-1})`,{fmt:NUMF,bold:true,bg:FOOT}); cell(tb,r,3,`=SUM(C${t0}:C${r-1})`,{fmt:NUMF,bold:true,bg:FOOT}); r++;
+    cell(tb,r,1,'الفرق (مدين − دائن)',{bold:true}); cell(tb,r,2,`=B${r-1}-C${r-1}`,{fmt:NUMF,bold:true});
+    tb.addConditionalFormatting({ref:`B${r}`,rules:[{type:'cellIs',operator:'notBetween',formulae:['-1','1'],style:{font:{color:A('B42318'),bold:true},fill:fill('FDECEC')}}]}); frz(tb);
+    /* الكشوف بقايمة منسدلة */
+    const LAST={'البونات':DR+nb,'التحصيلات':DR+nc,'المصروفات':DR+ne,'المستخلصات':DR+nx,'صرف المخزون':DR+ni};
+    const stmt=(name,tab,title,listName,first,sums,tables)=>{ const ws=add(name,tab); topbar(ws,title,'اختار الاسم من الخانة الصفرا والكشف يتملى لوحده (أحدث حركة فوق).',14);
+        const l=ws.getCell(3,1); l.value='الاسم:'; l.font=FN({bold:true,size:13}); ws.mergeCells(3,2,3,4); const c=ws.getCell(3,2); c.value=first; c.fill=fill('FFF3C4'); c.font=FN({bold:true,size:13}); c.border=BR; c.alignment={horizontal:'center'};
+        ws.dataValidations.add('B3',{type:'list',allowBlank:false,formulae:[LREF[listName]]});
+        let col=6; sums.forEach(([lab,f])=>{ const x=ws.getCell(3,col); x.value=lab; x.font=FN({bold:true,color:A('FFFFFF')}); x.fill=fill(OD2); x.alignment={horizontal:'center'}; x.border=BR;
+            const y=ws.getCell(3,col+1); y.value={formula:f}; y.numFmt=NUMF; y.font=FN({bold:true,size:13}); y.border=BR; y.alignment={horizontal:'center'}; col+=2; }); ws.getRow(3).height=28;
+        let c0=1;
+        tables.forEach(([tt,sheet,keycol,cols,nrows])=>{ const hc=c0+cols.length; ws.mergeCells(5,c0,5,c0+cols.length-1); const x=ws.getCell(5,c0); x.value=tt; x.font=FN({bold:true,color:A(OD),size:13}); x.fill=fill(LIGHT);
+            cols.forEach(([h,,,w],j)=>{ const y=ws.getCell(6,c0+j); y.value=h; y.font=FN({bold:true,color:A('FFFFFF')}); y.fill=fill(OD); y.border=BR; y.alignment={horizontal:'center',wrapText:true}; ws.getColumn(c0+j).width=w; });
+            ws.getColumn(hc).hidden=true;
+            const src=SH[sheet], last=LAST[sheet], hcol=src.columnCount+2, HL=CL(hcol); src.getCell(HR,hcol).value='مساعد الكشف';
+            for(let q=DR;q<=last;q++) src.getCell(q,hcol).value={formula:`N(${HL}${q-1})+IF($${keycol}${q}='${name}'!$B$3,1,0)`};
+            src.getColumn(hcol).hidden=true; const hr=`'${sheet}'!$${HL}$${DR}:$${HL}$${last}`;
+            for(let k=0;k<nrows;k++){ const q=7+k; ws.getCell(q,hc).value={formula:`IF(MAX(${hr})-${k}<1,"",MATCH(MAX(${hr})-${k},${hr},0)+${DR-1})`};
+                cols.forEach(([,sc,fmt],j)=>{ const z=ws.getCell(q,c0+j); z.value={formula:`IF($${CL(hc)}${q}="","",INDEX('${sheet}'!$${sc}:$${sc},$${CL(hc)}${q}))`}; z.border=BR; z.font=FN({size:11}); if(fmt) z.numFmt=fmt; z.alignment={horizontal:'center'}; }); }
+            c0=hc+2; });
+        ws.views=[{rightToLeft:true,showGridLines:false,state:'frozen',ySplit:6}]; };
+    if(clients.length) stmt('كشف عميل','1F7A4D','كشف حساب عميل','العملاء',clients[0].name,
+        [['المسحوب آجل',`SUMIFS(${B(Lv)},${B('C')},$B$3,${B(Lpay)},"آجل")`],['المحصّل',`SUMIFS(${C('C')},${C('B')},$B$3)`],['الرصيد',`IFERROR(INDEX(${CLG},MATCH($B$3,${CLB},0)),"")`]],
+        [['البونات','البونات','C',[['التاريخ','A',DATEF,12],['رقم البون','B',null,10],['الجرار','D',null,10],['الكمية',Lq,NUMF2,10],['السعر',Lp,NUMF2,9],['القيمة',Lv,NUMF,13],['الدفع',Lpay,null,8]],400],
+         ['التحصيلات','التحصيلات','B',[['التاريخ','A',DATEF,12],['المبلغ','C',NUMF,14],['الخزنة','D',null,12],['البيان','E',null,30]],150]]);
+    if(ctrs.length) stmt('كشف صاحب معدة','6941C6','كشف حساب صاحب معدة','أصحاب المعدات',ctrs[0].name,
+        [['المستخلصات',`SUMIFS(${X('H')},${X('B')},$B$3)`],['المدفوع',`SUMIFS(${E('D')},${E('C')},$B$3)`],['الرصيد',`IFERROR(INDEX(${CTG},MATCH($B$3,${CT_NAMES},0)),"")`]],
+        [['المستخلصات','المستخلصات','B',[['التاريخ','A',DATEF,12],['من','C',DATEF,12],['إلى','D',DATEF,12],['الأمتار','E',NUMF2,10],['القيمة','H',NUMF,13]],120],
+         ['العهد والدفعات','المصروفات','C',[['التاريخ','A',DATEF,12],['المبلغ','D',NUMF,13],['الخزنة','E',null,12],['البيان','F',null,28]],120],
+         ['سولار وأصناف','صرف المخزون','F',[['التاريخ','A',DATEF,12],['الصنف','B',null,10],['الكمية','C',NUMF2,9],['القيمة','E',NUMF,12]],80]]);
+    /* الرئيسية */
+    const h=home; for(let j=1;j<=15;j++) h.getColumn(j).width=[4,8,12].includes(j)?2.5:14;
+    h.mergeCells('A1:O1'); { const c=h.getCell('A1'); c.value='كسارة الديار — الشاشة الرئيسية'; c.font=FN({size:22,bold:true,color:A('FFFFFF')}); c.fill=fill(OD); c.alignment={horizontal:'center',vertical:'middle'}; } h.getRow(1).height=46;
+    h.mergeCells('A2:O2'); { const c=h.getCell('A2'); c.value={formula:`"ملف إكسيل شغال زي البرنامج: سجّل في شيتات التسجيل وكل الأرقام بتتحدث لوحدها  •  البيانات من البرنامج لحد ${ASOF}  •  النهارده: "&TEXT(TODAY(),"dd/mm/yyyy")`}; c.font=FN({size:11,color:A('5B6B80')}); c.alignment={horizontal:'center'}; }
+    const mon=rd=>`${rd},">="&${MS},${rd},"<"&EDATE(${MS},1)`;
+    const CARDS=[['المعلق',`'الخزن'!$J$${TZROW['المعلق']||DR}`,'1F4B73'],['درج المكتب',`'الخزن'!$J$${TZROW['درج المكتب']||DR+1}`,'2E6A9E'],['إجمالي الخزن',TZ_TOTAL,'0E7090'],['صافي الربح',PL_NET,'1F7A4D'],
+        ['مبيعات الشهر ده',`SUMIFS(${B(Lv)},${mon(B('A'))})`,'1F7A4D'],['تحصيلات الشهر ده',`SUMIFS(${C('C')},${mon(C('A'))})`,'027A48'],['مصروفات الشهر ده',`SUMIFS(${E('D')},${mon(E('A'))})`,'B42318'],['بونات الشهر ده',`COUNTIFS(${mon(B('A'))})`,'6941C6'],
+        ['اللي لينا عند العملاء',CL_REC,'B54708'],['مستحقات الموردين',SP_TOT,'B42318'],['مستحقات أصحاب المعدات',CT_PAY,'6941C6'],['قيمة المخزون',ST_TOT,'0E7090']];
+    CARDS.forEach(([lab,f,col],i)=>{ const r0=4+Math.floor(i/4)*4, cc=[1,5,9,13][i%4];
+        h.mergeCells(r0,cc,r0,cc+2); h.mergeCells(r0+1,cc,r0+2,cc+2);
+        const x=h.getCell(r0,cc); x.value=lab; x.font=FN({bold:true,color:A('FFFFFF')}); x.fill=fill(col); x.alignment={horizontal:'center',vertical:'middle'};
+        const y=h.getCell(r0+1,cc); y.value={formula:f}; y.font=FN({bold:true,color:A(col),size:20}); y.numFmt=/بونات/.test(lab)?'#,##0':'#,##0 "ج.م";[Red]-#,##0 "ج.م"'; y.alignment={horizontal:'center',vertical:'middle'}; y.fill=fill('F6F8FB');
+        const md={style:'medium',color:A(col)}; for(let a=r0;a<=r0+2;a++) for(let b=cc;b<=cc+2;b++){ const z=h.getCell(a,b); z.border={top:a===r0?md:undefined,bottom:a===r0+2?md:undefined,right:b===cc?md:undefined,left:b===cc+2?md:undefined}; }
+        [r0,r0+1,r0+2].forEach(q=>h.getRow(q).height=24); });
+    const NAV=[['التسجيل','1F7A4D',[['البونات','المبيعات (البونات)'],['التحصيلات','التحصيلات'],['المصروفات','المصروفات والسلف'],['المشتريات','المشتريات'],['دفعات الموردين','دفعات الموردين'],['المستخلصات','المستخلصات'],['صرف المخزون','صرف المخزون'],['الإيرادات','إيرادات أخرى'],['التحويلات','تحويلات الخزن']]],
+        ['الأرصدة والكشوف',OD,[['الخزن','الخزن'],['أرصدة العملاء','أرصدة العملاء'],['كشف عميل','كشف حساب عميل'],['أرصدة الموردين','أرصدة الموردين'],['أصحاب المعدات','أصحاب المعدات'],['كشف صاحب معدة','كشف صاحب معدة'],['المخزون','المخزون'],['الرواتب','الرواتب والسلف']]],
+        ['القوائم المالية','0E7090',[['قائمة الدخل','قائمة الدخل'],['المركز المالي','المركز المالي'],['ميزان المراجعة','ميزان المراجعة'],['دليل الأكواد','دليل الأكواد']]]];
+    rr=17;
+    NAV.forEach(([g,col,its])=>{ h.mergeCells(rr,1,rr,15); const x=h.getCell(rr,1); x.value=g; x.font=FN({bold:true,size:14,color:A(col)}); x.alignment={horizontal:'right'}; rr++;
+        its.filter(([s])=>SH[s]).forEach(([s,lab],k)=>{ if(k&&k%4===0) rr+=2; const cc=[1,5,9,13][k%4]; h.mergeCells(rr,cc,rr+1,cc+2); const y=h.getCell(rr,cc); y.value={text:lab,hyperlink:`#'${s}'!A1`}; y.font=FN({bold:true,color:A('FFFFFF'),size:13}); y.fill=fill(col); y.alignment={horizontal:'center',vertical:'middle'}; });
+        rr+=3; });
+    const chartRow=rr; /* الرسوم بتتحط هنا */
+    /* بيانات الرسوم (شيت مخفي) */
+    const cdS=add('بيانات الرسوم',OD,{state:'hidden'});
+    ['الشهر','المبيعات','التحصيلات','المصروفات'].forEach((t,j)=>{ cdS.getCell(4,1+j).value=t; cdS.getColumn(1+j).width=14; });
+    for(let k=0;k<9;k++){ const q=5+k, dd=`EDATE(${MS},${k-8})`, rg=rd=>`${rd},">="&${dd},${rd},"<"&EDATE(${dd},1)`;
+        cdS.getCell(q,1).value={formula:`TEXT(${dd},"mm/yyyy")`}; cdS.getCell(q,2).value={formula:`SUMIFS(${B(Lv)},${rg(B('A'))})`}; cdS.getCell(q,3).value={formula:`SUMIFS(${C('C')},${rg(C('A'))})`}; cdS.getCell(q,4).value={formula:`SUMIFS(${E('D')},${rg(E('A'))})`}; }
+    cdS.getCell(4,6).value='أكبر 10 عملاء عليهم'; cdS.getColumn(6).width=22; cdS.getColumn(7).width=14;
+    for(let k=0;k<10;k++){ const q=5+k; cdS.getCell(q,7).value={formula:`LARGE(${CLG},${k+1})`}; cdS.getCell(q,6).value={formula:`INDEX(${CLB},MATCH(G${q},${CLG},0))`}; }
+    /* آخر 10 أسابيع (الأسبوع من الخميس للأربع زي البرنامج) */
+    const WK='(TODAY()-MOD(WEEKDAY(TODAY())-5,7))';
+    ['الأسبوع','مبيعات الأسبوع','تحصيلات الأسبوع'].forEach((t,j)=>{ cdS.getCell(4,9+j).value=t; cdS.getColumn(9+j).width=16; });
+    for(let k=0;k<10;k++){ const q=5+k, ws0=`(${WK}-${7*(9-k)})`, rg=rd=>`${rd},">="&${ws0},${rd},"<"&(${ws0}+7)`;
+        cdS.getCell(q,9).value={formula:`TEXT(${ws0},"dd/mm")`}; cdS.getCell(q,10).value={formula:`SUMIFS(${B(Lv)},${rg(B('A'))})`}; cdS.getCell(q,11).value={formula:`SUMIFS(${C('C')},${rg(C('A'))})`}; }
+    /* ترتيب الشيتات */
+    const order=['الرئيسية','البونات','التحصيلات','المصروفات','المشتريات','دفعات الموردين','المستخلصات','صرف المخزون','الإيرادات','التحويلات','الخزن','أرصدة العملاء','كشف عميل','أرصدة الموردين','أصحاب المعدات','كشف صاحب معدة','المخزون','الرواتب','قائمة الدخل','المركز المالي','ميزان المراجعة','دليل الأكواد','بيانات الرسوم'];
+    order.forEach((n,i)=>{ if(SH[n]) SH[n].orderNo=i; });
+    wb.eachSheet(ws=>{ ws.pageSetup={orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:ws.name==='الرئيسية'?1:0}; });
+    let buf=await wb.xlsx.writeBuffer();
+    try{ buf=await kxAddCharts(buf, chartRow, opStart, opEnd); }catch(e){ console.warn('charts', e); }
+    return buf;
+}
+/* الرسوم البيانية (ExcelJS ما بيكتبش رسوم — بتتضاف للملف مباشرة) */
+async function kxAddCharts(buf, chartRow, opStart, opEnd){
+    const z=await JSZip.loadAsync(buf);
+    const wbx=await z.file('xl/workbook.xml').async('string'), rels=await z.file('xl/_rels/workbook.xml.rels').async('string');
+    const sm=wbx.match(/<sheet [^>]*name="الرئيسية"[^>]*r:id="([^"]+)"/)||wbx.match(/<sheet [^>]*r:id="([^"]+)"[^>]*name="الرئيسية"/); if(!sm) return buf;
+    const tm=rels.match(new RegExp('<Relationship [^>]*Id="'+sm[1]+'"[^>]*Target="([^"]+)"'))||rels.match(new RegExp('<Relationship [^>]*Target="([^"]+)"[^>]*Id="'+sm[1]+'"')); if(!tm) return buf;
+    const sheetPath='xl/'+tm[1].replace(/^\/?xl\//,'').replace(/^\//,''), sheetFile=sheetPath.split('/').pop(), relPath='xl/worksheets/_rels/'+sheetFile+'.rels';
+    const NS='xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+    const title=t=>`<c:title><c:tx><c:rich><a:bodyPr/><a:p><a:pPr><a:defRPr sz="1400" b="1"/></a:pPr><a:r><a:rPr lang="ar-EG" sz="1400" b="1"/><a:t>${t}</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title>`;
+    const sp=c=>`<c:spPr><a:solidFill><a:srgbClr val="${c}"/></a:solidFill></c:spPr>`;
+    const ser=(i,tx,cat,val,c)=>`<c:ser><c:idx val="${i}"/><c:order val="${i}"/>${tx?`<c:tx><c:strRef><c:f>${tx}</c:f></c:strRef></c:tx>`:''}${c?sp(c):''}<c:invertIfNegative val="0"/><c:cat><c:strRef><c:f>${cat}</c:f></c:strRef></c:cat><c:val><c:numRef><c:f>${val}</c:f></c:numRef></c:val></c:ser>`;
+    const axes=`<c:catAx><c:axId val="10"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="b"/><c:numFmt formatCode="General" sourceLinked="1"/><c:tickLblPos val="nextTo"/><c:crossAx val="100"/><c:crosses val="autoZero"/><c:auto val="1"/><c:lblAlgn val="ctr"/><c:lblOffset val="100"/></c:catAx><c:valAx><c:axId val="100"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="l"/><c:numFmt formatCode="#,##0" sourceLinked="0"/><c:tickLblPos val="nextTo"/><c:crossAx val="10"/><c:crosses val="autoZero"/><c:crossBetween val="between"/></c:valAx>`;
+    const D="'بيانات الرسوم'!";
+    const ch1=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><c:chartSpace ${NS}><c:chart>${title('المبيعات والتحصيلات والمصروفات بالشهر')}<c:autoTitleDeleted val="0"/><c:plotArea><c:barChart><c:barDir val="col"/><c:grouping val="clustered"/><c:varyColors val="0"/>${ser(0,D+'$B$4',D+'$A$5:$A$13',D+'$B$5:$B$13','1F7A4D')}${ser(1,D+'$C$4',D+'$A$5:$A$13',D+'$C$5:$C$13','1F4B73')}${ser(2,D+'$D$4',D+'$A$5:$A$13',D+'$D$5:$D$13','B42318')}<c:gapWidth val="80"/><c:axId val="10"/><c:axId val="100"/></c:barChart>${axes}</c:plotArea><c:legend><c:legendPos val="b"/><c:overlay val="0"/></c:legend><c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart></c:chartSpace>`;
+    const ch2=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><c:chartSpace ${NS}><c:chart>${title('المصروفات التشغيلية حسب البند')}<c:autoTitleDeleted val="0"/><c:plotArea><c:pieChart><c:varyColors val="1"/><c:ser><c:idx val="0"/><c:order val="0"/><c:dLbls><c:showLegendKey val="0"/><c:showVal val="0"/><c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="1"/><c:showBubbleSize val="0"/><c:showLeaderLines val="0"/></c:dLbls><c:cat><c:strRef><c:f>'قائمة الدخل'!$B$${opStart}:$B$${opEnd}</c:f></c:strRef></c:cat><c:val><c:numRef><c:f>'قائمة الدخل'!$E$${opStart}:$E$${opEnd}</c:f></c:numRef></c:val></c:ser><c:firstSliceAng val="0"/></c:pieChart></c:plotArea><c:legend><c:legendPos val="r"/><c:overlay val="0"/></c:legend><c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart></c:chartSpace>`;
+    const ch4=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><c:chartSpace ${NS}><c:chart>${title('المبيعات والتحصيلات — آخر 10 أسابيع')}<c:autoTitleDeleted val="0"/><c:plotArea><c:lineChart><c:grouping val="standard"/><c:varyColors val="0"/>${[['$J','1F7A4D',0],['$K','1F4B73',1]].map(([c,col,i])=>`<c:ser><c:idx val="${i}"/><c:order val="${i}"/><c:tx><c:strRef><c:f>${D+c}$4</c:f></c:strRef></c:tx><c:spPr><a:ln w="34925"><a:solidFill><a:srgbClr val="${col}"/></a:solidFill></a:ln></c:spPr><c:marker><c:symbol val="circle"/><c:size val="6"/><c:spPr><a:solidFill><a:srgbClr val="${col}"/></a:solidFill></c:spPr></c:marker><c:cat><c:strRef><c:f>${D}$I$5:$I$14</c:f></c:strRef></c:cat><c:val><c:numRef><c:f>${D+c}$5:${c}$14</c:f></c:numRef></c:val><c:smooth val="0"/></c:ser>`).join('')}<c:marker val="1"/><c:axId val="10"/><c:axId val="100"/></c:lineChart>${axes}</c:plotArea><c:legend><c:legendPos val="b"/><c:overlay val="0"/></c:legend><c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart></c:chartSpace>`;
+    const ch3=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><c:chartSpace ${NS}><c:chart>${title('أكبر 10 عملاء عليهم فلوس')}<c:autoTitleDeleted val="0"/><c:plotArea><c:barChart><c:barDir val="bar"/><c:grouping val="clustered"/><c:varyColors val="0"/>${ser(0,null,D+'$F$5:$F$14',D+'$G$5:$G$14','B54708')}<c:gapWidth val="60"/><c:axId val="10"/><c:axId val="100"/></c:barChart>${axes}</c:plotArea><c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart></c:chartSpace>`;
+    const anchor=(id,col,row,cx,cy)=>`<xdr:oneCellAnchor><xdr:from><xdr:col>${col}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${row}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:ext cx="${cx}" cy="${cy}"/><xdr:graphicFrame macro=""><xdr:nvGraphicFramePr><xdr:cNvPr id="${id+1}" name="Chart ${id}"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr><xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart r:id="rIdC${id}"/></a:graphicData></a:graphic></xdr:graphicFrame><xdr:clientData/></xdr:oneCellAnchor>`;
+    const drawing=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" ${NS}>${anchor(1,0,chartRow,6840000,3240000)}${anchor(2,9,chartRow,5400000,3240000)}${anchor(3,0,chartRow+19,6840000,3600000)}${anchor(4,9,chartRow+19,5400000,3600000)}</xdr:wsDr>`;
+    const drels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${[1,2,3,4].map(i=>`<Relationship Id="rIdC${i}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="../charts/kxchart${i}.xml"/>`).join('')}</Relationships>`;
+    z.file('xl/charts/kxchart1.xml',ch1); z.file('xl/charts/kxchart2.xml',ch2); z.file('xl/charts/kxchart3.xml',ch3); z.file('xl/charts/kxchart4.xml',ch4);
+    z.file('xl/drawings/kxdrawing1.xml',drawing); z.file('xl/drawings/_rels/kxdrawing1.xml.rels',drels);
+    let srel=z.file(relPath)?await z.file(relPath).async('string'):'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>';
+    srel=srel.replace('</Relationships>','<Relationship Id="rIdKxD" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/kxdrawing1.xml"/></Relationships>'); z.file(relPath,srel);
+    let sx=await z.file(sheetPath).async('string');
+    if(!/xmlns:r=/.test(sx.slice(0,600))) sx=sx.replace('<worksheet ','<worksheet xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" ');
+    const tag='<drawing r:id="rIdKxD"/>';
+    if(/<legacyDrawing|<tableParts|<extLst/.test(sx)) sx=sx.replace(/(<legacyDrawing|<tableParts|<extLst)/,tag+'$1'); else sx=sx.replace('</worksheet>',tag+'</worksheet>');
+    z.file(sheetPath,sx);
+    let ctx=await z.file('[Content_Types].xml').async('string');
+    ctx=ctx.replace('</Types>',[1,2,3,4].map(i=>`<Override PartName="/xl/charts/kxchart${i}.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>`).join('')+'<Override PartName="/xl/drawings/kxdrawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/></Types>');
+    z.file('[Content_Types].xml',ctx);
+    return await z.generateAsync({type:'uint8array',compression:'DEFLATE'});
+}
+
 function exportAllExcel(){
     if(typeof XLSX==='undefined'){ alert('مكتبة الإكسيل لسه بتحمّل — جرّب تاني بعد ثواني'); return; }
     const wb = XLSX.utils.book_new(), r2=v=>Math.round((Number(v)||0)*100)/100;
@@ -13100,7 +13443,7 @@ function toggleMoreMenu(){
         ...(currentRole==='admin'?[['fa-solid fa-users-gear','#0f766e','المستخدمين'+(window.__pendingN?' ('+window.__pendingN+')':''),"switchTab('users')"]]:[]),
         ...(window.__isStandalone?[]:[['fa-solid fa-mobile-screen-button','#16a34a','تثبيت التطبيق على الجهاز','installApp()']]),
         ['fa-solid fa-file-export','#2563eb','تصدير نسخة احتياطية','exportData()'],
-        ['fa-solid fa-file-excel','#059669','تصدير كل البيانات إكسيل','exportAllExcel()'],
+        ['fa-solid fa-file-excel','#059669','تصدير كل البيانات إكسيل','exportLiveExcel()'],
         ...(currentRole==='admin'?[['fa-solid fa-file-import','#475569','استرجاع نسخة',"document.getElementById('restore-input').click()"]]:[]),
         ['fa-solid fa-right-from-bracket','#dc2626','خروج ('+roleLabel()+')','logoutUser()']
     ];
