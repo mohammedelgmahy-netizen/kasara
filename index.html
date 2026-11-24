@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1191</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1192</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1408,6 +1408,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                 <button type="button" id="subnav-inventory-form" class="subnav-btn active" onclick="switchSub('inventory','form')">📤 صرف من المخزن</button>
                 <button type="button" id="subnav-inventory-log" class="subnav-btn" onclick="switchSub('inventory','log')">📊 الأرصدة والكشوف</button>
                 <button type="button" id="subnav-inventory-mv" class="subnav-btn" onclick="switchSub('inventory','mv')">📒 كشف حركة صنف (وارد وصادر)</button>
+                <button type="button" id="subnav-inventory-fl" class="subnav-btn" onclick="switchSub('inventory','fl')">🛢️ نقلات السولار</button>
                 <button type="button" id="subnav-inventory-eq" class="subnav-btn" onclick="switchSub('inventory','eq')">🚜 كشف حساب المعدات</button>
             </div>
             <div id="sub-inventory-eq" class="subpage"><div id="sub-ledger-eq-in" class="flex flex-col gap-4"></div></div>
@@ -1564,6 +1565,22 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                 </div>
             </div>
             </div><!-- /sub-inventory-mv -->
+            <div id="sub-inventory-fl" class="subpage">
+            <!-- كشف نقلات السولار: كل نقلة والصرف منها (الأقدم أولاً) — عرض بس (محمد 2026-11-24) -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 bg-teal-50 border-b border-teal-100 flex flex-wrap justify-between items-center gap-2">
+                    <h3 class="font-bold text-slate-900"><i class="fa-solid fa-gas-pump text-teal-600"></i> كشف نقلات السولار والصرف منها</h3>
+                    <div class="flex flex-wrap gap-2 items-center">
+                        <select id="fl-item" onchange="renderFuelLots()" class="bg-white border border-teal-200 rounded px-2 py-1 text-base font-bold min-w-[10rem]"></select><span class="text-sm">نقلات من</span><input id="fl-from" type="date" onchange="renderFuelLots()" class="bg-white border border-teal-200 rounded px-2 py-1 text-sm"><span class="text-sm">إلى</span><input id="fl-to" type="date" onchange="renderFuelLots()" class="bg-white border border-teal-200 rounded px-2 py-1 text-sm">
+                        <button onclick="printFuelLots()" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة</span></button>
+                        <button onclick="shareCard('fl-print-area', 'كشف نقلات '+(document.getElementById('fl-item')?.value||''))" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i><span>واتساب صورة</span></button>
+                        <button onclick="waSendText(fuelLotsText())" class="bg-green-700 hover:bg-green-800 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i><span>واتساب نص</span></button>
+                        <button onclick="exportFuelLotsExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
+                    </div>
+                </div>
+                <div id="fl-print-area" class="p-3"></div>
+            </div>
+            </div><!-- /sub-inventory-fl -->
 
 </div>
 
@@ -4122,7 +4139,7 @@ function fitBonForm(){
     }catch(e){}
 }
 window.addEventListener('resize', ()=>{ try{ fitBonForm(); }catch(e){} });
-function switchSub(tab, which){ if(tab==='ledger' && which==='cx') which='form'; /* صفحة مستخلص عميل اتخفت (محمد 2026-11-14) */ if(tab==='ledger' && which==='cx'){ try{ setTimeout(cxcRender,0); }catch(e){} } if(tab==='ledger' && which==='eq'){ tab='inventory'; try{ switchTab('inventory'); }catch(_){} } if(tab==='inventory' && which==='eq'){ try{ eqMoveToLedger(); renderEquipmentTab(); }catch(e){ console.warn(e); } } if(tab==='ledger' && which==='bal'){ try{ balSheetPage(); }catch(e){ console.warn(e); } } /* محمد 2026-11-18: كشف الأرصدة مكان كشف المعدات، وكشف المعدات في المخزون */ /* محمد 2026-11-13: كشف حساب المعدات جوه تاب كشف الحساب، والصرف من المخزون */ try{ if(tab==='dailylog' && which==='coll'){ renderCollectionsLog(); showClientCollectionBalance(); const cd=document.getElementById('coll-date'); if(cd && !cd.value) cd.value=todayISO(); } }catch(e){} try{ if(tab==='inventory') renderMashoon(); }catch(e){} try{ if(tab==='extracts') renderXd(); }catch(e){} try{ if(tab==='purchases' && which==='ret') renderPurchReturns(); }catch(e){}
+function switchSub(tab, which){ if(tab==='ledger' && which==='cx') which='form'; /* صفحة مستخلص عميل اتخفت (محمد 2026-11-14) */ if(tab==='ledger' && which==='cx'){ try{ setTimeout(cxcRender,0); }catch(e){} } if(tab==='ledger' && which==='eq'){ tab='inventory'; try{ switchTab('inventory'); }catch(_){} } if(tab==='inventory' && which==='eq'){ try{ eqMoveToLedger(); renderEquipmentTab(); }catch(e){ console.warn(e); } } if(tab==='ledger' && which==='bal'){ try{ balSheetPage(); }catch(e){ console.warn(e); } } /* محمد 2026-11-18: كشف الأرصدة مكان كشف المعدات، وكشف المعدات في المخزون */ /* محمد 2026-11-13: كشف حساب المعدات جوه تاب كشف الحساب، والصرف من المخزون */ try{ if(tab==='dailylog' && which==='coll'){ renderCollectionsLog(); showClientCollectionBalance(); const cd=document.getElementById('coll-date'); if(cd && !cd.value) cd.value=todayISO(); } }catch(e){} try{ if(tab==='inventory') renderMashoon(); }catch(e){} try{ if(tab==='inventory' && which==='fl') renderFuelLots(); }catch(e){ console.warn(e); } try{ if(tab==='extracts') renderXd(); }catch(e){} try{ if(tab==='purchases' && which==='ret') renderPurchReturns(); }catch(e){}
     const panel = document.getElementById('tab-'+tab); if(!panel) return;
     panel.querySelectorAll(':scope > .subpage').forEach(p=>p.classList.remove('active'));
     panel.querySelector('#sub-'+tab+'-'+which)?.classList.add('active');
@@ -4687,6 +4704,7 @@ function initDropdowns(){
     fillSelect('eqrep-account', db.accounts);
     if(document.getElementById('eqrep-date') && !document.getElementById('eqrep-date').value) document.getElementById('eqrep-date').value = todayISO();
     fillSelect('imv-item', db.supplies);
+    { const fl=document.getElementById('fl-item'); if(fl){ const had=fl.value; fillSelect('fl-item', db.supplies); if(!had){ const o=[...fl.options].find(x=>/سولار|سولر|جاز/.test(x.value)); if(o) fl.value=o.value; } } }
 
     if(document.getElementById('inv-date') && !document.getElementById('inv-date').value) document.getElementById('inv-date').value = todayISO();
 
@@ -7903,6 +7921,95 @@ function exportItemMovementExcel(){
     XLSX.writeFile(wb, `حركة-${item}-${todayISO()}.xlsx`);
 }
 
+/* ================= كشف نقلات السولار (أي صنف): كل نقلة والصرف منها بالأقدم أولاً — عرض بس (محمد 2026-11-24) ================= */
+function fuelLotsData(item, from, to){
+    const C=(db.stockCounts||[]).filter(x=>x && x.item===item && x.date && (!x.add || isSetCount(x))), last=C.length?C.map(x=>x.date).sort().pop():'';
+    const after=d=>!last || (d||'')>last;
+    const lots=[], outs=[];
+    if(last){ const L=C.filter(x=>x.date===last), Ls=L.filter(isSetCount); const q=Ls.length?(Number(Ls.sort((a,b)=>(a._at||0)-(b._at||0)).pop().qty)||0):L.reduce((a,x)=>a+(Number(x.qty)||0),0);
+        if(q>0) lots.push({date:last, src:'رصيد الجرد', inv:'', qty:q, price:0, ord:0, id:0}); }
+    (db.stockCounts||[]).filter(x=>x && x.item===item && x.add && !isSetCount(x) && x.date && (!last || x.date>=last)).forEach(x=>{ const q=Number(x.qty)||0;
+        if(q>0) lots.push({date:x.date, src:x.notes||'إضافة على المخزون', inv:'', qty:q, price:0, ord:1, id:x.id||0}); else if(q<0) outs.push({date:x.date, to:x.notes||'تنقيص من المخزون', qty:-q, ord:1, id:x.id||0}); });
+    (db.procurements||[]).filter(p=>p.item===item && after(p.date)).forEach(p=>{ const q=Number(p.qty)||0;
+        if(p.ret) outs.push({date:p.date, to:'مرتجع للمورد '+(p.supplier||''), qty:Math.abs(q), ord:3, id:p.id||0});
+        else if(q>0) lots.push({date:p.date, src:p.supplier||'', inv:p.invoiceNumber||'', qty:q, price:Number(p.price)||0, ord:2, id:p.id||0}); });
+    (db.stockIssues||[]).filter(x=>x && x.item===item && after(x.date)).forEach(x=>{ const cr=isCrusherIssue(x);
+        outs.push({date:x.date, to:cr?(x.equip||'الكسارة'):((x.name||'')+(x.equip?' — '+x.equip:'')), notes:x.notes||'', qty:Number(x.qty)||0, ord:2, id:x.id||0, at:x._at||''}); });
+    (db.productions||[]).forEach(o=>{ if(!after(o.date)) return; (o.materials||[]).filter(x=>x.item===item).forEach(x=>outs.push({date:o.date, to:'أمر إنتاج', qty:Number(x.qty)||0, ord:2, id:o.id||0})); });
+    try{ (db.equipExpenses||[]).filter(e=>e && Number(e.qty)>0 && after(e.date) && eqeItem(e.desc)===item).forEach(e=>outs.push({date:e.date, to:[e.equip,e.owner].filter(Boolean).join(' '), qty:Number(e.qty)||0, ord:2, id:e.id||0})); }catch(e){}
+    lots.sort((a,b)=>(a.date||'').localeCompare(b.date||'') || a.ord-b.ord || (a.id||0)-(b.id||0));
+    outs.sort((a,b)=>(a.date||'').localeCompare(b.date||'') || a.ord-b.ord || String(a.at||'').localeCompare(String(b.at||'')) || (a.id||0)-(b.id||0));
+    { let n=0; lots.forEach(l=>{ if(l.src!=='رصيد الجرد') n++; l.no=n; l.rem=l.qty; l.uses=[]; }); }
+    const over=[]; let k=0;
+    outs.forEach(o=>{ let need=o.qty;
+        while(need>1e-9){ while(k<lots.length && lots[k].rem<=1e-9) k++;
+            if(k>=lots.length){ over.push(Object.assign({}, o, {qty:need})); break; }
+            const l=lots[k], take=Math.min(need, l.rem); l.rem=Math.round((l.rem-take)*1000)/1000; need=Math.round((need-take)*1000)/1000;
+            l.uses.push({date:o.date, to:o.to, notes:o.notes||'', qty:take, rem:l.rem, split:take<o.qty}); } });
+    lots.forEach(l=>{ l.used=l.qty-l.rem; });
+    const shown=lots.filter(l=>(!from || l.date>=from) && (!to || l.date<=to));
+    const unit=((db.supplies||[]).find(s=>s.name===item)||{}).unit||'لتر';
+    return {item, unit, lots:shown, all:lots, over, totalRem:lots.reduce((a,l)=>a+l.rem,0)-over.reduce((a,o)=>a+o.qty,0)};
+}
+function fuelLotTitle(l){ return l.src==='رصيد الجرد' ? `رصيد الجرد (اللي كان في التنك)` : `نقلة ${l.no}${l.src?' — '+l.src:''}${l.inv?' — فاتورة '+l.inv:''}`; }
+function fuelLotsHtml(D){
+    const u=esc(D.unit), T='border:1px solid #94a3b8;padding:6px 8px', TH=T+';background:#1F4B73;color:#fff;font-weight:800';
+    let h=`<div style="text-align:center;font-weight:900;font-size:22px;margin:4px 0 10px">كشف نقلات ${esc(D.item)} والصرف منها</div>`;
+    if(!D.all.length && !D.over.length) return h+'<div class="p-4 text-center text-slate-400">مفيش نقلات مسجلة للصنف ده</div>';
+    h+=`<table style="width:100%;border-collapse:collapse;font-size:15px;margin-bottom:14px"><thead><tr><th style="${TH}">النقلة</th><th style="${TH}">التاريخ</th><th style="${TH}">الكمية</th><th style="${TH}">اتصرف منها</th><th style="${TH}">الباقي منها</th></tr></thead><tbody>`;
+    D.lots.forEach(l=>{ h+=`<tr><td style="${T};font-weight:700">${esc(fuelLotTitle(l))}</td><td style="${T};text-align:center">${dmy(l.date)}</td><td style="${T};text-align:center">${nfmt(l.qty)}</td><td style="${T};text-align:center;color:#b42318">${nfmt(l.used)}</td><td style="${T};text-align:center;font-weight:800;color:${l.rem>0?'#047857':'#64748b'}">${l.rem>0?nfmt(l.rem):'خلصت'}</td></tr>`; });
+    const sq=D.lots.reduce((a,l)=>a+l.qty,0), su=D.lots.reduce((a,l)=>a+l.used,0), sr=D.lots.reduce((a,l)=>a+l.rem,0);
+    h+=`<tr style="background:#e8eef5;font-weight:900"><td style="${T}" colspan="2">الإجمالي (${u})</td><td style="${T};text-align:center">${nfmt(sq)}</td><td style="${T};text-align:center">${nfmt(su)}</td><td style="${T};text-align:center">${nfmt(sr)}</td></tr></tbody></table>`;
+    D.lots.forEach(l=>{
+        h+=`<div style="border:2px solid #1F4B73;border-radius:8px;margin-bottom:12px;overflow:hidden;break-inside:avoid">
+        <div style="background:#1F4B73;color:#fff;padding:7px 10px;font-weight:800;font-size:16px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px"><span>${esc(fuelLotTitle(l))}</span><span>${dmy(l.date)} — ${nfmt(l.qty)} ${u}</span></div>
+        <table style="width:100%;border-collapse:collapse;font-size:15px;table-layout:fixed"><colgroup><col style="width:22%"><col style="width:40%"><col style="width:16%"><col style="width:22%"></colgroup><thead><tr><th style="${T};background:#e8eef5">تاريخ الصرف</th><th style="${T};background:#e8eef5">اتصرف لـ</th><th style="${T};background:#e8eef5">الكمية</th><th style="${T};background:#e8eef5">الباقي من النقلة</th></tr></thead><tbody>`;
+        if(!l.uses.length) h+=`<tr><td style="${T};text-align:center;color:#64748b" colspan="4">لسه ما اتصرفش منها حاجة</td></tr>`;
+        l.uses.forEach(x=>{ h+=`<tr><td style="${T};text-align:center">${dmy(x.date)}</td><td style="${T};font-weight:700">${esc(x.to)}${x.split?' <span style="font-size:12px;color:#64748b">(جزء من الصرفة)</span>':''}</td><td style="${T};text-align:center;color:#b42318">${nfmt(x.qty)}</td><td style="${T};text-align:center;font-weight:800">${nfmt(x.rem)}</td></tr>`; });
+        h+=`<tr style="background:#f3f6fa;font-weight:900"><td style="${T}" colspan="2">اتصرف منها ${nfmt(l.used)} ${u}</td><td style="${T};text-align:center" colspan="2">${l.rem>0?'الباقي '+nfmt(l.rem)+' '+u:'النقلة خلصت'}</td></tr></tbody></table></div>`; });
+    if(D.over.length){ h+=`<div style="border:2px solid #b42318;border-radius:8px;margin-bottom:12px;overflow:hidden"><div style="background:#b42318;color:#fff;padding:7px 10px;font-weight:800">صرف أكتر من النقلات المسجلة (${nfmt(D.over.reduce((a,o)=>a+o.qty,0))} ${u})</div><table style="width:100%;border-collapse:collapse;font-size:15px"><tbody>`;
+        D.over.forEach(x=>{ h+=`<tr><td style="${T};text-align:center">${dmy(x.date)}</td><td style="${T};font-weight:700">${esc(x.to)}</td><td style="${T};text-align:center;color:#b42318">${nfmt(x.qty)}</td></tr>`; }); h+='</tbody></table></div>'; }
+    h+=`<div style="font-weight:900;font-size:17px;text-align:center;padding:8px;border:2px solid #047857;border-radius:8px;color:#047857">الموجود في المخزن دلوقتي: ${nfmt(D.totalRem)} ${u}</div>`;
+    return h;
+}
+function fuelLotsCur(){ const g=id=>document.getElementById(id); return fuelLotsData(g('fl-item')?.value||'سولار', g('fl-from')?.value||'', g('fl-to')?.value||''); }
+function renderFuelLots(){ const box=document.getElementById('fl-print-area'); if(!box) return; box.innerHTML=fuelLotsHtml(fuelLotsCur()); }
+function printFuelLots(){ renderFuelLots(); const st=document.createElement('style'); st.id='fl-print-st'; st.textContent='@media print{#fl-print-area,#fl-print-area table,#fl-print-area td,#fl-print-area th,#fl-print-area div,#fl-print-area span{font-size:14pt !important}}'; document.head.appendChild(st); try{ printSection('fl-print-area'); } finally{ setTimeout(()=>st.remove(),1500); } }
+function fuelLotsText(){ const D=fuelLotsCur(), u=D.unit; let t=`*كشف نقلات ${D.item} والصرف منها*\n`;
+    D.lots.forEach(l=>{ t+=`\n*${fuelLotTitle(l)}* — ${dmy(l.date)} — ${nfmt(l.qty)} ${u}\n`;
+        l.uses.forEach(x=>{ t+=`• ${dmy(x.date)} ${x.to}: ${nfmt(x.qty)} ← الباقي ${nfmt(x.rem)}\n`; });
+        t+= l.rem>0 ? `الباقي من النقلة: ${nfmt(l.rem)} ${u}\n` : `النقلة خلصت\n`; });
+    if(D.over.length) t+=`\nصرف أكتر من النقلات المسجلة: ${nfmt(D.over.reduce((a,o)=>a+o.qty,0))} ${u}\n`;
+    return t+`\n*الموجود في المخزن دلوقتي: ${nfmt(D.totalRem)} ${u}*`; }
+function fuelLotsRows(D){ /* سطور الإكسيل: نفس الشكل في الزرار وفي ملف الإكسيل الكامل */
+    const R=[]; D.lots.forEach(l=>{ R.push({t:'lot', v:[fuelLotTitle(l), l.date, '', l.qty, '', '']});
+        l.uses.forEach(x=>R.push({t:'use', v:['', x.date, x.to, '', x.qty, x.rem]}));
+        R.push({t:'sum', v:[l.rem>0?'الباقي من النقلة':'النقلة خلصت', '', '', l.qty, l.used, l.rem]}); });
+    D.over.forEach(x=>R.push({t:'over', v:['صرف أكتر من النقلات', x.date, x.to, '', x.qty, '']}));
+    R.push({t:'tot', v:['الموجود في المخزن دلوقتي', '', '', '', '', D.totalRem]}); return R; }
+async function exportFuelLotsExcel(){
+    const D=fuelLotsCur();
+    try{ await kxLibs(); }catch(e){ /* من غير نت: ملف بسيط */ const data=[['النقلة','التاريخ','اتصرف لـ','كمية النقلة','الكمية المصروفة','الباقي من النقلة'], ...fuelLotsRows(D).map(r=>r.v.map((v,i)=>i===1&&v?dmy(v):v))]; const ws=XLSX.utils.aoa_to_sheet(data); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'نقلات'); XLSX.writeFile(wb, `نقلات-${D.item}-${todayISO()}.xlsx`); return; }
+    const wb=new ExcelJS.Workbook(); fuelLotsSheet(wb, D, 'نقلات '+D.item);
+    const buf=await wb.xlsx.writeBuffer(); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})); a.download=`كشف-نقلات-${D.item}-${todayISO()}.xlsx`; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },4000);
+}
+function fuelLotsSheet(wb, D, name, opt){ /* بيتنادى من زرار الإكسيل ومن «تصدير كل البيانات إكسيل» */
+    const A=c=>({argb:'FF'+c}), fill=c=>({type:'pattern',pattern:'solid',fgColor:A(c)}), thin={style:'thin',color:A('94A3B8')}, BR={top:thin,left:thin,bottom:thin,right:thin};
+    const FN=(o={})=>Object.assign({name:'Arial',size:14},o), NUMF='#,##0.##';
+    const ws=(opt&&opt.ws)||wb.addWorksheet(name,{views:[{rightToLeft:true,showGridLines:false}],properties:{tabColor:A('6941C6')}});
+    const r0=(opt&&opt.row)||1, cols=['النقلة','التاريخ','اتصرف لـ','كمية النقلة','الكمية المصروفة','الباقي من النقلة'], W=[34,14,30,14,16,16];
+    if(!(opt&&opt.row)){ ws.mergeCells(r0,1,r0,6); const c=ws.getCell(r0,1); c.value=`كسارة الديار — كشف نقلات ${D.item} والصرف منها (${dmy(todayISO())})`; c.font=FN({bold:true,size:16,color:A('FFFFFF')}); c.fill=fill('1F4B73'); c.alignment={horizontal:'center',vertical:'middle'}; ws.getRow(r0).height=30; }
+    const hr=(opt&&opt.row)?r0:r0+2; cols.forEach((h,i)=>{ const c=ws.getCell(hr,i+1); c.value=h; c.font=FN({bold:true,color:A('FFFFFF')}); c.fill=fill('1F4B73'); c.border=BR; c.alignment={horizontal:'center',vertical:'middle',wrapText:true}; ws.getColumn(i+1).width=W[i]; });
+    let r=hr+1; const D8=s=>{ if(!s||!/^\d{4}-\d{2}-\d{2}$/.test(s)) return s||null; const [y,m,d]=s.split('-').map(Number); return new Date(Date.UTC(y,m-1,d)); };
+    const BG={lot:'E8EEF5', sum:'F3F6FA', over:'FDE2E1', tot:'D1FADF'};
+    fuelLotsRows(D).forEach(x=>{ x.v.forEach((v,i)=>{ const c=ws.getCell(r,i+1); c.value=(i===1?D8(v):(v===''?null:v)); c.border=BR; c.font=FN({bold:x.t!=='use', color:A(i===4&&x.t==='use'?'B42318':'000000')});
+            if(BG[x.t]) c.fill=fill(BG[x.t]); if(i===1) c.numFmt='dd/mm/yyyy'; else if(i>=3) c.numFmt=NUMF; c.alignment={horizontal:(i===0||i===2)?'right':'center',vertical:'middle'}; });
+        if(x.t==='tot'){ ws.mergeCells(r,1,r,5); } r++; });
+    if(!(opt&&opt.row)) ws.views=[{rightToLeft:true,showGridLines:false,state:'frozen',ySplit:hr}];
+    ws.pageSetup={orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0};
+    return ws;
+}
+
 /* ================= الرواتب والحضور ================= */
 const ADV_CAT='سلف موظفين', SAL_CAT='رواتب موظفين';
 /* أي مصروف أجور متسجل باسم موظف بيتخصم من مرتبه زي السلفة */
@@ -11068,6 +11175,10 @@ async function kxBuild(){
     cell(st,rr,2,'سن مشون (جرد)',{bold:true}); cell(st,rr,3,'متر'); cell(st,rr,7,sanQ,{fmt:NUMF2}); cell(st,rr,8,sanQ?r2(sanV/sanQ):0,{fmt:NUMF2}); cell(st,rr,9,`=G${rr}*H${rr}`,{fmt:NUMF,bold:true,bg:FOOT}); const rSan=rr; invLive+=r2(sanQ*(sanQ?r2(sanV/sanQ):0));
     const rStT=rr+1; cell(st,rStT,2,'قيمة المخزون',{bold:true,bg:FOOT}); cell(st,rStT,9,`=SUM(I${DR}:I${rStT-1})`,{fmt:NUMF,bold:true,bg:FOOT});
     const ST_TOT=`'المخزون'!$I$${rStT}`; frz(st);
+    /* نقلات السولار (محمد 2026-11-24): صورة من البرنامج وقت التصدير — كل نقلة والصرف منها بالأقدم أولاً */
+    try{ const fuelIt=((db.supplies||[]).find(s=>/سولار|سولر/.test(s.name||''))||{}).name||'سولار'; const FD=fuelLotsData(fuelIt,'','');
+        const fl=add('نقلات السولار','6941C6'); topbar(fl,'نقلات السولار والصرف منها','صورة من البرنامج يوم '+ASOF+' — كل نقلة سولار وتحتها الصرف منها بتاريخه واللي أخده والباقي منها (الصرف بيتخصم من أقدم نقلة الأول). الصرف الجديد اللي بيتسجل في الإكسيل مش بيدخل هنا.',6);
+        fuelLotsSheet(wb, FD, '', {ws:fl, row:HR}); fl.views=[{rightToLeft:true,showGridLines:false,state:'frozen',ySplit:HR}]; }catch(e){ console.warn('fuel lots sheet', e); }
     /* الرواتب */
     const py=add('الرواتب','B42318'); topbar(py,'الرواتب والسلف',SUBM+'المرتب بيتكتب بإيدك للموظف الجديد. السلف بتتسجل في شيت المصروفات بند «سلف موظفين» واسم الموظف. الشهر بيتغير من الخانة الصفرا.',6);  unlock(py,3,2,3,2);
     { const a=py.getCell(3,1); a.value='الشهر:'; a.font=FN({bold:true}); const m=py.getCell(3,2); m.value={formula:MS}; m.numFmt='mmmm yyyy'; m.fill=fill('FFF3C4'); m.font=FN({bold:true}); m.border=BR; }
@@ -11198,11 +11309,11 @@ async function kxBuild(){
         const md={style:'medium',color:A(col)}; for(let a=r0;a<=r0+2;a++) for(let b=cc;b<=cc+2;b++){ const z=h.getCell(a,b); z.border={top:a===r0?md:undefined,bottom:a===r0+2?md:undefined,right:b===cc?md:undefined,left:b===cc+2?md:undefined}; }
         [r0,r0+1,r0+2].forEach(q=>h.getRow(q).height=24); });
     const NAV=[['التسجيل','1F7A4D',[['البونات','المبيعات (البونات)'],['التحصيلات','التحصيلات'],['المصروفات','المصروفات والسلف'],['المشتريات','المشتريات'],['دفعات الموردين','دفعات الموردين'],['المستخلصات','المستخلصات'],['صرف المخزون','صرف المخزون'],['الإيرادات','إيرادات أخرى'],['التحويلات','تحويلات الخزن']]],
-        ['الأرصدة والكشوف',OD,[['الخزن','الخزن'],['أرصدة العملاء','أرصدة العملاء'],['كشف عميل','كشف حساب عميل'],['أرصدة الموردين','أرصدة الموردين'],['أصحاب المعدات','أصحاب المعدات'],['كشف صاحب معدة','كشف صاحب معدة'],['المخزون','المخزون'],['الرواتب','الرواتب والسلف']]],
+        ['الأرصدة والكشوف',OD,[['الخزن','الخزن'],['أرصدة العملاء','أرصدة العملاء'],['كشف عميل','كشف حساب عميل'],['أرصدة الموردين','أرصدة الموردين'],['أصحاب المعدات','أصحاب المعدات'],['كشف صاحب معدة','كشف صاحب معدة'],['المخزون','المخزون'],['نقلات السولار','نقلات السولار'],['الرواتب','الرواتب والسلف']]],
         ['القوائم المالية','0E7090',[['قائمة الدخل','قائمة الدخل'],['المركز المالي','المركز المالي'],['ميزان المراجعة','ميزان المراجعة'],['الفحص','فحص الملف'],['دليل الأكواد','دليل الأكواد (إضافة أسماء)']]]];
     rr=17; const TILES=[];
     const TILE_DESC={'البونات':'سجل البونات والمبيعات','التحصيلات':'فلوس العملاء اللي اتحصلت','المصروفات':'المصروفات والسلف والعهد','المشتريات':'فواتير الشراء','دفعات الموردين':'اللي اتدفع للموردين','المستخلصات':'مستخلصات أصحاب المعدات','صرف المخزون':'سولار وأصناف اتصرفت','الإيرادات':'إيرادات أخرى','التحويلات':'تحويل بين الخزن',
-        'الخزن':'رصيد كل خزنة وحركتها','أرصدة العملاء':'اللي ليك واللي عليك','كشف عميل':'كشف حساب عميل بالتفصيل','أرصدة الموردين':'المستحق لكل مورد','أصحاب المعدات':'مستخلصات وعهد وأرصدة','كشف صاحب معدة':'كشف حساب صاحب معدة','المخزون':'رصيد الأصناف وقيمتها','الرواتب':'المرتبات والسلف',
+        'الخزن':'رصيد كل خزنة وحركتها','أرصدة العملاء':'اللي ليك واللي عليك','كشف عميل':'كشف حساب عميل بالتفصيل','أرصدة الموردين':'المستحق لكل مورد','أصحاب المعدات':'مستخلصات وعهد وأرصدة','كشف صاحب معدة':'كشف حساب صاحب معدة','المخزون':'رصيد الأصناف وقيمتها','نقلات السولار':'كل نقلة والصرف منها','الرواتب':'المرتبات والسلف',
         'قائمة الدخل':'الإيرادات والمصروفات والربح','المركز المالي':'الأصول والخصوم','ميزان المراجعة':'مدين ودائن','الفحص':'مراجعة الأخطاء','دليل الأكواد':'إضافة الأسماء والأكواد'};
     NAV.forEach(([g,col,its])=>{ h.mergeCells(rr,1,rr,15); const x=h.getCell(rr,1); x.value=g; x.font=FN({bold:true,size:14,color:A(col)}); x.alignment={horizontal:'right'}; rr++;
         /* المربعات بتملى عرض الصفحة كله من غير فراغات: 9 = 3×3، 8 = 4×2، 5 = 5 في صف */
@@ -11225,7 +11336,7 @@ async function kxBuild(){
     for(let k=0;k<10;k++){ const q=5+k, ws0=`(${WK}-${7*(9-k)})`, rg=rd=>`${rd},">="&${ws0},${rd},"<"&(${ws0}+7)`;
         cdS.getCell(q,9).value={formula:`TEXT(${ws0},"dd/mm")`}; cdS.getCell(q,10).value={formula:`SUMIFS(${B(Lv)},${rg(B('A'))})`}; cdS.getCell(q,11).value={formula:`SUMIFS(${C('C')},${rg(C('A'))})`}; }
     /* ترتيب الشيتات */
-    const order=['الرئيسية','البونات','التحصيلات','المصروفات','المشتريات','دفعات الموردين','المستخلصات','صرف المخزون','الإيرادات','التحويلات','الخزن','أرصدة العملاء','كشف عميل','أرصدة الموردين','أصحاب المعدات','كشف صاحب معدة','المخزون','الرواتب','قائمة الدخل','المركز المالي','ميزان المراجعة','الفحص','دليل الأكواد','بيانات الرسوم'];
+    const order=['الرئيسية','البونات','التحصيلات','المصروفات','المشتريات','دفعات الموردين','المستخلصات','صرف المخزون','الإيرادات','التحويلات','الخزن','أرصدة العملاء','كشف عميل','أرصدة الموردين','أصحاب المعدات','كشف صاحب معدة','المخزون','نقلات السولار','الرواتب','قائمة الدخل','المركز المالي','ميزان المراجعة','الفحص','دليل الأكواد','بيانات الرسوم'];
     order.forEach((n,i)=>{ if(SH[n]) SH[n].orderNo=i; });
     wb.eachSheet(ws=>{ ws.pageSetup={orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:ws.name==='الرئيسية'?1:0}; });
     /* شكل برنامج: من غير أرقام الصفوف وحروف الأعمدة ومن غير تابات الإكسيل تحت — التنقل بالزراير */
