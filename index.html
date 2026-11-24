@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1194</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1195</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5268,9 +5268,12 @@ function emcData(){
     const oT=Number(n.openTotal)||0, oP=Number(n.openPaid)||0;
     if(oT||oP){ owed+=oT; took+=oP; rows.push({label:`الحساب القديم (الكراسة) لحد ${dmy(n.openDate||'')}`, m:null, sin:null, owed:oT, took:oP, bal:owed-took, old:true}); }
     const cur=todayISO().slice(0,7); let st=payStartMonth(n); if(!st || st>cur) st=cur;
-    for(let m=st; m<=cur; m=nextMonth(m)){ const sin=monthNetSin(m), o=salaryOf(n,m), pm=payMonth(n,m), t=(pm.adv||0)+(pm.paid||0)+(pm.ded||0);
+    /* محمد 2026-11-24: الكراسة القديمة شاملة لحد openDate (11/11) → العمولة الجديدة تبدأ من اليوم اللي بعده عشان أسبوع 5–11/11 ما يتحسبش مرتين (الكشف بس) */
+    let from=MGMT_FEE_FROM; if((oT||oP) && n.openDate && n.openDate>=from){ const d=new Date(n.openDate+'T12:00:00'); d.setDate(d.getDate()+1); from=d.toISOString().slice(0,10); }
+    const rate=Number(n.perMeter)||MGMT_FEE_RATE;
+    for(let m=st; m<=cur; m=nextMonth(m)){ const sin=(db.dailyLog||[]).filter(r=>(r.date||'').startsWith(m) && (r.date||'')>=from).reduce((a,r)=>a+bonNetSin(r),0), o=Math.round(rate*sin*100)/100, pm=payMonth(n,m), t=(pm.adv||0)+(pm.paid||0)+(pm.ded||0);
         if(!o && !t && m!==cur) continue; owed+=o; took+=t;
-        rows.push({label:'شهر '+m.slice(5)+'/'+m.slice(0,4)+(m===MGMT_FEE_FROM.slice(0,7)?` (من ${dmy(MGMT_FEE_FROM)})`:''), m, sin, owed:o, took:t, ded:pm.ded||0, bal:owed-took}); }
+        rows.push({label:'شهر '+m.slice(5)+'/'+m.slice(0,4)+(m===from.slice(0,7)?` (من ${dmy(from)})`:''), m, sin, owed:o, took:t, ded:pm.ded||0, bal:owed-took}); }
     const wd=(db.expensesData||[]).filter(x=>x && x.name===n.name && !x.prevMonth && Number(x.paid) && rows.some(r=>r.m && (x.category===SAL_CAT ? x.salaryMonth===r.m : (x.date||'').startsWith(r.m))))
         .sort((a,b)=>(a.date||'').localeCompare(b.date||'') || String(a._at||'').localeCompare(String(b._at||'')));
     let loan=null; try{ const op=Number((db.sariSettings||{}).loanOpening)||0; const L=(db.ownerLoans||[]).filter(l=>loanLender(l)===COM_PERSON); const back=L.filter(l=>l.type!=='in').reduce((a,l)=>a+(Number(l.amount)||0),0), more=L.filter(l=>l.type==='in').reduce((a,l)=>a+(Number(l.amount)||0),0); if(op||back||more) loan={op:op+more, back, rest:op+more-back}; }catch(e){}
