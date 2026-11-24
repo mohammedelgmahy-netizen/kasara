@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1199</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1200</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3784,6 +3784,7 @@ window.onload = async function(){
     try{ await dedup1121Once(); }catch(e){ console.warn('dedup1121', e); }
     try{ await fixRamadan1122Once(); }catch(e){ console.warn('ramadan1122', e); }
     try{ await fixBaqala1122Once(); }catch(e){ console.warn('baqala1122', e); }
+    try{ await restoreAsaad1124Once(); }catch(e){ console.warn('asaad1124', e); }
     try{ await drawerToBank1123Once(); }catch(e){ console.warn('drj1123', e); }
     try{ await fixMagdyName1122Once(); }catch(e){ console.warn('magdy1122', e); }
     try{ await addMagdy50k1122Once(); }catch(e){ console.warn('magdy50k', e); }
@@ -3905,6 +3906,24 @@ async function fixBaqala1122Once(){
     logAudit('update','مصروف (تصحيح بأمر محمد)', 'بقالة المكتب 19/11: 4,670 ← 4,760', old, Object.assign({},x));
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
     scheduleSave(); try{ renderAll(); }catch(e){}
+}
+/* محمد 2026-11-24 «الرصيد المرحل ضرب»: «حفارات اسعد» (كود 10011) اتشال من دليل الأكواد يوم 24/11 فالمدفوع من حسابه القديم 673,200 (معلق، 11/11) بطل يتخصم من الخزنة والمرحل زاد بيه. بيرجّع السجل زي ما كان (نسخة 21/11) مرة واحدة بنسخة احتياطية قبلها */
+async function restoreAsaad1124Once(){
+    if(!db || (db.imports&&db.imports.asaad1124)) return;
+    if(!Array.isArray(db.contractors)) return;
+    const REC={code:10011, name:'حفارات اسعد', rate:1050, equip:'حفار', allSin:true, openAcc:'معلق عماد ناجي', openBal:0, openDate:'2026-11-11', openPaid:673200, openTotal:673200};
+    const cur=db.contractors.find(c=>c && (c.name===REC.name || Number(c.code)===REC.code));
+    if(cur && Number(cur.openPaid)===REC.openPaid && cur.openDate===REC.openDate){ if(!db.imports) db.imports={}; db.imports.asaad1124=true; scheduleSave(); return; }
+    if(!SUPABASE_URL || !__cloudOK) return;
+    const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-24-before-asaad-restore', value:JSON.stringify(db), updated_at:new Date().toISOString()})});
+    if(!res.ok){ console.warn('asaad1124: النسخة الاحتياطية فشلت', res.status); return; }
+    const old=cur?Object.assign({},cur):null;
+    if(cur){ ['openAcc','openBal','openDate','openPaid','openTotal'].forEach(k=>cur[k]=REC[k]); if(!cur.code) cur.code=REC.code; }
+    else db.contractors.push(Object.assign({},REC));
+    if(!db.imports) db.imports={}; db.imports.asaad1124=true;
+    logAudit(cur?'update':'create','دليل الأكواد (تصحيح بأمر محمد)', 'حفارات اسعد: رجوع الحساب القديم (مدفوع 673,200 من المعلق 11/11)', old, Object.assign({},cur||REC));
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    scheduleSave(); try{ initDropdowns(); renderAll(); }catch(e){}
 }
 /* محمد 2026-11-22 «صلح الاسم في كل حركاته»: «مجدي غبد الغني» (غين بالغلط) ← «مجدي عبد الغني» في التكويد وكل الحركات. الاسم بس، ولا مبلغ ولا تاريخ */
 async function fixMagdyName1122Once(){
@@ -4877,6 +4896,7 @@ function deleteMasterItem(cat, code){
     const item = db[cat].find(it=>it.code===code);
     if(!item) return;
     if(cat==='expenses' && item.name==='إيراد'){ alert('ده بند نظام بتستخدمه المبيعات والتحصيلات، مينفعش يتحذف.'); return; }
+    if(['contractors','suppliers','names'].includes(cat) && Number(item.openPaid)>0){ alert(`"${item.name}" ليه حساب قديم مدفوع (${nfmt(item.openPaid)}) خارج من الخزنة — حذفه بيغير رصيد الخزنة والرصيد المرحل، فمينفعش يتحذف. لو خلص حسابه سيبه زي ما هو.`); return; } /* محمد 2026-11-24: حذف حفارات اسعد زوّد المعلق 673,200 */
     const inUse = db.procurements.some(p=>[p.item,p.supplier,p.project].includes(item.name))
         || db.expensesData.some(x=>[x.category,x.activity,x.name,x.project].includes(item.name))
         || db.payments.some(pay=>[pay.supplier,pay.project].includes(item.name));
@@ -8818,6 +8838,7 @@ function deleteContractor(n){
     if(isRO()) return;
     const used = (db.stockIssues||[]).some(x=>x.recipientType==='contractor'&&x.name===n) || (db.equipExtracts||[]).some(x=>x.recipientType==='contractor'&&x.name===n);
     if(used){ alert('المقاول ده عليه حركات، مينفعش يتحذف'); return; }
+    { const c=(db.contractors||[]).find(x=>x.name===n); if(c && Number(c.openPaid)>0){ alert('المقاول ده ليه حساب قديم مدفوع خارج من الخزنة، مينفعش يتحذف'); return; } }
     if(!confirm('حذف '+n+'؟')) return;
     db.contractors = db.contractors.filter(c=>c.name!==n);
     scheduleSave(); initDropdowns(); renderAll();
