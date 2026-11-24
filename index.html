@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1198</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1199</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -2014,8 +2014,10 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                 <button type="button" id="subnav-ledger-form" class="subnav-btn active" onclick="switchSub('ledger','form')">📄 كشف حساب</button>
                 <button type="button" id="subnav-ledger-log" class="subnav-btn" onclick="switchSub('ledger','log')">👥 أرصدة العملاء</button>
                 <button type="button" id="subnav-ledger-bal" class="subnav-btn" onclick="switchSub('ledger','bal')">📋 كشف الأرصدة (لينا وعلينا)</button>
+                <button type="button" id="subnav-ledger-ctb" class="subnav-btn" onclick="switchSub('ledger','ctb')">🚜 أصحاب المعدات (ليهم وعليهم)</button>
                 <button type="button" id="subnav-ledger-cx" class="subnav-btn" style="display:none" onclick="switchSub('ledger','cx')">🧾 مستخلص عميل</button>
             </div>
+            <div id="sub-ledger-ctb" class="subpage"><div class="bg-white rounded-xl border border-slate-200 shadow-sm p-3"><div id="ctb-tools" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px"></div><div id="ctb-body" style="overflow-x:auto"></div></div></div>
             <div id="sub-ledger-bal" class="subpage"><div class="bg-white rounded-xl border border-slate-200 shadow-sm p-3"><div id="bals-tools" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px"></div><div id="bals-body" style="overflow-x:auto"></div></div></div>
             <div id="sub-ledger-cx" class="subpage">
             <div class="bg-white rounded-xl border border-emerald-200 shadow-sm overflow-hidden">
@@ -4045,7 +4047,7 @@ function renderAll(){
     try{ renderExpensesTable(); }catch(e){ console.warn(e); }
     try{ if(activeTab==='payroll') renderPayrollTab(); }catch(e){ console.warn(e); }
     try{ if(activeTab==='inventory' && document.getElementById('sub-inventory-eq')?.classList.contains('active')) renderEquipmentTab(); }catch(e){ console.warn(e); }
-    try{ if(activeTab==='ledger' && document.getElementById('sub-ledger-bal')?.classList.contains('active')) balSheetPage(true); }catch(e){ console.warn(e); } /* أي حركة جديدة تظهر في كشف الأرصدة على طول */
+    try{ if(activeTab==='ledger' && document.getElementById('sub-ledger-bal')?.classList.contains('active')) balSheetPage(true); }catch(e){ console.warn(e); } try{ if(activeTab==='ledger' && document.getElementById('sub-ledger-ctb')?.classList.contains('active')) ctbPage(true); }catch(e){ console.warn(e); } /* أي حركة جديدة تظهر في كشف الأرصدة على طول */
     try{ if(activeTab==='extracts'){ renderWeeklyReport(); renderCtrExtracts(); } }catch(e){ console.warn(e); }
     try{ renderPaymentsTable(); }catch(e){ console.warn(e); }
     try{ renderSupplierAccounts(); }catch(e){ console.warn(e); }
@@ -4156,7 +4158,7 @@ function fitBonForm(){
     }catch(e){}
 }
 window.addEventListener('resize', ()=>{ try{ fitBonForm(); }catch(e){} });
-function switchSub(tab, which){ if(tab==='ledger' && which==='cx') which='form'; /* صفحة مستخلص عميل اتخفت (محمد 2026-11-14) */ if(tab==='ledger' && which==='cx'){ try{ setTimeout(cxcRender,0); }catch(e){} } if(tab==='ledger' && which==='eq'){ tab='inventory'; try{ switchTab('inventory'); }catch(_){} } if(tab==='inventory' && which==='eq'){ try{ eqMoveToLedger(); renderEquipmentTab(); }catch(e){ console.warn(e); } } if(tab==='ledger' && which==='bal'){ try{ balSheetPage(); }catch(e){ console.warn(e); } } /* محمد 2026-11-18: كشف الأرصدة مكان كشف المعدات، وكشف المعدات في المخزون */ /* محمد 2026-11-13: كشف حساب المعدات جوه تاب كشف الحساب، والصرف من المخزون */ try{ if(tab==='dailylog' && which==='coll'){ renderCollectionsLog(); showClientCollectionBalance(); const cd=document.getElementById('coll-date'); if(cd && !cd.value) cd.value=todayISO(); } }catch(e){} try{ if(tab==='inventory') renderMashoon(); }catch(e){} try{ if(tab==='inventory' && which==='fl') renderFuelLots(); }catch(e){ console.warn(e); } try{ if(tab==='extracts') renderXd(); }catch(e){} try{ if(tab==='purchases' && which==='ret') renderPurchReturns(); }catch(e){}
+function switchSub(tab, which){ if(tab==='ledger' && which==='cx') which='form'; /* صفحة مستخلص عميل اتخفت (محمد 2026-11-14) */ if(tab==='ledger' && which==='cx'){ try{ setTimeout(cxcRender,0); }catch(e){} } if(tab==='ledger' && which==='eq'){ tab='inventory'; try{ switchTab('inventory'); }catch(_){} } if(tab==='inventory' && which==='eq'){ try{ eqMoveToLedger(); renderEquipmentTab(); }catch(e){ console.warn(e); } } if(tab==='ledger' && which==='bal'){ try{ balSheetPage(); }catch(e){ console.warn(e); } } if(tab==='ledger' && which==='ctb'){ try{ ctbPage(); }catch(e){ console.warn(e); } } /* محمد 2026-11-18: كشف الأرصدة مكان كشف المعدات، وكشف المعدات في المخزون */ /* محمد 2026-11-13: كشف حساب المعدات جوه تاب كشف الحساب، والصرف من المخزون */ try{ if(tab==='dailylog' && which==='coll'){ renderCollectionsLog(); showClientCollectionBalance(); const cd=document.getElementById('coll-date'); if(cd && !cd.value) cd.value=todayISO(); } }catch(e){} try{ if(tab==='inventory') renderMashoon(); }catch(e){} try{ if(tab==='inventory' && which==='fl') renderFuelLots(); }catch(e){ console.warn(e); } try{ if(tab==='extracts') renderXd(); }catch(e){} try{ if(tab==='purchases' && which==='ret') renderPurchReturns(); }catch(e){}
     const panel = document.getElementById('tab-'+tab); if(!panel) return;
     panel.querySelectorAll(':scope > .subpage').forEach(p=>p.classList.remove('active'));
     panel.querySelector('#sub-'+tab+'-'+which)?.classList.add('active');
@@ -6223,6 +6225,34 @@ function balSheetOpen(){ document.getElementById('bals-modal')?.remove(); const 
     <button onclick="shareCard('bals-body','أرصدة العملاء')" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">واتساب</button><button onclick="printHtml(document.getElementById('bals-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="document.getElementById('bals-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">✕</button></div>
     <div id="bals-body" style="overflow-x:auto">${balSheetHtml(t, fr)}</div></div>`; document.body.appendChild(m); }
 /* محمد 2026-11-20: «بيان بالفروق — العملاء — كشف كشف» — كل عميل: رصيده في كشف الأرصدة (clientBalAt) ورصيده في المركز المالي (نفس حسبة balanceSheetData) والفرق وسببه. عرض بس، مفيش أي بيانات بتتغير */
+/* محمد 2026-11-24: «كشف لأصحاب المعدات بالـ ليهم والـ عليهم» — عرض بس. الأرقام من نفس حساب كشف كل صاحب معدة (contractorStmtRows) من غير أي تغيير في منطقه؛ كل أصحاب المعدات حتى المتوقفين زي «إجمالي حساب أصحاب المعدات» والمركز المالي */
+function ctbData(asOf){ asOf=asOf||todayISO(); const r2=v=>Math.round(v*100)/100;
+    const L=(db.contractors||[]).map(c=>{ let R=[]; try{ R=contractorStmtRows(c.name).rows.filter(r=>(r.date||'')<=asOf); }catch(e){}
+        let leh=0, sol=0, paid=0; R.forEach(r=>{ const cr=Number(r.credit)||0, dr=Number(r.debit)||0;
+            if(r.ord===3) sol-=cr; else leh+=cr; if(r.item) sol+=dr; else paid+=dr; });
+        return {n:c.name, leh:r2(leh), sol:r2(sol), paid:r2(paid), alei:r2(sol+paid), net:r2(leh-sol-paid)}; }).filter(x=>x.leh||x.sol||x.paid);
+    const T=L.reduce((t,x)=>({leh:t.leh+x.leh, sol:t.sol+x.sol, paid:t.paid+x.paid, alei:t.alei+x.alei}),{leh:0,sol:0,paid:0,alei:0});
+    const plus=r2(L.filter(x=>x.net>0).reduce((a,x)=>a+x.net,0)), minus=r2(-L.filter(x=>x.net<0).reduce((a,x)=>a+x.net,0));
+    return {asOf, L, T, plus, minus, net:r2(plus-minus)}; }
+function ctbHtml(asOf){ const D=ctbData(asOf);
+    const B='border:1px solid #000;padding:6px 10px;font-size:19px;text-align:center;line-height:1.4;font-weight:700;', G='background:#C9A227 !important;color:#000;font-weight:800;';
+    const f=v=>(v<0?'-':'')+Math.abs(Math.round(v*100)/100).toLocaleString('en-US',{maximumFractionDigits:2});
+    const nt=(v,pl)=>v>0.5?`<span style="color:#000">${f(v)} ${pl?'ليهم':'ليه'}</span>`:v<-0.5?`<span style="color:#b91c1c">${f(-v)} ${pl?'عليهم':'عليه'}</span>`:'خالص';
+    return `<div dir="rtl" style="background:#fff;padding:8px;font-family:Cairo,Calibri,sans-serif;color:#000"><div style="text-align:center;font-weight:800;font-size:22px;margin-bottom:6px">كشف أصحاب المعدات (ليهم وعليهم) حتى ${dmy(D.asOf)}</div>
+    <table style="border-collapse:collapse;width:100%"><tr><td style="${B}${G}">#</td><td style="${B}${G}">صاحب المعدة</td><td style="${B}${G}">ليهم (مستخلصات وشغل)</td><td style="${B}${G}">سولار وأصناف</td><td style="${B}${G}">عهد ودفعات</td><td style="${B}${G}">إجمالي عليهم</td><td style="${B}${G}">الصافي</td></tr>
+    ${D.L.map((x,i)=>`<tr><td style="${B}">${i+1}</td><td style="${B}text-align:right">${esc(x.n)}</td><td style="${B}direction:ltr">${f(x.leh)}</td><td style="${B}direction:ltr">${f(x.sol)}</td><td style="${B}direction:ltr">${f(x.paid)}</td><td style="${B}direction:ltr">${f(x.alei)}</td><td style="${B}">${nt(x.net)}</td></tr>`).join('') || `<tr><td colspan="7" style="${B}">مفيش حركات</td></tr>`}
+    <tr><td style="${B}font-weight:800" colspan="2">الإجمالي</td><td style="${B}font-weight:800;direction:ltr">${f(D.T.leh)}</td><td style="${B}font-weight:800;direction:ltr">${f(D.T.sol)}</td><td style="${B}font-weight:800;direction:ltr">${f(D.T.paid)}</td><td style="${B}font-weight:800;direction:ltr">${f(D.T.alei)}</td><td style="${B}font-weight:800">${nt(D.net,1)}</td></tr></table>
+    <table style="border-collapse:collapse;width:100%;max-width:560px;margin:10px auto 0"><tr><td style="${B}font-weight:800">إجمالي اللي ليهم (علينا)</td><td style="${B}font-weight:800;direction:ltr">${f(D.plus)}</td></tr>
+    <tr><td style="${B}font-weight:800">إجمالي اللي عليهم (لينا)</td><td style="${B}font-weight:800;direction:ltr;color:#b91c1c">${f(D.minus)}</td></tr>
+    <tr><td style="${B}font-weight:800">الصافي</td><td style="${B}font-weight:800">${nt(D.net,1)}</td></tr></table></div>`; }
+function ctbExcel(){ const D=ctbData(document.getElementById('ctb-date')?.value); const aoa=[[`كشف أصحاب المعدات (ليهم وعليهم) حتى ${dmy(D.asOf)}`],[],['#','صاحب المعدة','ليهم (مستخلصات وشغل)','سولار وأصناف','عهد ودفعات','إجمالي عليهم','الصافي (موجب ليه / سالب عليه)']];
+    D.L.forEach((x,i)=>aoa.push([i+1,x.n,x.leh,x.sol,x.paid,x.alei,x.net])); aoa.push(['','الإجمالي',Math.round(D.T.leh*100)/100,Math.round(D.T.sol*100)/100,Math.round(D.T.paid*100)/100,Math.round(D.T.alei*100)/100,D.net],[],['','إجمالي اللي ليهم (علينا)',D.plus],['','إجمالي اللي عليهم (لينا)',D.minus]);
+    xlsxSave(aoa,'أصحاب المعدات',`أصحاب-المعدات-ليهم-وعليهم-${D.asOf}.xlsx`); }
+function ctbPage(keep){ const T=document.getElementById('ctb-tools'); if(!T) return; const rr="document.getElementById('ctb-body').innerHTML=ctbHtml(document.getElementById('ctb-date').value)";
+    if(!document.getElementById('ctb-date')){ T.innerHTML=`<b>حتى يوم</b><input type="date" id="ctb-date" value="${todayISO()}" onchange="${rr}" style="border:1px solid #cbd5e1;border-radius:8px;padding:4px 8px">
+    <button onclick="shareCard('ctb-body','أصحاب المعدات ليهم وعليهم')" style="background:#16a34a;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">واتساب</button><button onclick="printHtml(document.getElementById('ctb-body').innerHTML)" style="background:#1e293b;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">🖨️ طباعة</button><button onclick="ctbExcel()" style="background:#15803d;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px">📊 إكسيل</button>`; }
+    if(!keep) document.getElementById('ctb-date').value=todayISO();
+    document.getElementById('ctb-body').innerHTML=ctbHtml(document.getElementById('ctb-date').value); }
 function cdiffData(asOf){ asOf=asOf||todayISO(); const r2=v=>Math.round(v*100)/100;
     const L=[]; (db.clients||[]).forEach(c=>{ let rows=[]; try{ rows=getClientAccountRowsAll(c.name); }catch(e){}
         const bs=rows.filter(r=>!r.openAdj && (!r.date||r.date<=asOf)).reduce((a,r)=>a+(r.debit||0)-(r.credit||0),0);
