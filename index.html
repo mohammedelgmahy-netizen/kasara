@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1195</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1196</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1152,7 +1152,6 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                 <div class="overflow-x-auto p-3"><table class="w-full text-right" style="width:100%;font-size:1rem;border-collapse:collapse">
                     <thead class="bg-slate-100"><tr><th class="p-2">#</th><th class="p-2">التاريخ</th><th class="p-2">المبلغ</th><th class="p-2">الخزنة</th><th class="p-2">البيان</th></tr></thead>
                     <tbody id="emc-wd"></tbody></table></div>
-                <div id="emc-loan" class="px-4 pb-4 text-sm font-bold text-slate-600"></div>
             </div>
             <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm pl-no-print-hide">
                 <h3 class="font-bold text-slate-900 mb-3">💵 صرف مبلغ لعماد ناجي (من عمولته)</h3>
@@ -5289,14 +5288,14 @@ function renderCommission(){
         + `<tr class="bg-amber-50 font-extrabold"><td class="p-2" style="${c}">الإجمالي من البداية</td><td class="p-2" style="${c}"></td><td class="p-2 text-amber-700" style="${c}">${mfmt(D.owed)}</td><td class="p-2 text-rose-700" style="${c}">${mfmt(D.took)}</td><td class="p-2 ${D.bal<0?'text-rose-700':'text-emerald-700'}" style="${c}">${mfmt(Math.abs(D.bal))}${D.bal<0?' عليه':''}</td></tr>`;
     document.getElementById('emc-summary').innerHTML=[['إجمالي اللي ليه',D.owed,'#b45309','#fffbeb'],['خد منهم',D.took,'#be123c','#fff1f2'],[D.bal<0?'زيادة عليه':'الباقي له',Math.abs(D.bal),'#047857','#ecfdf5']].map(([l,v,col,bg])=>`<div style="background:${bg};border:1px solid ${col}33;border-radius:12px;padding:12px"><div style="font-size:13px;color:#475569;font-weight:700">${l}</div><div style="font-size:1.35rem;font-weight:900;color:${col}">${mfmt(v)}</div></div>`).join('');
     let tot=0; document.getElementById('emc-wd').innerHTML=(D.wd.length?D.wd.map((x,i)=>{ tot+=Number(x.paid)||0; return `<tr class="border-b border-slate-100"><td class="p-2 text-slate-500">${i+1}</td><td class="p-2 whitespace-nowrap">${dmy(x.date)}</td><td class="p-2 font-bold text-rose-700">${mfmt(x.paid)}</td><td class="p-2">${esc(x.account||'')}</td><td class="p-2">${esc(x.notes||x.desc||x.category||'')}</td></tr>`; }).join('')+`<tr class="bg-slate-50 font-extrabold"><td class="p-2" colspan="2">الإجمالي (${nfmt(D.wd.length)} مرة)</td><td class="p-2 text-rose-700">${mfmt(tot)}</td><td colspan="2"></td></tr>`:'<tr><td colspan="5" class="p-3 text-center text-slate-400">مفيش صرف متسجل باسمه في البرنامج الجديد</td></tr>');
-    document.getElementById('emc-loan').innerHTML=D.loan?`ملحوظة: سلفة عماد ناجي للكسارة (فلوسه اللي سلفها) ${mfmt(D.loan.op)} — اترد له ${mfmt(D.loan.back)} — ${Math.abs(D.loan.rest)<1?'خلصت':'باقي له '+mfmt(D.loan.rest)}. دي حساب لوحدها ومش داخلة في العمولة.`:'';
+    if(0) document.getElementById('emc-loan').innerHTML=D.loan?`ملحوظة: سلفة عماد ناجي للكسارة (فلوسه اللي سلفها) ${mfmt(D.loan.op)} — اترد له ${mfmt(D.loan.back)} — ${Math.abs(D.loan.rest)<1?'خلصت':'باقي له '+mfmt(D.loan.rest)}. دي حساب لوحدها ومش داخلة في العمولة.`:'';
 }
 function emcExcel(){ const D=emcData(); if(!D) return;
     const a=[['كشف عمولة عماد ناجي (4 ج × صافي متر السن) — لحد '+dmy(todayISO())],[],['الفترة','صافي متر السن','ليه (العمولة)','خد','الباقي له']];
     D.rows.forEach(r=>a.push([r.label, r.sin==null?'':Math.round(r.sin*100)/100, r.owed, r.took, Math.round(r.bal*100)/100]));
     a.push(['الإجمالي من البداية','',D.owed,D.took,Math.round(D.bal*100)/100],[],['تفاصيل اللي خده'],['التاريخ','المبلغ','الخزنة','البيان']);
     D.wd.forEach(x=>a.push([x.date, Number(x.paid)||0, x.account||'', x.notes||x.desc||x.category||'']));
-    if(D.loan) a.push([],['سلفة عماد للكسارة (مش داخلة في العمولة)', D.loan.op, 'اترد له', D.loan.back, 'الباقي', D.loan.rest]);
+    if(0) a.push([],['سلفة عماد للكسارة (مش داخلة في العمولة)', D.loan.op, 'اترد له', D.loan.back, 'الباقي', D.loan.rest]);
     const ws=XLSX.utils.aoa_to_sheet(a); ws['!cols']=[{wch:34},{wch:16},{wch:16},{wch:14},{wch:16}]; ws['!views']=[{RTL:true}];
     const wb=XLSX.utils.book_new(); wb.Workbook={Views:[{RTL:true}]}; XLSX.utils.book_append_sheet(wb, ws, 'عمولة عماد ناجي'); XLSX.writeFile(wb, `كشف-عمولة-عماد-ناجي-${todayISO()}.xlsx`); }
 /* الصرف لعماد بيتسجل بالظبط زي ما كان بيتسجل من فورم السلف (نفس البند والحقول) — بس من هنا */
