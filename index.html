@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1197</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1198</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -11120,7 +11120,7 @@ async function kxBuild(){
     const NAVSH={}; /* الشيتات اللي فيها شريط الزراير: الاسم ← ارتفاع السطر الأول بالنقط */
     const topbar=(ws,title,sub,ncol)=>{ const e=Math.max(ncol-2,2); const lines=Math.max(1,Math.ceil((sub||'').length/Math.max(60,e*13))); const h1=30+15*lines; ws.getRow(1).height=h1; ws.mergeCells(1,1,1,e);
         const c=ws.getCell(1,1); c.value={richText:[{text:'كسارة الديار — '+title,font:FN({size:17,bold:true,color:A('FFFFFF')})},...(sub?[{text:'\n'+sub,font:FN({size:10,color:A('D6E2F0')})}]:[])]}; c.fill=fill(OD); c.alignment={horizontal:'right',vertical:'middle',indent:1,wrapText:true};
-        NAVSH[ws.name]=h1; ws.getRow(2).height=44; for(let j=1;j<=Math.max(ncol,14);j++){ const q=ws.getCell(2,j); q.fill=fill('F4F7FB'); q.border={bottom:{style:'thin',color:A('C9D3DF')}}; }
+        NAVSH[ws.name]=h1; ws.getRow(2).height=44; for(let j=1;j<=Math.max(ncol,14);j++){ const q=ws.getCell(2,j); q.fill=fill('EEF2F7'); }
         for(let j=e+1;j<=ncol;j++) ws.getCell(1,j).fill=fill(OD);
         const b=ws.getCell(1,ncol); b.value={text:'⌂ الرئيسية',hyperlink:"#'الرئيسية'!A1"}; b.font=FN({bold:true,color:A('FFFFFF')}); b.fill=fill('0B2E4F'); b.alignment={horizontal:'center',vertical:'middle'}; b.border=BR;
     };
@@ -11402,12 +11402,8 @@ async function kxBuild(){
         'الخزن':'رصيد كل خزنة وحركتها','أرصدة العملاء':'اللي ليك واللي عليك','كشف عميل':'كشف حساب عميل بالتفصيل','أرصدة الموردين':'المستحق لكل مورد','أصحاب المعدات':'مستخلصات وعهد وأرصدة','كشف صاحب معدة':'كشف حساب صاحب معدة','المخزون':'رصيد الأصناف وقيمتها','نقلات السولار':'كل نقلة والصرف منها','الرواتب':'المرتبات والسلف',
         'قائمة الدخل':'الإيرادات والمصروفات والربح','المركز المالي':'الأصول والخصوم','ميزان المراجعة':'مدين ودائن','الفحص':'مراجعة الأخطاء','دليل الأكواد':'إضافة الأسماء والأكواد'};
     NAV.forEach(([g,col,its])=>{ h.mergeCells(rr,1,rr,15); const x=h.getCell(rr,1); x.value=g; x.font=FN({bold:true,size:14,color:A(col)}); x.alignment={horizontal:'right'}; rr++;
-        /* المربعات بتملى عرض الصفحة كله من غير فراغات: 9 = 3×3، 8 = 4×2، 5 = 5 في صف */
-        const L=its.filter(([s])=>SH[s]), n=L.length, cpr=n<=5?n:(n%4===0?4:3), WPX=12*103+3*22, GPX=12, tw=(WPX-(cpr-1)*GPX)/cpr;
-        const rows=Math.ceil(n/cpr); for(let q=0;q<rows;q++) h.getRow(rr+q).height=50;
-        let ypt=0; for(let q=1;q<rr;q++) ypt+=(h.getRow(q).height||15);
-        L.forEach(([s,lab],k)=>{ const ri=Math.floor(k/cpr), ci=k%cpr; TILES.push({x:Math.round(ci*(tw+GPX)),y:Math.round(ypt*4/3+ri*50*4/3+5),w:Math.round(tw),s,lab,desc:TILE_DESC[s]||'',col}); });
-        rr+=rows+1; });
+        its.filter(([s])=>SH[s]).forEach(([s,lab],k)=>{ if(k&&k%4===0) rr+=2; const cc=[1,5,9,13][k%4]; h.mergeCells(rr,cc,rr+1,cc+2); const y=h.getCell(rr,cc); y.value={text:lab,hyperlink:`#'${s}'!A1`}; y.font=FN({bold:true,color:A('FFFFFF'),size:13}); y.fill=fill(col); y.alignment={horizontal:'center',vertical:'middle'}; });
+        rr+=3; });
     const chartRow=rr; /* الرسوم بتتحط هنا */
     /* بيانات الرسوم (شيت مخفي) */
     const cdS=add('بيانات الرسوم',OD,{state:'hidden'});
@@ -11438,7 +11434,7 @@ async function kxBuild(){
 /* شريط زراير التنقل فوق كل شيت (أشكال بلينكات، زي تابات البرنامج) — الشاشة الحالية بلون مختلف */
 async function kxAddNav(z,wbx,rels,NAVSH){
     const G1=[['الرئيسية','⌂ الرئيسية'],['البونات','البونات'],['التحصيلات','التحصيلات'],['المصروفات','المصروفات'],['المشتريات','المشتريات'],['دفعات الموردين','دفعات موردين'],['المستخلصات','المستخلصات'],['صرف المخزون','صرف المخزون'],['الإيرادات','الإيرادات'],['التحويلات','التحويلات']];
-    const G2=[['الخزن','الخزن'],['أرصدة العملاء','العملاء'],['كشف عميل','كشف عميل'],['أرصدة الموردين','الموردين'],['أصحاب المعدات','المعدات'],['كشف صاحب معدة','كشف معدة'],['المخزون','المخزون'],['الرواتب','الرواتب'],['قائمة الدخل','قائمة الدخل'],['المركز المالي','المركز المالي'],['ميزان المراجعة','الميزان'],['الفحص','الفحص'],['دليل الأكواد','الأكواد']];
+    const G2=[['الخزن','الخزن'],['أرصدة العملاء','العملاء'],['كشف عميل','كشف عميل'],['أرصدة الموردين','الموردين'],['أصحاب المعدات','المعدات'],['كشف صاحب معدة','كشف معدة'],['المخزون','المخزون'],['نقلات السولار','نقلات السولار'],['الرواتب','الرواتب'],['قائمة الدخل','قائمة الدخل'],['المركز المالي','المركز المالي'],['ميزان المراجعة','الميزان'],['الفحص','الفحص'],['دليل الأكواد','الأكواد']];
     const PX=9525, BW=98*PX, BH=24*PX, GAP=4*PX, esc=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
     let ctx=await z.file('[Content_Types].xml').async('string'); let k=0;
     for(const [name,h1] of Object.entries(NAVSH)){
@@ -11447,10 +11443,9 @@ async function kxAddNav(z,wbx,rels,NAVSH){
         const sheetPath='xl/'+tm[1].replace(/^\/?xl\//,'').replace(/^\//,''), sheetFile=sheetPath.split('/').pop(), relPath='xl/worksheets/_rels/'+sheetFile+'.rels';
         let sx=await z.file(sheetPath).async('string'); if(/<drawing /.test(sx)) continue; k++;
         const y0=Math.round(h1*12700), shapes=[], hrel=[]; let id=2;
-        [['تسجيل',3],['تقارير',31]].forEach(([t,dy])=>{ shapes.push(`<xdr:absoluteAnchor><xdr:pos x="${4*PX}" y="${y0+dy*PX}"/><xdr:ext cx="${50*PX}" cy="${BH}"/><xdr:sp macro="" textlink=""><xdr:nvSpPr><xdr:cNvPr id="${id}" name="lbl${id}"/><xdr:cNvSpPr txBox="1"/></xdr:nvSpPr><xdr:spPr><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/><a:ln><a:noFill/></a:ln></xdr:spPr><xdr:txBody><a:bodyPr wrap="none" lIns="0" tIns="0" rIns="0" bIns="0" anchor="ctr" rtlCol="1"/><a:lstStyle/><a:p><a:pPr algn="r" rtl="1"/><a:r><a:rPr lang="ar-EG" sz="1000" b="1"><a:solidFill><a:srgbClr val="7A8898"/></a:solidFill><a:latin typeface="Arial"/><a:cs typeface="Arial"/></a:rPr><a:t>${t}</a:t></a:r></a:p></xdr:txBody></xdr:sp><xdr:clientData fPrintsWithSheet="0"/></xdr:absoluteAnchor>`); id++; });
-        [[G1,'1F7A4D',3],[G2,'1F4B73',31]].forEach(([G,col,dy])=>G.forEach(([sh,lab],i)=>{ const cur=sh===name, rid='rIdN'+id, home=sh==='الرئيسية', bg=cur?'1F4B73':(home?'0B2E4F':'FFFFFF'), fg=(cur||home)?'FFFFFF':'1B2B3D', ln=(cur||home)?null:'C9D3DF';
+        [[G1,'1F7A4D',3],[G2,'1F4B73',31]].forEach(([G,col,dy])=>G.forEach(([sh,lab],i)=>{ const cur=sh===name, rid='rIdN'+id, home=sh==='الرئيسية', bg=cur?'F5B301':(home?'0B2E4F':col), fg=cur?'1B1B1B':'FFFFFF', ln=cur?'7A5A00':null;
             hrel.push(`<Relationship Id="${rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="#'${esc(sh)}'!A1"/>`);
-            shapes.push(`<xdr:absoluteAnchor><xdr:pos x="${58*PX+i*(BW+GAP)}" y="${y0+dy*PX}"/><xdr:ext cx="${BW}" cy="${BH}"/><xdr:sp macro="" textlink=""><xdr:nvSpPr><xdr:cNvPr id="${id}" name="nav${id}" descr="${esc(lab)}"><a:hlinkClick r:id="${rid}"/></xdr:cNvPr><xdr:cNvSpPr/></xdr:nvSpPr><xdr:spPr><a:prstGeom prst="roundRect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="${bg}"/></a:solidFill><a:ln w="9525">${ln?`<a:solidFill><a:srgbClr val="${ln}"/></a:solidFill>`:'<a:noFill/>'}</a:ln></xdr:spPr><xdr:txBody><a:bodyPr wrap="none" lIns="0" tIns="0" rIns="0" bIns="0" anchor="ctr" rtlCol="1"/><a:lstStyle/><a:p><a:pPr algn="ctr" rtl="1"/><a:r><a:rPr lang="ar-EG" sz="1000" b="1"><a:solidFill><a:srgbClr val="${fg}"/></a:solidFill><a:latin typeface="Arial"/><a:cs typeface="Arial"/></a:rPr><a:t>${esc(lab)}</a:t></a:r></a:p></xdr:txBody></xdr:sp><xdr:clientData fPrintsWithSheet="0"/></xdr:absoluteAnchor>`); id++; }));
+            shapes.push(`<xdr:absoluteAnchor><xdr:pos x="${4*PX+i*(BW+GAP)}" y="${y0+dy*PX}"/><xdr:ext cx="${BW}" cy="${BH}"/><xdr:sp macro="" textlink=""><xdr:nvSpPr><xdr:cNvPr id="${id}" name="nav${id}" descr="${esc(lab)}"><a:hlinkClick r:id="${rid}"/></xdr:cNvPr><xdr:cNvSpPr/></xdr:nvSpPr><xdr:spPr><a:prstGeom prst="roundRect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="${bg}"/></a:solidFill><a:ln w="9525">${ln?`<a:solidFill><a:srgbClr val="${ln}"/></a:solidFill>`:'<a:noFill/>'}</a:ln></xdr:spPr><xdr:txBody><a:bodyPr wrap="none" lIns="0" tIns="0" rIns="0" bIns="0" anchor="ctr" rtlCol="1"/><a:lstStyle/><a:p><a:pPr algn="ctr" rtl="1"/><a:r><a:rPr lang="ar-EG" sz="1000" b="1"><a:solidFill><a:srgbClr val="${fg}"/></a:solidFill><a:latin typeface="Arial"/><a:cs typeface="Arial"/></a:rPr><a:t>${esc(lab)}</a:t></a:r></a:p></xdr:txBody></xdr:sp><xdr:clientData fPrintsWithSheet="0"/></xdr:absoluteAnchor>`); id++; }));
         const dp=`xl/drawings/kxnav${k}.xml`;
         z.file(dp,`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${shapes.join('')}</xdr:wsDr>`);
         z.file(`xl/drawings/_rels/kxnav${k}.xml.rels`,`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${hrel.join('')}</Relationships>`);
