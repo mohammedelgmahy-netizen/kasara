@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1196</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1197</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1034,6 +1034,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                 <button type="button" id="subnav-payroll-abs" class="subnav-btn" onclick="switchSub('payroll','abs'); absRender()">🗓️ الغياب</button>
                 <button type="button" id="subnav-payroll-log" class="subnav-btn" onclick="switchSub('payroll','log')">💰 كشف الرواتب</button>
                 <button type="button" id="subnav-payroll-wd" class="subnav-btn" onclick="switchSub('payroll','wd'); wdRender()">📋 مسحوبات موظف</button>
+                <button type="button" id="subnav-payroll-emc" class="subnav-btn" style="background:#fffbeb;color:#92400e;border:1px solid #fcd34d" onclick="switchTab('commission')">💼 عمولة عماد ناجي</button><!-- محمد 2026-11-24: زرار فوق في الرواتب بيفتح كشف العمولة؛ عماد نفسه مش ظاهر كموظف -->
             </div>
             <div id="sub-payroll-form" class="subpage active">
             <div id="att-card" style="display:none !important" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-3"><!-- قائمة حضور الموظفين اتخفت بطلب محمد 2026-11-12: «ملهمش لازمة هنا» -->
@@ -1135,6 +1136,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
             <div class="flex flex-wrap items-center gap-2 pl-no-print-hide">
                 <button type="button" onclick="switchTab('masterdata')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-bold">→ دليل الأكواد</button>
             </div>
+            <div id="emc-wrap" class="flex flex-col gap-4">
             <div id="emc-card" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-amber-50 border-b border-amber-100 flex flex-wrap justify-between items-center gap-2">
                     <h3 class="font-extrabold text-slate-900" style="font-size:1.15rem">💼 كشف عمولة عماد ناجي (4 ج × صافي متر السن) — من البداية لحد النهارده</h3>
@@ -1163,6 +1165,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                     <button type="submit" class="col-span-2 md:col-span-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-2 font-bold">تسجيل</button>
                 </form>
             </div>
+            </div><!-- /emc-wrap -->
         </div>
 
         <div id="tab-expenses" class="tab-content flex-col gap-6">
@@ -4218,6 +4221,7 @@ const MASTER_META = {
 
 function renderMasterData(){
     try{ fixDupOps(); }catch(e){}
+    try{ emcHome(); }catch(e){} /* رجّع كشف العمولة لمكانه قبل ما الدليل يتمسح */
     const container = document.getElementById('master-lists');
     const term = document.getElementById('search-masterdata')?.value || '';
     container.innerHTML = '';
@@ -4225,7 +4229,7 @@ function renderMasterData(){
     [...Object.keys(MASTER_META), 'persons'].forEach(cat=>{
         const dbCat = cat==='persons' ? 'names' : cat;
         const src = cat==='persons' ? (db.names||[]) : cat==='names' ? [] : (db[cat]||[]); // الأفراد = الموظفين (محمد 2026-11-08): قائمة واحدة
-        const items = [...src].filter(it=>!(cat==='expenses' && it.name==='إيراد')).filter(it=>!(cat==='clients' && clientHidden(it.name))).filter(it=>textMatch([it.name, it.code], term)).sort((a,b)=>a.code-b.code);
+        const items = [...src].filter(it=>!(cat==='persons' && isCommPerson(it))).filter(it=>!(cat==='expenses' && it.name==='إيراد')).filter(it=>!(cat==='clients' && clientHidden(it.name))).filter(it=>textMatch([it.name, it.code], term)).sort((a,b)=>a.code-b.code);
         const rowOf = it=>{
             let badge = '';
             let contractLine = '';
@@ -4322,8 +4326,10 @@ function renderMasterData(){
     if(general.length){ expCount += general.length;
         expBody += `<div class="border border-slate-200 rounded-xl p-2 flex flex-col gap-1.5"><div class="font-bold text-slate-600 text-sm">أنشطة عامة (لكل التبويبات)</div><div class="flex flex-col gap-1.5 pr-5 border-r-2 border-slate-200 mr-2">${general.map(actRow).join('')}</div></div>`; }
     const expBox = box('expenses', '🧾 المصروفات (التبويب ← النشاط)', tabs.length, MASTER_META.expenses.color, 'expenses', expBody || '<p class="text-sm text-slate-400 text-center py-3">لا توجد بنود</p>');
-    const GROUPS=[['clients','🧑‍💼'],['suppliers','🏭'],['contractors','🚜'],['persons','👷'],['investors','💼'],['accounts','🏦'],['supplies','📦'],['expenses','🧾'],['fixedassets','🏗️']];
+    const GROUPS=[['clients','🧑‍💼'],['suppliers','🏭'],['contractors','🚜'],['persons','👷'],['emadcomm','💰'],['investors','💼'],['accounts','🏦'],['supplies','📦'],['expenses','🧾'],['fixedassets','🏗️']];
     catCount.fixedassets=(db.assets||[]).length; catHtml.fixedassets=faGuideHtml();
+    /* محمد 2026-11-24: «عمولة عماد ناجي» قسم لوحده في الدليل (زي العملاء والموردين والأفراد) — فيه كشفه والصرف له */
+    catCount.emadcomm=(db.names||[]).filter(isCommPerson).length; if(!MASTER_META.emadcomm) MASTER_META.emadcomm={label:'عمولة عماد ناجي'};
     if(!MASTER_META.fixedassets) MASTER_META.fixedassets={label:'الأصول الثابتة'};
     const cnt = c => catCount[c];
     let cur = window.__mdTab || ''; /* محمد 2026-11-16: مفيش مجموعة مفتوحة لحد ما يدوس عليها، ودوسة تانية تقفلها */
@@ -4332,6 +4338,9 @@ function renderMasterData(){
     if(!cur){ container.innerHTML = bar; return; }
     const head = `<div class="flex items-center justify-between gap-2 mb-2"><div class="font-extrabold text-slate-900">${GROUPS.find(g=>g[0]===cur)[1]} ${cur==='expenses'?'المصروفات':cur==='persons'?'الأفراد':MASTER_META[cur].label}</div><button type="button" onclick="openAddMasterModal(); document.getElementById('master-type').value='${cur==='persons'?'names':cur}'; toggleMasterFields();" class="bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg text-sm font-bold">＋ إضافة</button></div>`;
     const content = catHtml[cur];
+    if(cur==='emadcomm'){ const it=(db.names||[]).find(isCommPerson);
+        container.innerHTML = bar + `<div class="bg-white border border-slate-200 rounded-xl p-3"><div class="flex items-center justify-between gap-2 mb-2"><div class="font-extrabold text-slate-900">💰 عمولة عماد ناجي${it?` <span class="font-mono text-slate-500 text-sm">(${it.code})</span>`:''}</div>${it?`<button type="button" onclick="openEditMasterModal('names', ${it.code})" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-bold"><i class="fa-solid fa-pen"></i> تعديل التكويد</button>`:''}</div><div id="md-emc-host"></div></div>`;
+        const w=document.getElementById('emc-wrap'), h=document.getElementById('md-emc-host'); if(w&&h){ h.appendChild(w); renderCommission(); } return; }
     if(cur==='fixedassets'){ container.innerHTML = bar + `<div class="bg-white border border-slate-200 rounded-xl p-3"><div class="font-extrabold text-slate-900 mb-2">🏗️ الأصول الثابتة</div>${content}</div>`; return; }
     container.innerHTML = bar + `<div class="bg-white border border-slate-200 rounded-xl p-3">${head}${content}</div>`;
 }
@@ -5278,7 +5287,10 @@ function emcData(){
     let loan=null; try{ const op=Number((db.sariSettings||{}).loanOpening)||0; const L=(db.ownerLoans||[]).filter(l=>loanLender(l)===COM_PERSON); const back=L.filter(l=>l.type!=='in').reduce((a,l)=>a+(Number(l.amount)||0),0), more=L.filter(l=>l.type==='in').reduce((a,l)=>a+(Number(l.amount)||0),0); if(op||back||more) loan={op:op+more, back, rest:op+more-back}; }catch(e){}
     return {n, rows, owed, took, bal:owed-took, wd, loan};
 }
+/* الكشف بيتعرض في مكانين: تاب العمولة وقسم «عمولة عماد ناجي» في الدليل — نفس العناصر بتتنقل */
+function emcHome(){ const w=document.getElementById('emc-wrap'), t=document.getElementById('tab-commission'); if(w && t && !t.contains(w)) t.appendChild(w); }
 function renderCommission(){
+    try{ if(typeof activeTab!=='undefined' && activeTab==='commission') emcHome(); }catch(e){}
     const body=document.getElementById('emc-body'); if(!body) return;
     const sel=document.getElementById('emc-account'); if(sel && !sel.options.length) sel.innerHTML=(db.accounts||[]).map(a=>`<option>${esc(a.name)}</option>`).join('');
     const dd=document.getElementById('emc-date'); if(dd && !dd.value) dd.value=todayISO();
