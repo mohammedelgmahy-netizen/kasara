@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1192</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1193</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1578,6 +1578,13 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                         <button onclick="exportFuelLotsExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
                     </div>
                 </div>
+                <div class="px-3 pt-3 flex flex-wrap items-center gap-2 text-sm">
+                    <b>اختار النقلات اللي هتتبعت:</b>
+                    <button type="button" onclick="flPickLast(0)" class="bg-white border border-teal-300 rounded px-2 py-1 font-bold">الكل</button>
+                    <button type="button" onclick="flPickLast(1)" class="bg-white border border-teal-300 rounded px-2 py-1 font-bold">آخر نقلة</button>
+                    <button type="button" onclick="flPickLast(2)" class="bg-white border border-teal-300 rounded px-2 py-1 font-bold">آخر نقلتين</button>
+                </div>
+                <div id="fl-pick" class="px-3 pt-2 flex flex-wrap gap-2 text-sm"></div>
                 <div id="fl-print-area" class="p-3"></div>
             </div>
             </div><!-- /sub-inventory-fl -->
@@ -7959,7 +7966,7 @@ function fuelLotsHtml(D){
     h+=`<table style="width:100%;border-collapse:collapse;font-size:15px;margin-bottom:14px"><thead><tr><th style="${TH}">النقلة</th><th style="${TH}">التاريخ</th><th style="${TH}">الكمية</th><th style="${TH}">اتصرف منها</th><th style="${TH}">الباقي منها</th></tr></thead><tbody>`;
     D.lots.forEach(l=>{ h+=`<tr><td style="${T};font-weight:700">${esc(fuelLotTitle(l))}</td><td style="${T};text-align:center">${dmy(l.date)}</td><td style="${T};text-align:center">${nfmt(l.qty)}</td><td style="${T};text-align:center;color:#b42318">${nfmt(l.used)}</td><td style="${T};text-align:center;font-weight:800;color:${l.rem>0?'#047857':'#64748b'}">${l.rem>0?nfmt(l.rem):'خلصت'}</td></tr>`; });
     const sq=D.lots.reduce((a,l)=>a+l.qty,0), su=D.lots.reduce((a,l)=>a+l.used,0), sr=D.lots.reduce((a,l)=>a+l.rem,0);
-    h+=`<tr style="background:#e8eef5;font-weight:900"><td style="${T}" colspan="2">الإجمالي (${u})</td><td style="${T};text-align:center">${nfmt(sq)}</td><td style="${T};text-align:center">${nfmt(su)}</td><td style="${T};text-align:center">${nfmt(sr)}</td></tr></tbody></table>`;
+    h+=`<tr style="background:#e8eef5;font-weight:900"><td style="${T}" colspan="2">${D.part?'إجمالي النقلات المعروضة':'الإجمالي'} (${u})</td><td style="${T};text-align:center">${nfmt(sq)}</td><td style="${T};text-align:center">${nfmt(su)}</td><td style="${T};text-align:center">${nfmt(sr)}</td></tr></tbody></table>`;
     D.lots.forEach(l=>{
         h+=`<div style="border:2px solid #1F4B73;border-radius:8px;margin-bottom:12px;overflow:hidden;break-inside:avoid">
         <div style="background:#1F4B73;color:#fff;padding:7px 10px;font-weight:800;font-size:16px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px"><span>${esc(fuelLotTitle(l))}</span><span>${dmy(l.date)} — ${nfmt(l.qty)} ${u}</span></div>
@@ -7972,8 +7979,15 @@ function fuelLotsHtml(D){
     h+=`<div style="font-weight:900;font-size:17px;text-align:center;padding:8px;border:2px solid #047857;border-radius:8px;color:#047857">الموجود في المخزن دلوقتي: ${nfmt(D.totalRem)} ${u}</div>`;
     return h;
 }
-function fuelLotsCur(){ const g=id=>document.getElementById(id); return fuelLotsData(g('fl-item')?.value||'سولار', g('fl-from')?.value||'', g('fl-to')?.value||''); }
-function renderFuelLots(){ const box=document.getElementById('fl-print-area'); if(!box) return; box.innerHTML=fuelLotsHtml(fuelLotsCur()); }
+/* محمد 2026-11-24: هو بيختار النقلات اللي يبعتها (علامة جنب كل نقلة) + اختصارات الكل/آخر نقلة/آخر نقلتين — العرض والطباعة والواتساب والإكسيل بالمختار بس */
+const flKey=l=>l.no+'|'+l.date; window.__flSel=null;
+function fuelLotsBase(){ const g=id=>document.getElementById(id); return fuelLotsData(g('fl-item')?.value||'سولار', g('fl-from')?.value||'', g('fl-to')?.value||''); }
+function fuelLotsCur(){ const D=fuelLotsBase(); if(window.__flSel){ const L=D.lots.filter(l=>window.__flSel.has(flKey(l))); if(L.length!==D.lots.length){ D.lots=L; D.part=true; } } return D; }
+function flPickLast(n){ const D=fuelLotsBase(); window.__flSel = n>0 ? new Set(D.lots.slice(-n).map(flKey)) : null; renderFuelLots(); }
+function flToggle(k, on){ const D=fuelLotsBase(); if(!window.__flSel) window.__flSel=new Set(D.lots.map(flKey)); if(on) window.__flSel.add(k); else window.__flSel.delete(k); renderFuelLots(); }
+function renderFuelPick(){ const box=document.getElementById('fl-pick'); if(!box) return; const D=fuelLotsBase();
+    box.innerHTML=D.lots.map(l=>{ const k=flKey(l), on=!window.__flSel||window.__flSel.has(k); return `<label class="flex items-center gap-1.5 border ${on?'border-teal-500 bg-teal-50':'border-slate-300 bg-white'} rounded px-2 py-1 cursor-pointer font-bold"><input type="checkbox" ${on?'checked':''} onchange="flToggle('${k}', this.checked)"> ${esc(l.src==='رصيد الجرد'?'رصيد الجرد':'نقلة '+l.no)} — ${dmy(l.date)}</label>`; }).join(''); }
+function renderFuelLots(){ const box=document.getElementById('fl-print-area'); if(!box) return; renderFuelPick(); const D=fuelLotsCur(); box.innerHTML=(D.part&&!D.lots.length)?'<div class="p-4 text-center text-slate-400">علّم على نقلة واحدة على الأقل</div>':fuelLotsHtml(D); }
 function printFuelLots(){ renderFuelLots(); const st=document.createElement('style'); st.id='fl-print-st'; st.textContent='@media print{#fl-print-area,#fl-print-area table,#fl-print-area td,#fl-print-area th,#fl-print-area div,#fl-print-area span{font-size:14pt !important}}'; document.head.appendChild(st); try{ printSection('fl-print-area'); } finally{ setTimeout(()=>st.remove(),1500); } }
 function fuelLotsText(){ const D=fuelLotsCur(), u=D.unit; let t=`*كشف نقلات ${D.item} والصرف منها*\n`;
     D.lots.forEach(l=>{ t+=`\n*${fuelLotTitle(l)}* — ${dmy(l.date)} — ${nfmt(l.qty)} ${u}\n`;
