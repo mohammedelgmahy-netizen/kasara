@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1203</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1204</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3786,6 +3786,8 @@ window.onload = async function(){
     try{ await fixBaqala1122Once(); }catch(e){ console.warn('baqala1122', e); }
     try{ await restoreAsaad1124Once(); }catch(e){ console.warn('asaad1124', e); }
     try{ await fixAhmedPlug1124Once(); }catch(e){ console.warn('ahplug1124', e); }
+    try{ await fixDrawerBook1124Once(); }catch(e){ console.warn('drbook1124', e); }
+    { const t=setInterval(async()=>{ if(db && db.imports && db.imports.drbook1124){ clearInterval(t); return; } try{ await fixDrawerBook1124Once(); }catch(e){} }, 15000); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.ahplug7){ clearInterval(t); return; } try{ await fixAhmedPlug7_1124Once(); }catch(e){} }, 5000); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.ahplug1124){ clearInterval(t); return; } try{ await fixAhmedPlug1124Once(); }catch(e){} }, 15000); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.asaad1124){ clearInterval(t); return; } try{ await restoreAsaad1124Once(); }catch(e){} }, 15000); } /* لو الدخول/السحابة ما كانوش جاهزين وقت الفتح: يعيد المحاولة كل 15 ثانية لحد ما يتنفذ */
@@ -3908,6 +3910,21 @@ async function fixBaqala1122Once(){
     x.total=4760; x.paid=4760; x.remaining=0;
     if(!db.imports) db.imports={}; db.imports.baqala1122=true;
     logAudit('update','مصروف (تصحيح بأمر محمد)', 'بقالة المكتب 19/11: 4,670 ← 4,760', old, Object.assign({},x));
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    scheduleSave(); try{ renderAll(); }catch(e){}
+}
+/* محمد 2026-11-24 «زبطها»: المرحل على الدفتر آخر 13/11 = 458,280 وآخر 23/11 = 541,296 → سطرين تسوية بالسالب على درج المكتب: −875 يوم 13/11 (إكراميات 13 مش في الدفتر) و−1,170 يوم 23/11 (فرق مش معروف مصدره) */
+async function fixDrawerBook1124Once(){
+    if(!db || (db.imports&&db.imports.drbook1124)) return;
+    if(!Array.isArray(db.incomes)) return;
+    if(!SUPABASE_URL || !__cloudOK) return;
+    const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-24-before-drawer-book', value:JSON.stringify(db), updated_at:new Date().toISOString()})});
+    if(!res.ok){ console.warn('drbook1124: النسخة الاحتياطية فشلت', res.status); return; }
+    const at=new Date().toISOString();
+    const R=[{id:'1795600000001124-a', _at:at, date:'2026-11-13', type:'إيرادات أخرى', notes:'تسوية الدرج على الدفتر 13/11 (إكراميات 13/11 مش في الدفتر)', amount:-875, account:DRAWER_ACC},
+             {id:'1795600000001124-b', _at:at, date:'2026-11-23', type:'إيرادات أخرى', notes:'تسوية الدرج على الدفتر 23/11 (المرحل 541,296)', amount:-1170, account:DRAWER_ACC}];
+    R.forEach(r=>{ if(!db.incomes.some(x=>x && String(x.id)===r.id)){ db.incomes.push(r); logAudit('create','إيراد (تسوية بأمر محمد)', `${r.notes}: ${r.amount}`, null, Object.assign({},r)); } });
+    if(!db.imports) db.imports={}; db.imports.drbook1124=true;
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
     scheduleSave(); try{ renderAll(); }catch(e){}
 }
