@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1188</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1189</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -10933,22 +10933,37 @@ async function kxBuild(){
     /* دليل الأكواد (مصدر القوايم المنسدلة) */
     const cod=add('دليل الأكواد','7A5AF8');
     const LISTS=[['العملاء',clients.map(c=>[c.code,c.name])],['الموردين',sups.map(c=>[c.code,c.name])],['أصحاب المعدات',ctrs.map(c=>[c.code,c.name])],['الموظفين',names.map(c=>[c.code,c.name])],
-        ['بنود المصروفات',[...cats.map(c=>[c.code,c.name]),['','مقاولين']]],['الأصناف',items.map(c=>[c.code,c.name])],['الخزن',accounts.map(a=>[a.code,a.label])],['الدفع',[['','آجل'],['','نقدي']]]];
-    topbar(cod,'دليل الأكواد','القوايم المنسدلة في شيتات التسجيل بتتسحب من هنا — ضيف أي اسم جديد تحت آخر اسم في عموده وهيظهر في القايمة على طول.',2*LISTS.length);
+        ['بنود المصروفات',[...cats.map(c=>[c.code,c.name]),['','مقاولين']]],['الأصناف',items.map(c=>[c.code,c.name])],['الخزن',accounts.map(a=>[a.code,a.label])],['الدفع',[['','آجل'],['','نقدي']]],
+        ['استهلاك الكسارة',[...new Set(['الكسارة',...(db.crusherEquips||[]).map(e=>e&&(e.name||e)).filter(x=>typeof x==='string'),...iss.map(x=>x.name).filter(n=>!ctrs.some(c=>c.name===n))])].map(n=>['',n])]];
+    const EXTRA_OK={'أصحاب المعدات':['استهلاك الكسارة']};
+    topbar(cod,'دليل الأكواد','ده الشيت الوحيد اللي بتضيف فيه الأسماء: ضيف أي عميل أو مورد أو صاحب معدة أو موظف أو صنف أو بند جديد تحت آخر اسم في عموده (من غير ما تسيب سطر فاضي ومن غير ما تحشر في النص) — هيظهر في القوايم المنسدلة وفي الأرصدة على طول.',2*LISTS.length);
     const LREF={};
     LISTS.forEach(([t,arr],i)=>{ const c1=2*i+1; [['الكود',8],[t,26]].forEach(([h,w],j)=>{ const x=cod.getCell(HR,c1+j); x.value=h; x.font=FN({bold:true,color:A('FFFFFF')}); x.fill=fill(OD); x.border=BR; x.alignment={horizontal:'center'}; cod.getColumn(c1+j).width=w; });
         arr.forEach(([code,n],k)=>{ cell(cod,DR+k,c1,code===''?null:code); cell(cod,DR+k,c1+1,n); }); LREF[t]=`'دليل الأكواد'!$${CL(c1+1)}$${DR}:$${CL(c1+1)}$${DR+300}`; });
     cod.views=[{rightToLeft:true,showGridLines:false,state:'frozen',ySplit:HR}];
     const SUBIN=`شيت تسجيل: اكتب أي حركة جديدة في أول سطر فاضي تحت. الأعمدة الزرقا الفاتحة بتتحسب لوحدها. كل الأرصدة والقوايم والرئيسية بتتحدث على طول. البيانات من البرنامج لحد ${ASOF}.`;
-    const inputSheet=(name,tab,cols,widths,rows,autocols,formulas,dvs,datecols,numcols,title)=>{
+    const INFO={}, UNL={}; /* UNL: الخانات المفتوحة للكتابة في كل شيت محمي */
+    const unlock=(ws,r1,c1,r2,c2)=>{ for(let a=r1;a<=r2;a++) for(let b=c1;b<=c2;b++) ws.getCell(a,b).protection={locked:false}; };
+    const ERR_NAME={errorStyle:'information',showErrorMessage:true,errorTitle:'اسم مش في دليل الأكواد',error:'الاسم ده مش موجود في شيت «دليل الأكواد». لو اسم جديد: دوس OK، وضيفه في دليل الأكواد تحت آخر اسم عشان يظهر في الأرصدة.'};
+    const inputSheet=(name,tab,cols,widths,rows,autocols,formulas,dvs,datecols,numcols,title,req)=>{
         const ws=add(name,tab); topbar(ws,title||name,SUBIN,cols.length); header(ws,HR,cols,widths,autocols);
-        const n=rows.length+EXTRA;
+        const n=rows.length+(name==='البونات'?3000:1500); /* مساحة تسجيل جديدة: 3000 بون و1500 سطر لكل شيت تاني */
         for(let i=0;i<n;i++){ const r=DR+i, vals=rows[i]||[]; const row=ws.getRow(r);
             for(let j=1;j<=cols.length;j++){ let v=vals[j-1]; if(formulas[j]) v={formula:formulas[j](r)}; const c=row.getCell(j); c.value=(v===undefined||v==='')?null:v; c.border=BR; c.font=FN({size:11});
-                if(autocols.has(j)) c.fill=fill(AUTO);
+                if(autocols.has(j)) c.fill=fill(AUTO); else c.protection={locked:false};
                 if(datecols.has(j)){ c.numFmt=DATEF; c.alignment={horizontal:'center'}; } else if(numcols.has(j)){ c.numFmt=NUMF2; c.alignment={horizontal:'center'}; } else c.alignment={horizontal:'right'}; } }
         ws.views=[{rightToLeft:true,showGridLines:false,state:'frozen',ySplit:HR}]; ws.autoFilter=`A${HR}:${CL(cols.length)}${DR+n-1}`;
-        dvs.forEach(([col,l])=>ws.dataValidations.add(`${col}${DR}:${col}${DR+n}`,{type:'list',allowBlank:true,showErrorMessage:false,formulae:[LREF[l]]}));
+        dvs.forEach(([col,l])=>ws.dataValidations.add(`${col}${DR}:${col}${DR+n}`,Object.assign({type:'list',allowBlank:true,formulae:[LREF[l]]},ERR_NAME)));
+        const last=DR+n-1, LC=CL(cols.length), F0=DR+rows.length; /* التنبيهات والفحص على اللي بيتسجل في الإكسيل بس (بيانات البرنامج زي ما هي) */
+        const inList=(col,l,row)=>[l,...(EXTRA_OK[l]||[])].map(x=>`COUNTIF(${LREF[x]},$${col}${row})`).join('+');
+        /* تنبيهات: أحمر = تاريخ مكتوب كلام أو اسم مش متكود، أصفر = سطر ناقص */
+        ws.addConditionalFormatting({ref:`A${F0}:A${last}`,rules:[{type:'expression',formulae:[`AND($A${F0}<>"",NOT(ISNUMBER($A${F0})))`],style:{fill:fill('FDE2E1'),font:{color:A('B42318'),bold:true}}}]});
+        dvs.forEach(([col,l])=>ws.addConditionalFormatting({ref:`${col}${F0}:${col}${last}`,rules:[{type:'expression',formulae:[`AND($${col}${F0}<>"",(${inList(col,l,F0)})=0)`],style:{fill:fill('FDE2E1'),font:{color:A('B42318'),bold:true}}}]}));
+        if(req&&req.length){ const any=req.map(c=>`$${c}${F0}<>""`).join(','), miss=req.map(c=>`$${c}${F0}=""`).join(',');
+            ws.addConditionalFormatting({ref:`A${F0}:${LC}${last}`,rules:[{type:'expression',formulae:[`AND(OR(${any}),OR(${miss}))`],style:{fill:fill('FFF1C2')}}]}); }
+        { ws.mergeCells(3,1,3,Math.min(3,cols.length)); const g=ws.getCell(3,1); g.value={formula:`HYPERLINK("#'${name}'!A"&(COUNTA($A$${DR}:$A$${last})+${DR}),"⬇ روح لأول سطر فاضي")`}; g.font=FN({bold:true,color:A('1F7A4D'),underline:true}); g.alignment={horizontal:'right',vertical:'middle'};
+          if(cols.length>4){ ws.mergeCells(3,4,3,cols.length); const t=ws.getCell(3,4); t.value='الأحمر = تاريخ مكتوب غلط أو اسم مش في دليل الأكواد  •  الأصفر = سطر ناقص بيانات  •  الأعمدة الزرقا بتتحسب لوحدها'; t.font=FN({size:10,color:A('5B6B80')}); t.alignment={horizontal:'right',vertical:'middle'}; } ws.getRow(3).height=22; }
+        INFO[name]={n,last,F0,dvs,req:req||[]};
         /* محمد 2026-11-24: مفيش أي قيد على خانة التاريخ — القيد كان بيرفض التاريخ لو اتكتب بشكل مختلف */
         return [ws,n]; };
     const set=a=>new Set(a), rng=(sh,n)=>col=>`'${sh}'!$${col}$${DR}:$${col}$${DR+n}`;
@@ -10958,15 +10973,20 @@ async function kxBuild(){
     const autoB=set([cQ,cV]), numB=new Set(); for(let j=6;j<=cT;j++) numB.add(j);
     const [,nb]=inputSheet('البونات','1F7A4D',['التاريخ','رقم البون','العميل','رقم الجرار','رقم المقطورة',...sizes.map(s=>s.label),'إجمالي الكمية','السعر','قيمة يدوية (لو مختلفة)','القيمة','الدفع','إكرامية'],
         [12,10,22,10,10,...sizes.map(()=>7),11,9,12,13,8,9],brows,autoB,{[cQ]:r=>`IF(COUNT(${s1}${r}:${s2}${r})=0,"",SUM(${s1}${r}:${s2}${r}))`,[cV]:r=>`IF(${Lm}${r}<>"",${Lm}${r},IF(${Lq}${r}="","",${Lq}${r}*${Lp}${r}))`},
-        [['C','العملاء'],[Lpay,'الدفع']],set([1]),numB,'المبيعات — سجل البونات'); const B=rng('البونات',nb);
-    const [,nc]=inputSheet('التحصيلات','1F7A4D',['التاريخ','العميل','المبلغ','الخزنة','البيان'],[12,24,14,14,40],coll.map(x=>[D(x.date),x.name,x.amt,x.acc,x.notes]),set([]),{},[['B','العملاء'],['D','الخزن']],set([1]),set([3]),'تحصيلات العملاء'); const C=rng('التحصيلات',nc);
-    const [,ne]=inputSheet('المصروفات','B42318',['التاريخ','البند','المستفيد (موظف / صاحب معدة / فرد)','المبلغ','الخزنة','البيان'],[12,28,26,14,14,40],exp.map(x=>[D(x.date),x.cat,x.name||null,x.amt,x.acc,x.notes]),set([]),{},[['B','بنود المصروفات'],['E','الخزن']],set([1]),set([4]),'المصروفات والسلف ودفعات أصحاب المعدات'); const E=rng('المصروفات',ne);
-    const [,npr]=inputSheet('المشتريات','B54708',['التاريخ','المورد','الصنف','الكمية','السعر','الإجمالي','الدفع','الخزنة (لو نقدي)','البيان'],[12,24,14,10,10,13,8,14,34],proc.map(x=>[D(x.date),x.sup,x.item,x.qty,x.price,null,x.cash?'نقدي':'آجل',null,x.notes]),set([6]),{6:r=>`IF(D${r}="","",D${r}*E${r})`},[['B','الموردين'],['C','الأصناف'],['G','الدفع'],['H','الخزن']],set([1]),set([4,5,6]),'فواتير الشراء'); const PU=rng('المشتريات',npr);
-    const [,npy]=inputSheet('دفعات الموردين','B54708',['التاريخ','المورد','المبلغ','الخزنة','البيان'],[12,24,14,14,40],pay.map(x=>[D(x.date),x.sup,x.amt,x.acc,x.notes]),set([]),{},[['B','الموردين'],['D','الخزن']],set([1]),set([3])); const PY=rng('دفعات الموردين',npy);
-    const [,nx]=inputSheet('المستخلصات','6941C6',['التاريخ','صاحب المعدة','من','إلى','الأمتار','سعر المتر','قيمة يدوية (لو مختلفة)','قيمة المستخلص','البيان'],[12,24,12,12,10,9,13,14,36],ext.map(x=>[D(x.date),x.name,D(x.from),D(x.to),x.qty||null,x.rate||null,(Math.abs(x.qty*x.rate-x.amt)>0.01?x.amt:null),null,x.notes]),set([8]),{8:r=>`IF(G${r}<>"",G${r},IF(E${r}="","",E${r}*F${r}))`},[['B','أصحاب المعدات']],set([1,3,4]),set([5,6,7,8]),'مستخلصات أصحاب المعدات'); const X=rng('المستخلصات',nx);
-    const [,ni]=inputSheet('صرف المخزون','6941C6',['التاريخ','الصنف','الكمية','السعر','القيمة','المستلم (صاحب معدة / الكسارة)','البيان'],[12,14,10,10,13,26,36],iss.map(x=>[D(x.date),x.item,x.qty,x.price,null,x.name,x.notes]),set([5]),{5:r=>`IF(C${r}="","",C${r}*D${r})`},[['B','الأصناف'],['F','أصحاب المعدات']],set([1]),set([3,4,5])); const I=rng('صرف المخزون',ni);
-    const [,nn]=inputSheet('الإيرادات','1F7A4D',['التاريخ','نوع الإيراد','المبلغ','الخزنة','البيان'],[12,18,14,14,40],inc.map(x=>[D(x.date),x.type,x.amt,x.acc,x.notes]),set([]),{},[['D','الخزن']],set([1]),set([3]),'إيرادات أخرى'); const N=rng('الإيرادات',nn);
-    const [,nt]=inputSheet('التحويلات',OD,['التاريخ','من خزنة','إلى خزنة','المبلغ','البيان'],[12,14,14,14,40],trs.map(x=>[D(x.date),x.from,x.to,x.amt,x.notes]),set([]),{},[['B','الخزن'],['C','الخزن']],set([1]),set([4]),'تحويلات بين الخزن'); const T=rng('التحويلات',nt);
+        [['C','العملاء'],[Lpay,'الدفع']],set([1]),numB,'المبيعات — سجل البونات',['A','C',Lpay]); const B=rng('البونات',nb);
+    const [,nc]=inputSheet('التحصيلات','1F7A4D',['التاريخ','العميل','المبلغ','الخزنة','البيان'],[12,24,14,14,40],coll.map(x=>[D(x.date),x.name,x.amt,x.acc,x.notes]),set([]),{},[['B','العملاء'],['D','الخزن']],set([1]),set([3]),'تحصيلات العملاء',['A','B','C','D']); const C=rng('التحصيلات',nc);
+    const [,ne]=inputSheet('المصروفات','B42318',['التاريخ','البند','المستفيد (موظف / صاحب معدة / فرد)','المبلغ','الخزنة','البيان'],[12,28,26,14,14,40],exp.map(x=>[D(x.date),x.cat,x.name||null,x.amt,x.acc,x.notes]),set([]),{},[['B','بنود المصروفات'],['E','الخزن']],set([1]),set([4]),'المصروفات والسلف ودفعات أصحاب المعدات',['A','B','D','E']); const E=rng('المصروفات',ne);
+    const [,npr]=inputSheet('المشتريات','B54708',['التاريخ','المورد','الصنف','الكمية','السعر','الإجمالي','الدفع','الخزنة (لو نقدي)','البيان'],[12,24,14,10,10,13,8,14,34],proc.map(x=>[D(x.date),x.sup,x.item,x.qty,x.price,null,x.cash?'نقدي':'آجل',null,x.notes]),set([6]),{6:r=>`IF(D${r}="","",D${r}*E${r})`},[['B','الموردين'],['C','الأصناف'],['G','الدفع'],['H','الخزن']],set([1]),set([4,5,6]),'فواتير الشراء',['A','B','C','D','E','G']); const PU=rng('المشتريات',npr);
+    const [,npy]=inputSheet('دفعات الموردين','B54708',['التاريخ','المورد','المبلغ','الخزنة','البيان'],[12,24,14,14,40],pay.map(x=>[D(x.date),x.sup,x.amt,x.acc,x.notes]),set([]),{},[['B','الموردين'],['D','الخزن']],set([1]),set([3]),null,['A','B','C','D']); const PY=rng('دفعات الموردين',npy);
+    const [,nx]=inputSheet('المستخلصات','6941C6',['التاريخ','صاحب المعدة','من','إلى','الأمتار','سعر المتر','قيمة يدوية (لو مختلفة)','قيمة المستخلص','البيان'],[12,24,12,12,10,9,13,14,36],ext.map(x=>[D(x.date),x.name,D(x.from),D(x.to),x.qty||null,x.rate||null,(Math.abs(x.qty*x.rate-x.amt)>0.01?x.amt:null),null,x.notes]),set([8]),{8:r=>`IF(G${r}<>"",G${r},IF(E${r}="","",E${r}*F${r}))`},[['B','أصحاب المعدات']],set([1,3,4]),set([5,6,7,8]),'مستخلصات أصحاب المعدات',['A','B']); const X=rng('المستخلصات',nx);
+    const [,ni]=inputSheet('صرف المخزون','6941C6',['التاريخ','الصنف','الكمية','السعر','القيمة','المستلم (صاحب معدة / الكسارة)','البيان'],[12,14,10,10,13,26,36],iss.map(x=>[D(x.date),x.item,x.qty,x.price,null,x.name,x.notes]),set([5]),{5:r=>`IF(C${r}="","",C${r}*D${r})`},[['B','الأصناف'],['F','أصحاب المعدات']],set([1]),set([3,4,5]),null,['A','B','C','D','F']); const I=rng('صرف المخزون',ni);
+    const [,nn]=inputSheet('الإيرادات','1F7A4D',['التاريخ','نوع الإيراد','المبلغ','الخزنة','البيان'],[12,18,14,14,40],inc.map(x=>[D(x.date),x.type,x.amt,x.acc,x.notes]),set([]),{},[['D','الخزن']],set([1]),set([3]),'إيرادات أخرى',['A','C','D']); const N=rng('الإيرادات',nn);
+    const [,nt]=inputSheet('التحويلات',OD,['التاريخ','من خزنة','إلى خزنة','المبلغ','البيان'],[12,14,14,14,40],trs.map(x=>[D(x.date),x.from,x.to,x.amt,x.notes]),set([]),{},[['B','الخزن'],['C','الخزن']],set([1]),set([4]),'تحويلات بين الخزن',['A','B','C','D']); const T=rng('التحويلات',nt);
+    const SPARE=40, DCOL={'العملاء':1,'الموردين':3,'أصحاب المعدات':5,'الموظفين':7,'الأصناف':11};
+    const dref=(list,i,k)=>`'دليل الأكواد'!$${CL(DCOL[list]+k)}$${DR+i}`;
+    const linkName=(ws,list,i,r)=>{ cell(ws,r,1,`=IF(${dref(list,i,0)}="","",${dref(list,i,0)})`,{bg:AUTO}); cell(ws,r,2,`=IF(${dref(list,i,1)}="","",${dref(list,i,1)})`,{bold:true,bg:AUTO}); };
+    const W=(r,f)=>`=IF($B${r}="","",${f})`;
+    const SUBM=`الأسماء هنا بتتسحب من «دليل الأكواد» — أي اسم جديد تضيفه هناك تحت آخر اسم بيظهر هنا لوحده. `;
     const SUBLIVE=`شيت محسوب لوحده من شيتات التسجيل — ما تكتبش فيه. عمود «أرصدة وتسويات من البرنامج» = الأرصدة الافتتاحية والتسويات اللي في البرنامج لحد ${ASOF} (رقم ثابت) عشان الرصيد يطابق البرنامج بالظبط؛ أي حركة جديدة أو تعديل بيتضاف عليه.`;
     const frz=ws=>{ ws.views=[{rightToLeft:true,showGridLines:false,state:'frozen',ySplit:HR}]; };
     const redGreen=(ws,ref)=>ws.addConditionalFormatting({ref,rules:[{type:'cellIs',operator:'greaterThan',formulae:['0.5'],style:{font:{color:A('B42318'),bold:true}}},{type:'cellIs',operator:'lessThan',formulae:['-0.5'],style:{font:{color:A('1F7A4D'),bold:true}}}]});
@@ -10991,62 +11011,69 @@ async function kxBuild(){
         cell(tz,r,3,`=SUMIFS(${E('D')},${rg(E('A'))})+SUMIFS(${PY('C')},${rg(PY('A'))})`,{fmt:NUMF,bg:AUTO}); cell(tz,r,4,`=B${r}-C${r}`,{fmt:NUMF,bold:true}); }
     frz(tz);
     /* أرصدة العملاء */
-    const cl=add('أرصدة العملاء','1F7A4D'); topbar(cl,'أرصدة العملاء',SUBLIVE,8);
+    const cl=add('أرصدة العملاء','1F7A4D'); topbar(cl,'أرصدة العملاء',SUBM+SUBLIVE,8); cl.getRow(2).height=44;
     header(cl,HR,['الكود','العميل','عدد البونات','المسحوب آجل','المحصّل','أرصدة وتسويات من البرنامج','الرصيد','الحالة'],[9,26,11,16,16,17,17,12]);
-    clients.forEach((c,i)=>{ const r=DR+i, live=sum(bons,x=>x.value,x=>x.client===c.name&&!x.cash)-sum(coll,x=>x.amt,x=>x.name===c.name);
-        cell(cl,r,1,c.code||null); cell(cl,r,2,c.name,{bold:true}); cell(cl,r,3,`=COUNTIFS(${B('C')},B${r})`,{fmt:NUMF,bg:AUTO}); cell(cl,r,4,`=SUMIFS(${B(Lv)},${B('C')},B${r},${B(Lpay)},"آجل")`,{fmt:NUMF,bg:AUTO});
-        cell(cl,r,5,`=SUMIFS(${C('C')},${C('B')},B${r})`,{fmt:NUMF,bg:AUTO}); cell(cl,r,6,r2(c.bal-live),{fmt:NUMF,bg:ADJ}); cell(cl,r,7,`=F${r}+D${r}-E${r}`,{fmt:NUMF,bold:true,bg:FOOT});
-        cell(cl,r,8,`=IF(ROUND(G${r},0)>0,"عليه",IF(ROUND(G${r},0)<0,"ليه (مقدم)","خالص"))`,{bg:AUTO}); });
-    const nCl=clients.length, rCT=DR+nCl+30;
-    for(let k=DR+nCl;k<rCT;k++){ for(let j=1;j<=8;j++) cl.getCell(k,j).border=BR;
-        const f=(j,v)=>{ const x=cl.getCell(k,j); x.value={formula:v}; x.numFmt=NUMF; x.alignment={horizontal:'center'}; };
-        f(3,`IF(B${k}="","",COUNTIFS(${B('C')},B${k}))`); f(4,`IF(B${k}="","",SUMIFS(${B(Lv)},${B('C')},B${k},${B(Lpay)},"آجل"))`); f(5,`IF(B${k}="","",SUMIFS(${C('C')},${C('B')},B${k}))`); f(7,`IF(B${k}="","",N(F${k})+D${k}-E${k})`); }
-    { const x=cl.getCell(DR+nCl,1); x.value='⬇ عميل جديد: اكتب اسمه في عمود العميل'; x.font=FN({size:9,color:A('5B6B80')}); }
+    const nCl=clients.length+SPARE, rCT=DR+nCl;
+    for(let i=0;i<nCl;i++){ const r=DR+i, c=clients[i]; linkName(cl,'العملاء',i,r);
+        cell(cl,r,3,W(r,`COUNTIFS(${B('C')},B${r})`),{fmt:NUMF,bg:AUTO}); cell(cl,r,4,W(r,`SUMIFS(${B(Lv)},${B('C')},B${r},${B(Lpay)},"آجل")`),{fmt:NUMF,bg:AUTO});
+        cell(cl,r,5,W(r,`SUMIFS(${C('C')},${C('B')},B${r})`),{fmt:NUMF,bg:AUTO});
+        cell(cl,r,6,c?r2(c.bal-(sum(bons,x=>x.value,x=>x.client===c.name&&!x.cash)-sum(coll,x=>x.amt,x=>x.name===c.name))):null,{fmt:NUMF,bg:ADJ});
+        cell(cl,r,7,W(r,`N(F${r})+D${r}-E${r}`),{fmt:NUMF,bold:true,bg:FOOT});
+        cell(cl,r,8,W(r,`IF(ROUND(G${r},0)>0,"عليه",IF(ROUND(G${r},0)<0,"ليه (مقدم)","خالص"))`),{bg:AUTO}); }
     cell(cl,rCT,2,'الإجمالي',{bold:true,bg:FOOT}); [3,4,5,6,7].forEach(j=>cell(cl,rCT,j,`=SUM(${CL(j)}${DR}:${CL(j)}${rCT-1})`,{fmt:NUMF,bold:true,bg:FOOT}));
     cell(cl,rCT+1,2,'إجمالي اللي لينا (عليهم)',{bold:true,bg:FOOT}); cell(cl,rCT+1,7,`=SUMIF(G${DR}:G${rCT-1},">0")`,{fmt:NUMF,bold:true,bg:FOOT});
     cell(cl,rCT+2,2,'إجمالي اللي علينا (ليهم مقدم)',{bold:true,bg:FOOT}); cell(cl,rCT+2,7,`=-SUMIF(G${DR}:G${rCT-1},"<0")`,{fmt:NUMF,bold:true,bg:FOOT});
     const CL_REC=`'أرصدة العملاء'!$G$${rCT+1}`, CL_ADV=`'أرصدة العملاء'!$G$${rCT+2}`, CLB=`'أرصدة العملاء'!$B$${DR}:$B$${rCT-1}`, CLG=`'أرصدة العملاء'!$G$${DR}:$G$${rCT-1}`;
     redGreen(cl,`G${DR}:G${rCT-1}`); frz(cl);
     /* الموردين */
-    const sp=add('أرصدة الموردين','B54708'); topbar(sp,'أرصدة الموردين',SUBLIVE,7);
+    const sp=add('أرصدة الموردين','B54708'); topbar(sp,'أرصدة الموردين',SUBM+SUBLIVE,7); sp.getRow(2).height=44;
     header(sp,HR,['الكود','المورد','مشتريات آجل','مدفوع','أرصدة وتسويات من البرنامج','الباقي له','الحالة'],[9,26,16,16,17,17,12]);
-    sups.forEach((c,i)=>{ const r=DR+i, live=sum(proc,x=>x.qty*x.price,x=>x.sup===c.name&&!x.cash)-sum(pay,x=>x.amt,x=>x.sup===c.name);
-        cell(sp,r,1,c.code||null); cell(sp,r,2,c.name,{bold:true}); cell(sp,r,3,`=SUMIFS(${PU('F')},${PU('B')},B${r},${PU('G')},"آجل")`,{fmt:NUMF,bg:AUTO}); cell(sp,r,4,`=SUMIFS(${PY('C')},${PY('B')},B${r})`,{fmt:NUMF,bg:AUTO});
-        cell(sp,r,5,r2(c.bal-live),{fmt:NUMF,bg:ADJ}); cell(sp,r,6,`=E${r}+C${r}-D${r}`,{fmt:NUMF,bold:true,bg:FOOT}); cell(sp,r,7,`=IF(ROUND(F${r},0)>0,"ليه",IF(ROUND(F${r},0)<0,"عليه","خالص"))`,{bg:AUTO}); });
-    const rST=DR+sups.length; cell(sp,rST,2,'الإجمالي',{bold:true,bg:FOOT}); [3,4,5,6].forEach(j=>cell(sp,rST,j,`=SUM(${CL(j)}${DR}:${CL(j)}${rST-1})`,{fmt:NUMF,bold:true,bg:FOOT}));
+    const nSp=sups.length+SPARE;
+    for(let i=0;i<nSp;i++){ const r=DR+i, c=sups[i]; linkName(sp,'الموردين',i,r);
+        cell(sp,r,3,W(r,`SUMIFS(${PU('F')},${PU('B')},B${r},${PU('G')},"آجل")`),{fmt:NUMF,bg:AUTO}); cell(sp,r,4,W(r,`SUMIFS(${PY('C')},${PY('B')},B${r})`),{fmt:NUMF,bg:AUTO});
+        cell(sp,r,5,c?r2(c.bal-(sum(proc,x=>x.qty*x.price,x=>x.sup===c.name&&!x.cash)-sum(pay,x=>x.amt,x=>x.sup===c.name))):null,{fmt:NUMF,bg:ADJ});
+        cell(sp,r,6,W(r,`N(E${r})+C${r}-D${r}`),{fmt:NUMF,bold:true,bg:FOOT}); cell(sp,r,7,W(r,`IF(ROUND(F${r},0)>0,"ليه",IF(ROUND(F${r},0)<0,"عليه","خالص"))`),{bg:AUTO}); }
+    const rST=DR+nSp; cell(sp,rST,2,'الإجمالي',{bold:true,bg:FOOT}); [3,4,5,6].forEach(j=>cell(sp,rST,j,`=SUM(${CL(j)}${DR}:${CL(j)}${rST-1})`,{fmt:NUMF,bold:true,bg:FOOT}));
     const SP_TOT=`'أرصدة الموردين'!$F$${rST}`; redGreen(sp,`F${DR}:F${Math.max(rST-1,DR)}`); frz(sp);
     /* أصحاب المعدات */
-    const ct=add('أصحاب المعدات','6941C6'); topbar(ct,'أصحاب المعدات (المستخلصات والعهد)',SUBLIVE,8);
+    const ct=add('أصحاب المعدات','6941C6'); topbar(ct,'أصحاب المعدات (المستخلصات والعهد)',SUBM+SUBLIVE,8); ct.getRow(2).height=44;
     header(ct,HR,['الكود','صاحب المعدة','قيمة المستخلصات','المدفوع له (عهد ودفعات)','سولار وأصناف اتصرفتله','أرصدة وتسويات من البرنامج','الرصيد','الحالة'],[9,26,16,17,17,17,17,12]);
-    ctrs.forEach((c,i)=>{ const r=DR+i, n=c.name, live=sum(ext,x=>x.amt,x=>x.name===n)-sum(exp,x=>x.amt,x=>x.name===n)-sum(iss,x=>x.qty*x.price,x=>x.name===n);
-        cell(ct,r,1,c.code||null); cell(ct,r,2,n,{bold:true}); cell(ct,r,3,`=SUMIFS(${X('H')},${X('B')},B${r})`,{fmt:NUMF,bg:AUTO}); cell(ct,r,4,`=SUMIFS(${E('D')},${E('C')},B${r})`,{fmt:NUMF,bg:AUTO}); cell(ct,r,5,`=SUMIFS(${I('E')},${I('F')},B${r})`,{fmt:NUMF,bg:AUTO});
-        cell(ct,r,6,r2(c.bal-live),{fmt:NUMF,bg:ADJ}); cell(ct,r,7,`=F${r}+C${r}-D${r}-E${r}`,{fmt:NUMF,bold:true,bg:FOOT}); cell(ct,r,8,`=IF(ROUND(G${r},0)>0,"ليه",IF(ROUND(G${r},0)<0,"عليه (مقدم)","خالص"))`,{bg:AUTO}); });
-    const rCtT=DR+ctrs.length; cell(ct,rCtT,2,'الإجمالي',{bold:true,bg:FOOT}); [3,4,5,6,7].forEach(j=>cell(ct,rCtT,j,`=SUM(${CL(j)}${DR}:${CL(j)}${rCtT-1})`,{fmt:NUMF,bold:true,bg:FOOT}));
+    const nCt=ctrs.length+SPARE;
+    for(let i=0;i<nCt;i++){ const r=DR+i, c=ctrs[i], n=c&&c.name; linkName(ct,'أصحاب المعدات',i,r);
+        cell(ct,r,3,W(r,`SUMIFS(${X('H')},${X('B')},B${r})`),{fmt:NUMF,bg:AUTO}); cell(ct,r,4,W(r,`SUMIFS(${E('D')},${E('C')},B${r})`),{fmt:NUMF,bg:AUTO}); cell(ct,r,5,W(r,`SUMIFS(${I('E')},${I('F')},B${r})`),{fmt:NUMF,bg:AUTO});
+        cell(ct,r,6,c?r2(c.bal-(sum(ext,x=>x.amt,x=>x.name===n)-sum(exp,x=>x.amt,x=>x.name===n)-sum(iss,x=>x.qty*x.price,x=>x.name===n))):null,{fmt:NUMF,bg:ADJ});
+        cell(ct,r,7,W(r,`N(F${r})+C${r}-D${r}-E${r}`),{fmt:NUMF,bold:true,bg:FOOT}); cell(ct,r,8,W(r,`IF(ROUND(G${r},0)>0,"ليه",IF(ROUND(G${r},0)<0,"عليه (مقدم)","خالص"))`),{bg:AUTO}); }
+    const rCtT=DR+nCt; cell(ct,rCtT,2,'الإجمالي',{bold:true,bg:FOOT}); [3,4,5,6,7].forEach(j=>cell(ct,rCtT,j,`=SUM(${CL(j)}${DR}:${CL(j)}${rCtT-1})`,{fmt:NUMF,bold:true,bg:FOOT}));
     cell(ct,rCtT+1,2,'مستحقات ليهم',{bold:true,bg:FOOT}); cell(ct,rCtT+1,7,`=SUMIF(G${DR}:G${rCtT-1},">0")`,{fmt:NUMF,bold:true,bg:FOOT});
     cell(ct,rCtT+2,2,'عهد ومقدمات عندهم',{bold:true,bg:FOOT}); cell(ct,rCtT+2,7,`=-SUMIF(G${DR}:G${rCtT-1},"<0")`,{fmt:NUMF,bold:true,bg:FOOT});
     const CT_PAY=`'أصحاب المعدات'!$G$${rCtT+1}`, CT_ADV=`'أصحاب المعدات'!$G$${rCtT+2}`, CT_NAMES=`'أصحاب المعدات'!$B$${DR}:$B$${rCtT-1}`, CTG=`'أصحاب المعدات'!$G$${DR}:$G$${rCtT-1}`;
     redGreen(ct,`G${DR}:G${Math.max(rCtT-1,DR)}`); frz(ct);
     /* المخزون */
-    const st=add('المخزون','6941C6'); topbar(st,'المخزون',SUBLIVE,9);
+    const st=add('المخزون','6941C6'); topbar(st,'المخزون',SUBM+'الوحدة وسعر التقييم للصنف الجديد بتتكتب بإيدك. '+SUBLIVE,9); st.getRow(2).height=44;
     header(st,HR,['الكود','الصنف','الوحدة','وارد (مشتريات)','منصرف','أرصدة وجرد من البرنامج','الرصيد الحالي','سعر التقييم','القيمة'],[9,16,10,14,14,17,15,12,15]);
     const bsInv=(BSd.A||[]).filter(x=>x.g==='المخزون'), STR={}, STV={}; let invLive=0;
-    items.forEach((it,i)=>{ const r=DR+i, n=it.name; STR[n]=r; const live=sum(proc,x=>x.qty,x=>x.item===n)-sum(iss,x=>x.qty,x=>x.item===n);
-        const bl=bsInv.find(x=>String(x.name).startsWith('مخзون '.replace('з','ز')+n+' (')), val=bl?Number(bl.v)||0:null;
+    const nIt=items.length+SPARE;
+    for(let i=0;i<nIt;i++){ const r=DR+i, it=items[i]; linkName(st,'الأصناف',i,r);
+        cell(st,r,4,W(r,`SUMIFS(${PU('D')},${PU('C')},B${r})`),{fmt:NUMF2,bg:AUTO}); cell(st,r,5,W(r,`SUMIFS(${I('C')},${I('B')},B${r})`),{fmt:NUMF2,bg:AUTO});
+        cell(st,r,7,W(r,`N(F${r})+D${r}-E${r}`),{fmt:NUMF2,bold:true,bg:FOOT}); cell(st,r,9,W(r,`IF(G${r}>0,G${r}*N(H${r}),0)`),{fmt:NUMF,bold:true,bg:FOOT});
+        if(!it){ cell(st,r,3,null); cell(st,r,6,null,{fmt:NUMF2,bg:ADJ}); cell(st,r,8,null,{fmt:NUMF2}); unlock(st,r,3,r,3); unlock(st,r,8,r,8); continue; }
+        const n=it.name; STR[n]=r; const live=sum(proc,x=>x.qty,x=>x.item===n)-sum(iss,x=>x.qty,x=>x.item===n);
+        const bl=bsInv.find(x=>String(x.name).startsWith('مخزون '+n+' (')), val=bl?Number(bl.v)||0:null;
         let price=(it.bal&&val)?val/it.bal:0; if(!price){ const lp=proc.slice().reverse().find(x=>x.item===n); price=lp?lp.price:0; }
         STV[n]=it.bal>0?r2(it.bal*r2(price)):0; invLive+=STV[n];
-        cell(st,r,1,it.code||null); cell(st,r,2,n,{bold:true}); cell(st,r,3,it.unit); cell(st,r,4,`=SUMIFS(${PU('D')},${PU('C')},B${r})`,{fmt:NUMF2,bg:AUTO}); cell(st,r,5,`=SUMIFS(${I('C')},${I('B')},B${r})`,{fmt:NUMF2,bg:AUTO});
-        cell(st,r,6,r2(it.bal-live),{fmt:NUMF2,bg:ADJ}); cell(st,r,7,`=F${r}+D${r}-E${r}`,{fmt:NUMF2,bold:true,bg:FOOT}); cell(st,r,8,r2(price),{fmt:NUMF2}); cell(st,r,9,`=IF(G${r}>0,G${r}*H${r},0)`,{fmt:NUMF,bold:true,bg:FOOT}); });
-    let rr=DR+items.length; const san=bsInv.find(x=>/مشون/.test(x.name)), sanV=san?Number(san.v)||0:0, sanQ=(()=>{ const sc=(db.stockCounts||[]).filter(x=>/مشون/.test(x.item||'')); let q=sc.reduce((a,x)=>a+(Number(x.qty)||0),0); return q||20000; })();
+        cell(st,r,3,it.unit); cell(st,r,6,r2(it.bal-live),{fmt:NUMF2,bg:ADJ}); cell(st,r,8,r2(price),{fmt:NUMF2}); }
+    let rr=DR+nIt; const san=bsInv.find(x=>/مشون/.test(x.name)), sanV=san?Number(san.v)||0:0, sanQ=(()=>{ const sc=(db.stockCounts||[]).filter(x=>/مشون/.test(x.item||'')); let q=sc.reduce((a,x)=>a+(Number(x.qty)||0),0); return q||20000; })();
     cell(st,rr,2,'سن مشون (جرد)',{bold:true}); cell(st,rr,3,'متر'); cell(st,rr,7,sanQ,{fmt:NUMF2}); cell(st,rr,8,sanQ?r2(sanV/sanQ):0,{fmt:NUMF2}); cell(st,rr,9,`=G${rr}*H${rr}`,{fmt:NUMF,bold:true,bg:FOOT}); const rSan=rr; invLive+=r2(sanQ*(sanQ?r2(sanV/sanQ):0));
     const rStT=rr+1; cell(st,rStT,2,'قيمة المخزون',{bold:true,bg:FOOT}); cell(st,rStT,9,`=SUM(I${DR}:I${rStT-1})`,{fmt:NUMF,bold:true,bg:FOOT});
     const ST_TOT=`'المخزون'!$I$${rStT}`; frz(st);
     /* الرواتب */
-    const py=add('الرواتب','B42318'); topbar(py,'الرواتب والسلف','السلف بتتسجل في شيت المصروفات بند «سلف موظفين» واسم الموظف. الشهر بيتغير من الخانة الصفرا.',6);
+    const py=add('الرواتب','B42318'); topbar(py,'الرواتب والسلف',SUBM+'المرتب بيتكتب بإيدك للموظف الجديد. السلف بتتسجل في شيت المصروفات بند «سلف موظفين» واسم الموظف. الشهر بيتغير من الخانة الصفرا.',6); py.getRow(2).height=44; unlock(py,3,2,3,2);
     { const a=py.getCell(3,1); a.value='الشهر:'; a.font=FN({bold:true}); const m=py.getCell(3,2); m.value={formula:MS}; m.numFmt='mmmm yyyy'; m.fill=fill('FFF3C4'); m.font=FN({bold:true}); m.border=BR; }
     header(py,HR,['الكود','الموظف','المرتب','سلف الشهر','الباقي له','كل السلف'],[9,26,14,14,14,14]);
-    names.forEach((n,i)=>{ const r=DR+i; cell(py,r,1,n.code||null); cell(py,r,2,n.name,{bold:true}); cell(py,r,3,n.salary||0,{fmt:NUMF});
-        cell(py,r,4,`=SUMIFS(${E('D')},${E('C')},B${r},${E('B')},"سلف موظفين",${E('A')},">="&$B$3,${E('A')},"<"&EDATE($B$3,1))`,{fmt:NUMF,bg:AUTO}); cell(py,r,5,`=C${r}-D${r}`,{fmt:NUMF,bold:true,bg:FOOT}); cell(py,r,6,`=SUMIFS(${E('D')},${E('C')},B${r},${E('B')},"سلف موظفين")`,{fmt:NUMF,bg:AUTO}); });
-    const rPT=DR+names.length; cell(py,rPT,2,'الإجمالي',{bold:true,bg:FOOT}); [3,4,5,6].forEach(j=>cell(py,rPT,j,`=SUM(${CL(j)}${DR}:${CL(j)}${rPT-1})`,{fmt:NUMF,bold:true,bg:FOOT})); frz(py);
+    const nPy=names.length+SPARE;
+    for(let i=0;i<nPy;i++){ const r=DR+i, n=names[i]; linkName(py,'الموظفين',i,r); cell(py,r,3,n?(n.salary||0):null,{fmt:NUMF}); if(!n) unlock(py,r,3,r,3);
+        cell(py,r,4,W(r,`SUMIFS(${E('D')},${E('C')},B${r},${E('B')},"سلف موظفين",${E('A')},">="&$B$3,${E('A')},"<"&EDATE($B$3,1))`),{fmt:NUMF,bg:AUTO}); cell(py,r,5,W(r,`N(C${r})-D${r}`),{fmt:NUMF,bold:true,bg:FOOT}); cell(py,r,6,W(r,`SUMIFS(${E('D')},${E('C')},B${r},${E('B')},"سلف موظفين")`),{fmt:NUMF,bg:AUTO}); }
+    const rPT=DR+nPy; cell(py,rPT,2,'الإجمالي',{bold:true,bg:FOOT}); [3,4,5,6].forEach(j=>cell(py,rPT,j,`=SUM(${CL(j)}${DR}:${CL(j)}${rPT-1})`,{fmt:NUMF,bold:true,bg:FOOT})); frz(py);
     /* قائمة الدخل */
     const pl=add('قائمة الدخل','0E7090'); topbar(pl,'قائمة الدخل',SUBLIVE,5); header(pl,HR,['م','البند','حسب الحركات','أرصدة وتسويات من البرنامج','القيمة'],[6,52,17,17,18]);
     const catSet=new Set(cats.map(c=>c.name)), ctrSet=new Set(ctrs.map(c=>c.name)); let r=DR, num=0; const PLR={}, LINES=[];
@@ -11064,7 +11091,7 @@ async function kxBuild(){
     PL.dir.forEach(l=>{ const lb=l.label, v=Number(l.value)||0;
         if(lb.startsWith('مشتريات')) line(lb,v,`=SUM(${PU('F')})`,sum(proc,x=>x.qty*x.price),'d');
         else if(lb.startsWith('ناقص')) line(lb,v,`=-${ST_TOT}`,-invLive,'d');
-        else if(lb.startsWith('شغل أصحاب المعدات (بعد')) line(lb,v,`=SUM(${X('H')})-SUMPRODUCT(SUMIFS(${I('E')},${I('F')},${CT_NAMES}))`,sum(ext,x=>x.amt)-sum(iss,x=>x.qty*x.price,x=>ctrSet.has(x.name)),'d');
+        else if(lb.startsWith('شغل أصحاب المعدات (بعد')) line(lb,v,`=SUM(${X('H')})-SUMPRODUCT((${CT_NAMES}<>"")*SUMIFS(${I('E')},${I('F')},${CT_NAMES}))`,sum(ext,x=>x.amt)-sum(iss,x=>x.qty*x.price,x=>ctrSet.has(x.name)),'d');
         else line(lb,v,null,0,'d'); });
     tot('إجمالي تكلفة التشغيل',`=SUM(E${a0}:E${r-1})`,'dir'); tot('مجمل الربح',`=E${PLR.rev}-E${PLR.dir}`,'gross');
     sec('المصروفات التشغيلية والعمومية'); a0=r; const opStart=r;
@@ -11099,7 +11126,7 @@ async function kxBuild(){
     cell(bs,r,1,EQ[2]?EQ[2].name:'الأرباح المحتجزة',{bold:true}); cell(bs,r,4,`=D${BSR.profit}-D${BSR.dist}`,{fmt:NUMF,bold:true}); BSR.ret=r; r++;
     const eqs=[BSR.ret]; EQ.slice(3).forEach(x=>{ eqs.push(r); bline(x.name,x.v,null,0,'c'); });
     btot('إجمالي حقوق الملكية','='+eqs.map(k=>'D'+k).join('+'),'E'); btot('إجمالي الخصوم وحقوق الملكية',`=D${BSR.L}+D${BSR.E}`,'LE');
-    cell(bs,r,1,'الفرق (الأصول − الخصوم وحقوق الملكية)',{bold:true}); cell(bs,r,4,`=D${BSR.A}-D${BSR.LE}`,{fmt:NUMF,bold:true});
+    const BS_DIFF=`'المركز المالي'!$D$${r}`; cell(bs,r,1,'الفرق (الأصول − الخصوم وحقوق الملكية)',{bold:true}); cell(bs,r,4,`=D${BSR.A}-D${BSR.LE}`,{fmt:NUMF,bold:true});
     bs.addConditionalFormatting({ref:`D${r}`,rules:[{type:'cellIs',operator:'notBetween',formulae:['-1','1'],style:{font:{color:A('B42318'),bold:true},fill:fill('FDECEC')}}]}); frz(bs);
     /* ميزان المراجعة */
     const tb=add('ميزان المراجعة','0E7090'); topbar(tb,'ميزان المراجعة','محسوب من المركز المالي وقائمة الدخل — بيتحدث لوحده.',3); header(tb,HR,['الحساب','مدين','دائن'],[56,18,18]);
@@ -11108,13 +11135,13 @@ async function kxBuild(){
     BL.forEach(x=>tl(bs.getCell(x.r,1).value,`'المركز المالي'!D${x.r}`,x.side));
     LINES.forEach(x=>tl(x.label,`'قائمة الدخل'!E${x.r}`,x.side));
     cell(tb,r,1,'الإجمالي',{bold:true,bg:FOOT}); cell(tb,r,2,`=SUM(B${t0}:B${r-1})`,{fmt:NUMF,bold:true,bg:FOOT}); cell(tb,r,3,`=SUM(C${t0}:C${r-1})`,{fmt:NUMF,bold:true,bg:FOOT}); r++;
-    cell(tb,r,1,'الفرق (مدين − دائن)',{bold:true}); cell(tb,r,2,`=B${r-1}-C${r-1}`,{fmt:NUMF,bold:true});
+    const TB_DIFF=`'ميزان المراجعة'!$B$${r}`; cell(tb,r,1,'الفرق (مدين − دائن)',{bold:true}); cell(tb,r,2,`=B${r-1}-C${r-1}`,{fmt:NUMF,bold:true});
     tb.addConditionalFormatting({ref:`B${r}`,rules:[{type:'cellIs',operator:'notBetween',formulae:['-1','1'],style:{font:{color:A('B42318'),bold:true},fill:fill('FDECEC')}}]}); frz(tb);
     /* الكشوف بقايمة منسدلة */
     const LAST={'البونات':DR+nb,'التحصيلات':DR+nc,'المصروفات':DR+ne,'المستخلصات':DR+nx,'صرف المخزون':DR+ni};
     const stmt=(name,tab,title,listName,first,sums,tables)=>{ const ws=add(name,tab); topbar(ws,title,'اختار الاسم من الخانة الصفرا والكشف يتملى لوحده (أحدث حركة فوق).',14);
         const l=ws.getCell(3,1); l.value='الاسم:'; l.font=FN({bold:true,size:13}); ws.mergeCells(3,2,3,4); const c=ws.getCell(3,2); c.value=first; c.fill=fill('FFF3C4'); c.font=FN({bold:true,size:13}); c.border=BR; c.alignment={horizontal:'center'};
-        ws.dataValidations.add('B3',{type:'list',allowBlank:false,formulae:[LREF[listName]]});
+        ws.dataValidations.add('B3',{type:'list',allowBlank:false,formulae:[LREF[listName]]}); UNL[name]=1; unlock(ws,3,2,3,2);
         let col=6; sums.forEach(([lab,f])=>{ const x=ws.getCell(3,col); x.value=lab; x.font=FN({bold:true,color:A('FFFFFF')}); x.fill=fill(OD2); x.alignment={horizontal:'center'}; x.border=BR;
             const y=ws.getCell(3,col+1); y.value={formula:f}; y.numFmt=NUMF; y.font=FN({bold:true,size:13}); y.border=BR; y.alignment={horizontal:'center'}; col+=2; }); ws.getRow(3).height=28;
         let c0=1;
@@ -11137,11 +11164,28 @@ async function kxBuild(){
         [['المستخلصات','المستخلصات','B',[['التاريخ','A',DATEF,12],['من','C',DATEF,12],['إلى','D',DATEF,12],['الأمتار','E',NUMF2,10],['القيمة','H',NUMF,13]],120],
          ['العهد والدفعات','المصروفات','C',[['التاريخ','A',DATEF,12],['المبلغ','D',NUMF,13],['الخزنة','E',null,12],['البيان','F',null,28]],120],
          ['سولار وأصناف','صرف المخزون','F',[['التاريخ','A',DATEF,12],['الصنف','B',null,10],['الكمية','C',NUMF2,9],['القيمة','E',NUMF,12]],80]]);
+    /* الفحص */
+    const ck=add('الفحص','B42318'); topbar(ck,'فحص الملف','الشيت ده بيراجع لوحده اللي بيتسجل في الإكسيل: ميزانية مش متزنة، تاريخ مكتوب غلط، اسم مش في دليل الأكواد، سطر ناقص، خزنة أو صنف بالسالب. لو كله ✔ يبقى الملف سليم.',5);
+    header(ck,HR,['م','الفحص','العدد / الفرق','النتيجة','فين'],[6,58,15,14,14]);
+    let cr=DR, cn=0; const chk=(label,f,sheet,tol=0)=>{ cn++; cell(ck,cr,1,cn); cell(ck,cr,2,label); cell(ck,cr,3,f,{fmt:NUMF,bg:AUTO}); cell(ck,cr,4,`=IF(ABS(N(C${cr}))<=${tol},"✔ سليم","✖ راجع")`,{bold:true});
+        cell(ck,cr,5,`=HYPERLINK("#'${sheet}'!A1","افتح ◄")`,{color:OD}); cr++; };
+    chk('المركز المالي متزن (الأصول = الخصوم + حقوق الملكية)',`=ROUND(${BS_DIFF},0)`,'المركز المالي',1);
+    chk('ميزان المراجعة متزن (مدين = دائن)',`=ROUND(${TB_DIFF},0)`,'ميزان المراجعة',1);
+    Object.entries(INFO).forEach(([sh,inf])=>{ const R=c=>`'${sh}'!$${c}$${inf.F0}:$${c}$${inf.last}`;
+        chk(`${sh}: تواريخ مكتوبة كلام مش تاريخ`,`=SUMPRODUCT((${R('A')}<>"")*NOT(ISNUMBER(${R('A')})))`,sh);
+        inf.dvs.forEach(([col,l])=>chk(`${sh}: ${l==='الدفع'?'خانة الدفع لازم «آجل» أو «نقدي»':'أسماء مش في دليل الأكواد ('+l+')'}`,`=SUMPRODUCT((${R(col)}<>"")*((${[l,...(EXTRA_OK[l]||[])].map(x=>`COUNTIF(${LREF[x]},${R(col)})`).join('+')})=0))`,sh));
+        if(inf.req.length) chk(`${sh}: سطور ناقصة بيانات`,`=SUMPRODUCT(((${inf.req.map(c=>`(${R(c)}<>"")`).join('+')})>0)*((${inf.req.map(c=>`(${R(c)}="")`).join('+')})>0))`,sh); });
+    chk('خزنة رصيدها بالسالب',`=COUNTIF('الخزن'!$J$${DR}:$J$${rT-1},"<0")`,'الخزن');
+    chk('صنف رصيده في المخزون بالسالب',`=COUNTIF('المخزون'!$G$${DR}:$G$${rStT-1},"<-0.001")`,'المخزون');
+    ck.addConditionalFormatting({ref:`D${DR}:D${cr-1}`,rules:[{type:'containsText',operator:'containsText',text:'✖',style:{font:{color:A('B42318'),bold:true},fill:fill('FDE2E1')}},{type:'containsText',operator:'containsText',text:'✔',style:{font:{color:A('1F7A4D'),bold:true},fill:fill('E3F4EA')}}]});
+    cell(ck,cr,2,'عدد الملاحظات',{bold:true,bg:FOOT}); cell(ck,cr,3,`=COUNTIF(D${DR}:D${cr-1},"✖*")`,{fmt:'0',bold:true,bg:FOOT}); const CHK_N=`'الفحص'!$C$${cr}`; frz(ck);
     /* الرئيسية */
     const h=home; for(let j=1;j<=15;j++) h.getColumn(j).width=[4,8,12].includes(j)?2.5:14;
     h.mergeCells('A1:O1'); { const c=h.getCell('A1'); c.value='كسارة الديار — الشاشة الرئيسية'; c.font=FN({size:22,bold:true,color:A('FFFFFF')}); c.fill=fill(OD); c.alignment={horizontal:'center',vertical:'middle'}; } h.getRow(1).height=46;
     h.mergeCells('A2:O2'); { const c=h.getCell('A2'); c.value={formula:`"ملف إكسيل شغال زي البرنامج: سجّل في شيتات التسجيل وكل الأرقام بتتحدث لوحدها  •  البيانات من البرنامج لحد ${ASOF}  •  النهارده: "&TEXT(TODAY(),"dd/mm/yyyy")`}; c.font=FN({size:11,color:A('5B6B80')}); c.alignment={horizontal:'center'}; }
     const mon=rd=>`${rd},">="&${MS},${rd},"<"&EDATE(${MS},1)`;
+    h.mergeCells('A3:O3'); { const c=h.getCell('A3'); c.value={formula:`HYPERLINK("#'الفحص'!A1",IF(${CHK_N}=0,"✔  فحص الملف: كل حاجة سليمة والميزانية متزنة","✖  فحص الملف: فيه "&${CHK_N}&" ملاحظة — دوس هنا تشوفها"))`}; c.font=FN({bold:true,size:13,color:A('FFFFFF')}); c.alignment={horizontal:'center',vertical:'middle'}; c.fill=fill('1F7A4D'); }
+    h.getRow(3).height=26; h.addConditionalFormatting({ref:'A3:O3',rules:[{type:'expression',formulae:[`${CHK_N}>0`],style:{fill:fill('B42318')}}]});
     const CARDS=[['المعلق',`'الخزن'!$J$${TZROW['المعلق']||DR}`,'1F4B73'],['درج المكتب',`'الخزن'!$J$${TZROW['درج المكتب']||DR+1}`,'2E6A9E'],['إجمالي الخزن',TZ_TOTAL,'0E7090'],['صافي الربح',PL_NET,'1F7A4D'],
         ['مبيعات الشهر ده',`SUMIFS(${B(Lv)},${mon(B('A'))})`,'1F7A4D'],['تحصيلات الشهر ده',`SUMIFS(${C('C')},${mon(C('A'))})`,'027A48'],['مصروفات الشهر ده',`SUMIFS(${E('D')},${mon(E('A'))})`,'B42318'],['بونات الشهر ده',`COUNTIFS(${mon(B('A'))})`,'6941C6'],
         ['اللي لينا عند العملاء',CL_REC,'B54708'],['مستحقات الموردين',SP_TOT,'B42318'],['مستحقات أصحاب المعدات',CT_PAY,'6941C6'],['قيمة المخزون',ST_TOT,'0E7090']];
@@ -11153,7 +11197,7 @@ async function kxBuild(){
         [r0,r0+1,r0+2].forEach(q=>h.getRow(q).height=24); });
     const NAV=[['التسجيل','1F7A4D',[['البونات','المبيعات (البونات)'],['التحصيلات','التحصيلات'],['المصروفات','المصروفات والسلف'],['المشتريات','المشتريات'],['دفعات الموردين','دفعات الموردين'],['المستخلصات','المستخلصات'],['صرف المخزون','صرف المخزون'],['الإيرادات','إيرادات أخرى'],['التحويلات','تحويلات الخزن']]],
         ['الأرصدة والكشوف',OD,[['الخزن','الخزن'],['أرصدة العملاء','أرصدة العملاء'],['كشف عميل','كشف حساب عميل'],['أرصدة الموردين','أرصدة الموردين'],['أصحاب المعدات','أصحاب المعدات'],['كشف صاحب معدة','كشف صاحب معدة'],['المخزون','المخزون'],['الرواتب','الرواتب والسلف']]],
-        ['القوائم المالية','0E7090',[['قائمة الدخل','قائمة الدخل'],['المركز المالي','المركز المالي'],['ميزان المراجعة','ميزان المراجعة'],['دليل الأكواد','دليل الأكواد']]]];
+        ['القوائم المالية','0E7090',[['قائمة الدخل','قائمة الدخل'],['المركز المالي','المركز المالي'],['ميزان المراجعة','ميزان المراجعة'],['الفحص','فحص الملف'],['دليل الأكواد','دليل الأكواد (إضافة أسماء)']]]];
     rr=17;
     NAV.forEach(([g,col,its])=>{ h.mergeCells(rr,1,rr,15); const x=h.getCell(rr,1); x.value=g; x.font=FN({bold:true,size:14,color:A(col)}); x.alignment={horizontal:'right'}; rr++;
         its.filter(([s])=>SH[s]).forEach(([s,lab],k)=>{ if(k&&k%4===0) rr+=2; const cc=[1,5,9,13][k%4]; h.mergeCells(rr,cc,rr+1,cc+2); const y=h.getCell(rr,cc); y.value={text:lab,hyperlink:`#'${s}'!A1`}; y.font=FN({bold:true,color:A('FFFFFF'),size:13}); y.fill=fill(col); y.alignment={horizontal:'center',vertical:'middle'}; });
@@ -11172,9 +11216,12 @@ async function kxBuild(){
     for(let k=0;k<10;k++){ const q=5+k, ws0=`(${WK}-${7*(9-k)})`, rg=rd=>`${rd},">="&${ws0},${rd},"<"&(${ws0}+7)`;
         cdS.getCell(q,9).value={formula:`TEXT(${ws0},"dd/mm")`}; cdS.getCell(q,10).value={formula:`SUMIFS(${B(Lv)},${rg(B('A'))})`}; cdS.getCell(q,11).value={formula:`SUMIFS(${C('C')},${rg(C('A'))})`}; }
     /* ترتيب الشيتات */
-    const order=['الرئيسية','البونات','التحصيلات','المصروفات','المشتريات','دفعات الموردين','المستخلصات','صرف المخزون','الإيرادات','التحويلات','الخزن','أرصدة العملاء','كشف عميل','أرصدة الموردين','أصحاب المعدات','كشف صاحب معدة','المخزون','الرواتب','قائمة الدخل','المركز المالي','ميزان المراجعة','دليل الأكواد','بيانات الرسوم'];
+    const order=['الرئيسية','البونات','التحصيلات','المصروفات','المشتريات','دفعات الموردين','المستخلصات','صرف المخزون','الإيرادات','التحويلات','الخزن','أرصدة العملاء','كشف عميل','أرصدة الموردين','أصحاب المعدات','كشف صاحب معدة','المخزون','الرواتب','قائمة الدخل','المركز المالي','ميزان المراجعة','الفحص','دليل الأكواد','بيانات الرسوم'];
     order.forEach((n,i)=>{ if(SH[n]) SH[n].orderNo=i; });
     wb.eachSheet(ws=>{ ws.pageSetup={orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:ws.name==='الرئيسية'?1:0}; });
+    /* حماية المعادلات (من غير باسورد: مراجعة ← إلغاء حماية الورقة لو احتجت) — خانات التسجيل مفتوحة */
+    for(const ws of wb.worksheets){ if(ws.name==='دليل الأكواد') continue;
+        await ws.protect('',{selectLockedCells:true,selectUnlockedCells:true,formatColumns:true,formatRows:true,autoFilter:true,sort:false,insertRows:false,deleteRows:false}); }
     let buf=await wb.xlsx.writeBuffer();
     try{ buf=await kxAddCharts(buf, chartRow, opStart, opEnd); }catch(e){ console.warn('charts', e); }
     return buf;
