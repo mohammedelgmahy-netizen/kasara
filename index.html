@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1186</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1187</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -10133,7 +10133,7 @@ function addDailyLog(e){
     const EB = (__editSnap && window.__editBon) ? window.__editBon : null;
     if(!EB && window.__manualBon){
         const mn=bonNum({bon:g('dl-bon').value}); if(!isFinite(mn)){ alert('اكتب رقم البون'); g('dl-bon').focus(); return; }
-        if(db.dailyLog.some(r=>bonNum(r)===mn)){ alert('البون رقم '+mn+' متسجل فعلاً'); return; }
+        if(db.dailyLog.some(r=>bonNum(r)===mn)){ bonShiftAsk(mn); return; } /* محمد 2026-11-24: «بون فات» برقم متسجل = يتسجل برقمه ويزحلق اللي بعده (زي التسجيل العادي) */
         if(cancelledList().some(x=>x.n===mn)){ alert('البون رقم '+mn+' متسجل ملغي — شيله من الملغي الأول'); return; }
     } else if(!EB){ const fm=window.__fillMissing; if(fm && !db.dailyLog.some(r=>bonNum(r)===fm)) g('dl-bon').value=fm; else if(!g('dl-bon').value.trim() && nextBonNo()!=='') g('dl-bon').value=nextBonNo();
         /* محمد 2026-11-21: أي رقم مش متسجل ينفع (البون اللي اتنسى يتسجل بعدين برقمه) — الممنوع بس رقم متسجل أو ملغي */
@@ -10621,7 +10621,7 @@ async function bonShiftAsk(n){
     logAudit('update','زحلقة أرقام البونات', `من ${n}: ${L.length} بون${C.length?' + '+C.length+' ملغي':''} زادوا واحد (لحد ${bonNum(last)+1})`, null, null);
     scheduleSave();
     const el=document.getElementById('dl-bon'); if(el){ el.value=String(n); el.dataset.auto=''; }
-    addDailyLog({preventDefault(){}});
+    addDailyLog({preventDefault(){}, target:(el&&el.form)||{reset(){}}});
 }
 /* محمد 2026-11-24: «تحديد من بون كذا لبون كذا، أخليهم بتاريخ يوم كذا» — المدى بالرقم نفسه (مش بمكانه في السجل). بيتغير التاريخ بس (البون + فاتورته + حركة الإيراد/الدرج + الإكرامية)، الكميات والأسعار والعملاء زي ما هي. الملغي ما بيتلمسش */
 function bdList(f,t){ return (db.dailyLog||[]).filter(r=>/^\s*[0-9٠-٩]+\s*$/.test(String(r.bon||'')) && bonNum(r)>=f && bonNum(r)<=t).sort((a,b)=>(bonNum(a)-bonNum(b))||(a.date||'').localeCompare(b.date||'')); }
