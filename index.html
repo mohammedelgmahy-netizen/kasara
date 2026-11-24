@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1184</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1185</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -724,9 +724,9 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                 
                 <form onsubmit="addVehicle(event)" class="grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">الجرار</label><input id="veh-plate" type="text" required placeholder="رقم الجرار" oninput="vehDupCheck()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"><div id="veh-plate-msg" class="text-xs font-bold mt-1"></div></div>
-                    <div id="veh-trailer-wrap"><label class="block text-xs font-bold text-slate-600 mb-1">المقطورة</label><input id="veh-trailer" type="text" placeholder="لو مفيش سيبها فاضية" oninput="const t=document.getElementById('veh-tip'); if(!t.dataset.touched) t.value=this.value.trim()?50:0; vehDupCheck()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"><div id="veh-trailer-msg" class="text-xs font-bold mt-1"></div></div>
+                    <div id="veh-trailer-wrap"><label class="block text-xs font-bold text-slate-600 mb-1">المقطورة</label><input id="veh-trailer" type="text" placeholder="لو مفيش سيبها فاضية" oninput="vehDupCheck()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"><div id="veh-trailer-msg" class="text-xs font-bold mt-1"></div></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">التكعيب</label><input id="veh-cube" type="text" placeholder="مثال: 20 متر" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">إكرامية الكسارة (ج.م)</label><input id="veh-tip" type="number" step="any" min="0" value="0" oninput="this.dataset.touched=1" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                    <input id="veh-tip" type="hidden" value="0">
                     <div style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">السائق</label><input id="veh-driver" type="text" placeholder="اسم السائق" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div class="col-span-2 md:col-span-5"><button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 p-2.5 rounded-lg text-sm">تكويد العربية</button></div>
                 </form>
@@ -736,7 +736,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                 <div class="overflow-x-auto max-h-64">
                     <table class="w-full text-sm text-right">
                         <thead class="bg-slate-100 sticky top-0"><tr>
-                            <th class="p-3">الكود</th><th class="p-3">رقم الجرار</th><th class="p-3">رقم المقطورة</th><th class="p-3">التكعيب</th><th class="p-3">إكرامية الكسارة</th><th class="p-3"></th>
+                            <th class="p-3">الكود</th><th class="p-3">رقم الجرار</th><th class="p-3">رقم المقطورة</th><th class="p-3">التكعيب</th><th class="p-3"></th>
                         </tr></thead>
                         <tbody id="tbody-vehicles"></tbody>
                     </table>
@@ -9075,13 +9075,12 @@ function renderVehicles(){
     const __q=(document.getElementById('veh-search')||{}).value||'', __qs=__q.trim(), __qn=normPlate(__qs);
     const __L=db.vehicles.filter(v=>!__qs || (__qn && (normPlate(v.plate).includes(__qn) || normPlate(v.trailer||'').includes(__qn))) || String(v.plate||'').includes(__qs) || String(v.trailer||'').includes(__qs) || String(v.code||'')===__qs);
     { const n=document.getElementById('veh-search-n'); if(n) n.textContent = __qs ? (__L.length ? `${__L.length} عربية` : '') : `${db.vehicles.length} عربية`; }
-    tbody.innerHTML = !__L.length && __qs ? `<tr><td colspan="6" class="p-4 text-center font-bold text-rose-600">مفيش عربية مكودة بالرقم ده</td></tr>` : db.vehicles.length
+    tbody.innerHTML = !__L.length && __qs ? `<tr><td colspan="5" class="p-4 text-center font-bold text-rose-600">مفيش عربية مكودة بالرقم ده</td></tr>` : db.vehicles.length
         ? __L.slice().sort((x,y)=>(x.code||0)-(y.code||0)).map(v=>`<tr class="border-b border-slate-50 hover:bg-slate-50">
                 <td class="p-3 font-mono text-slate-500 font-bold">${v.code||''}</td>
                 <td class="p-3 font-bold text-base">${esc(v.plate)}</td>
                 <td class="p-3 font-bold text-base">${v.trailer?esc(v.trailer):'<span class="text-slate-300">—</span>'}</td>
                 <td class="p-3 ${v.cube?'':'text-rose-500 text-xs'}">${v.cube?esc(v.cube):'لسه ما اتكتبش'}</td>
-                <td class="p-3"><button onclick="editVehicleTip('${esc(v.plate)}')" class="font-bold text-lime-700 underline">${nfmt(vehTipShare(v))}</button></td>
                 <td class="p-3 flex gap-3">
                     <button onclick="editVehicleCube('${esc(v.plate)}')" class="text-blue-500 hover:text-blue-700" title="تعديل التكعيب">✏️</button>
                     <button onclick="editVehiclePlate('${esc(v.plate)}')" class="text-xs bg-slate-100 border border-slate-300 rounded px-2" title="الجرار">تعديل الجرار</button>
@@ -9888,7 +9887,9 @@ const DL_BUILTIN_EXTRA = [{key:'s2', label:'سن 2'}, {key:'tmix', label:'طبق
 let DL_SIZES = DL_BASE_SIZES.slice();
 /* أصناف سن إضافية (سن 2، سن 6...) بتتضاف من زرار "+ صنف جديد" وبتتحفظ في db.meta.extraSizes */
 function refreshSizes(){
-    const userExtra = (db && db.meta && db.meta.extraSizes) || [];
+    /* صنف اسمه رقم بس (زي «٥٠» اللي اتضاف بالغلط من «+ صنف جديد») مش بيظهر طالما مفيش بون عليه — محمد 2026-11-24 */
+    const __junk = s => /^[\s0-9٠-٩.,٫]+$/.test(String(s.label||'')) && !(db.dailyLog||[]).some(r=>Number((r.q||{})[s.key])>0);
+    const userExtra = ((db && db.meta && db.meta.extraSizes) || []).filter(s=>!__junk(s));
     const B = DL_BUILTIN_EXTRA.filter(b=>!userExtra.some(u=>u.label===b.label)), bk = k => B.filter(b=>b.key===k);
     const base = k => DL_BASE_SIZES.filter(s=>s.key===k);
     DL_SIZES = [...base('s1'), ...base('s15'), ...bk('s2'), ...base('s3'), ...base('mudarrag'), ...userExtra, ...base('tabaqa'), ...bk('tmix'), ...bk('simsim')];
