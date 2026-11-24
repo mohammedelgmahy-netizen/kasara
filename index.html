@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1193</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1194</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1131,30 +1131,38 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
 
         <!-- EXPENSES -->
         <!-- العمولة (عمولة جلب العملاء) -->
-        <div id="tab-commission" class="tab-content flex-col gap-6">
-            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm w-full">
-                <h2 class="text-lg font-bold text-slate-900 border-b-2 border-slate-900 pb-3 mb-4"><i class="fa-solid fa-handshake text-amber-500"></i> بدل الإدارة والتشغيل (4 ج × المتر) — <span id="com-person-title"></span></h2>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <form onsubmit="addCommission(event)" class="hidden border border-amber-200 bg-amber-50/40 rounded-lg p-4 grid grid-cols-2 gap-2 text-sm">
-                        <div class="col-span-2 font-bold text-amber-800">تسجيل مستحق (على متر السن)</div>
-                        <label class="text-xs text-slate-600">من<input id="com-from" type="date" class="w-full bg-white border border-slate-300 rounded p-1.5"></label>
-                        <label class="text-xs text-slate-600">إلى<input id="com-to" type="date" class="w-full bg-white border border-slate-300 rounded p-1.5" required></label>
-                        <label class="text-xs text-slate-600">الأمتار<input id="com-qty" type="number" step="any" oninput="comCalc()" class="w-full bg-white border border-slate-300 rounded p-1.5" required></label>
-                        <label class="text-xs text-slate-600">العمولة على المتر<input id="com-rate" type="number" step="any" value="4" oninput="comCalc()" class="w-full bg-white border border-slate-300 rounded p-1.5" required></label>
-                        <div class="col-span-2 text-xs text-slate-600">قيمة العمولة: <b id="com-amount" class="text-amber-700">0</b></div>
-                        <button class="col-span-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg py-2 font-bold">حفظ العمولة</button>
-                    </form>
-                    <form onsubmit="payCommission(event)" class="border border-emerald-200 bg-emerald-50/40 rounded-lg p-4 grid grid-cols-2 gap-2 text-sm">
-                        <div class="col-span-2 font-bold text-emerald-800">صرف جزء من حصته</div>
-                        <label class="text-xs text-slate-600">التاريخ<input id="com-pdate" type="date" class="w-full bg-white border border-slate-300 rounded p-1.5" required></label>
-                        <label class="text-xs text-slate-600">المبلغ<input id="com-pamount" type="number" step="any" class="w-full bg-white border border-slate-300 rounded p-1.5" required></label>
-                        <label class="text-xs text-slate-600">الخزينة<select id="com-paccount" class="w-full bg-white border border-slate-300 rounded p-1.5"></select></label>
-                        <label class="text-xs text-slate-600">ملاحظات<input id="com-pnotes" type="text" class="w-full bg-white border border-slate-300 rounded p-1.5"></label>
-                        <button class="col-span-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg py-2 font-bold">حفظ الصرف</button>
-                    </form>
+        <div id="tab-commission" class="tab-content flex-col gap-4"><!-- محمد 2026-11-24: عماد ناجي بره الموظفين والمرتبات — «عمولة عماد ناجي» في دليل الأكواد وكشفه هنا (عرض، والحساب نفسه زي ما هو) -->
+            <div class="flex flex-wrap items-center gap-2 pl-no-print-hide">
+                <button type="button" onclick="switchTab('masterdata')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-bold">→ دليل الأكواد</button>
+            </div>
+            <div id="emc-card" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 bg-amber-50 border-b border-amber-100 flex flex-wrap justify-between items-center gap-2">
+                    <h3 class="font-extrabold text-slate-900" style="font-size:1.15rem">💼 كشف عمولة عماد ناجي (4 ج × صافي متر السن) — من البداية لحد النهارده</h3>
+                    <div class="flex gap-2 items-center pl-no-print-hide">
+                        <button type="button" onclick="shareCard('emc-card','كشف عمولة عماد ناجي')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-bold"><i class="fa-brands fa-whatsapp"></i> واتساب</button>
+                        <button type="button" onclick="printSection('emc-card')" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1 rounded text-xs font-bold">🖨️ طباعة</button>
+                        <button type="button" onclick="emcExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1 rounded text-xs font-bold">📊 إكسيل</button>
+                    </div>
                 </div>
-                <div id="com-summary" class="grid grid-cols-3 gap-3 my-4 text-center"></div>
-                <div class="overflow-x-auto"><table class="w-full text-sm text-right"><thead class="bg-slate-100 text-slate-700"><tr><th class="p-2">التاريخ</th><th class="p-2">البيان</th><th class="p-2">الأمتار</th><th class="p-2">على المتر</th><th class="p-2">العمولة</th><th class="p-2">المصروف</th><th class="p-2">الرصيد المستحق</th><th class="p-2"></th></tr></thead><tbody id="com-body"></tbody></table></div>
+                <div id="emc-summary" class="grid grid-cols-3 gap-3 p-4 text-center" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
+                <div class="overflow-x-auto px-3"><table class="w-full text-right" style="width:100%;font-size:1.05rem;border-collapse:collapse">
+                    <thead class="bg-slate-800 text-white"><tr><th class="p-2">الفترة</th><th class="p-2">صافي متر السن</th><th class="p-2">ليه (العمولة)</th><th class="p-2">خد</th><th class="p-2">الباقي له</th></tr></thead>
+                    <tbody id="emc-body"></tbody></table></div>
+                <div class="px-4 pt-4 font-extrabold text-slate-900">تفاصيل اللي خده (من البرنامج الجديد)</div>
+                <div class="overflow-x-auto p-3"><table class="w-full text-right" style="width:100%;font-size:1rem;border-collapse:collapse">
+                    <thead class="bg-slate-100"><tr><th class="p-2">#</th><th class="p-2">التاريخ</th><th class="p-2">المبلغ</th><th class="p-2">الخزنة</th><th class="p-2">البيان</th></tr></thead>
+                    <tbody id="emc-wd"></tbody></table></div>
+                <div id="emc-loan" class="px-4 pb-4 text-sm font-bold text-slate-600"></div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm pl-no-print-hide">
+                <h3 class="font-bold text-slate-900 mb-3">💵 صرف مبلغ لعماد ناجي (من عمولته)</h3>
+                <form onsubmit="emcPay(event)" class="grid grid-cols-2 md:grid-cols-5 gap-3 items-end">
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">المبلغ</label><input id="emc-amount" type="number" step="any" min="0" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">التاريخ</label><input id="emc-date" type="date" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">الخزنة</label><select id="emc-account" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
+                    <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-600 mb-1">ملاحظات</label><input id="emc-notes" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                    <button type="submit" class="col-span-2 md:col-span-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-2 font-bold">تسجيل</button>
+                </form>
             </div>
         </div>
 
@@ -3942,7 +3950,7 @@ function wdRows(n, from, to){
 }
 function wdRender(){
     const sel=document.getElementById('wd-name'), tb=document.getElementById('tbody-wd'); if(!sel||!tb) return;
-    const ppl=payrollPeople(); const cur=sel.value;
+    const ppl=payrollStaff(); const cur=sel.value;
     sel.innerHTML=ppl.map(n=>`<option value="${esc(n.name)}">${esc(n.name)}</option>`).join('');
     if(cur && ppl.some(n=>n.name===cur)) sel.value=cur;
     const f=document.getElementById('wd-from'), t=document.getElementById('wd-to');
@@ -4242,7 +4250,8 @@ function renderMasterData(){
             if(cat==='activities' && it.categories && it.categories.length){
                 badge = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0 truncate max-w-[160px]" title="${esc(it.categories.join('، '))}">${esc(it.categories.join('، '))}</span>`;
             }
-            if(cat==='names' && it.activities && it.activities.length){
+            if(dbCat==='names' && isCommPerson(it)){ badge = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0">عمولة — مش موظف</span>`; }
+            else if(cat==='names' && it.activities && it.activities.length){
                 badge = `<span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-0.5 rounded-full font-bold shrink-0 truncate max-w-[160px]" title="${esc(it.activities.join('، '))}">${esc(it.activities.join('، '))}</span>`;
             }
             if(cat==='taxes'){
@@ -4251,7 +4260,7 @@ function renderMasterData(){
             }
             return `<tr class="border-b border-slate-100 hover:bg-slate-50 align-middle">
                 <td class="p-2 font-mono text-slate-500 font-bold whitespace-nowrap">${it.code}</td>
-                <td class="p-2 font-bold text-slate-900">${esc(it.name)}${contractLine}</td>
+                <td class="p-2 font-bold text-slate-900">${(cat==='names'||dbCat==='names') && isCommPerson(it) ? 'عمولة '+esc(it.name) : esc(it.name)}${contractLine}</td>
                 <td class="p-2"><div class="flex flex-wrap gap-1.5">${badge}</div></td>
                 <td class="p-2 whitespace-nowrap">${masterBal(dbCat, it)}</td>
                 <td class="p-2 whitespace-nowrap text-left">
@@ -4336,7 +4345,8 @@ function masterBal(cat, it){
         if(cat==='contractors'){ const R=contractorStmtRows(it.name).rows; const b=R.length?R[R.length-1].bal:0; return Math.abs(b)<1?'':(b>0?chip('ليه '+mfmt(b),'bg-emerald-50 text-emerald-700'):chip('عليه '+mfmt(-b),'bg-rose-50 text-rose-700')); }
         if(cat==='accounts'){ return chip(mfmt(accBalance(it.name)),'bg-teal-50 text-teal-700'); }
         if(cat==='supplies'){ const b=itemStockBalance(it.name).balance; return b?chip(nfmt(b)+' '+(it.unit||''),'bg-slate-100 text-slate-700'):''; }
-        if((cat==='names'||cat==='persons') && Number(it.perMeter)>0){ return chip(nfmt(it.perMeter)+' ج × صافي السن','bg-indigo-50 text-indigo-700'); }
+        if((cat==='names'||cat==='persons') && Number(it.perMeter)>0){ let b=null; try{ const D=emcData(); if(D && D.n.name===it.name) b=D.bal; }catch(e){} /* محمد 2026-11-24: كشف العمولة تحت البند */
+            return `<button type="button" onclick="event.stopPropagation(); switchTab('commission')" class="text-xs font-extrabold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 shrink-0" title="كشف العمولة من البداية">📄 كشف العمولة${b==null?'':' — '+(b<0?'عليه ':'ليه ')+mfmt(Math.abs(b))}</button>`; }
         if((cat==='names'||cat==='persons') && Number(it.salary)>0){ return chip('راتب '+mfmt(it.salary),'bg-indigo-50 text-indigo-700'); }
     }catch(e){}
     return '';
@@ -5247,7 +5257,55 @@ function payCommission(e){ e.preventDefault(); ensureComCat();
     if(!checkCashAvailable(account, amt)) return;
     db.expensesData.push({id:db.nextId.exp++, category:COM_CAT, name:COM_PERSON, project:'كسارة ديار', total:0, paid:amt, remaining:0, account, date, commission:'pay', desc:`صرف عمولة ${COM_PERSON}${notes?' — '+notes:''}`, notes});
     ['com-pamount','com-pnotes'].forEach(i=>document.getElementById(i).value=''); scheduleSave(); renderAll(); }
+/* ===== كشف عمولة عماد ناجي (محمد 2026-11-24): بره الموظفين والمرتبات، وكشفه هنا من البداية لحد النهارده.
+   عرض بس: نفس أرقام حساب المرتبات القديم بالظبط (الحساب القديم من التكويد + 4 ج × صافي سن البونات من MGMT_FEE_FROM − كل اللي اتصرف باسمه) — مفيش منطق محاسبي اتغير ===== */
+function isCommPerson(n){ return !!n && Number(n.perMeter)>0; }
+function payrollStaff(){ return payrollPeople().filter(n=>!isCommPerson(n)); }
+const COMM_HIDE_NAMES=()=>new Set(payrollPeople().filter(isCommPerson).map(n=>n.name));
+function emcData(){
+    const n=(db.names||[]).find(x=>x.name===COM_PERSON) || payrollPeople().find(isCommPerson); if(!n) return null;
+    const rows=[]; let owed=0, took=0;
+    const oT=Number(n.openTotal)||0, oP=Number(n.openPaid)||0;
+    if(oT||oP){ owed+=oT; took+=oP; rows.push({label:`الحساب القديم (الكراسة) لحد ${dmy(n.openDate||'')}`, m:null, sin:null, owed:oT, took:oP, bal:owed-took, old:true}); }
+    const cur=todayISO().slice(0,7); let st=payStartMonth(n); if(!st || st>cur) st=cur;
+    for(let m=st; m<=cur; m=nextMonth(m)){ const sin=monthNetSin(m), o=salaryOf(n,m), pm=payMonth(n,m), t=(pm.adv||0)+(pm.paid||0)+(pm.ded||0);
+        if(!o && !t && m!==cur) continue; owed+=o; took+=t;
+        rows.push({label:'شهر '+m.slice(5)+'/'+m.slice(0,4)+(m===MGMT_FEE_FROM.slice(0,7)?` (من ${dmy(MGMT_FEE_FROM)})`:''), m, sin, owed:o, took:t, ded:pm.ded||0, bal:owed-took}); }
+    const wd=(db.expensesData||[]).filter(x=>x && x.name===n.name && !x.prevMonth && Number(x.paid) && rows.some(r=>r.m && (x.category===SAL_CAT ? x.salaryMonth===r.m : (x.date||'').startsWith(r.m))))
+        .sort((a,b)=>(a.date||'').localeCompare(b.date||'') || String(a._at||'').localeCompare(String(b._at||'')));
+    let loan=null; try{ const op=Number((db.sariSettings||{}).loanOpening)||0; const L=(db.ownerLoans||[]).filter(l=>loanLender(l)===COM_PERSON); const back=L.filter(l=>l.type!=='in').reduce((a,l)=>a+(Number(l.amount)||0),0), more=L.filter(l=>l.type==='in').reduce((a,l)=>a+(Number(l.amount)||0),0); if(op||back||more) loan={op:op+more, back, rest:op+more-back}; }catch(e){}
+    return {n, rows, owed, took, bal:owed-took, wd, loan};
+}
 function renderCommission(){
+    const body=document.getElementById('emc-body'); if(!body) return;
+    const sel=document.getElementById('emc-account'); if(sel && !sel.options.length) sel.innerHTML=(db.accounts||[]).map(a=>`<option>${esc(a.name)}</option>`).join('');
+    const dd=document.getElementById('emc-date'); if(dd && !dd.value) dd.value=todayISO();
+    const D=emcData(); if(!D){ body.innerHTML='<tr><td colspan="5" class="p-4 text-center text-slate-400">عماد ناجي مش متكود</td></tr>'; return; }
+    const c='border:1px solid #e2e8f0';
+    body.innerHTML=D.rows.map(r=>`<tr style="${r.old?'background:#fffbeb':''}"><td class="p-2 font-bold" style="${c}">${esc(r.label)}</td><td class="p-2" style="${c}">${r.sin==null?'—':nfmt(Math.round(r.sin*100)/100)}</td><td class="p-2 font-bold text-amber-700" style="${c}">${mfmt(r.owed)}</td><td class="p-2 font-bold text-rose-700" style="${c}">${r.took?mfmt(r.took):'—'}${r.ded?`<div class="text-[11px] text-slate-500">منها خصم غياب ${mfmt(r.ded)}</div>`:''}</td><td class="p-2 font-extrabold ${r.bal<0?'text-rose-700':'text-emerald-700'}" style="${c}">${mfmt(Math.abs(r.bal))}${r.bal<0?' عليه':''}</td></tr>`).join('')
+        + `<tr class="bg-amber-50 font-extrabold"><td class="p-2" style="${c}">الإجمالي من البداية</td><td class="p-2" style="${c}"></td><td class="p-2 text-amber-700" style="${c}">${mfmt(D.owed)}</td><td class="p-2 text-rose-700" style="${c}">${mfmt(D.took)}</td><td class="p-2 ${D.bal<0?'text-rose-700':'text-emerald-700'}" style="${c}">${mfmt(Math.abs(D.bal))}${D.bal<0?' عليه':''}</td></tr>`;
+    document.getElementById('emc-summary').innerHTML=[['إجمالي اللي ليه',D.owed,'#b45309','#fffbeb'],['خد منهم',D.took,'#be123c','#fff1f2'],[D.bal<0?'زيادة عليه':'الباقي له',Math.abs(D.bal),'#047857','#ecfdf5']].map(([l,v,col,bg])=>`<div style="background:${bg};border:1px solid ${col}33;border-radius:12px;padding:12px"><div style="font-size:13px;color:#475569;font-weight:700">${l}</div><div style="font-size:1.35rem;font-weight:900;color:${col}">${mfmt(v)}</div></div>`).join('');
+    let tot=0; document.getElementById('emc-wd').innerHTML=(D.wd.length?D.wd.map((x,i)=>{ tot+=Number(x.paid)||0; return `<tr class="border-b border-slate-100"><td class="p-2 text-slate-500">${i+1}</td><td class="p-2 whitespace-nowrap">${dmy(x.date)}</td><td class="p-2 font-bold text-rose-700">${mfmt(x.paid)}</td><td class="p-2">${esc(x.account||'')}</td><td class="p-2">${esc(x.notes||x.desc||x.category||'')}</td></tr>`; }).join('')+`<tr class="bg-slate-50 font-extrabold"><td class="p-2" colspan="2">الإجمالي (${nfmt(D.wd.length)} مرة)</td><td class="p-2 text-rose-700">${mfmt(tot)}</td><td colspan="2"></td></tr>`:'<tr><td colspan="5" class="p-3 text-center text-slate-400">مفيش صرف متسجل باسمه في البرنامج الجديد</td></tr>');
+    document.getElementById('emc-loan').innerHTML=D.loan?`ملحوظة: سلفة عماد ناجي للكسارة (فلوسه اللي سلفها) ${mfmt(D.loan.op)} — اترد له ${mfmt(D.loan.back)} — ${Math.abs(D.loan.rest)<1?'خلصت':'باقي له '+mfmt(D.loan.rest)}. دي حساب لوحدها ومش داخلة في العمولة.`:'';
+}
+function emcExcel(){ const D=emcData(); if(!D) return;
+    const a=[['كشف عمولة عماد ناجي (4 ج × صافي متر السن) — لحد '+dmy(todayISO())],[],['الفترة','صافي متر السن','ليه (العمولة)','خد','الباقي له']];
+    D.rows.forEach(r=>a.push([r.label, r.sin==null?'':Math.round(r.sin*100)/100, r.owed, r.took, Math.round(r.bal*100)/100]));
+    a.push(['الإجمالي من البداية','',D.owed,D.took,Math.round(D.bal*100)/100],[],['تفاصيل اللي خده'],['التاريخ','المبلغ','الخزنة','البيان']);
+    D.wd.forEach(x=>a.push([x.date, Number(x.paid)||0, x.account||'', x.notes||x.desc||x.category||'']));
+    if(D.loan) a.push([],['سلفة عماد للكسارة (مش داخلة في العمولة)', D.loan.op, 'اترد له', D.loan.back, 'الباقي', D.loan.rest]);
+    const ws=XLSX.utils.aoa_to_sheet(a); ws['!cols']=[{wch:34},{wch:16},{wch:16},{wch:14},{wch:16}]; ws['!views']=[{RTL:true}];
+    const wb=XLSX.utils.book_new(); wb.Workbook={Views:[{RTL:true}]}; XLSX.utils.book_append_sheet(wb, ws, 'عمولة عماد ناجي'); XLSX.writeFile(wb, `كشف-عمولة-عماد-ناجي-${todayISO()}.xlsx`); }
+/* الصرف لعماد بيتسجل بالظبط زي ما كان بيتسجل من فورم السلف (نفس البند والحقول) — بس من هنا */
+function emcPay(e){ e.preventDefault(); if(isRO()) return;
+    const g=id=>document.getElementById(id), D=emcData(); if(!D) return; const amount=Number(g('emc-amount').value)||0; if(!(amount>0)) return;
+    const account=g('emc-account').value || (db.accounts[0]&&db.accounts[0].name) || '';
+    if(!checkCashAvailable(account, amount)) return;
+    ensurePayCat(ADV_CAT); const notes=g('emc-notes').value.trim();
+    const rec={ id:db.nextId.exp++, category:ADV_CAT, activity:'', name:D.n.name, project:(db.projects&&db.projects[0]&&db.projects[0].name)||'', total:amount, paid:amount, remaining:0, account, date:g('emc-date').value||todayISO(), notes, desc:notes||'من عمولته' };
+    db.expensesData.push(rec); logAudit('create','صرف لعماد ناجي (من عمولته)',`${D.n.name} - ${amount}`,null,rec);
+    g('emc-amount').value=''; g('emc-notes').value=''; scheduleSave(); renderAll(); renderCommission(); }
+function renderCommissionOld(){
     const t=document.getElementById('com-person-title'); if(!t) return; t.textContent=COM_PERSON;
     const sel=document.getElementById('com-paccount'); if(sel && !sel.options.length) sel.innerHTML=(db.accounts||[]).map(a=>`<option>${a.name}</option>`).join('');
     ['com-to','com-pdate'].forEach(i=>{ const el=document.getElementById(i); if(el && !el.value) el.value=todayISO(); });
@@ -8231,7 +8289,7 @@ function ensurePayCat(name){
 function renderPayrollTab(){
     const ad=document.getElementById('att-date'); if(ad && !ad.value) ad.value=todayISO();
     const dd=document.getElementById('adv-date'); if(dd && !dd.value) dd.value=todayISO();
-    fillSelect('adv-name', payrollPeople()); fillSelect('adv-account', db.accounts||[]); try{ advPartyBal(); }catch(e){}
+    fillSelect('adv-name', payrollStaff()); fillSelect('adv-account', db.accounts||[]); try{ advPartyBal(); }catch(e){}
     renderAttendance(); renderPayroll(); renderAdvSummary(); renderAdvRecent(); try{ absRender(); }catch(e){ console.warn(e); }
     if(window.__advEdit){ const v=window.__advEdit; window.__advEdit=null; try{ switchSub('payroll','form'); }catch(e){} setVal('adv-name',v.name); setVal('adv-amount',v.amount); setVal('adv-date',v.date); setVal('adv-account',v.account); setVal('adv-notes',v.notes); try{ advPartyBal(); }catch(e){} }
 }
@@ -8243,14 +8301,14 @@ function renderAdvRecent(){
     /* بعد تسجيل صرف المرتبات (بند الأجور والمرتبات من غير اسم = الكل، أو راتب باسم موظف = هو بس) السلف اللي قبله بتختفي من القايمة دي بس — الحركات نفسها زي ما هي في الحسابات (محمد 2026-11-13) */
     const E=db.expensesData||[]; let cutAll=-1; const cutBy={};
     E.forEach((x,i)=>{ if(!x || !Number(x.paid)) return; if(x.category===SAL_CAT && x.name){ cutBy[x.name]=i; return; } if(!x.name && /أجور|اجور|مرتب|رواتب/.test(x.category||'')) cutAll=i; });
-    const L=E.map((x,i)=>[x,i]).filter(p=>isAdvRec(p[0]) && !p[0].prevMonth && (p[0].date||'').startsWith(m) && p[1]>cutAll && !(cutBy[p[0].name]>p[1])).map(p=>p[0]); const L2=regSortDesc(L, E); L.length=0; L.push(...L2); const dbar=dayBarMaker(5);
+    const HC=COMM_HIDE_NAMES(); const L=E.map((x,i)=>[x,i]).filter(p=>!HC.has(p[0].name) && isAdvRec(p[0]) && !p[0].prevMonth && (p[0].date||'').startsWith(m) && p[1]>cutAll && !(cutBy[p[0].name]>p[1])).map(p=>p[0]); const L2=regSortDesc(L, E); L.length=0; L.push(...L2); const dbar=dayBarMaker(5);
     tb.innerHTML = L.length ? L.map(x=>`${dbar(x.date)}<tr class="border-b border-slate-100"><td class="p-3 font-bold">${esc(x.name)}</td><td class="p-3 font-bold text-rose-700">${fmt(x.paid)}</td><td class="p-3">${esc(x.date||'')}</td><td class="p-3">${esc(x.notes||'')}</td><td class="p-3 whitespace-nowrap">${x.category===ADV_CAT?advBtns(x):`<button onclick="startEdit('exp', ${x.id})" class="text-blue-500 ml-3" title="تعديل">✏️</button><button onclick="deleteByRef('exp', ${x.id})" style="color:#dc2626" title="حذف"><i class="fa-solid fa-trash"></i></button>`}</td></tr>`).join('') : '<tr><td colspan="5" class="p-4 text-center text-slate-400">مفيش سلف مفتوحة</td></tr>';
 }
 /* تحت تسجيل السلفة: كل موظف مرتبه كام وواخد كام وفاضل كام (الشهر الحالي، نفس حساب كشف الرواتب) — محمد 2026-11-12 */
 function renderAdvSummary(){
     const tb=document.getElementById('tbody-adv-sum'); if(!tb) return;
     const m=todayISO().slice(0,7); let S=0,K=0,R=0,D=0;
-    const rows=payrollPeople().map(n=>{ const {ded,adv,paid}=payMonth(n,m), cr=payCarry(n,m), sal=salaryOf(n,m), took=adv+paid, rem=sal+cr-ded-took; S+=sal; K+=took; R+=rem; D+=ded;
+    const rows=payrollStaff().map(n=>{ const {ded,adv,paid}=payMonth(n,m), cr=payCarry(n,m), sal=salaryOf(n,m), took=adv+paid, rem=sal+cr-ded-took; S+=sal; K+=took; R+=rem; D+=ded;
         return `<tr class="border-b border-slate-100"><td class="p-3 font-bold text-slate-900">${esc(n.name)}</td><td class="p-3 font-bold">${fmt(sal)}</td><td class="p-3 font-bold text-rose-700">${ded?fmt(ded):'—'}</td><td class="p-3 font-bold text-rose-700">${took?fmt(took):'—'}</td><td class="p-3 font-extrabold ${rem<0?'text-rose-700':'text-emerald-700'}">${fmt(Math.abs(rem))}${rem<0?' عليه':''}</td></tr>`; });
     tb.innerHTML = rows.length ? rows.join('')+`<tr class="bg-indigo-50 font-extrabold"><td class="p-3">الإجمالي</td><td class="p-3">${fmt(S)}</td><td class="p-3 text-rose-700">${D?fmt(D):'—'}</td><td class="p-3 text-rose-700">${fmt(K)}</td><td class="p-3">${fmt(R)}</td></tr>` : '<tr><td colspan="5" class="p-4 text-center text-slate-400">—</td></tr>';
 }
@@ -8258,7 +8316,7 @@ function renderAttendance(){
     const box=document.getElementById('att-list'); if(!box) return;
     const d=document.getElementById('att-date').value||todayISO();
     const day=(db.attendance||{})[d]||{};
-    const ppl=payrollPeople();
+    const ppl=payrollStaff();
     /* شكل جديد: كارت لكل موظف + زرار مقسوم 3 + ملخص فوق (محمد 2026-11-12: «شكلهم بايخ») */
     const C={p:['حاضر','#059669','#ecfdf5'], h:['نص يوم','#d97706','#fffbeb'], a:['غايب','#dc2626','#fef2f2']};
     const st=n=>day[n]||'p';
@@ -8276,7 +8334,7 @@ function renderAttendance(){
 /* ===== الغياب (محمد 2026-11-23): بيتسجل في db.attendance نفسه، وpayMonth بيخصم (غياب + نص يوم÷2) × المرتب÷30 ===== */
 function absDayVal(n, m){ return Math.round(salaryOf(n,m)/30*100)/100; }
 function absInfo(){ const g=id=>document.getElementById(id), box=g('abs-info'); if(!box) return;
-    const n=payrollPeople().find(x=>x.name===g('abs-name').value), d=g('abs-date').value; if(!n || !d){ box.textContent=''; return; }
+    const n=payrollStaff().find(x=>x.name===g('abs-name').value), d=g('abs-date').value; if(!n || !d){ box.textContent=''; return; }
     const v=absDayVal(n,d.slice(0,7)), k=g('abs-kind').value, cur=((db.attendance||{})[d]||{})[n.name];
     box.innerHTML=`قيمة اليوم = ${nfmt(salaryOf(n,d.slice(0,7)))} ÷ ${nfmt(30)} = <span class="text-rose-700">${nfmt(v)}</span> — هيتخصم <span class="text-rose-700">${nfmt(Math.round(k==='h'?v/2:v))}</span>${cur?` <span class="text-amber-700">(متسجل ${cur==='h'?'نص يوم':'غياب'} في اليوم ده)</span>`:''}`; }
 function absAdd(e){ e.preventDefault(); if(isRO()) return;
@@ -8292,10 +8350,10 @@ function absDel(name, d){ if(isRO()) return;
     delete db.attendance[d][name]; if(!Object.keys(db.attendance[d]).length) delete db.attendance[d];
     logAudit('delete','غياب',`${name} ${d}`,old,null); scheduleSave(); renderAll(); renderPayrollTab(); }
 function absRender(){ const g=id=>document.getElementById(id), tb=g('tbody-abs'); if(!tb) return;
-    const sel=g('abs-name'), pv=sel.value; fillSelect('abs-name', payrollPeople()); if(pv) sel.value=pv;
+    const sel=g('abs-name'), pv=sel.value; fillSelect('abs-name', payrollStaff()); if(pv) sel.value=pv;
     const am=g('abs-month'); if(!am.value) am.value=todayISO().slice(0,7); const m=am.value;
     const att=db.attendance||{}; let T=0;
-    const rows=payrollPeople().map(n=>{ const ds=Object.keys(att).filter(d=>d.startsWith(m) && att[d][n.name]).sort(); if(!ds.length) return '';
+    const rows=payrollStaff().map(n=>{ const ds=Object.keys(att).filter(d=>d.startsWith(m) && att[d][n.name]).sort(); if(!ds.length) return '';
         const {a,h,ded}=payMonth(n,m); T+=ded; const nm=esc(JSON.stringify(n.name)).replace(/"/g,'&quot;');
         const chips=ds.map(d=>`<span class="inline-flex items-center gap-1 px-2 py-1 m-0.5 rounded-lg border ${att[d][n.name]==='h'?'border-amber-300 bg-amber-50 text-amber-800':'border-rose-300 bg-rose-50 text-rose-800'} text-sm font-bold">${d.slice(8)}/${d.slice(5,7)}${att[d][n.name]==='h'?' (نص)':''}${isRO()?'':`<button type="button" onclick="absDel(${nm},'${d}')" title="شيل" class="text-rose-500 mr-1">✕</button>`}</span>`).join('');
         return `<tr class="border-b border-slate-100"><td class="p-3 font-bold">${esc(n.name)}</td><td class="p-3">${chips}</td><td class="p-3 font-bold">${nfmt(a+h/2)}</td><td class="p-3">${nfmt(absDayVal(n,m))}</td><td class="p-3 font-extrabold text-rose-700">${nfmt(ded)}</td></tr>`; }).filter(Boolean);
@@ -8403,7 +8461,7 @@ function renderPayroll(){
     const att = db.attendance||{};
     const inM = x => (x.date||'').startsWith(m);
     let T={s:0,cr:0,ded:0,adv:0,paid:0,net:0};
-    const rows = payrollPeople().map(n=>{
+    const rows = payrollStaff().map(n=>{
         const {a,h,ded,adv,paid} = payMonth(n,m), cr = payCarry(n,m);
         const sal = salaryOf(n,m);
         const net = sal + cr - ded - adv - paid;
@@ -8418,7 +8476,7 @@ function renderPayroll(){
         : '<tr><td colspan="10" class="p-4 text-center text-slate-400">—</td></tr>';
     const ta = document.getElementById('tbody-advances');
     if(ta){
-        const L=(db.expensesData||[]).filter(x=>(isAdvRec(x) && inM(x) && !x.prevMonth) || (x.category===SAL_CAT && x.salaryMonth===m)).sort((x,y)=>(y.date||'').localeCompare(x.date||''));
+        const HC=COMM_HIDE_NAMES(); const L=(db.expensesData||[]).filter(x=>!HC.has(x.name) && ((isAdvRec(x) && inM(x) && !x.prevMonth) || (x.category===SAL_CAT && x.salaryMonth===m))).sort((x,y)=>(y.date||'').localeCompare(x.date||''));
         ta.innerHTML = L.length ? L.map(x=>`<tr class="border-b border-slate-50"><td class="p-2">${esc(x.date||'')}</td><td class="p-2 font-bold">${esc(x.name)}</td><td class="p-2">${nfmt(x.paid)}${x.category===SAL_CAT?' <span class="text-xs text-emerald-700">(راتب)</span>':''}</td><td class="p-2">${esc(x.notes||'')}</td><td class="p-2 whitespace-nowrap">${x.category===ADV_CAT?advBtns(x):`<button onclick="deleteSalaryEntry(${x.id})" style="color:#dc2626"><i class="fa-solid fa-trash"></i></button>`}</td></tr>`).join('')
             : '<tr><td colspan="5" class="p-4 text-center text-slate-400">—</td></tr>';
     }
