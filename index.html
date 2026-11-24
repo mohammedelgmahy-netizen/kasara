@@ -767,6 +767,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                     <label for="dl-worker" style="display:none" class="font-bold text-violet-900 text-sm">👷 الشغل تبع:</label>
                     <select id="dl-worker" style="display:none" onchange="if(!db.meta) db.meta={}; db.meta.lastWorker=this.value; scheduleSave()" class="bg-white border-2 border-violet-300 rounded-lg px-3 py-2 text-sm font-bold min-w-[12rem]"></select>
                     <button id="batch-bons-btn" type="button" onclick="openBatch(this.dataset.id)" style="display:none" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg"></button>
+                    <button id="bon-redate-btn" type="button" onclick="bdOpen()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-3 py-2 rounded-lg">📅 تغيير تاريخ بونات</button>
                     <button id="missing-bons-btn" type="button" onclick="showMissingBons()" style="display:none" class="mr-auto bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-2 rounded-lg"></button>
                     <button type="button" id="ai-bon-btn" onclick="aiBonPick()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-3 py-2 rounded-lg">📷 صوّر البون</button><input id="ai-bon-file" type="file" accept="image/*" capture="environment" style="display:none" onchange="aiBonRead(this)">
                     <button id="price-bons-btn" type="button" onclick="openPriceBons()" style="display:none" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3 py-2 rounded-lg"></button>
@@ -10621,6 +10622,71 @@ async function bonShiftAsk(n){
     scheduleSave();
     const el=document.getElementById('dl-bon'); if(el){ el.value=String(n); el.dataset.auto=''; }
     addDailyLog({preventDefault(){}});
+}
+/* محمد 2026-11-24: «تحديد من بون كذا لبون كذا، أخليهم بتاريخ يوم كذا» — المدى بالرقم نفسه (مش بمكانه في السجل). بيتغير التاريخ بس (البون + فاتورته + حركة الإيراد/الدرج + الإكرامية)، الكميات والأسعار والعملاء زي ما هي. الملغي ما بيتلمسش */
+function bdList(f,t){ return (db.dailyLog||[]).filter(r=>/^\s*[0-9٠-٩]+\s*$/.test(String(r.bon||'')) && bonNum(r)>=f && bonNum(r)<=t).sort((a,b)=>(bonNum(a)-bonNum(b))||(a.date||'').localeCompare(b.date||'')); }
+function bdRange(){ const g=id=>document.getElementById(id); const f=bonNum({bon:g('bd-from').value}); let t=bonNum({bon:g('bd-to').value});
+    if(!isFinite(t)) t=Math.max(...(db.dailyLog||[]).map(bonNum).filter(isFinite)); return {f,t,d:g('bd-date').value}; }
+function bdOpen(){
+    if(isRO()) return;
+    if(typeof __editSnap!=='undefined' && __editSnap){ alert('خلّص التعديل المفتوح الأول'); return; }
+    document.getElementById('bd-modal')?.remove();
+    const m=document.createElement('div'); m.id='bd-modal';
+    m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:16px';
+    const inp='border:1px solid #cbd5e1;border-radius:8px;padding:6px 8px;font-weight:800;font-size:15px';
+    m.innerHTML=`<div dir="rtl" style="background:#fff;color:#0f172a;border-radius:14px;max-width:620px;width:100%;padding:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b style="font-size:17px">📅 تغيير تاريخ بونات</b><button onclick="document.getElementById('bd-modal').remove()" style="font-size:20px;font-weight:800;color:#64748b">✕</button></div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end">
+            <label style="font-size:13px;font-weight:700">من بون<br><input id="bd-from" type="number" oninput="bdPreview()" style="${inp};width:110px"></label>
+            <label style="font-size:13px;font-weight:700">إلى بون<br><input id="bd-to" type="number" oninput="bdPreview()" placeholder="آخر بون" style="${inp};width:110px"></label>
+            <label style="font-size:13px;font-weight:700">التاريخ الجديد<br><input id="bd-date" type="date" onchange="bdPreview()" style="${inp}"></label>
+        </div>
+        <div id="bd-prev" style="margin-top:12px"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+            <button onclick="document.getElementById('bd-modal').remove()" style="background:#e2e8f0;padding:8px 14px;border-radius:8px;font-weight:700">إلغاء</button>
+            <button id="bd-go" onclick="bdApply()" disabled style="background:#0284c7;color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;opacity:.5">تغيير التاريخ</button>
+        </div></div>`;
+    document.body.appendChild(m);
+    document.getElementById('bd-from').focus();
+}
+function bdPreview(){
+    const box=document.getElementById('bd-prev'), go=document.getElementById('bd-go'); if(!box) return;
+    const {f,t,d}=bdRange(); const off=()=>{ go.disabled=true; go.style.opacity='.5'; };
+    if(!isFinite(f)){ box.innerHTML='<div style="color:#64748b;font-size:13px">اكتب رقم أول بون (وآخر بون، ولو سبته فاضي = لحد آخر بون).</div>'; off(); return; }
+    if(t<f){ box.innerHTML='<div style="color:#be123c;font-weight:700">«إلى بون» أصغر من «من بون»</div>'; off(); return; }
+    const L=bdList(f,t), C=cancelledList().filter(x=>isFinite(x.n) && x.n>=f && x.n<=t);
+    if(!L.length){ box.innerHTML=`<div style="color:#be123c;font-weight:700">مفيش بونات متسجلة من ${f} لحد ${t}</div>`; off(); return; }
+    const move=L.filter(r=>r.date!==d), days={}; L.forEach(r=>{ days[r.date]=(days[r.date]||0)+1; });
+    const dup={}; L.forEach(r=>{ const n=bonNum(r); dup[n]=(dup[n]||0)+1; }); const dups=Object.keys(dup).filter(n=>dup[n]>1);
+    box.innerHTML=`<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:8px 10px;font-size:13px;line-height:1.9">
+        <b>${L.length} بون</b> (من ${bonNum(L[0])} لحد ${bonNum(L[L.length-1])})${d?` — هيتغير تاريخ <b>${move.length}</b> منهم لـ <b>${dayNameAr(d)} ${dmy(d)}</b>`:''}${d&&L.length-move.length?` (${L.length-move.length} تاريخهم ${dmy(d)} أصلاً)`:''}<br>
+        تواريخهم دلوقتي: ${Object.keys(days).sort().map(x=>`${dmy(x)} (${days[x]})`).join('، ')}
+        ${C.length?`<br><span style="color:#92400e">🚫 ${C.length} بون ملغي في المدى (${C.map(x=>x.n).join('، ')}) — مش هيتلمس</span>`:''}
+        ${dups.length?`<br><span style="color:#be123c;font-weight:700">⚠️ أرقام متكررة في المدى: ${dups.join('، ')} — كلهم هيتغيروا</span>`:''}</div>
+        <div style="max-height:300px;overflow:auto;margin-top:8px;border:1px solid #e2e8f0;border-radius:8px"><table style="width:100%;font-size:13px;border-collapse:collapse">
+        <thead><tr style="background:#f1f5f9;position:sticky;top:0"><th style="padding:5px;text-align:right">البون</th><th style="padding:5px;text-align:right">التاريخ دلوقتي</th><th style="padding:5px;text-align:right">العميل</th><th style="padding:5px;text-align:right">الكمية</th></tr></thead>
+        <tbody>${L.map(r=>`<tr style="border-top:1px solid #e2e8f0${d&&r.date!==d?';background:#fffbeb':''}"><td style="padding:5px;font-weight:800">${esc(String(r.bon))}</td><td style="padding:5px">${dmy(r.date)}</td><td style="padding:5px">${esc(r.client||'')}</td><td style="padding:5px">${nfmt(bonQtyTotal(r))}</td></tr>`).join('')}</tbody></table></div>`;
+    if(d && move.length){ go.disabled=false; go.style.opacity='1'; } else off();
+}
+async function bdApply(){
+    if(isRO()) return;
+    const {f,t,d}=bdRange(); if(!isFinite(f) || !d || t<f) return;
+    const L=bdList(f,t).filter(r=>r.date!==d); if(!L.length) return;
+    if(db.lockedUntil && currentRole!=='admin' && (d<=db.lockedUntil || L.some(r=>(r.date||'')<=db.lockedUntil))){ alert(`🔒 الحركات لحد ${dmy(db.lockedUntil)} مقفولة. كلّم المدير.`); return; }
+    if(!confirm(`تغيّر تاريخ ${L.length} بون (من ${bonNum(L[0])} لحد ${bonNum(L[L.length-1])}) لـ ${dayNameAr(d)} ${dmy(d)}؟\n\nالتاريخ بس اللي هيتغير — الكميات والأسعار والعملاء زي ما هي.`)) return;
+    const go=document.getElementById('bd-go'); if(go){ go.disabled=true; go.textContent='لحظة…'; }
+    try{ if(SUPABASE_URL && __cloudOK){ const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=merge-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::before-bonredate-'+f+'-'+Date.now(), value:JSON.stringify(db), updated_at:new Date().toISOString()})}); if(!res.ok) throw new Error(res.status); } }
+    catch(e){ alert('ما قدرتش آخد نسخة احتياطية (النت؟) — ما اتغيرش حاجة. جرب تاني.'); if(go){ go.disabled=false; go.textContent='تغيير التاريخ'; } return; }
+    const ids=new Set(L.map(r=>String(r.id))), grps=new Set(L.map(r=>r.saleGroupId).filter(x=>x!=null).map(String)), before={};
+    L.forEach(r=>{ before[r.bon]=(before[r.bon]?before[r.bon]+'، ':'')+r.date; r.date=d; });
+    (db.sales||[]).forEach(x=>{ if((x.dailyLogId!=null && ids.has(String(x.dailyLogId))) || (x.groupId!=null && grps.has(String(x.groupId)))) x.date=d; });
+    (db.expensesData||[]).forEach(x=>{ if((x.saleId!=null && grps.has(String(x.saleId))) || (x.tipDeposit && x.tipBonId!=null && ids.has(String(x.tipBonId)))) x.date=d; });
+    logAudit('update','تغيير تاريخ بونات', `${L.length} بون من ${bonNum(L[0])} لحد ${bonNum(L[L.length-1])} ← ${d}`, before, {date:d});
+    scheduleSave();
+    document.getElementById('bd-modal')?.remove();
+    try{ const vm=document.getElementById('dl-view-mode'), vd=document.getElementById('dl-view-date'); if(vm && vd){ vm.value='DAY'; vd.value=d; dlModeChanged(); } }catch(e){}
+    renderAll();
+    alert(`✅ اتغير تاريخ ${L.length} بون لـ ${dmy(d)}`);
 }
 function bonNum(r){ const s = String(r.bon||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)); const n = parseFloat(s.replace(/[^0-9.]/g,'')); return isNaN(n) ? Infinity : n; }
 /* رقم البون الجاي = أكبر رقم متسجل + 1 */
