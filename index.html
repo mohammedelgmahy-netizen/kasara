@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1225</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1226</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -11538,9 +11538,8 @@ async function kxBuild(){
     const NAVSH={}; /* الشيتات اللي فيها شريط الزراير: الاسم ← ارتفاع السطر الأول بالنقط */
     const topbar=(ws,title,sub,ncol)=>{ const e=Math.max(ncol-2,2); const lines=Math.max(1,Math.ceil((sub||'').length/Math.max(60,e*13))); const h1=30+15*lines; ws.getRow(1).height=h1; ws.mergeCells(1,1,1,e);
         const c=ws.getCell(1,1); c.value={richText:[{text:'كسارة الديار — '+title,font:FN({size:17,bold:true,color:A('FFFFFF')})},...(sub?[{text:'\n'+sub,font:FN({size:10,color:A('D6E2F0')})}]:[])]}; c.fill=fill(OD); c.alignment={horizontal:'right',vertical:'middle',indent:1,wrapText:true};
-        NAVSH[ws.name]=h1; ws.getRow(2).height=44; for(let j=1;j<=Math.max(ncol,14);j++){ const q=ws.getCell(2,j); q.fill=fill('EEF2F7'); }
-        for(let j=e+1;j<=ncol;j++) ws.getCell(1,j).fill=fill(OD);
-        const b=ws.getCell(1,ncol); b.value={text:'⌂ الرئيسية',hyperlink:"#'الرئيسية'!A1"}; b.font=FN({bold:true,color:A('FFFFFF')}); b.fill=fill('0B2E4F'); b.alignment={horizontal:'center',vertical:'middle'}; b.border=BR;
+        NAVSH[ws.name]=h1; ws.getRow(2).height=Math.round(KX_ROWS*0.75); for(let j=1;j<=Math.max(ncol,16);j++){ const q=ws.getCell(2,j); q.fill=fill(KX_NAVBG); if(KX_LAY.line) q.border={bottom:{style:'thin',color:A(KX_LAY.line)}}; }
+        for(let j=e+1;j<=Math.max(ncol,16);j++) ws.getCell(1,j).fill=fill(OD);
     };
     const header=(ws,row,cols,widths,auto=new Set())=>{ cols.forEach((h,i)=>{ const j=i+1, c=ws.getCell(row,j); c.value=h; if(/^أرصدة (و|وجرد)/.test(h)&&typeof ADJ_NOTE!=='undefined') c.note=ADJ_NOTE; c.font=FN({bold:true,color:A('FFFFFF')}); c.fill=fill(auto.has(j)?OD2:OD); c.alignment={horizontal:'center',vertical:'middle',wrapText:true}; c.border=BR; ws.getColumn(j).width=widths[i]; }); ws.getRow(row).height=32; };
     /* دليل الأكواد (مصدر القوايم المنسدلة) */
@@ -11878,40 +11877,21 @@ async function kxBuild(){
     const mon=rd=>`${rd},">="&${MS},${rd},"<"&EDATE(${MS},1)`;
     h.mergeCells('A3:O3'); { const c=h.getCell('A3'); c.value={formula:`HYPERLINK("#'الفحص'!A1",IF(${CHK_N}=0,"✔  فحص الملف: كل حاجة سليمة والميزانية متزنة","✖  فحص الملف: فيه "&${CHK_N}&" ملاحظة — دوس هنا تشوفها"))`}; c.font=FN({bold:true,size:13,color:A('FFFFFF')}); c.alignment={horizontal:'center',vertical:'middle'}; c.fill=fill('1F7A4D'); }
     h.getRow(3).height=26; h.addConditionalFormatting({ref:'A3:O3',rules:[{type:'expression',formulae:[`${CHK_N}>0`],style:{fill:fill('B42318')}}]});
-    const CARDS=[['المعلق',`'الخزن'!$J$${TZROW['المعلق']||DR}`,'1F4B73'],['درج المكتب',`'الخزن'!$J$${TZROW['درج المكتب']||DR+1}`,'2E6A9E'],['إجمالي الخزن',TZ_TOTAL,'0E7090'],['صافي الربح',PL_NET,'1F7A4D'],
-        ['مبيعات الشهر ده',`SUMIFS(${B(Lv)},${mon(B('A'))})`,'1F7A4D'],['تحصيلات الشهر ده',`SUMIFS(${C('C')},${mon(C('A'))})`,'027A48'],['مصروفات الشهر ده',`SUMIFS(${E('D')},${mon(E('A'))})`,'B42318'],['بونات الشهر ده',`COUNTIFS(${mon(B('A'))})`,'6941C6'],
-        ['اللي لينا عند العملاء',CL_REC,'B54708'],['مستحقات الموردين',SP_TOT,'B42318'],['مستحقات أصحاب المعدات',CT_PAY,'6941C6'],['قيمة المخزون',ST_TOT,'0E7090']];
-    CARDS.forEach(([lab,f,col],i)=>{ const r0=4+Math.floor(i/4)*4, cc=[1,5,9,13][i%4];
-        h.mergeCells(r0,cc,r0,cc+2); h.mergeCells(r0+1,cc,r0+2,cc+2);
-        const x=h.getCell(r0,cc); x.value=lab; x.font=FN({bold:true,color:A('FFFFFF')}); x.fill=fill(col); x.alignment={horizontal:'center',vertical:'middle'};
-        const y=h.getCell(r0+1,cc); y.value={formula:f}; y.font=FN({bold:true,color:A(col),size:20}); y.numFmt=/بونات/.test(lab)?'#,##0':'#,##0 "ج.م";[Red]-#,##0 "ج.م"'; y.alignment={horizontal:'center',vertical:'middle'}; y.fill=fill('F6F8FB');
-        const md={style:'medium',color:A(col)}; for(let a=r0;a<=r0+2;a++) for(let b=cc;b<=cc+2;b++){ const z=h.getCell(a,b); z.border={top:a===r0?md:undefined,bottom:a===r0+2?md:undefined,right:b===cc?md:undefined,left:b===cc+2?md:undefined}; }
-        [r0,r0+1,r0+2].forEach(q=>h.getRow(q).height=24); });
+    /* من غير كروت ولا رسومات (محمد 2026-11-25): العنوان + الفحص + الزراير بس */
+    h.views=[{rightToLeft:true,showGridLines:false,state:'frozen',ySplit:3}]; /* العنوان ثابت */
     const NAV=[['التسجيل','1F7A4D',[['البونات','المبيعات (البونات)'],['التحصيلات','التحصيلات'],['المصروفات','المصروفات والسلف'],['المشتريات','المشتريات'],['دفعات الموردين','دفعات الموردين'],['المستخلصات','المستخلصات'],['صرف المخزون','صرف المخزون'],['الإيرادات','إيرادات أخرى'],['التحويلات','تحويلات الخزن']]],
         ['الأرصدة والكشوف',OD,[['الخزن','الخزن'],['أرصدة العملاء','أرصدة العملاء'],['كشف عميل','كشف حساب عميل'],['أرصدة الموردين','أرصدة الموردين'],['أصحاب المعدات','أصحاب المعدات'],['كشف صاحب معدة','كشف صاحب معدة'],['المخزون','المخزون'],['نقلات السولار','نقلات السولار'],['الرواتب','الرواتب والسلف']]],
         ['القوائم المالية','0E7090',[['قائمة الدخل','قائمة الدخل'],['المركز المالي','المركز المالي'],['ميزان المراجعة','ميزان المراجعة'],['الفحص','فحص الملف'],['دليل الأكواد','دليل الأكواد (إضافة أسماء)']]]];
-    rr=17; const TILES=[];
+    rr=5; const TILES=[];
     const TILE_DESC={'البونات':'سجل البونات والمبيعات','التحصيلات':'فلوس العملاء اللي اتحصلت','المصروفات':'المصروفات والسلف والعهد','المشتريات':'فواتير الشراء','دفعات الموردين':'اللي اتدفع للموردين','المستخلصات':'مستخلصات أصحاب المعدات','صرف المخزون':'سولار وأصناف اتصرفت','الإيرادات':'إيرادات أخرى','التحويلات':'تحويل بين الخزن',
         'الخزن':'رصيد كل خزنة وحركتها','أرصدة العملاء':'اللي ليك واللي عليك','كشف عميل':'كشف حساب عميل بالتفصيل','أرصدة الموردين':'المستحق لكل مورد','أصحاب المعدات':'مستخلصات وعهد وأرصدة','كشف صاحب معدة':'كشف حساب صاحب معدة','المخزون':'رصيد الأصناف وقيمتها','نقلات السولار':'كل نقلة والصرف منها','الرواتب':'المرتبات والسلف',
         'قائمة الدخل':'الإيرادات والمصروفات والربح','المركز المالي':'الأصول والخصوم','ميزان المراجعة':'مدين ودائن','الفحص':'مراجعة الأخطاء','دليل الأكواد':'إضافة الأسماء والأكواد'};
-    NAV.forEach(([g,col,its])=>{ h.mergeCells(rr,1,rr,15); const x=h.getCell(rr,1); x.value=g; x.font=FN({bold:true,size:14,color:A(col)}); x.alignment={horizontal:'right'}; rr++;
-        its.filter(([s])=>SH[s]).forEach(([s,lab],k)=>{ if(k&&k%4===0) rr+=2; const cc=[1,5,9,13][k%4]; h.mergeCells(rr,cc,rr+1,cc+2); const y=h.getCell(rr,cc); y.value={text:lab,hyperlink:`#'${s}'!A1`}; y.font=FN({bold:true,color:A('FFFFFF'),size:13}); y.fill=fill(col); y.alignment={horizontal:'center',vertical:'middle'}; });
-        rr+=3; });
-    const chartRow=rr; /* الرسوم بتتحط هنا */
-    /* بيانات الرسوم (شيت مخفي) */
-    const cdS=add('بيانات الرسوم',OD,{state:'hidden'});
-    ['الشهر','المبيعات','التحصيلات','المصروفات'].forEach((t,j)=>{ cdS.getCell(4,1+j).value=t; cdS.getColumn(1+j).width=14; });
-    for(let k=0;k<9;k++){ const q=5+k, dd=`EDATE(${MS},${k-8})`, rg=rd=>`${rd},">="&${dd},${rd},"<"&EDATE(${dd},1)`;
-        cdS.getCell(q,1).value={formula:`TEXT(${dd},"mm/yyyy")`}; cdS.getCell(q,2).value={formula:`SUMIFS(${B(Lv)},${rg(B('A'))})`}; cdS.getCell(q,3).value={formula:`SUMIFS(${C('C')},${rg(C('A'))})`}; cdS.getCell(q,4).value={formula:`SUMIFS(${E('D')},${rg(E('A'))})`}; }
-    cdS.getCell(4,6).value='أكبر 10 عملاء عليهم'; cdS.getColumn(6).width=22; cdS.getColumn(7).width=14;
-    for(let k=0;k<10;k++){ const q=5+k; cdS.getCell(q,7).value={formula:`LARGE(${CLG},${k+1})`}; cdS.getCell(q,6).value={formula:`INDEX(${CLB},MATCH(G${q},${CLG},0))`}; }
-    /* آخر 10 أسابيع (الأسبوع من الخميس للأربع زي البرنامج) */
-    const WK='(TODAY()-MOD(WEEKDAY(TODAY())-5,7))';
-    ['الأسبوع','مبيعات الأسبوع','تحصيلات الأسبوع'].forEach((t,j)=>{ cdS.getCell(4,9+j).value=t; cdS.getColumn(9+j).width=16; });
-    for(let k=0;k<10;k++){ const q=5+k, ws0=`(${WK}-${7*(9-k)})`, rg=rd=>`${rd},">="&${ws0},${rd},"<"&(${ws0}+7)`;
-        cdS.getCell(q,9).value={formula:`TEXT(${ws0},"dd/mm")`}; cdS.getCell(q,10).value={formula:`SUMIFS(${B(Lv)},${rg(B('A'))})`}; cdS.getCell(q,11).value={formula:`SUMIFS(${C('C')},${rg(C('A'))})`}; }
+    NAV.forEach(([g,col,its])=>{ h.mergeCells(rr,1,rr,15); const x=h.getCell(rr,1); x.value=g; x.font=FN({bold:true,size:14,color:A(col)}); x.alignment={horizontal:'right',vertical:'middle'}; h.getRow(rr).height=26; rr++;
+        its.filter(([s])=>SH[s]).forEach(([s,lab],k)=>{ if(k&&k%4===0) rr+=3; const cc=[1,5,9,13][k%4]; TILES.push({s,lab,col,r:rr,c:cc}); h.getRow(rr).height=22; h.getRow(rr+1).height=22; });
+        rr+=4; });
+    const chartRow=rr; /* من غير رسومات (محمد 2026-11-25) */
     /* ترتيب الشيتات */
-    const order=['الرئيسية','البونات','التحصيلات','المصروفات','المشتريات','دفعات الموردين','المستخلصات','صرف المخزون','الإيرادات','التحويلات','الخزن','أرصدة العملاء','كشف عميل','أرصدة الموردين','أصحاب المعدات','كشف صاحب معدة','المخزون','نقلات السولار','الرواتب','قائمة الدخل','المركز المالي','ميزان المراجعة','الفحص','دليل الأكواد','بيانات الرسوم'];
+    const order=['الرئيسية','البونات','التحصيلات','المصروفات','المشتريات','دفعات الموردين','المستخلصات','صرف المخزون','الإيرادات','التحويلات','الخزن','أرصدة العملاء','كشف عميل','أرصدة الموردين','أصحاب المعدات','كشف صاحب معدة','المخزون','نقلات السولار','الرواتب','قائمة الدخل','المركز المالي','ميزان المراجعة','الفحص','دليل الأكواد'];
     order.forEach((n,i)=>{ if(SH[n]) SH[n].orderNo=i; });
     wb.eachSheet(ws=>{ if(ws.__keepPage) return; ws.pageSetup={orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:ws.name==='الرئيسية'?1:0}; });
     /* شكل برنامج: من غير أرقام الصفوف وحروف الأعمدة ومن غير تابات الإكسيل تحت — التنقل بالزراير */
@@ -11919,16 +11899,42 @@ async function kxBuild(){
     wb.views=[{x:0,y:0,width:28800,height:17000,firstSheet:0,activeTab:0,visibility:'visible',showSheetTabs:false}];
     /* حماية المعادلات (من غير باسورد: مراجعة ← إلغاء حماية الورقة لو احتجت) — خانات التسجيل مفتوحة */
     for(const ws of wb.worksheets){ if(ws.name==='دليل الأكواد') continue;
-        await ws.protect('',{selectLockedCells:true,selectUnlockedCells:true,formatColumns:true,formatRows:true,autoFilter:true,sort:false,insertRows:false,deleteRows:false}); }
+        await ws.protect('',{selectLockedCells:true,selectUnlockedCells:true,formatColumns:true,formatRows:true,autoFilter:true,sort:false,insertRows:false,deleteRows:false,objects:false}); }
     let buf=await wb.xlsx.writeBuffer();
     try{ buf=await kxAddCharts(buf, chartRow, opStart, opEnd, NAVSH, TILES, PRINTDYN); }catch(e){ console.warn('charts', e); }
     return buf;
 }
 /* شريط زراير التنقل فوق كل شيت (أشكال بلينكات، زي تابات البرنامج) — الشاشة الحالية بلون مختلف */
+/* شكل زراير التنقل في الإكسيل */
+const KX_DESIGN='A';
+const KX_ICON={'الرئيسية':'🏠','البونات':'🧾','التحصيلات':'💰','المصروفات':'💸','المشتريات':'🛒','دفعات الموردين':'🤝','المستخلصات':'📑','صرف المخزون':'📤','الإيرادات':'📈','التحويلات':'🔁','الخزن':'🏦','أرصدة العملاء':'👥','كشف عميل':'📋','أرصدة الموردين':'🏭','أصحاب المعدات':'🚜','كشف صاحب معدة':'📋','المخزون':'📦','نقلات السولار':'⛽','الرواتب':'👷','قائمة الدخل':'📊','المركز المالي':'⚖️','ميزان المراجعة':'🧮','الفحص':'✅','دليل الأكواد':'📒'};
+const KX_LAY={A:{bg:'FFFFFF',BW:96,BH:34,GAP:5,lab:0},B:{bg:'EEF1F5',BW:96,BH:28,GAP:5,lab:112},C:{bg:'FFFFFF',BW:96,BH:28,GAP:3,lab:0,line:'D5DDE6'}}[KX_DESIGN];
+const KX_NAVBG=KX_LAY.bg;
+const KX_ROWS=(()=>{ const n=KX_LAY.lab?3:2; return KX_LAY.GAP+n*(KX_LAY.BH+KX_LAY.GAP)+2; })(); /* ارتفاع شريط الزراير بالبكسل */
+const KX_LIGHT={'1F7A4D':'2FA36A','1F4B73':'3474AD','0E7090':'1E93B8'};
+function KX_NAV(col,cur,home){ /*STYLE*/
+    if(KX_DESIGN==='A'){
+        if(cur) return {grad:['FFD166','F2A30F'],fg:'1B1B1B',shadow:30000,adj:20000,icon:1,sz:900};
+        if(home) return {grad:['2A4D72','0B2E4F'],fg:'FFFFFF',shadow:22000,adj:20000,icon:1,sz:900};
+        return {grad:[KX_LIGHT[col]||col,col],fg:'FFFFFF',shadow:22000,adj:20000,icon:1,sz:900}; }
+    if(KX_DESIGN==='B'){
+        if(cur) return {bg:col,fg:'FFFFFF',adj:12000,shadow:20000};
+        if(home) return {bg:'1D2D3E',fg:'FFFFFF',adj:12000};
+        return {bg:'FFFFFF',fg:'1D2D3E',ln:'D3DAE3',adj:12000}; }
+    if(cur) return {bg:KX_LAY.bg,fg:'0A6ED1',bar:'0A6ED1',b:1,sz:1150};
+    if(home) return {bg:KX_LAY.bg,fg:'0B2E4F',b:1,sz:1150};
+    return {bg:KX_LAY.bg,fg:'4A5A6B',b:0,sz:1100}; }
+function kxSpXml(id,name,rid,S,lab,sz){ const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+    const fillx=S.grad?`<a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:srgbClr val="${S.grad[0]}"/></a:gs><a:gs pos="100000"><a:srgbClr val="${S.grad[1]}"/></a:gs></a:gsLst><a:lin ang="5400000" scaled="0"/></a:gradFill>`:`<a:solidFill><a:srgbClr val="${S.bg}"/></a:solidFill>`;
+    const sh0=S.shadow?`<a:effectLst><a:outerShdw blurRad="31750" dist="12700" dir="5400000" algn="t" rotWithShape="0"><a:srgbClr val="000000"><a:alpha val="${S.shadow}"/></a:srgbClr></a:outerShdw></a:effectLst>`:'';
+    const geom=S.adj?`<a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val ${S.adj}"/></a:avLst></a:prstGeom>`:'<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>';
+    return `<xdr:sp macro="" textlink=""><xdr:nvSpPr><xdr:cNvPr id="${id}" name="${name}" descr="${esc(lab)}"><a:hlinkClick r:id="${rid}"/></xdr:cNvPr><xdr:cNvSpPr><a:spLocks noMove="1" noResize="1" noRot="1" noTextEdit="1" noChangeShapeType="1"/></xdr:cNvSpPr></xdr:nvSpPr><xdr:spPr>${geom}${fillx}<a:ln w="9525">${S.ln?`<a:solidFill><a:srgbClr val="${S.ln}"/></a:solidFill>`:'<a:noFill/>'}</a:ln>${sh0}</xdr:spPr><xdr:txBody><a:bodyPr wrap="none" lIns="0" tIns="0" rIns="0" bIns="0" anchor="ctr" rtlCol="1"/><a:lstStyle/><a:p><a:pPr algn="ctr" rtl="1"/>${S.icon&&KX_ICON[S.icon]?`<a:r><a:rPr lang="en-US" sz="${sz||S.sz||1000}"><a:latin typeface="Segoe UI Emoji"/><a:ea typeface="Segoe UI Emoji"/><a:cs typeface="Segoe UI Emoji"/><a:sym typeface="Segoe UI Emoji"/></a:rPr><a:t>${KX_ICON[S.icon]}</a:t></a:r><a:r><a:rPr lang="ar-EG" sz="${sz||S.sz||1000}"><a:latin typeface="Arial"/><a:cs typeface="Arial"/></a:rPr><a:t> </a:t></a:r>`:''}<a:r><a:rPr lang="ar-EG" sz="${sz||S.sz||1000}" b="${S.b===0?0:1}"><a:solidFill><a:srgbClr val="${S.fg}"/></a:solidFill><a:latin typeface="Arial"/><a:cs typeface="Arial"/></a:rPr><a:t>${esc(lab)}</a:t></a:r></a:p></xdr:txBody></xdr:sp>`; }
 async function kxAddNav(z,wbx,rels,NAVSH){
-    const G1=[['الرئيسية','⌂ الرئيسية'],['البونات','البونات'],['التحصيلات','التحصيلات'],['المصروفات','المصروفات'],['المشتريات','المشتريات'],['دفعات الموردين','دفعات موردين'],['المستخلصات','المستخلصات'],['صرف المخزون','صرف المخزون'],['الإيرادات','الإيرادات'],['التحويلات','التحويلات']];
-    const G2=[['الخزن','الخزن'],['أرصدة العملاء','العملاء'],['كشف عميل','كشف عميل'],['أرصدة الموردين','الموردين'],['أصحاب المعدات','المعدات'],['كشف صاحب معدة','كشف معدة'],['المخزون','المخزون'],['نقلات السولار','نقلات السولار'],['الرواتب','الرواتب'],['قائمة الدخل','قائمة الدخل'],['المركز المالي','المركز المالي'],['ميزان المراجعة','الميزان'],['الفحص','الفحص'],['دليل الأكواد','الأكواد']];
-    const PX=9525, BW=98*PX, BH=24*PX, GAP=4*PX, esc=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+    const G1=[['الرئيسية','الرئيسية'],['البونات','البونات'],['التحصيلات','التحصيلات'],['المصروفات','المصروفات'],['المشتريات','المشتريات'],['دفعات الموردين','دفعات موردين'],['المستخلصات','المستخلصات'],['صرف المخزون','صرف المخزون'],['الإيرادات','الإيرادات'],['التحويلات','التحويلات']];
+    const G2a=[['الخزن','الخزن'],['أرصدة العملاء','العملاء'],['كشف عميل','كشف عميل'],['أرصدة الموردين','الموردين'],['أصحاب المعدات','المعدات'],['كشف صاحب معدة','كشف معدة'],['المخزون','المخزون'],['نقلات السولار','نقلات السولار'],['الرواتب','الرواتب']];
+    const G2b=[['قائمة الدخل','قائمة الدخل'],['المركز المالي','المركز المالي'],['ميزان المراجعة','الميزان'],['الفحص','الفحص'],['دليل الأكواد','الأكواد']];
+    const ROWS=KX_LAY.lab?[['التسجيل','1F7A4D',G1.slice(1)],['الحسابات','1F4B73',G2a],['التقارير','0E7090',[...G2b,G1[0]]]]:[[null,'1F7A4D',G1],[null,'1F4B73',[...G2a,...G2b]]];
+    const PX=9525, BW=KX_LAY.BW*PX, BH=KX_LAY.BH*PX, GAP=KX_LAY.GAP*PX, LW=KX_LAY.lab*PX, esc=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
     let ctx=await z.file('[Content_Types].xml').async('string'); let k=0;
     for(const [name,h1] of Object.entries(NAVSH)){
         const sm=wbx.match(new RegExp('<sheet [^>]*name="'+name+'"[^>]*r:id="([^"]+)"')); if(!sm) continue;
@@ -11936,9 +11942,13 @@ async function kxAddNav(z,wbx,rels,NAVSH){
         const sheetPath='xl/'+tm[1].replace(/^\/?xl\//,'').replace(/^\//,''), sheetFile=sheetPath.split('/').pop(), relPath='xl/worksheets/_rels/'+sheetFile+'.rels';
         let sx=await z.file(sheetPath).async('string'); if(/<drawing /.test(sx)) continue; k++;
         const y0=Math.round(h1*12700), shapes=[], hrel=[]; let id=2;
-        [[G1,'1F7A4D',3],[G2,'1F4B73',31]].forEach(([G,col,dy])=>G.forEach(([sh,lab],i)=>{ const cur=sh===name, rid='rIdN'+id, home=sh==='الرئيسية', bg=cur?'F5B301':(home?'0B2E4F':col), fg=cur?'1B1B1B':'FFFFFF', ln=cur?'7A5A00':null;
-            hrel.push(`<Relationship Id="${rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="#'${esc(sh)}'!A1"/>`);
-            shapes.push(`<xdr:absoluteAnchor><xdr:pos x="${4*PX+i*(BW+GAP)}" y="${y0+dy*PX}"/><xdr:ext cx="${BW}" cy="${BH}"/><xdr:sp macro="" textlink=""><xdr:nvSpPr><xdr:cNvPr id="${id}" name="nav${id}" descr="${esc(lab)}"><a:hlinkClick r:id="${rid}"/></xdr:cNvPr><xdr:cNvSpPr/></xdr:nvSpPr><xdr:spPr><a:prstGeom prst="roundRect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="${bg}"/></a:solidFill><a:ln w="9525">${ln?`<a:solidFill><a:srgbClr val="${ln}"/></a:solidFill>`:'<a:noFill/>'}</a:ln></xdr:spPr><xdr:txBody><a:bodyPr wrap="none" lIns="0" tIns="0" rIns="0" bIns="0" anchor="ctr" rtlCol="1"/><a:lstStyle/><a:p><a:pPr algn="ctr" rtl="1"/><a:r><a:rPr lang="ar-EG" sz="1000" b="1"><a:solidFill><a:srgbClr val="${fg}"/></a:solidFill><a:latin typeface="Arial"/><a:cs typeface="Arial"/></a:rPr><a:t>${esc(lab)}</a:t></a:r></a:p></xdr:txBody></xdr:sp><xdr:clientData fPrintsWithSheet="0"/></xdr:absoluteAnchor>`); id++; }));
+        const abs=(x,y,w,h,inner)=>`<xdr:absoluteAnchor><xdr:pos x="${x}" y="${y}"/><xdr:ext cx="${w}" cy="${h}"/>${inner}<xdr:clientData fPrintsWithSheet="0"/></xdr:absoluteAnchor>`;
+        ROWS.forEach(([glab,col,G],ri)=>{ const y=y0+GAP+ri*(BH+GAP); let x0=8*PX;
+            if(glab){ shapes.push(abs(x0,y,LW,BH,`<xdr:sp macro="" textlink=""><xdr:nvSpPr><xdr:cNvPr id="${id}" name="grp${id}"/><xdr:cNvSpPr><a:spLocks noMove="1" noResize="1" noSelect="1" noTextEdit="1"/></xdr:cNvSpPr></xdr:nvSpPr><xdr:spPr><a:prstGeom prst="homePlate"><a:avLst><a:gd name="adj" fmla="val 30000"/></a:avLst></a:prstGeom><a:solidFill><a:srgbClr val="${col}"/></a:solidFill><a:ln><a:noFill/></a:ln></xdr:spPr><xdr:txBody><a:bodyPr wrap="none" lIns="0" tIns="0" rIns="0" bIns="0" anchor="ctr" rtlCol="1"/><a:lstStyle/><a:p><a:pPr algn="ctr" rtl="1"/><a:r><a:rPr lang="ar-EG" sz="1100" b="1"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:latin typeface="Arial"/><a:cs typeface="Arial"/></a:rPr><a:t>${esc(glab)}</a:t></a:r></a:p></xdr:txBody></xdr:sp>`)); id++; x0+=LW+GAP*2; }
+            G.forEach(([sh,lab],i)=>{ const cur=sh===name, rid='rIdN'+id, home=sh==='الرئيسية', S=KX_NAV(col,cur,home), x=x0+i*(BW+GAP);
+                hrel.push(`<Relationship Id="${rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="#'${esc(sh)}'!A1"/>`);
+                shapes.push(abs(x,y,BW,BH,kxSpXml(id,'nav'+id,rid,S.icon?Object.assign({},S,{icon:sh}):S,lab))); id++;
+                if(S.bar){ shapes.push(abs(x+10*PX,y+BH-3*PX,BW-20*PX,3*PX,`<xdr:sp macro="" textlink=""><xdr:nvSpPr><xdr:cNvPr id="${id}" name="navbar${id}"><a:hlinkClick r:id="${rid}"/></xdr:cNvPr><xdr:cNvSpPr><a:spLocks noMove="1" noResize="1" noRot="1" noTextEdit="1"/></xdr:cNvSpPr></xdr:nvSpPr><xdr:spPr><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="${S.bar}"/></a:solidFill><a:ln><a:noFill/></a:ln></xdr:spPr></xdr:sp>`)); id++; } }); });
         const dp=`xl/drawings/kxnav${k}.xml`;
         z.file(dp,`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${shapes.join('')}</xdr:wsDr>`);
         z.file(`xl/drawings/_rels/kxnav${k}.xml.rels`,`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${hrel.join('')}</Relationships>`);
@@ -11963,38 +11973,21 @@ async function kxAddCharts(buf, chartRow, opStart, opEnd, NAVSH, TILES, PRINTDYN
         Object.entries(PRINTDYN||{}).forEach(([n,[lc,ys,cnt]])=>{ const i=names.indexOf(n); if(i<0) return; w2=w2.replace(new RegExp('<definedName name="_xlnm.Print_Area" localSheetId="'+i+'"[^>]*>[^<]*</definedName>'),'');
             add.push(`<definedName name="_xlnm.Print_Area" localSheetId="${i}">'${n}'!$A$1:INDEX('${n}'!$${lc}:$${lc},${ys}+MAX(1,${cnt(n)}))</definedName>`); });
         if(add.length){ w2=/<definedNames>/.test(w2)?w2.replace('</definedNames>',add.join('')+'</definedNames>'):w2.replace('</sheets>','</sheets><definedNames>'+add.join('')+'</definedNames>'); z.file('xl/workbook.xml',w2); } }catch(e){ console.warn('print area',e); }
-    const sm=wbx.match(/<sheet [^>]*name="الرئيسية"[^>]*r:id="([^"]+)"/)||wbx.match(/<sheet [^>]*r:id="([^"]+)"[^>]*name="الرئيسية"/); if(!sm) return buf;
-    const tm=rels.match(new RegExp('<Relationship [^>]*Id="'+sm[1]+'"[^>]*Target="([^"]+)"'))||rels.match(new RegExp('<Relationship [^>]*Target="([^"]+)"[^>]*Id="'+sm[1]+'"')); if(!tm) return buf;
-    const sheetPath='xl/'+tm[1].replace(/^\/?xl\//,'').replace(/^\//,''), sheetFile=sheetPath.split('/').pop(), relPath='xl/worksheets/_rels/'+sheetFile+'.rels';
-    const NS='xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
-    const title=t=>`<c:title><c:tx><c:rich><a:bodyPr/><a:p><a:pPr><a:defRPr sz="1400" b="1"/></a:pPr><a:r><a:rPr lang="ar-EG" sz="1400" b="1"/><a:t>${t}</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title>`;
-    const sp=c=>`<c:spPr><a:solidFill><a:srgbClr val="${c}"/></a:solidFill></c:spPr>`;
-    const ser=(i,tx,cat,val,c)=>`<c:ser><c:idx val="${i}"/><c:order val="${i}"/>${tx?`<c:tx><c:strRef><c:f>${tx}</c:f></c:strRef></c:tx>`:''}${c?sp(c):''}<c:invertIfNegative val="0"/><c:cat><c:strRef><c:f>${cat}</c:f></c:strRef></c:cat><c:val><c:numRef><c:f>${val}</c:f></c:numRef></c:val></c:ser>`;
-    const axes=`<c:catAx><c:axId val="10"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="b"/><c:numFmt formatCode="General" sourceLinked="1"/><c:tickLblPos val="nextTo"/><c:crossAx val="100"/><c:crosses val="autoZero"/><c:auto val="1"/><c:lblAlgn val="ctr"/><c:lblOffset val="100"/></c:catAx><c:valAx><c:axId val="100"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="l"/><c:numFmt formatCode="#,##0" sourceLinked="0"/><c:tickLblPos val="nextTo"/><c:crossAx val="10"/><c:crosses val="autoZero"/><c:crossBetween val="between"/></c:valAx>`;
-    const D="'بيانات الرسوم'!";
-    const ch1=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><c:chartSpace ${NS}><c:chart>${title('المبيعات والتحصيلات والمصروفات بالشهر')}<c:autoTitleDeleted val="0"/><c:plotArea><c:barChart><c:barDir val="col"/><c:grouping val="clustered"/><c:varyColors val="0"/>${ser(0,D+'$B$4',D+'$A$5:$A$13',D+'$B$5:$B$13','1F7A4D')}${ser(1,D+'$C$4',D+'$A$5:$A$13',D+'$C$5:$C$13','1F4B73')}${ser(2,D+'$D$4',D+'$A$5:$A$13',D+'$D$5:$D$13','B42318')}<c:gapWidth val="80"/><c:axId val="10"/><c:axId val="100"/></c:barChart>${axes}</c:plotArea><c:legend><c:legendPos val="b"/><c:overlay val="0"/></c:legend><c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart></c:chartSpace>`;
-    const ch2=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><c:chartSpace ${NS}><c:chart>${title('المصروفات التشغيلية حسب البند')}<c:autoTitleDeleted val="0"/><c:plotArea><c:pieChart><c:varyColors val="1"/><c:ser><c:idx val="0"/><c:order val="0"/><c:dLbls><c:showLegendKey val="0"/><c:showVal val="0"/><c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="1"/><c:showBubbleSize val="0"/><c:showLeaderLines val="0"/></c:dLbls><c:cat><c:strRef><c:f>'قائمة الدخل'!$B$${opStart}:$B$${opEnd}</c:f></c:strRef></c:cat><c:val><c:numRef><c:f>'قائمة الدخل'!$E$${opStart}:$E$${opEnd}</c:f></c:numRef></c:val></c:ser><c:firstSliceAng val="0"/></c:pieChart></c:plotArea><c:legend><c:legendPos val="r"/><c:overlay val="0"/></c:legend><c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart></c:chartSpace>`;
-    const ch4=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><c:chartSpace ${NS}><c:chart>${title('المبيعات والتحصيلات — آخر 10 أسابيع')}<c:autoTitleDeleted val="0"/><c:plotArea><c:lineChart><c:grouping val="standard"/><c:varyColors val="0"/>${[['$J','1F7A4D',0],['$K','1F4B73',1]].map(([c,col,i])=>`<c:ser><c:idx val="${i}"/><c:order val="${i}"/><c:tx><c:strRef><c:f>${D+c}$4</c:f></c:strRef></c:tx><c:spPr><a:ln w="34925"><a:solidFill><a:srgbClr val="${col}"/></a:solidFill></a:ln></c:spPr><c:marker><c:symbol val="circle"/><c:size val="6"/><c:spPr><a:solidFill><a:srgbClr val="${col}"/></a:solidFill></c:spPr></c:marker><c:cat><c:strRef><c:f>${D}$I$5:$I$14</c:f></c:strRef></c:cat><c:val><c:numRef><c:f>${D+c}$5:${c}$14</c:f></c:numRef></c:val><c:smooth val="0"/></c:ser>`).join('')}<c:marker val="1"/><c:axId val="10"/><c:axId val="100"/></c:lineChart>${axes}</c:plotArea><c:legend><c:legendPos val="b"/><c:overlay val="0"/></c:legend><c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart></c:chartSpace>`;
-    const ch3=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><c:chartSpace ${NS}><c:chart>${title('أكبر 10 عملاء عليهم فلوس')}<c:autoTitleDeleted val="0"/><c:plotArea><c:barChart><c:barDir val="bar"/><c:grouping val="clustered"/><c:varyColors val="0"/>${ser(0,null,D+'$F$5:$F$14',D+'$G$5:$G$14','B54708')}<c:gapWidth val="60"/><c:axId val="10"/><c:axId val="100"/></c:barChart>${axes}</c:plotArea><c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart></c:chartSpace>`;
-    const anchor=(id,col,row,cx,cy)=>`<xdr:oneCellAnchor><xdr:from><xdr:col>${col}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${row}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:ext cx="${cx}" cy="${cy}"/><xdr:graphicFrame macro=""><xdr:nvGraphicFramePr><xdr:cNvPr id="${id+1}" name="Chart ${id}"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr><xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart r:id="rIdC${id}"/></a:graphicData></a:graphic></xdr:graphicFrame><xdr:clientData/></xdr:oneCellAnchor>`;
-    const PX=9525, esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); let tid=20; const trel=[], tiles=(TILES||[]).map((t,i)=>{ const rid='rIdT'+i; trel.push(`<Relationship Id="${rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="#'${esc(t.s)}'!A1"/>`);
-        const box=(id,off,cx,fillc,line,txt)=>`<xdr:absoluteAnchor><xdr:pos x="${(t.x+off)*PX}" y="${t.y*PX}"/><xdr:ext cx="${cx}" cy="${56*PX}"/><xdr:sp macro="" textlink=""><xdr:nvSpPr><xdr:cNvPr id="${id}" name="tile${id}"><a:hlinkClick r:id="${rid}"/></xdr:cNvPr><xdr:cNvSpPr/></xdr:nvSpPr><xdr:spPr><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="${fillc}"/></a:solidFill>${line?`<a:ln w="9525"><a:solidFill><a:srgbClr val="${line}"/></a:solidFill></a:ln>`:'<a:ln><a:noFill/></a:ln>'}<a:effectLst><a:outerShdw blurRad="38100" dist="12700" dir="5400000" algn="t" rotWithShape="0"><a:srgbClr val="000000"><a:alpha val="18000"/></a:srgbClr></a:outerShdw></a:effectLst></xdr:spPr>${txt||'<xdr:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="ar-EG"/></a:p></xdr:txBody>'}</xdr:sp><xdr:clientData/></xdr:absoluteAnchor>`;
-        const txt=`<xdr:txBody><a:bodyPr wrap="square" lIns="${10*PX}" rIns="${16*PX}" tIns="0" bIns="0" anchor="ctr" rtlCol="1"/><a:lstStyle/><a:p><a:pPr algn="r" rtl="1"/><a:r><a:rPr lang="ar-EG" sz="1300" b="1"><a:solidFill><a:srgbClr val="1B2B3D"/></a:solidFill><a:latin typeface="Arial"/><a:cs typeface="Arial"/></a:rPr><a:t>${esc(t.lab)}</a:t></a:r></a:p><a:p><a:pPr algn="r" rtl="1"/><a:r><a:rPr lang="ar-EG" sz="900"><a:solidFill><a:srgbClr val="6B7A8C"/></a:solidFill><a:latin typeface="Arial"/><a:cs typeface="Arial"/></a:rPr><a:t>${esc(t.desc)}</a:t></a:r></a:p></xdr:txBody>`;
-        return box(tid++,0,t.w*PX,'FFFFFF','D5DEE8',txt)+box(tid++,0,7*PX,t.col,null,null); }).join('');
-    const drawing=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" ${NS}>${tiles}${anchor(1,0,chartRow,6840000,3240000)}${anchor(2,9,chartRow,5400000,3240000)}${anchor(3,0,chartRow+19,6840000,3600000)}${anchor(4,9,chartRow+19,5400000,3600000)}</xdr:wsDr>`;
-    const drels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${[1,2,3,4].map(i=>`<Relationship Id="rIdC${i}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="../charts/kxchart${i}.xml"/>`).join('')}${trel.join('')}</Relationships>`;
-    z.file('xl/charts/kxchart1.xml',ch1); z.file('xl/charts/kxchart2.xml',ch2); z.file('xl/charts/kxchart3.xml',ch3); z.file('xl/charts/kxchart4.xml',ch4);
-    z.file('xl/drawings/kxdrawing1.xml',drawing); z.file('xl/drawings/_rels/kxdrawing1.xml.rels',drels);
-    let srel=z.file(relPath)?await z.file(relPath).async('string'):'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>';
-    srel=srel.replace('</Relationships>','<Relationship Id="rIdKxD" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/kxdrawing1.xml"/></Relationships>'); z.file(relPath,srel);
-    let sx=await z.file(sheetPath).async('string');
-    if(!/xmlns:r=/.test(sx.slice(0,600))) sx=sx.replace('<worksheet ','<worksheet xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" ');
-    const tag='<drawing r:id="rIdKxD"/>';
-    if(/<legacyDrawing|<tableParts|<extLst/.test(sx)) sx=sx.replace(/(<legacyDrawing|<tableParts|<extLst)/,tag+'$1'); else sx=sx.replace('</worksheet>',tag+'</worksheet>');
-    z.file(sheetPath,sx);
-    let ctx=await z.file('[Content_Types].xml').async('string');
-    ctx=ctx.replace('</Types>',[1,2,3,4].map(i=>`<Override PartName="/xl/charts/kxchart${i}.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>`).join('')+'<Override PartName="/xl/drawings/kxdrawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/></Types>');
-    z.file('[Content_Types].xml',ctx);
+    /* الرسومات اتشالت بطلب محمد 2026-11-25 — الملف جداول وزراير بس. زراير الرئيسية أشكال بنفس شكل شريط التنقل */
+    try{ const sm=wbx.match(/<sheet [^>]*name="الرئيسية"[^>]*r:id="([^"]+)"/)||wbx.match(/<sheet [^>]*r:id="([^"]+)"[^>]*name="الرئيسية"/);
+        const tm=sm&&(rels.match(new RegExp('<Relationship [^>]*Id="'+sm[1]+'"[^>]*Target="([^"]+)"'))||rels.match(new RegExp('<Relationship [^>]*Target="([^"]+)"[^>]*Id="'+sm[1]+'"')));
+        if(tm&&(TILES||[]).length){ const sheetPath='xl/'+tm[1].replace(/^\/?xl\//,'').replace(/^\//,''), relPath='xl/worksheets/_rels/'+sheetPath.split('/').pop()+'.rels';
+            const PX=9525, esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); const hrel=[];
+            const shapes=TILES.map((t,i)=>{ const rid='rIdH'+i, S=Object.assign({},KX_NAV(t.col,false,false)); if(KX_DESIGN==='C'){ S.bg='FFFFFF'; S.ln='D5DDE6'; S.fg='1D2D3E'; S.adj=18000; S.b=1; S.bar=null; }
+                hrel.push(`<Relationship Id="${rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="#'${esc(t.s)}'!A1"/>`);
+                return `<xdr:twoCellAnchor editAs="absolute"><xdr:from><xdr:col>${t.c-1}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${t.r-1}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>${t.c+2}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${t.r+1}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>${kxSpXml(i+2,'home'+i,rid,S.icon?Object.assign(S,{icon:t.s}):S,t.lab,1400)}<xdr:clientData/></xdr:twoCellAnchor>`; }).join('');
+            z.file('xl/drawings/kxhome.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${shapes}</xdr:wsDr>`);
+            z.file('xl/drawings/_rels/kxhome.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${hrel.join('')}</Relationships>`);
+            let srel=z.file(relPath)?await z.file(relPath).async('string'):'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>';
+            z.file(relPath,srel.replace('</Relationships>','<Relationship Id="rIdKxH" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/kxhome.xml"/></Relationships>'));
+            let sx=await z.file(sheetPath).async('string'); if(!/xmlns:r=/.test(sx.slice(0,600))) sx=sx.replace('<worksheet ','<worksheet xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" ');
+            const tag='<drawing r:id="rIdKxH"/>'; sx=/<legacyDrawing|<tableParts|<extLst/.test(sx)?sx.replace(/(<legacyDrawing|<tableParts|<extLst)/,tag+'$1'):sx.replace('</worksheet>',tag+'</worksheet>'); z.file(sheetPath,sx);
+            let ctx=await z.file('[Content_Types].xml').async('string'); z.file('[Content_Types].xml',ctx.replace('</Types>','<Override PartName="/xl/drawings/kxhome.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/></Types>')); } }catch(e){ console.warn('home btns',e); }
     return await z.generateAsync({type:'uint8array',compression:'DEFLATE'});
 }
 
