@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1205</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1206</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5877,13 +5877,18 @@ function computePL(projectFilter, dateFrom, dateTo){
     const dayBefore = dateFrom ? new Date(new Date(dateFrom+'T00:00:00').getTime()-86400000).toISOString().slice(0,10) : null;
     const openStock = dateFrom ? stockValueAt(dayBefore) : 0;
     const closeStock = stockValueAt(dateTo || '');
+    /* سيارة المياه سطر لوحده في قائمة الدخل (محمد 2026-11-25): فواتير مورد المياه (الرصيد الافتتاحي + أي شراء منه) بتطلع من سطور المشتريات وتتجمع مع مصروف «سيارة المياه» — صافي الربح زي ما هو */
+    const _isWater = n => /مياه|المية|الميه/.test(n||'');
+    const waterSup = (db.suppliers||[]).filter(x=>_isWater(x.name) && x.openDate && matchDate({date:x.openDate})).reduce((a,x)=>a+(Number(x.openTotal)||0),0)
+        + db.procurements.filter(p=>_isWater(p.supplier) && match(p)).reduce((s,p)=>s+(p.ret?-1:1)*(p.qty*p.price),0);
     const directLines = [];
     if(openStock) directLines.push({ num:num(), label:'مخزون أول المدة', value:Math.round(openStock*100)/100 });
     { const retCost=db.procurements.filter(p=>p.ret && match(p)).reduce((s,p)=>s+(p.qty*p.price),0); /* مرتجع مشتريات سطر لوحده (بالسالب) — نفس المجموع */
-      directLines.push({ num:num(), label:'مشتريات سولار وأصناف', value:materialsCost-retCost });
+      const waterProc=db.procurements.filter(p=>_isWater(p.supplier) && match(p)).reduce((s,p)=>s+(p.ret?-1:1)*(p.qty*p.price),0);
+      directLines.push({ num:num(), label:'مشتريات سولار وأصناف', value:materialsCost-retCost-waterProc });
       if(retCost) directLines.push({ num:num(), label:'ناقص: مرتجع مشتريات', value:retCost }); }
     /* الفواتير القديمة من الرصيد الافتتاحي بتتحسب مشتريات في قائمة الدخل (محمد 2026-11-10: «اعتبرها مشتريات جديدة») */
-    { const oldInv=(db.suppliers||[]).filter(x=>x.openDate && matchDate({date:x.openDate})).reduce((a,x)=>a+(Number(x.openTotal)||0),0);
+    { const oldInv=(db.suppliers||[]).filter(x=>x.openDate && matchDate({date:x.openDate}) && !_isWater(x.name)).reduce((a,x)=>a+(Number(x.openTotal)||0),0);
       if(oldInv) directLines.push({ num:num(), label:'فواتير موردي قطع الغيار والسولار القديمة (رصيد افتتاحي)', value:oldInv });
       const oldCtr=(db.contractors||[]).filter(x=>x.openDate && matchDate({date:x.openDate})).reduce((a,x)=>a+(Number(x.openTotal)||0),0);
       if(oldCtr) directLines.push({ num:num(), label:'شغل أصحاب المعدات القديم (رصيد افتتاحي)', value:oldCtr }); }
@@ -5901,7 +5906,8 @@ function computePL(projectFilter, dateFrom, dateTo){
 
     // المصروفات التشغيلية والعمومية (كل تبويب مصنّف "تشغيلي" كسطر مستقل)
     const operatingLines = Object.entries(catGroups).filter(([,v])=>v.plType==='operating')
-        .map(([k,v])=>({ num:num(), label:k, value:v.total }));
+        .map(([k,v])=>({ num:num(), label:k, value:v.total + (_isWater(k) ? waterSup : 0) }));
+    if(waterSup && !Object.entries(catGroups).some(([k,v])=>v.plType==='operating' && _isWater(k))) operatingLines.push({ num:num(), label:'سيارة المياه', value:waterSup });
     /* مرتب عماد ناجي القديم (رصيد افتتاحي من التكويد) — القديم كله يعتبر جديد (محمد 2026-11-10) */
     /* كل موظف سطر لوحده، وعماد ناجي اسمه «عمولة عماد ناجي» (محمد 2026-11-11) */
     try{ (db.names||[]).filter(x=>x.openDate && matchDate({date:x.openDate}) && (Number(x.openTotal)||0)).forEach(x=>operatingLines.push({ num:num(), label: x.name===COM_PERSON ? 'عمولة عماد ناجي' : /مجد[يى]/.test(x.name) ? 'مجدي عبد الغني الميكانيكي' : 'مرتب '+x.name, value:Number(x.openTotal)||0 })); }catch(e){}
