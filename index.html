@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1213</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1214</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5139,6 +5139,8 @@ function fixDupOps(){ if(db.dupOps1) return; const main=(db.expenses||[]).find(e
 function isWageCat(c){ if(c && c.code===4012) return false; /* «مصروف أجور ومرتبات» بند مصروف عادي بالإجمالي (محمد 2026-11-11) */ return !!c && (c.nameType==='names' || /أجور|اجور|عمالة|مرتب|رواتب|سلف موظفين/.test(c.name)); }
 /* بنود اتدمجت في بند تاني (محمد 2026-11-25: «الإعاشة جوه مصروف الكسارة» في التسجيل وقائمة الدخل) — عرض بس، الحركات القديمة زي ما هي */
 const EXP_MERGE={'مصروف إعاشة':'تشغيل الكسارة (سولار وصيانة)'};
+/* اسم بند تشغيل الكسارة زي ما محمد كاتبه في دليل الأكواد (كود 4001) — قائمة الدخل بتكتبه بالاسم ده (محمد 2026-11-25) */
+function crusherCatName(){ const c=(db.expenses||[]).find(e=>Number(e.code)===4001) || (db.expenses||[]).find(e=>/^\s*تشغيل\s+الكسار[ةه]/.test(e.name||'')); return (c&&c.name) || 'تشغيل الكسارة (سولار وصيانة)'; }
 function expTypes(){ try{ fixDupOps(); }catch(e){} return (db.expenses||[]).filter(c=>c.name!=='إيراد' && c.name!==COM_CAT && !isWageCat(c) && !EXP_MERGE[c.name]).sort((x,y)=>x.code-y.code); }
 function renderExpQuick(){
     const box=document.getElementById('exp-quick'); if(!box) return;
@@ -5882,9 +5884,9 @@ function computePL(projectFilter, dateFrom, dateTo){
         if(x.category==='إيراد' && x.saleId) return; // قيمة الفاتورة محسوبة من البون/الفاتورة نفسها
         /* تسوية حساب عميل «بدون خصم» (محمد 2026-11-13): مش بتنزل في خصومات العملاء — بتتقفل في بند إيرادات الفترة قبل 11/11 (تحصيلاتهم كانت جواه) */
         if(x.category==='إيراد' && x.noDisc){ settleNoDisc += Number(x.total)||0; return; }
-        let gk = (typeof EXP_MERGE!=='undefined' && EXP_MERGE[x.category]) || x.category; /* الإعاشة بتتجمع جوه تشغيل الكسارة */
+        let gk = (typeof EXP_MERGE!=='undefined' && EXP_MERGE[x.category]) ? crusherCatName() : x.category; /* الإعاشة بتتجمع جوه تشغيل الكسارة */
         /* أي بند اسمه بيبدأ بـ«تشغيل الكسارة» (حتى لو مكتوب بمسافة زيادة أو من غير القوس) سطر واحد — محمد 2026-11-25 «تشغيل الكسارة سطرين ليه؟» */
-        if(/^\s*تشغيل\s+الكسار[ةه]/.test(String(gk||''))) gk='تشغيل الكسارة (سولار وصيانة)';
+        if(/^\s*تشغيل\s+الكسار[ةه]/.test(String(gk||''))) gk=crusherCatName();
         const gDef = gk===x.category ? catDef : (db.expenses.find(c=>c.name===gk) || catDef);
         const plType = gDef ? gDef.plType : 'operating';
         const plBucket = gDef ? gDef.plBucket : 'other_operating';
@@ -5957,7 +5959,7 @@ function computePL(projectFilter, dateFrom, dateTo){
     /* تسويات الخزن بالسالب (إيرادات أخرى بالسالب بعد 11/11، زي تسوية الدرج −875/−1,170) بتتحسب جوه «تشغيل الكسارة» مش في إيرادات أخرى — محمد 2026-11-25 «حطه في تشغيل الكسارة». الربح زي ما هو */
     const _negIncToOps = x => (Number(x.amount)||0)<0 && (x.date||'')>INC_OLD_CUT && (x.type||'إيرادات أخرى')==='إيرادات أخرى';
     const negIncOps = -(db.incomes||[]).filter(x=>matchDate(x) && _negIncToOps(x)).reduce((a,x)=>a+(Number(x.amount)||0),0);
-    if(negIncOps){ const ck='تشغيل الكسارة (سولار وصيانة)'; if(!catGroups[ck]) catGroups[ck]={plType:'operating', plBucket:'other_operating', total:0}; catGroups[ck].total += negIncOps; }
+    if(negIncOps){ const ck=crusherCatName(); if(!catGroups[ck]) catGroups[ck]={plType:'operating', plBucket:'other_operating', total:0}; catGroups[ck].total += negIncOps; }
     const operatingLines = Object.entries(catGroups).filter(([,v])=>v.plType==='operating')
         .map(([k,v])=>({ num:num(), label:k, value:v.total + (_isWater(k) ? waterSup : 0) }));
     if(waterSup && !Object.entries(catGroups).some(([k,v])=>v.plType==='operating' && _isWater(k))) operatingLines.push({ num:num(), label:'سيارة المياه', value:waterSup });
