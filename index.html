@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1229</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1230</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3990,6 +3990,8 @@ window.onload = async function(){
     { const t=setInterval(()=>{ if(db && db.imports && db.imports.mech1125){ clearInterval(t); return; } try{ addMechCat1125Once(); }catch(e){} }, 15000); }
     try{ await moveMagdyAdv1125Once(); }catch(e){ console.warn('mechmove1125', e); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.mechmove1125){ clearInterval(t); return; } try{ await moveMagdyAdv1125Once(); }catch(e){} }, 15000); }
+    try{ await fixMagdyOpen1125Once(); }catch(e){ console.warn('mechopen1125', e); }
+    { const t=setInterval(async()=>{ if(db && db.imports && db.imports.mechopen1125){ clearInterval(t); return; } try{ await fixMagdyOpen1125Once(); }catch(e){} }, 15000); }
     try{ await drawerToBank1123Once(); }catch(e){ console.warn('drj1123', e); }
     try{ await fixMagdyName1122Once(); }catch(e){ console.warn('magdy1122', e); }
     try{ await addMagdy50k1122Once(); }catch(e){ console.warn('magdy50k', e); }
@@ -5334,15 +5336,23 @@ function mechMonthRows(name){ const c=mechCat(); if(!c) return [];
     const first=mechPeriodOf(mechPeriodEnd()), lastD=[todayISO(), ds[ds.length-1]||''].sort().pop(); let P=ds[0] && ds[0]<first.from ? mechPeriodOf(ds[0]) : first; const R=[];
     for(let i=0;i<60 && P.from<=lastD;i++){ const due=(c.firstDue && P.to===mechPeriodEnd() ? Number(c.firstDue.due)||0 : mechMonthly()), paid=mechPaidBetween(name,P.from,P.to); R.push({from:P.from, to:P.to, due, paid, rem:due-paid}); P=mechPeriodOf(addDays(P.to,1)); }
     return R; }
+/* المستحق كله مصروف (محمد 2026-11-25 «اه»): قائمة الدخل = المدفوع في الحساب القديم + الرصيد السابق 72,690 + مستحق كل شهر اتقفل؛ الدفعات بتسدد «مستحق لمجدي» في المركز المالي */
+function mechAccrualOn(){ const C=mechCat(); return !!(C && C.openBal!=null && db.imports && db.imports.mechmove1125); }
+function mechPerson(){ return (db.names||[]).find(x=>/^مجدي [عغ]بد الغني$/.test(String(x.name||'').trim())) || null; }
+function mechAccrued(from, to){ const C=mechCat(), n=mechPerson(); if(!C) return 0; const T=[to||'9999-12-31', todayISO()].sort()[0]; let v=0;
+    const od=C.openDate||(n&&n.openDate)||''; if(od && (!from||od>=from) && od<=T) v+=(Number(n&&n.openPaid)||0)+(Number(C.openBal)||0)+(Number(C.priorWork)||0);
+    mechMonthRows(MECH_PERSON).forEach(r=>{ if(r.to<=T && (!from||r.to>=from) && r.to<todayISO()) v+=r.due; }); return v; }
+function mechLiability(D){ const C=mechCat(), n=mechPerson(); if(!C) return 0; const od=C.openDate||''; if(od && D && od>D) return 0;
+    const due=mechAccrued('', D) - (Number(n&&n.openPaid)||0); const paid=(db.expensesData||[]).filter(x=>x && x.category===C.name && (!D||(x.date||'')<=D)).reduce((a,x)=>a+(Number(x.paid)||0),0); return due-paid; }
 /* كل شهر بيتقفل والباقي (له أو عليه) بيترحّل للشهر اللي بعده (محمد 2026-11-25 «كل شهر بقفل معاه ونرحّل») — عرض بس */
-function mechSummaryHtml(name){ const R=mechMonthRows(name), C=mechCat()||{}; let carry=Number(C.openBal)||0; const today=todayISO();
+function mechSummaryHtml(name){ const R=mechMonthRows(name), C=mechCat()||{}; let carry=(Number(C.openBal)||0)+(Number(C.priorWork)||0); const today=todayISO();
     R.forEach(r=>{ r.prev=carry; r.bal=carry+r.due-r.paid; r.closed=r.to<today; carry=r.bal; });
     const B='border:1px solid #cbd5e1;padding:6px 10px;text-align:center;', H=B+'background:#ede9fe;font-weight:800;';
     const v=x=>`<span style="font-weight:800;color:${x<0?'#be123c':'#047857'}">${nfmt(Math.abs(x))}${x<0?' (عليه)':''}</span>`;
     return `<div style="flex-basis:100%;direction:rtl"><div style="font-weight:800;font-size:15px;margin-bottom:4px">🔧 ${esc(MECH_CAT)}: المستحق ${nfmt(mechMonthly())} في الشهر على ${nfmt(mechDays())} يوم (اليومي ${nfmt(Math.round(mechMonthly()/mechDays()))})</div>
       <table style="border-collapse:collapse;font-size:14px;min-width:340px"><tr><th style="${H}">الشهر</th><th style="${H}">مرحّل من اللي قبله</th><th style="${H}">مستحق الشهر</th><th style="${H}">المدفوع</th><th style="${H}">الباقي له (بيترحّل)</th></tr>
       ${R.map(r=>`<tr><td style="${B}">من ${dmy(r.from)} لـ ${dmy(r.to)}${r.closed?' <span style="color:#64748b;font-size:12px">(اتقفل)</span>':''}</td><td style="${B}">${v(r.prev)}</td><td style="${B}">${nfmt(r.due)}</td><td style="${B}color:#be123c;font-weight:700">${r.paid?nfmt(r.paid):'—'}</td><td style="${B}">${v(r.bal)}</td></tr>`).join('')}</table>
-      <div style="font-size:12px;color:#64748b;margin-top:3px">أول ترحيل = رصيد سابق مستحق له ${nfmt(Number(C.openBal)||0)}. المدفوع = الدفعات المتسجلة على بند «${esc(MECH_CAT)}» بس.</div></div>`; }
+      <div style="font-size:12px;color:#64748b;margin-top:3px">أول ترحيل = رصيد سابق مستحق له ${nfmt(Number(C.openBal)||0)}${Number(C.priorWork)?` + شغل سابق ${nfmt(C.priorWork)} (قد اللي أخده من 11/11 لحد ${dmy(mechPeriodEnd())})`:''}. المدفوع = الدفعات المتسجلة على بند «${esc(MECH_CAT)}» بس. قائمة الدخل بتحسب مستحق كل شهر بعد ما يتقفل.</div></div>`; }
 /* بيتعمل مرة واحدة: البند نفسه في دليل الأكواد (من غير ما يلمس أي حركة قديمة) */
 function addMechCat1125Once(){
     if(!db || (db.imports&&db.imports.mech1125)) return;
@@ -5375,6 +5385,22 @@ async function moveMagdyAdv1125Once(){
     try{ logAudit('update','نقل سلف مجدي لميكانيكي الكسارة (بأمر محمد)', `${cnt} حركة بإجمالي ${sum}`, null, null); }catch(e){}
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
     scheduleSave(); try{ initDropdowns(); renderAll(); }catch(e){}
+}
+/* محمد 2026-11-25: «شيل اللي في دليل الأكواد … الرقم اللي من الكراسات»: حساب مجدي القديم = اللي أخده في الكراريس 812,300 (شهر 5: 134,200 + 6–9: 150,000 كل شهر + 10: 78,100) بدل 792,750، والباقي له 72,690. الفرق 19,550 بيخرج من المعلق */
+async function fixMagdyOpen1125Once(){
+    if(!db || (db.imports&&db.imports.mechopen1125)) return;
+    if(!(db.imports&&db.imports.mechmove1125)) return;
+    const n=mechPerson(); if(!n || !Array.isArray(db.expensesData) || !(db.dailyLog||[]).length) return;
+    if(!SUPABASE_URL || !__cloudOK) return;
+    const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-25-before-magdy-open', value:JSON.stringify(db), updated_at:new Date().toISOString()})});
+    if(!res.ok){ console.warn('mechopen1125: النسخة الاحتياطية فشلت', res.status); return; }
+    const old=Object.assign({},n); n.openPaid=812300; n.openBal=72690; n.openTotal=812300+72690; if(!n.openDate) n.openDate='2026-11-11';
+    /* محمد: «فاضله 222,690 لحد 22/11 غير اللي هو خده» — اللي أخده في البرنامج لحد 22/11 بيتحسب شغل سابق مستحق له، مش خصم من الـ 222,690 */
+    { const C=mechCat(); if(C){ C.priorWork=(db.expensesData||[]).filter(x=>x && x.category===C.name && x.name===MECH_PERSON && (x.date||'')<=mechPeriodEnd()).reduce((a,x)=>a+(Number(x.paid)||0),0); } }
+    try{ logAudit('update','دليل الأكواد (بأمر محمد)', 'مجدي عبد الغني: المدفوع القديم 792,750 ← 812,300 من الكراريس، الباقي له 72,690', old, Object.assign({},n)); }catch(e){}
+    if(!db.imports) db.imports={}; db.imports.mechopen1125=true;
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    scheduleSave(); try{ renderAll(); }catch(e){}
 }
 function catPayees(c){ if(!c) return null; if(Array.isArray(c.payees)) return c.payees; return c.code===4011 ? ['موالي الصريحي'] : null; }
 function expPayeeNew(){ const sel=document.getElementById('exp-name'); if(!sel || sel.value!=='__new') return;
@@ -6175,6 +6201,7 @@ function computePL(projectFilter, dateFrom, dateTo){
         if(catDef && catDef.nameType==='contractors'){ contractorPayments += Number(x.paid)||0; return; }
         if(x.tipDeposit){ tipsIncome += Number(x.total)||0; return; }
         if(x.category==='إيراد' && x.saleId) return; // قيمة الفاتورة محسوبة من البون/الفاتورة نفسها
+        if(typeof mechAccrualOn==='function' && mechAccrualOn() && x.category===mechCat().name) return; /* دفعات مجدي بتسدد المستحق، المصروف هو المستحق نفسه */
         /* تسوية حساب عميل «بدون خصم» (محمد 2026-11-13): مش بتنزل في خصومات العملاء — بتتقفل في بند إيرادات الفترة قبل 11/11 (تحصيلاتهم كانت جواه) */
         if(x.category==='إيراد' && x.noDisc){ settleNoDisc += Number(x.total)||0; return; }
         let gk = (typeof EXP_MERGE!=='undefined' && EXP_MERGE[x.category]) ? crusherCatName() : x.category; /* الإعاشة بتتجمع جوه تشغيل الكسارة */
@@ -6260,8 +6287,9 @@ function computePL(projectFilter, dateFrom, dateTo){
     /* كل موظف سطر لوحده، وعماد ناجي اسمه «عمولة عماد ناجي» (محمد 2026-11-11) */
     try{ (db.names||[]).filter(x=>x.openDate && matchDate({date:x.openDate}) && (Number(x.openTotal)||0)).forEach(x=>{
         /* محمد 2026-11-25 «سطره في قائمة الدخل يجيب كل شغله السابق»: حساب مجدي القديم بيتجمع في سطر «ميكانيكي الكسارة» مع دفعاته */
-        if(/مجد[يى]/.test(x.name) && typeof mechCat==='function' && mechCat()){ const mc=mechCat().name, L=operatingLines.find(l=>l.label===mc); if(L) L.value+=Number(x.openTotal)||0; else operatingLines.push({ num:num(), label:mc, value:Number(x.openTotal)||0 }); return; }
+        if(/مجد[يى]/.test(x.name) && typeof mechCat==='function' && mechCat()){ if(mechAccrualOn()) return; const mc=mechCat().name, L=operatingLines.find(l=>l.label===mc); if(L) L.value+=Number(x.openTotal)||0; else operatingLines.push({ num:num(), label:mc, value:Number(x.openTotal)||0 }); return; }
         operatingLines.push({ num:num(), label: x.name===COM_PERSON ? 'عمولة عماد ناجي' : /مجد[يى]/.test(x.name) ? 'مجدي عبد الغني الميكانيكي' : 'مرتب '+x.name, value:Number(x.openTotal)||0 }); }); }catch(e){}
+    try{ if(mechAccrualOn()){ const v=mechAccrued(dateFrom, dateTo); if(v) operatingLines.push({ num:num(), label:mechCat().name, value:v }); } }catch(e){}
     try{ const dep=assetsDepBetween(dateFrom, dateTo); if((db.assets||[]).some(a=>a.status!=='sold')) operatingLines.push({ num:num(), label:'إهلاك الأصول الثابتة', value:dep }); }catch(e){}
     const operatingTotal = operatingLines.reduce((s,l)=>s+l.value,0);
 
@@ -7140,7 +7168,7 @@ function balanceSheetData(D){
     if(Math.round(ctrOwe)) L.push({name:'مستحقات أصحاب المعدات', v:ctrOwe});
     if(Math.round(adv)) L.push({name:'دفعات مقدمة من العملاء', v:adv});
     // مصروفات مستحقة لسه ماتدفعتش (قيمة المصروف − المدفوع منه) — زي عمولة جلب العملاء
-    try{ let acc=0, accM=0; (db.expensesData||[]).filter(x=>le(x.date) && !x.tipDeposit).forEach(x=>{ const c=(db.expenses||[]).find(e=>e.name===x.category); if(!c || c.nameType==='contractors' || c.plType==='revenue' || x.category==='إيراد') return; const rem=(Number(x.total)||0)-(Number(x.paid)||0); if(x.category===COM_CAT) accM+=rem; else acc+=rem; }); if(Math.round(accM)) L.push({name:'بدل إدارة وتشغيل مستحق — عماد ناجي', v:accM}); try{ const vSal=(db.names||[]).filter(x=>x.openDate && le(x.openDate)).reduce((a,x)=>a+((Number(x.openTotal)||0)-(Number(x.openPaid)||0)),0); if(Math.round(vSal)) L.push({name:'مرتبات مستحقة للموظفين (رصيد سابق)', v:vSal}); }catch(e){} if(Math.round(acc)>0) L.push({name:'مصروفات مستحقة (لم تُدفع)', v:acc}); else if(Math.round(acc)<0) A.push({g:'مستحقات أخرى', name:'مصروفات مدفوعة مقدماً', v:-acc}); }catch(e){}
+    try{ let acc=0, accM=0; (db.expensesData||[]).filter(x=>le(x.date) && !x.tipDeposit).forEach(x=>{ const c=(db.expenses||[]).find(e=>e.name===x.category); if(!c || c.nameType==='contractors' || c.plType==='revenue' || x.category==='إيراد') return; const rem=(Number(x.total)||0)-(Number(x.paid)||0); if(x.category===COM_CAT) accM+=rem; else acc+=rem; }); if(Math.round(accM)) L.push({name:'بدل إدارة وتشغيل مستحق — عماد ناجي', v:accM}); try{ const _mOn=mechAccrualOn(), _mp=_mOn?mechPerson():null; const vSal=(db.names||[]).filter(x=>x.openDate && le(x.openDate) && x!==_mp).reduce((a,x)=>a+((Number(x.openTotal)||0)-(Number(x.openPaid)||0)),0); if(Math.round(vSal)) L.push({name:'مرتبات مستحقة للموظفين (رصيد سابق)', v:vSal}); if(_mOn){ const ml=mechLiability(D); if(Math.round(ml)>0) L.push({name:'مستحق لمجدي عبد الغني (ميكانيكي الكسارة)', v:ml}); else if(Math.round(ml)<0) A.push({g:'مستحقات أخرى', name:'مدفوع مقدم لمجدي عبد الغني (ميكانيكي الكسارة)', v:-ml}); } }catch(e){} if(Math.round(acc)>0) L.push({name:'مصروفات مستحقة (لم تُدفع)', v:acc}); else if(Math.round(acc)<0) A.push({g:'مستحقات أخرى', name:'مصروفات مدفوعة مقدماً', v:-acc}); }catch(e){}
     const __capE=[]; // سلف شريك اتعتبرت رأس مال (مش دين على الكسارة)
     try{ const s0=db.sariSettings||{}; const bals={'عماد ناجي':Number(s0.loanOpening)||0}; (db.ownerLoans||[]).filter(l=>le(l.date)).forEach(l=>{ const w=loanLender(l); bals[w]=(bals[w]||0)+(l.type==='in'?1:-1)*(Number(l.amount)||0); }); const capL=db.capitalLenders||[]; Object.entries(bals).forEach(([w,v])=>{ if(!Math.round(v)) return; if(capL.includes(w)) __capE.push({name:'رأس مال '+w+' (باقي حصته في شراء الكسارة)', v}); else L.push({name:'سلف '+w, v}); }); }catch(e){}
     // حقوق الملكية
