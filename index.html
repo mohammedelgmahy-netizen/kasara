@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1218</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1219</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -2660,16 +2660,18 @@ async function sbFetch(url, opts){
 const LOCAL_ONLY_KEYS = new Set(['mg-system-activated','mg-system-role','kasara-cloud','kasara-session']); // دخول كل جهاز بيفضل على الجهاز ده بس
 const store = {
     async set(key, value){
+        let __putAt = null;
         if(LOCAL_ONLY_KEYS.has(key)){ try{ localStorage.setItem(key, value); }catch(e){} return; }
         if(SUPABASE_URL && SUPABASE_ANON_KEY){
             try{
                 const res = await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {
                     method:'POST',
                     headers: sbHeaders({ 'Prefer':'resolution=merge-duplicates,return=minimal' }),
-                    body: JSON.stringify({ key, value, updated_at: new Date().toISOString() }),
+                    body: JSON.stringify({ key, value, updated_at: (__putAt = new Date().toISOString()) }),
                     timeout: value && value.length>200000 ? 120000 : 15000 /* 2026-11-18: الرفع (1.3 ميجا) كان بيتقطع بعد 8 ثواني على نت الموبايل فالحفظ ما يوصلش السحابة */
                 });
                 if(!res.ok) throw new Error('Supabase ' + res.status + ': ' + await res.text());
+                if(key===STORAGE_KEY) window.__lastPutAt = __putAt;
             }catch(e){ console.warn('تعذر الحفظ على Supabase، جارٍ الحفظ محلياً:', e); throw e; }
             finally{ try{ localStorage.setItem(key, value); }catch(err){} }
             return;
@@ -2775,8 +2777,21 @@ async function __sbGetRaw(key){
     if(!res.ok) throw new Error('read '+res.status);
     const rows = await res.json(); return rows.length ? rows[0].value : null;
 }
-async function cloudSaveMerged(){
-    const remote = await __sbGetRaw(STORAGE_KEY);
+/* أداء (محمد 2026-11-25 «البرنامج بيهنج كتير»): كل حفظ كان بينزّل البيانات كلها (2 ميجا) قبل ما يرفع، ولو النت بطيء كانت الحفظات بتتراكم فوق بعض
+   (حفظ كل 20 ثانية وهو لسه ما خلصش). دلوقتي: حفظ واحد في نفس الوقت، واللي يتسجل وقتها بيترفع بعده على طول؛
+   والنسخة الكبيرة بتتنزل بس لو السحابة اتغيرت من آخر مرة (سؤال صغير «اتغيرت إمتى؟»). نفس الدمج ونفس الحمايات بالظبط */
+let __saveInFlight = null, __saveAgain = false, __syncPair = null; /* __syncPair = {at, val}: السحابة كانت val وقت at */
+const __sameAt = (a,b)=>{ if(!a||!b) return false; if(a===b) return true; const x=Date.parse(a), y=Date.parse(b); return isFinite(x) && x===y; };
+async function __cloudAt(){ try{ const r=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?key=eq.${encodeURIComponent(STORAGE_KEY)}&select=updated_at`, {headers:sbHeaders(), timeout:8000}); if(!r.ok) return null; const j=await r.json(); return (j&&j[0]&&j[0].updated_at)||null; }catch(e){ return null; } }
+function cloudSaveMerged(){
+    if(__saveInFlight){ __saveAgain = true; return __saveInFlight; }
+    __saveInFlight = (async()=>{ try{ do{ __saveAgain = false; await __cloudSaveMergedRun(); }while(__saveAgain); } finally{ __saveInFlight = null; } })();
+    return __saveInFlight;
+}
+async function __cloudSaveMergedRun(){
+    let remote;
+    if(__syncPair && __lastSynced && __syncPair.val===__lastSynced && __sameAt(await __cloudAt(), __syncPair.at)) remote = __lastSynced; /* السحابة زي ما سبناها = مفيش داعي ننزلها تاني */
+    else remote = await __sbGetRaw(STORAGE_KEY);
     if(remote && remote!==__lastSynced){
         let base={}; try{ base = __lastSynced ? JSON.parse(__lastSynced) : {}; }catch(e){}
         db = __merge3(base, db, JSON.parse(remote)); try{ applyTombstones(); }catch(e){}
@@ -2792,8 +2807,10 @@ async function cloudSaveMerged(){
     if(!window.__allowShrink && remote){ try{ const rj=JSON.parse(remote); ['contractors','clients','suppliers','employees','names'].forEach(k=>{ const R=rj[k], L=db[k]; if(Array.isArray(R) && R.length>=3 && (!Array.isArray(L) || L.length<R.length*0.7)){ console.warn('رفض تصغير '+k, L&&L.length, R.length); db[k]=R; } }); }catch(e){} }
     window.__allowShrink = false;
     const out = JSON.stringify(db);
+    window.__lastPutAt = null;
     await store.set(STORAGE_KEY, out);
     __lastSynced = out; __dirty = false; rememberSynced(); __stampBase = snapIds(); try{ localStorage.removeItem(UNSENT_KEY); }catch(e){}
+    if(window.__lastPutAt){ __syncPair = {at:window.__lastPutAt, val:out}; window.__lastCloudAt = window.__lastPutAt; } else __syncPair = null; /* الاستطلاع اللي كل 5 ثواني ما ينزلش نسختنا إحنا تاني */
     hourlyBackup(remote && remote.length>100000 ? remote : out);
 }
 /* نسخة احتياطية كل ساعة على السحابة (آخر 72 ساعة شغل) — محمد 2026-11-12: «مش عاوز البيانات تروح ف اي وقت» */
@@ -3067,7 +3084,7 @@ function scheduleSave(){
     }, 400);
 }
 window.addEventListener('online', ()=>{ if(__dirty) scheduleSave(); });
-setInterval(()=>{ if(__dirty && SUPABASE_URL && navigator.onLine !== false) scheduleSave(); }, 20000);
+setInterval(()=>{ if(__dirty && !__saveInFlight && SUPABASE_URL && navigator.onLine !== false) scheduleSave(); }, 20000); /* وهو لسه بيرفع ما يبدأش رفع تاني فوقه */
 
 // شبكة أمان إضافية: لو المستخدم قفل التاب/المتصفح أو عمل رفرش، احفظ فوراً
 // أي بيانات لسه معلقة قبل ما الصفحة تتقفل نهائياً.
@@ -3313,9 +3330,10 @@ async function pollSharedUpdates(){
     syncing = true;
     try{
         if(__dirty){ syncing=false; return; }
+        window.__pendingCloudAt = null;
         /* محمد 2026-11-23: «اللي أسجله على التليفون يبان على اللابتوب والعكس من غير ريفريش» — سؤال صغير «اتغير إمتى؟» الأول، والنسخة الكبيرة بتتنزل بس لو اتغيرت */
         try{ if(SUPABASE_URL && location.protocol!=='file:'){ const r=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?key=eq.${encodeURIComponent(STORAGE_KEY)}&select=updated_at`, {headers:sbHeaders(), timeout:8000});
-            if(r.ok){ const j=await r.json(); const u=j&&j[0]&&j[0].updated_at; if(u && u===window.__lastCloudAt){ syncing=false; return; } window.__pendingCloudAt=u||null; } } }catch(e){ syncing=false; return; }
+            if(r.ok){ const j=await r.json(); const u=j&&j[0]&&j[0].updated_at; if(u && __sameAt(u, window.__lastCloudAt)){ syncing=false; return; } window.__pendingCloudAt=u||null; } } }catch(e){ syncing=false; return; }
         const val = await store.get(STORAGE_KEY);
         if(window.__pendingCloudAt) window.__lastCloudAt=window.__pendingCloudAt;
         if(__dirty){ syncing=false; return; }
@@ -3325,6 +3343,7 @@ async function pollSharedUpdates(){
             const ind = document.getElementById('save-indicator');
             if(ind) ind.innerHTML = '<span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span><span>تحديث من مستخدم آخر</span>';
         }
+        if(val && window.__pendingCloudAt && val===__lastSynced) __syncPair = {at:window.__pendingCloudAt, val};
     }catch(e){ /* ignore transient errors */ }
     syncing = false;
 }
