@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1217</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1218</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -2050,7 +2050,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                         <label class="text-xs font-bold text-slate-600">إلى <input id="acct-to" type="date" onchange="renderAccountStatement()" class="bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-xs"></label>
                         <select id="acct-name" onchange="renderAccountStatement()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs min-w-[11rem]"></select>
                         <button type="button" onclick="csMarkStmt();shareCard('acct-card','كشف حساب '+((v=>v===ALL_BONS?'كل البونات':v)(document.getElementById('acct-name').value||'')))" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i><span>واتساب</span></button>
-                        <button type="button" onclick="csManualOpen()" class="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><span>✍️ سعر وتحصيل يدوي (واتساب بس)</span></button>
+                        <button type="button" onclick="csManualOpen()" class="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><span>✍️ كشف يدوي (واتساب بس)</span></button>
                         <button type="button" id="cst-save-btn" onclick="saveClientStmt()" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><span>💾 حفظ الكشف وترحيل المتبقي</span></button>
                         <button onclick="csMarkStmt();printSection('acct-card')" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة الكشف</span></button>
                         <button type="button" id="acct-fit-btn" onclick="acctFitToggle()" style="display:none" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold">🔍 حجم كبير</button>
@@ -6326,43 +6326,49 @@ function clientSheetData(name){
     const bonsTotal = bons.reduce((a,r)=>a+(Number(bonValue(r))||0),0); // نفس قيمة البون في الرصيد (عشان التقريب)
     // مديونيات تانية في الفترة (فواتير مش مربوطة ببون)
     const otherDebit = allRows.filter(r=>!r.bon && !r.openAdj && r.debit>0 && inRange(r.date) && (!to || r.date<=to)).reduce((a,r)=>a+r.debit,0);
-    const credits = allRows.filter(r=>r.credit>0 && !r.openAdj && inRange(r.date)).concat(csManualCredits(name)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    const credits = allRows.filter(r=>r.credit>0 && !r.openAdj && inRange(r.date)).concat(csManualCredits(name)).filter(r=>r.manual || !csManualOn(name)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
     const pFrom = from || (bons[0]&&bons[0].date) || '', pTo = to || (bons.length?bons[bons.length-1].date:'') || '';
     const used = sizes.filter(sz=>tot[sz.key] || DL_BASE_SIZES.some(b=>b.key===sz.key) || DL_BUILTIN_EXTRA.some(b=>b.key===sz.key));
     let bonsTot=bonsTotal, priceOfM=priceOf; const MP=csManualPrices(name); /* سعر يدوي لصورة الواتساب بس (محمد 2026-11-25) */
     if(MP){ Object.keys(MP).forEach(k=>{ if(!tot[k]) return; const v=Math.round(tot[k]*MP[k]*100)/100; bonsTot+=v-(amt[k]||0); amt[k]=v; }); priceOfM=k=>MP[k]!=null&&tot[k]?MP[k]:priceOf(k); }
+    { const m=window.__csManual; if(m && m.prev!=null && normName(m.name)===normName(name)) prev=m.prev; } /* متبقي قبل الفترة يدوي لصورة الواتساب بس */
     return {from:pFrom, to:pTo, cars:Object.values(cars), sizes:used, tot, totCnt, amt, priceOf:priceOfM, n:bons.length, prev, bonsTotal:bonsTot, otherDebit, credits};
 }
 /* محمد 2026-11-25: «تحصيل يدوي لإرسال الكشف واتس فقط» — عرض بس: التحصيل ده بيظهر في صورة الواتساب وبيتخصم من المتبقي فيها، ومش بيتسجل في db ولا بيأثر على أي رصيد أو خزنة */
 var __csManual=null;
+function csManualOn(name){ const m=window.__csManual; return !!(m && normName(m.name)===normName(name)); } /* التحصيلات في النافذة بتحل محل المسجلة في الصورة */
 function csManualCredits(name){ const m=window.__csManual; return (m && normName(m.name)===normName(name)) ? m.list.map(x=>({date:x.date, credit:x.credit, manual:1})) : []; }
 function csManualPrices(name){ const m=window.__csManual; return (m && m.prices && Object.keys(m.prices).length && normName(m.name)===normName(name)) ? m.prices : null; }
 function csManualOpen(){ const name=document.getElementById('acct-name')?.value||''; if(!name || name===ALL_BONS || document.getElementById('acct-type')?.value!=='client'){ alert('اختار عميل الأول'); return; }
     document.getElementById('csm-modal')?.remove(); const m=document.createElement('div'); m.id='csm-modal';
-    m.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(15,23,42,.6);display:flex;align-items:center;justify-content:center;padding:16px';
+    m.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow:auto';
     m.onclick=e=>{ if(e.target===m) m.remove(); };
     const dt=document.getElementById('acct-to')?.value||todayISO(), I='width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:10px;font-size:18px;margin-top:4px';
     m.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:16px;max-width:380px;width:100%;padding:18px">
         <div style="font-weight:800;font-size:17px;margin-bottom:4px">سعر وتحصيل يدوي — ${esc(name)}</div>
         <div style="color:#b45309;font-size:13px;font-weight:700;margin-bottom:10px">بيظهر في كشف الواتساب بس، ومش بيتسجل في البرنامج</div>
         ${(()=>{ let D=null; try{ D=clientSheetData(name); }catch(e){} const L=D?D.sizes.filter(x=>Number(D.tot[x.key])>0):[]; return L.length?`<div style="font-weight:800;margin-bottom:4px">السعر</div>${L.map(x=>`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><span style="flex:1;font-weight:700">${esc(x.label)}</span><input data-csm-pr="${x.key}" type="text" inputmode="decimal" placeholder="${Number(D.priceOf(x.key))||'السعر'}" style="border:1px solid #cbd5e1;border-radius:10px;padding:9px;font-size:17px;min-width:0;flex:1"></div>`).join('')}<div style="color:#64748b;font-size:12px;margin-bottom:10px">سيب السعر فاضي = سعر الكشف زي ما هو</div>`:''; })()}
+        <div style="font-weight:800;margin-bottom:4px">المتبقي من قبل الفترة</div>
+        <input id="csm-prev" type="text" inputmode="decimal" placeholder="${(()=>{ try{ return Math.round(clientSheetData(name).prev); }catch(e){ return ''; } })()}" style="width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:9px;font-size:17px;margin-bottom:4px">
+        <div style="color:#64748b;font-size:12px;margin-bottom:10px">فاضي = المتبقي الحقيقي · اكتب 0 لو عاوزه من غير رصيد قديم</div>
         <div style="font-weight:800;margin-bottom:4px">التحصيل</div>
+        <div style="color:#64748b;font-size:12px;margin-bottom:6px">اللي هنا بس هو اللي هيظهر في الصورة — عدّل أو امسح بـ ✕ أو زوّد</div>
         <div id="csm-rows"></div>
         <button type="button" onclick="csManualRow()" style="color:#4f46e5;font-weight:800;padding:4px 0;margin-bottom:10px">+ تحصيل تاني</button>
         <button type="button" onclick="csManualSend()" style="width:100%;background:#25D366;color:#fff;font-weight:800;font-size:16px;padding:13px;border-radius:12px"><i class="fa-brands fa-whatsapp"></i> كشف واتساب</button>
         <button type="button" onclick="document.getElementById('csm-modal').remove()" style="width:100%;margin-top:8px;color:#64748b;font-weight:700;padding:6px">إلغاء</button></div>`;
-    document.body.appendChild(m); csManualRow(dt); m.querySelector('[data-csm-amt]')?.focus(); }
-function csManualRow(dt){ const R=document.getElementById('csm-rows'); if(!R) return; const I='border:1px solid #cbd5e1;border-radius:10px;padding:9px;font-size:17px;min-width:0';
+    document.body.appendChild(m); let C=[]; try{ C=clientSheetData(name).credits||[]; }catch(e){} C.forEach(c=>csManualRow(c.date, c.credit)); csManualRow(dt); }
+function csManualRow(dt, amt){ const R=document.getElementById('csm-rows'); if(!R) return; const I='border:1px solid #cbd5e1;border-radius:10px;padding:9px;font-size:17px;min-width:0';
     dt=dt||R.querySelector('[data-csm-dt]:last-of-type')?.value||document.getElementById('acct-to')?.value||todayISO();
     const d=document.createElement('div'); d.style.cssText='display:flex;gap:6px;margin-bottom:8px';
-    d.innerHTML=`<input data-csm-amt type="text" inputmode="decimal" placeholder="المبلغ" style="${I};flex:1"><input data-csm-dt type="date" value="${dt}" style="${I};flex:1">`;
+    d.innerHTML=`<input data-csm-amt type="text" inputmode="decimal" placeholder="المبلغ" value="${amt?Math.round(amt*100)/100:''}" style="${I};flex:1"><input data-csm-dt type="date" value="${dt}" style="${I};flex:1"><button type="button" onclick="this.parentNode.remove()" style="color:#b91c1c;font-weight:800;padding:0 8px;font-size:18px">✕</button>`;
     R.appendChild(d); }
 function csManualSend(){ const name=document.getElementById('acct-name')?.value||''; const num=v=>Number(String(v||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[,،\s]/g,''))||0;
     const list=[...document.querySelectorAll('#csm-rows > div')].map(d=>({credit:num(d.querySelector('[data-csm-amt]').value), date:d.querySelector('[data-csm-dt]').value||todayISO()})).filter(x=>x.credit>0);
     const prices={}; document.querySelectorAll('#csm-modal [data-csm-pr]').forEach(i=>{ const v=num(i.value); if(v>0) prices[i.dataset.csmPr]=v; });
-    if(!list.length && !Object.keys(prices).length){ alert('اكتب السعر أو التحصيل'); return; }
+    const pv=String(document.getElementById('csm-prev')?.value||'').trim(), prev=pv===''?null:(String(pv).trim().startsWith('-')?-num(pv.replace('-','')):num(pv));
     document.getElementById('csm-modal')?.remove();
-    window.__csManual={name, list, prices}; renderAccountStatement();
+    window.__csManual={name, list, prices, prev}; renderAccountStatement();
     const done=()=>{ window.__csManual=null; renderAccountStatement(); };
     let p; try{ p=elementToFile(document.getElementById('acct-card'), 'كشف حساب '+name); }catch(e){ done(); throw e; }
     shareImagesModal('كشف حساب '+name, Promise.resolve(p).finally(done)); }
