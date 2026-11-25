@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1207</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1208</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3919,6 +3919,7 @@ async function fixBaqala1122Once(){
 /* محمد 2026-11-25 «عاوز 288,000 يتسجلوا غفرة صراحة في قائمة الدخل، ومش عاوز أي حاجة غير كده تتغير»: الكراريس (شيت غفره الصريحات) = 288,000 والبرنامج 150,000
    → مصروف غفرة 138,000 يوم 11/11 على المعلق + تمويل شركاء 138,000 (عماد ناجي 69,000 + صقر الزعيرى 69,000) داخل نفس المعلق، فالخزن مش بتتغير والميزانية متزنة */
 async function addGhafra1125Once(){
+    return; /* موقوف 2026-11-25: محمد «مش عاوز تمويل» — مستني قراره في طريقة تسجيل الـ138,000 */
     if(!db || (db.imports&&db.imports.ghafra1125)) return;
     if(!Array.isArray(db.expensesData) || !(db.dailyLog||[]).length) return;
     if(!SUPABASE_URL || !__cloudOK) return;
