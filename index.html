@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1221</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1222</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3809,6 +3809,8 @@ window.onload = async function(){
     try{ await fixAhmedPlug1124Once(); }catch(e){ console.warn('ahplug1124', e); }
     try{ await fixDrawerBook1124Once(); }catch(e){ console.warn('drbook1124', e); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.drbook1124){ clearInterval(t); return; } try{ await fixDrawerBook1124Once(); }catch(e){} }, 15000); }
+    try{ await bookDaily1125Once(); }catch(e){ console.warn('book1125', e); }
+    { const t=setInterval(async()=>{ if(db && db.imports && db.imports.book1125){ clearInterval(t); return; } try{ await bookDaily1125Once(); }catch(e){} }, 15000); }
     try{ await addGhafra1125bOnce(); }catch(e){ console.warn('ghafra1125b', e); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.ghafra1125b){ clearInterval(t); return; } try{ await addGhafra1125bOnce(); }catch(e){} }, 15000); }
     try{ await addGhafra1125Once(); }catch(e){ console.warn('ghafra1125', e); }
@@ -3992,6 +3994,40 @@ async function fixDrawerBook1124Once(){
              {id:'1795600000001124-b', _at:at, date:'2026-11-23', type:'إيرادات أخرى', notes:'تسوية الدرج على الدفتر 23/11 (المرحل 541,296)', amount:-1170, account:DRAWER_ACC}];
     R.forEach(r=>{ if(!db.incomes.some(x=>x && String(x.id)===r.id)){ db.incomes.push(r); logAudit('create','إيراد (تسوية بأمر محمد)', `${r.notes}: ${r.amount}`, null, Object.assign({},r)); } });
     if(!db.imports) db.imports={}; db.imports.drbook1124=true;
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    scheduleSave(); try{ renderAll(); }catch(e){}
+}
+/* محمد 2026-11-25 «ظبط الدنيا كده»: المرحل والدرج آخر كل يوم من 12 لـ23/11 يبقوا زي الدفتر بالظبط (المعلق = المرحل − الدرج).
+   بيشيل سطري 1204 (−875 يوم 13 و−1,170 يوم 23 على الدرج) وبيحط سطر تسوية «إيرادات أخرى» لكل خزنة في كل يوم فيه فرق، محسوب على البيانات الحية.
+   لو أي سطر محتاج أكتر من 2,500 بيقف ومش بيغير حاجة (يعني البيانات مختلفة عن اللي اتراجع). العملاء والموردين وأصحاب المعدات مش بيتلمسوا */
+async function bookDaily1125Once(){
+    if(!db || (db.imports&&db.imports.book1125)) return;
+    if(!(db.imports&&db.imports.drbook1124) || !Array.isArray(db.incomes) || !(db.dailyLog||[]).length) return;
+    if(!SUPABASE_URL || !__cloudOK) return;
+    const BOOK={'2026-11-12':[509997,5120],'2026-11-13':[458280,5595],'2026-11-14':[394776,2345],'2026-11-15':[413621,690],'2026-11-16':[410621,1790],'2026-11-17':[226176,690],'2026-11-18':[225501,1115],'2026-11-19':[673951,2305],'2026-11-20':[524231,1305],'2026-11-21':[514796,3180],'2026-11-22':[511396,2180],'2026-11-23':[542596,3380]};
+    const OLD=['1795600000001124-a','1795600000001124-b'];
+    const keep=db.incomes; db.incomes=db.incomes.filter(x=>!(x && OLD.includes(String(x.id))));
+    const at=new Date().toISOString(), add=[];
+    try{
+        for(const d of Object.keys(BOOK).sort()){
+            const [T,D]=BOOK[d];
+            const dr=Math.round(buildCashStatement(d,d,DRAWER_ACC).closing), all=Math.round(buildCashStatement(d,d,'ALL').closing);
+            const dd=D-dr, db_=(T-D)-(all-dr), dm=d.slice(8)+'/11';
+            if(Math.abs(dd)>2500 || Math.abs(db_)>2500) throw new Error(`${d}: فرق كبير (درج ${dd}، معلق ${db_})`);
+            [[SARI_ACC,db_,'s'],[DRAWER_ACC,dd,'d']].forEach(([acc,amt,k])=>{ if(!amt) return;
+                const r={id:'1795800000001125-'+d.slice(8)+k, _at:at, date:d, type:'إيرادات أخرى', notes:`تسوية على الدفتر ${dm} (المرحل ${nfmt(T)}، الدرج ${nfmt(D)})`, amount:amt, account:acc};
+                db.incomes.push(r); add.push(r); });
+        }
+    }catch(e){ db.incomes=keep; console.warn('book1125: وقف ومفيش تغيير —', e.message); return; }
+    db.incomes=keep; /* رجّع الأصل، ونفّذ بعد النسخة الاحتياطية */
+    const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-25-before-book-daily', value:JSON.stringify(db), updated_at:new Date().toISOString()}), timeout:120000});
+    if(!res.ok){ console.warn('book1125: النسخة الاحتياطية فشلت', res.status); return; }
+    if(db.imports&&db.imports.book1125) return;
+    const had=db.incomes.filter(x=>x && OLD.includes(String(x.id)));
+    db.incomes=db.incomes.filter(x=>!(x && OLD.includes(String(x.id)))); OLD.forEach(id=>tombstone('incomes',id));
+    had.forEach(x=>logAudit('delete','إيراد (تسوية 1204 — اتشالت بأمر محمد)', `${x.notes}: ${x.amount}`, Object.assign({},x), null));
+    add.forEach(r=>{ if(!db.incomes.some(x=>x && String(x.id)===r.id)){ db.incomes.push(r); logAudit('create','إيراد (تسوية على الدفتر بأمر محمد)', `${r.account} ${r.date}: ${r.amount}`, null, Object.assign({},r)); } });
+    if(!db.imports) db.imports={}; db.imports.book1125=true;
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
     scheduleSave(); try{ renderAll(); }catch(e){}
 }
