@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1226</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1227</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -11536,8 +11536,8 @@ async function kxBuild(){
         x.border=BR; x.font=FN({bold:!!o.bold,color:A(o.color||'000000'),size:o.size||12}); if(o.fmt) x.numFmt=o.fmt; if(o.bg) x.fill=fill(o.bg);
         x.alignment={horizontal:o.al||((typeof v==='number'||o.fmt||(typeof v==='string'&&v.startsWith('=')))?'center':'right'),vertical:'middle'}; return x; };
     const NAVSH={}; /* الشيتات اللي فيها شريط الزراير: الاسم ← ارتفاع السطر الأول بالنقط */
-    const topbar=(ws,title,sub,ncol)=>{ const e=Math.max(ncol-2,2); const lines=Math.max(1,Math.ceil((sub||'').length/Math.max(60,e*13))); const h1=30+15*lines; ws.getRow(1).height=h1; ws.mergeCells(1,1,1,e);
-        const c=ws.getCell(1,1); c.value={richText:[{text:'كسارة الديار — '+title,font:FN({size:17,bold:true,color:A('FFFFFF')})},...(sub?[{text:'\n'+sub,font:FN({size:10,color:A('D6E2F0')})}]:[])]}; c.fill=fill(OD); c.alignment={horizontal:'right',vertical:'middle',indent:1,wrapText:true};
+    const topbar=(ws,title,sub,ncol)=>{ const e=Math.max(ncol-2,2); const lines=sub?Math.max(1,Math.ceil(sub.length/Math.max(60,e*13))):0; const h1=58+14*lines; ws.getRow(1).height=h1; ws.mergeCells(1,1,1,Math.max(ncol,16));
+        const c=ws.getCell(1,1); c.value={richText:[{text:'كسارة الديار',font:FN({size:24,bold:true,color:A('FFFFFF')})},{text:'\n'+title,font:FN({size:13,bold:true,color:A('F5C24B')})},...(sub?[{text:'\n'+sub,font:FN({size:10,color:A('D6E2F0')})}]:[])]}; c.fill=fill(OD); c.alignment={horizontal:'center',vertical:'middle',wrapText:true};
         NAVSH[ws.name]=h1; ws.getRow(2).height=Math.round(KX_ROWS*0.75); for(let j=1;j<=Math.max(ncol,16);j++){ const q=ws.getCell(2,j); q.fill=fill(KX_NAVBG); if(KX_LAY.line) q.border={bottom:{style:'thin',color:A(KX_LAY.line)}}; }
         for(let j=e+1;j<=Math.max(ncol,16);j++) ws.getCell(1,j).fill=fill(OD);
     };
@@ -11872,7 +11872,7 @@ async function kxBuild(){
     cell(ck,cr,2,'عدد الملاحظات',{bold:true,bg:FOOT}); cell(ck,cr,3,`=COUNTIF(D${DR}:D${cr-1},"✖*")`,{fmt:'0',bold:true,bg:FOOT}); const CHK_N=`'الفحص'!$C$${cr}`; frz(ck);
     /* الرئيسية */
     const h=home; for(let j=1;j<=15;j++) h.getColumn(j).width=[4,8,12].includes(j)?2.5:14;
-    h.mergeCells('A1:O1'); { const c=h.getCell('A1'); c.value='كسارة الديار — الشاشة الرئيسية'; c.font=FN({size:22,bold:true,color:A('FFFFFF')}); c.fill=fill(OD); c.alignment={horizontal:'center',vertical:'middle'}; } h.getRow(1).height=46;
+    h.mergeCells('A1:O1'); { const c=h.getCell('A1'); c.value={richText:[{text:'كسارة الديار',font:FN({size:26,bold:true,color:A('FFFFFF')})},{text:'\nالشاشة الرئيسية',font:FN({size:13,bold:true,color:A('F5C24B')})}]}; c.fill=fill(OD); c.alignment={horizontal:'center',vertical:'middle',wrapText:true}; } h.getRow(1).height=62;
     h.mergeCells('A2:O2'); { const c=h.getCell('A2'); c.value={formula:`"ملف إكسيل شغال زي البرنامج: سجّل في شيتات التسجيل وكل الأرقام بتتحدث لوحدها  •  البيانات من البرنامج لحد ${ASOF}  •  النهارده: "&TEXT(TODAY(),"dd/mm/yyyy")`}; c.font=FN({size:11,color:A('5B6B80')}); c.alignment={horizontal:'center'}; }
     const mon=rd=>`${rd},">="&${MS},${rd},"<"&EDATE(${MS},1)`;
     h.mergeCells('A3:O3'); { const c=h.getCell('A3'); c.value={formula:`HYPERLINK("#'الفحص'!A1",IF(${CHK_N}=0,"✔  فحص الملف: كل حاجة سليمة والميزانية متزنة","✖  فحص الملف: فيه "&${CHK_N}&" ملاحظة — دوس هنا تشوفها"))`}; c.font=FN({bold:true,size:13,color:A('FFFFFF')}); c.alignment={horizontal:'center',vertical:'middle'}; c.fill=fill('1F7A4D'); }
