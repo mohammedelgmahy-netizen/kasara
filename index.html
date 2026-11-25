@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1208</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1209</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3788,6 +3788,8 @@ window.onload = async function(){
     try{ await fixAhmedPlug1124Once(); }catch(e){ console.warn('ahplug1124', e); }
     try{ await fixDrawerBook1124Once(); }catch(e){ console.warn('drbook1124', e); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.drbook1124){ clearInterval(t); return; } try{ await fixDrawerBook1124Once(); }catch(e){} }, 15000); }
+    try{ await addGhafra1125bOnce(); }catch(e){ console.warn('ghafra1125b', e); }
+    { const t=setInterval(async()=>{ if(db && db.imports && db.imports.ghafra1125b){ clearInterval(t); return; } try{ await addGhafra1125bOnce(); }catch(e){} }, 15000); }
     try{ await addGhafra1125Once(); }catch(e){ console.warn('ghafra1125', e); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.ghafra1125){ clearInterval(t); return; } try{ await addGhafra1125Once(); }catch(e){} }, 15000); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.ahplug7){ clearInterval(t); return; } try{ await fixAhmedPlug7_1124Once(); }catch(e){} }, 5000); }
@@ -3918,6 +3920,26 @@ async function fixBaqala1122Once(){
 /* محمد 2026-11-24 «زبطها»: المرحل على الدفتر آخر 13/11 = 458,280 وآخر 23/11 = 541,296 → سطرين تسوية بالسالب على درج المكتب: −875 يوم 13/11 (إكراميات 13 مش في الدفتر) و−1,170 يوم 23/11 (فرق مش معروف مصدره) */
 /* محمد 2026-11-25 «عاوز 288,000 يتسجلوا غفرة صراحة في قائمة الدخل، ومش عاوز أي حاجة غير كده تتغير»: الكراريس (شيت غفره الصريحات) = 288,000 والبرنامج 150,000
    → مصروف غفرة 138,000 يوم 11/11 على المعلق + تمويل شركاء 138,000 (عماد ناجي 69,000 + صقر الزعيرى 69,000) داخل نفس المعلق، فالخزن مش بتتغير والميزانية متزنة */
+/* محمد 2026-11-25 (اختار «أرصدة أول المدة»): الغفرة 288,000 زي الكراريس → مصروف 138,000 يوم 11/11 بعلامة noCash (مش بيلمس الخزن) وقصاده سطر «أرصدة أول المدة» في المركز المالي.
+   وبيشيل سجلات 1207 (مصروف المعلق + تمويل الشركاء 69,000×2) لو كانت اتسجلت — محمد «مش عاوز تمويل» */
+async function addGhafra1125bOnce(){
+    if(!db || (db.imports&&db.imports.ghafra1125b)) return;
+    if(!Array.isArray(db.expensesData) || !(db.dailyLog||[]).length) return;
+    if(!SUPABASE_URL || !__cloudOK) return;
+    const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-25-before-ghafra-288-open', value:JSON.stringify(db), updated_at:new Date().toISOString()})});
+    if(!res.ok){ console.warn('ghafra1125b: النسخة الاحتياطية فشلت', res.status); return; }
+    const OLD_E='1795700000001125-g', OLD_F=['1795700000001125-a','1795700000001125-b'];
+    if(db.expensesData.some(x=>x && String(x.id)===OLD_E)){ db.expensesData=db.expensesData.filter(x=>!(x && String(x.id)===OLD_E)); logAudit('delete','مصروف (غفرة 1207 — اتشال)', OLD_E); }
+    tombstone('expensesData',OLD_E);
+    if(Array.isArray(db.investorFunding)){ const had=db.investorFunding.filter(x=>x && OLD_F.includes(String(x.id))); if(had.length){ db.investorFunding=db.investorFunding.filter(x=>!(x && OLD_F.includes(String(x.id)))); logAudit('delete','تمويل شركاء (غفرة 1207 — اتشال)', OLD_F.join(',')); } }
+    OLD_F.forEach(id=>tombstone('investorFunding',id));
+    const at=new Date().toISOString();
+    const E={id:'1795700000001125-h', _at:at, _by:'المدير', date:'2026-11-11', category:'غفرة وحراسة', name:'', total:138000, paid:138000, remaining:0, account:'', noCash:true, project:'كسارة ديار', activity:'', desc:'باقي غفرة الصريحات من الكراريس قبل التشغيل (الإجمالي 288,000)', notes:'اتدفعت قبل التشغيل — قصادها أرصدة أول المدة، مش من الخزن'};
+    if(!db.expensesData.some(x=>x && String(x.id)===E.id)){ db.expensesData.push(E); logAudit('create','مصروف (غفرة بأمر محمد)', `${E.desc}: ${E.total}`, null, Object.assign({},E)); }
+    if(!db.imports) db.imports={}; db.imports.ghafra1125b=true; db.imports.ghafra1125=true;
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    scheduleSave(); try{ renderAll(); }catch(e){}
+}
 async function addGhafra1125Once(){
     return; /* موقوف 2026-11-25: محمد «مش عاوز تمويل» — مستني قراره في طريقة تسجيل الـ138,000 */
     if(!db || (db.imports&&db.imports.ghafra1125)) return;
@@ -5595,6 +5617,7 @@ function treasuryEvents(){
             events.push({at:x._at, ref:x.tipDeposit?null:['exp',x.id], date:x.date, desc:x.desc || `تحصيل من ${x.name}`, project:x.project, account, inflow:Math.max(pd,0), outflow:Math.max(-pd,0), doc:docRef('ت',x.id), grp});
         }else{
             if(x.commission==='accrual') return; // عمولة مستحقة لسه ماتصرفتش — مفيش فلوس خرجت
+            if(x.noCash) return; // مصروف اتدفع قبل التشغيل بفلوس برا البرنامج (قصاده «أرصدة أول المدة» في المركز المالي) — محمد 2026-11-25
             // مصروفات تسوية العهدة مستثناة: الفلوس خرجت فعلياً وقت صرف العهدة نفسها (مسجلة تحت)
             if(x.custodyId){
                 const linkedCustody = (db.custodies||[]).find(c=>c.id===x.custodyId);
@@ -6835,6 +6858,7 @@ function balanceSheetData(D){
     E.push({name:'الأرباح المحتجزة', v:retained});
     if(Math.round(recDiff)) E.push({name:'تسوية أرباح وخسائر فترة سابقة', v:recDiff});
     // محمد: «مفيش راس مال» — السطر ده مقفول على صفر، والفروق لو فيه بتبان من عدم اتزان الميزانية
+    { const nc=(db.expensesData||[]).filter(x=>x.noCash && le(x.date) && x.category!=='إيراد').reduce((a,x)=>a+(Number(x.paid)||0),0); if(Math.round(nc)) E.push({name:'أرصدة أول المدة (مصروفات اتدفعت قبل التشغيل)', v:nc}); }
     E.push({name:'رأس المال وأرصدة أول المدة', v:0, note:true});
     const tE=E.filter(x=>!x.part).reduce((a,x)=>a+x.v,0);
     return {A,L,E,tA,tL:tL2,tE,recOld:rec,recList};
