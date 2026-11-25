@@ -581,7 +581,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1204</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1205</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5091,7 +5091,9 @@ function fixDupOps(){ if(db.dupOps1) return; const main=(db.expenses||[]).find(e
     if(main && dup){ (db.expensesData||[]).forEach(x=>{ if(x.category===dup.name) x.category=main.name; }); db.expenses=db.expenses.filter(e=>e!==dup); }
     db.dupOps1=true; if(main && dup){ scheduleSave(); try{ initDropdowns(); }catch(e){} } }
 function isWageCat(c){ if(c && c.code===4012) return false; /* «مصروف أجور ومرتبات» بند مصروف عادي بالإجمالي (محمد 2026-11-11) */ return !!c && (c.nameType==='names' || /أجور|اجور|عمالة|مرتب|رواتب|سلف موظفين/.test(c.name)); }
-function expTypes(){ try{ fixDupOps(); }catch(e){} return (db.expenses||[]).filter(c=>c.name!=='إيراد' && c.name!==COM_CAT && !isWageCat(c)).sort((x,y)=>x.code-y.code); }
+/* بنود اتدمجت في بند تاني (محمد 2026-11-25: «الإعاشة جوه مصروف الكسارة» في التسجيل وقائمة الدخل) — عرض بس، الحركات القديمة زي ما هي */
+const EXP_MERGE={'مصروف إعاشة':'تشغيل الكسارة (سولار وصيانة)'};
+function expTypes(){ try{ fixDupOps(); }catch(e){} return (db.expenses||[]).filter(c=>c.name!=='إيراد' && c.name!==COM_CAT && !isWageCat(c) && !EXP_MERGE[c.name]).sort((x,y)=>x.code-y.code); }
 function renderExpQuick(){
     const box=document.getElementById('exp-quick'); if(!box) return;
     const selC=document.getElementById('exp-category'); let cur=selC?.value||'';
@@ -5833,10 +5835,12 @@ function computePL(projectFilter, dateFrom, dateTo){
         if(x.category==='إيراد' && x.saleId) return; // قيمة الفاتورة محسوبة من البون/الفاتورة نفسها
         /* تسوية حساب عميل «بدون خصم» (محمد 2026-11-13): مش بتنزل في خصومات العملاء — بتتقفل في بند إيرادات الفترة قبل 11/11 (تحصيلاتهم كانت جواه) */
         if(x.category==='إيراد' && x.noDisc){ settleNoDisc += Number(x.total)||0; return; }
-        const plType = catDef ? catDef.plType : 'operating';
-        const plBucket = catDef ? catDef.plBucket : 'other_operating';
-        if(!catGroups[x.category]) catGroups[x.category] = { plType, plBucket, total:0 };
-        catGroups[x.category].total += x.total;
+        const gk = (typeof EXP_MERGE!=='undefined' && EXP_MERGE[x.category]) || x.category; /* الإعاشة بتتجمع جوه تشغيل الكسارة */
+        const gDef = gk===x.category ? catDef : (db.expenses.find(c=>c.name===gk) || catDef);
+        const plType = gDef ? gDef.plType : 'operating';
+        const plBucket = gDef ? gDef.plBucket : 'other_operating';
+        if(!catGroups[gk]) catGroups[gk] = { plType, plBucket, total:0 };
+        catGroups[gk].total += x.total;
     });
 
     // أ. الإيرادات — مبيعات البونات + فواتير البيع (عن طريق البونات المربوطة) + أي إيراد مسجل بمبلغ
