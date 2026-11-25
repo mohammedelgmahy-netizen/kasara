@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1227</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1228</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3986,6 +3986,8 @@ window.onload = async function(){
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.ahplug7){ clearInterval(t); return; } try{ await fixAhmedPlug7_1124Once(); }catch(e){} }, 5000); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.ahplug1124){ clearInterval(t); return; } try{ await fixAhmedPlug1124Once(); }catch(e){} }, 15000); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.asaad1124){ clearInterval(t); return; } try{ await restoreAsaad1124Once(); }catch(e){} }, 15000); } /* لو الدخول/السحابة ما كانوش جاهزين وقت الفتح: يعيد المحاولة كل 15 ثانية لحد ما يتنفذ */
+    try{ addMechCat1125Once(); }catch(e){ console.warn('mech1125', e); }
+    { const t=setInterval(()=>{ if(db && db.imports && db.imports.mech1125){ clearInterval(t); return; } try{ addMechCat1125Once(); }catch(e){} }, 15000); }
     try{ await drawerToBank1123Once(); }catch(e){ console.warn('drj1123', e); }
     try{ await fixMagdyName1122Once(); }catch(e){ console.warn('magdy1122', e); }
     try{ await addMagdy50k1122Once(); }catch(e){ console.warn('magdy50k', e); }
@@ -5310,6 +5312,39 @@ function printPurchaseInvoice(groupId){
     printSection('invoice-print-template');
 }
 
+/* ميكانيكي الكسارة (محمد 2026-11-25): مجدي عبد الغني مش موظف بمرتب — بند مصروف ليه «المستفيد» زي غفرة وحراسة، ومستحقه 150,000 في الشهر على 24 يوم (شهره 24 يوم).
+   المستحق عرض بس (ما بيدخلش قائمة الدخل)؛ اللي بيدخل المصروفات هو الدفعات المتسجلة على البند. mechFrom = أول شهر يخرج فيه من الرواتب */
+const MECH_CAT='ميكانيكي الكسارة', MECH_PERSON='مجدي عبد الغني';
+function mechCat(){ return (db.expenses||[]).find(c=>c && (c.mech || c.name===MECH_CAT)) || null; }
+function mechFrom(){ const c=mechCat(); return (c&&c.mechFrom)||'2026-12'; }
+function mechMonthly(){ const c=mechCat(); return Number(c&&c.monthly)||150000; }
+function mechDays(){ const c=mechCat(); return Number(c&&c.monthDays)||24; }
+function isMechPayee(name){ const c=mechCat(); return !!(c && name && (catPayees(c)||[]).includes(name)); }
+function mechPaidIn(name, m){ const c=mechCat(); if(!c) return 0; return (db.expensesData||[]).filter(x=>x && x.category===c.name && x.name===name && (x.date||'').startsWith(m)).reduce((a,x)=>a+(Number(x.paid)||0),0); }
+function mechMonthRows(name){ const c=mechCat(); if(!c) return [];
+    const ms=(db.expensesData||[]).filter(x=>x && x.category===c.name && x.name===name && Number(x.paid)).map(x=>(x.date||'').slice(0,7)).filter(Boolean).sort();
+    const cur=todayISO().slice(0,7); let m=ms[0]||cur; if(m>cur) m=cur; const end=[cur, ms[ms.length-1]||cur].sort().pop(); const R=[];
+    for(let i=0;i<60 && m<=end;i++){ const due=mechMonthly(), paid=mechPaidIn(name,m); R.push({m, due, paid, rem:due-paid}); m=nextMonth(m); }
+    return R; }
+function mechSummaryHtml(name){ const R=mechMonthRows(name); const T=R.reduce((a,r)=>({due:a.due+r.due, paid:a.paid+r.paid}),{due:0,paid:0}), rem=T.due-T.paid;
+    const B='border:1px solid #cbd5e1;padding:6px 10px;text-align:center;', H=B+'background:#ede9fe;font-weight:800;';
+    const mn=m=>{ const [y,mo]=m.split('-'); return mo+'/'+y; };
+    return `<div style="flex-basis:100%;direction:rtl"><div style="font-weight:800;font-size:15px;margin-bottom:4px">🔧 ${esc(MECH_CAT)}: المستحق ${nfmt(mechMonthly())} في الشهر على ${nfmt(mechDays())} يوم (اليومي ${nfmt(Math.round(mechMonthly()/mechDays()))})</div>
+      <table style="border-collapse:collapse;font-size:14px;min-width:340px"><tr><th style="${H}">الشهر</th><th style="${H}">المستحق</th><th style="${H}">المدفوع</th><th style="${H}">الباقي له</th></tr>
+      ${R.map(r=>`<tr><td style="${B}">${mn(r.m)}</td><td style="${B}">${nfmt(r.due)}</td><td style="${B}color:#be123c;font-weight:700">${r.paid?nfmt(r.paid):'—'}</td><td style="${B}font-weight:800;color:${r.rem<0?'#be123c':'#047857'}">${nfmt(Math.abs(r.rem))}${r.rem<0?' (زيادة)':''}</td></tr>`).join('')}
+      ${R.length>1?`<tr style="font-weight:800;background:#f1f5f9"><td style="${B}">الإجمالي</td><td style="${B}">${nfmt(T.due)}</td><td style="${B}">${nfmt(T.paid)}</td><td style="${B}color:${rem<0?'#be123c':'#047857'}">${nfmt(Math.abs(rem))}${rem<0?' (زيادة)':''}</td></tr>`:''}</table>
+      <div style="font-size:12px;color:#64748b;margin-top:3px">المدفوع = الدفعات المتسجلة على بند «${esc(MECH_CAT)}» بس.</div></div>`; }
+/* بيتعمل مرة واحدة: البند نفسه في دليل الأكواد (من غير ما يلمس أي حركة قديمة) */
+function addMechCat1125Once(){
+    if(!db || (db.imports&&db.imports.mech1125)) return;
+    if(!Array.isArray(db.expenses) || !(db.dailyLog||[]).length) return;
+    if(typeof __cloudOK!=='undefined' && !__cloudOK) return;
+    if(!mechCat()){ const C={code:nextCode('expenses'), name:MECH_CAT, plType:'operating', plBucket:'other_operating', nameType:'none', payees:[MECH_PERSON], monthly:150000, monthDays:24, mechFrom:'2026-12', mech:true};
+        db.expenses.push(C); try{ logAudit('create','دليل الأكواد (بأمر محمد)', 'بند جديد: ميكانيكي الكسارة — مجدي عبد الغني 150,000 في الشهر على 24 يوم', null, Object.assign({},C)); }catch(e){} }
+    if(!db.imports) db.imports={}; db.imports.mech1125=true;
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    scheduleSave(); try{ initDropdowns(); renderAll(); }catch(e){}
+}
 function catPayees(c){ if(!c) return null; if(Array.isArray(c.payees)) return c.payees; return c.code===4011 ? ['موالي الصريحي'] : null; }
 function expPayeeNew(){ const sel=document.getElementById('exp-name'); if(!sel || sel.value!=='__new') return;
     const c=(db.expenses||[]).find(x=>x.name===document.getElementById('exp-category').value); const list=catPayees(c);
@@ -5387,6 +5422,8 @@ function filterActivitiesByName(){
         if(box && n && Number(n.salary)>0 && c && isAdvRec({category:cat,name:nm})){ const m=todayISO().slice(0,7);
             const used=(db.expensesData||[]).filter(x=>x.name===nm && isAdvRec(x) && (x.date||'').startsWith(m)).reduce((a,x)=>a+(Number(x.paid)||0),0);
             box.innerHTML=`مرتب ${esc(nm)}: <b>${mfmt(n.salary)}</b> — اتصرف له الشهر ده: <b class="text-rose-700">${mfmt(used)}</b> — الباقي: <b class="text-emerald-700">${mfmt(Number(n.salary)-used)}</b>`; box.classList.remove('hidden'); }
+        else if(box && c && (c.mech || c.name===MECH_CAT) && nm && nm!=='__new'){ const m=todayISO().slice(0,7), used=mechPaidIn(nm,m), due=mechMonthly();
+            box.innerHTML=`🔧 ${esc(nm)} — مستحق الشهر: <b>${mfmt(due)}</b> (${nfmt(mechDays())} يوم × ${nfmt(Math.round(due/mechDays()))}) — اتصرف له الشهر ده: <b class="text-rose-700">${mfmt(used)}</b> — الباقي: <b class="text-emerald-700">${mfmt(due-used)}</b>`; box.classList.remove('hidden'); }
         else if(box && box.dataset.sal!==undefined){ box.classList.add('hidden'); }
         if(box) box.dataset.sal='1';
     }catch(e){}
@@ -5615,7 +5652,7 @@ function payCommission(e){ e.preventDefault(); ensureComCat();
 /* ===== كشف عمولة عماد ناجي (محمد 2026-11-24): بره الموظفين والمرتبات، وكشفه هنا من البداية لحد النهارده.
    عرض بس: نفس أرقام حساب المرتبات القديم بالظبط (الحساب القديم من التكويد + 4 ج × صافي سن البونات من MGMT_FEE_FROM − كل اللي اتصرف باسمه) — مفيش منطق محاسبي اتغير ===== */
 function isCommPerson(n){ return !!n && Number(n.perMeter)>0; }
-function payrollStaff(){ return payrollPeople().filter(n=>!isCommPerson(n)); }
+function payrollStaff(m){ const mm=m||todayISO().slice(0,7), mf=mechCat()?mechFrom():''; return payrollPeople().filter(n=>!isCommPerson(n) && !(mf && mm>=mf && isMechPayee(n.name))); } /* ميكانيكي الكسارة بيخرج من الرواتب من أول mechFrom (محمد 2026-11-25) */
 const COMM_HIDE_NAMES=()=>new Set(payrollPeople().filter(isCommPerson).map(n=>n.name));
 function emcData(){
     const n=(db.names||[]).find(x=>x.name===COM_PERSON) || payrollPeople().find(isCommPerson); if(!n) return null;
@@ -6494,7 +6531,7 @@ function renderAccountStatement(){ try{ const ub=document.getElementById('cs-unp
     titleEl.textContent = `كشف حساب ${type==='person'?'الفرد':'العميل'}: ${name} — كسارة الديار`;
     const balCls = t.balance>0 ? 'text-rose-700' : 'text-emerald-700';
     sumEl.innerHTML = type==='person'
-        ? `<span>المصروف له: <b>${fmt(t.debit)}</b></span><span>المردود / المسوّى: <b class="text-emerald-700">${fmt(t.credit)}</b></span><span>الصافي: <b class="${balCls}">${fmt(t.balance)}</b></span>`
+        ? `<span>المصروف له: <b>${fmt(t.debit)}</b></span><span>المردود / المسوّى: <b class="text-emerald-700">${fmt(t.credit)}</b></span><span>الصافي: <b class="${balCls}">${fmt(t.balance)}</b></span>${isMechPayee(name)?mechSummaryHtml(name):''}`
         : `<span>إجمالي المبيعات: <b>${fmt(t.debit)}</b></span><span>المحصّل: <b class="text-emerald-700">${fmt(t.credit)}</b></span><span>${t.balance>0?'المتبقي عليه':'الرصيد'}: <b class="${balCls}">${fmt(Math.abs(t.balance))}</b></span>`;
     tbody.innerHTML = rows.length ? rows.map(r=>`<tr class="border-b border-slate-50 hover:bg-slate-50 ${r.info?'text-slate-500':''}">
             <td class="p-3 text-slate-500">${dmy(r.date)}</td><td class="p-3">${esc(r.desc)}</td>
@@ -8739,7 +8776,7 @@ function renderAdvRecent(){
 function renderAdvSummary(){
     const tb=document.getElementById('tbody-adv-sum'); if(!tb) return;
     const m=todayISO().slice(0,7); let S=0,K=0,R=0,D=0;
-    const rows=payrollStaff().map(n=>{ const {ded,adv,paid}=payMonth(n,m), cr=payCarry(n,m), sal=salaryOf(n,m), took=adv+paid, rem=sal+cr-ded-took; S+=sal; K+=took; R+=rem; D+=ded;
+    const rows=payrollStaff(m).map(n=>{ const {ded,adv,paid}=payMonth(n,m), cr=payCarry(n,m), sal=salaryOf(n,m), took=adv+paid, rem=sal+cr-ded-took; S+=sal; K+=took; R+=rem; D+=ded;
         return `<tr class="border-b border-slate-100"><td class="p-3 font-bold text-slate-900">${esc(n.name)}</td><td class="p-3 font-bold">${fmt(sal)}</td><td class="p-3 font-bold text-rose-700">${ded?fmt(ded):'—'}</td><td class="p-3 font-bold text-rose-700">${took?fmt(took):'—'}</td><td class="p-3 font-extrabold ${rem<0?'text-rose-700':'text-emerald-700'}">${fmt(Math.abs(rem))}${rem<0?' عليه':''}</td></tr>`; });
     tb.innerHTML = rows.length ? rows.join('')+`<tr class="bg-indigo-50 font-extrabold"><td class="p-3">الإجمالي</td><td class="p-3">${fmt(S)}</td><td class="p-3 text-rose-700">${D?fmt(D):'—'}</td><td class="p-3 text-rose-700">${fmt(K)}</td><td class="p-3">${fmt(R)}</td></tr>` : '<tr><td colspan="5" class="p-4 text-center text-slate-400">—</td></tr>';
 }
@@ -8892,7 +8929,7 @@ function renderPayroll(){
     const att = db.attendance||{};
     const inM = x => (x.date||'').startsWith(m);
     let T={s:0,cr:0,ded:0,adv:0,paid:0,net:0};
-    const rows = payrollStaff().map(n=>{
+    const rows = payrollStaff(m).map(n=>{
         const {a,h,ded,adv,paid} = payMonth(n,m), cr = payCarry(n,m);
         const sal = salaryOf(n,m);
         const net = sal + cr - ded - adv - paid;
