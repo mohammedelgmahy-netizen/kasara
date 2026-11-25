@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1224</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1225</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -1646,10 +1646,14 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                     
                 </div>
                 <div class="p-4 grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
-                    <div class="col-span-2 md:col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">يتحاسب مع</label><select id="cx-name" onchange="cxDefaults()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"></select></div>
+                    <div class="col-span-2 md:col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">يتحاسب مع</label><select id="cx-name" onchange="cxSinClear();cxDefaults()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"></select></div>
                     <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">من</label><input id="cx-from" type="date" onchange="cxPreview(true)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">إلى</label><input id="cx-to" type="date" onchange="cxPreview(true)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                     <div class="col-span-2 md:col-span-6 overflow-x-auto"><table class="w-full text-sm text-right border border-slate-200 rounded-lg"><thead class="bg-slate-100"><tr><th class="p-2">المعدة</th><th class="p-2">عدد الأمتار</th><th class="p-2" id="cx-rate-th">سعر المتر</th><th class="p-2">المبلغ</th></tr></thead><tbody id="cx-rows"></tbody><tbody id="cx-tot-body"><tr class="bg-indigo-50 font-extrabold"><td class="p-2">الإجمالي</td><td class="p-2" id="cx-tq">—</td><td></td><td class="p-2 text-emerald-700" id="cx-amount">—</td></tr></tbody><tbody id="cx-ded"></tbody></table></div>
+                    <div class="col-span-2 md:col-span-6"><!-- كميات سن إضافي/خصم بإيد محمد (2026-11-25) -->
+                        <div class="flex flex-wrap items-center gap-2 mb-1"><span class="text-xs font-bold text-slate-600">كميات سن:</span><button type="button" onclick="cxAddSin('add')" class="bg-emerald-600 hover:bg-emerald-700 text-white rounded px-2.5 py-1 text-xs font-bold">＋ إضافي كميات سن</button><button type="button" onclick="cxAddSin('ded')" class="bg-rose-600 hover:bg-rose-700 text-white rounded px-2.5 py-1 text-xs font-bold">－ خصم كميات سن</button></div>
+                        <table class="w-full text-sm text-right border border-slate-200 rounded-lg" id="cx-sin-tbl" style="display:none"><thead class="bg-slate-100"><tr><th class="p-2">النوع</th><th class="p-2">البيان</th><th class="p-2">الكمية (متر)</th><th class="p-2">السعر</th><th class="p-2">الإجمالي</th><th class="p-2"></th></tr></thead><tbody id="cx-sin-rows"></tbody></table>
+                    </div>
                     <div class="col-span-2 md:col-span-6" style="display:none"><!-- العمل الإضافي اتنقل لكارت «＋ عمل إضافي» فوق (محمد 2026-11-16) -->
                         <div class="flex items-center gap-2 mb-1"><span class="text-xs font-bold text-slate-600">أعمال إضافية (حفر بالساعة، شغل خاص...):</span><button type="button" onclick="cxAddExtra()" class="bg-amber-500 hover:bg-amber-600 text-white rounded px-2.5 py-1 text-xs font-bold">＋ عمل إضافي</button></div>
                         <table class="w-full text-sm text-right border border-amber-200 rounded-lg" id="cx-extra-tbl" style="display:none"><thead class="bg-amber-50"><tr><th class="p-2">البيان</th><th class="p-2">الكمية</th><th class="p-2">السعر</th><th class="p-2">الإجمالي</th><th class="p-2"></th></tr></thead><tbody id="cx-extra-rows"></tbody></table>
@@ -12373,7 +12377,7 @@ function contractorStmtRows(name){
         days.forEach(d=>ev.push({date:d.date, ord:0, day:true, desc:`شغل اليوم — ${d.n} بون${d.old?` (${nfmt(d.old)} متر سن قديم مش محسوب)`:''}`, sin:d.net, n:d.n, old:d.old, price:rate, credit:Math.round(d.net*rate), debit:0}));
     } else {
         (db.ctrExtracts||[]).filter(x=>normName(x.name)===normName(name)).forEach(x=>ev.push(x.extra
-            ? (x.discount ? {date:x.date, eff:x.to||x.date, ord:1, desc:'خصم'+(x.notes?' — '+x.notes:''), sin:0, credit:0, debit:-(Number(x.amount)||0)} : {date:x.date, eff:x.to||x.date, xk:'extra', xlbl:(x.final?'مستخلص نهائي — تقدير السن':(x.low?'':'عمل إضافي — ')+(x.equip||'')+(x.notes?' — '+x.notes:'')), ord:0, desc: x.final ? 'مستخلص نهائي — تقدير السن (تسوية أخيرة)' : `${x.low?'':'عمل إضافي — '}${x.equip}${x.from?' '+dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} × ${nfmt(x.rate)}${x.notes?' — '+x.notes:''}`, sin:0, xqty:(x.final?0:Number(x.qty)||0), xprice:(x.final?0:Number(x.rate)||0), credit:Number(x.amount)||0, debit:0})
+            ? (x.discount ? {date:x.date, eff:x.to||x.date, ord:1, desc:'خصم'+(x.notes?' — '+x.notes:''), sin:0, credit:0, debit:-(Number(x.amount)||0)} : {date:x.date, eff:x.to||x.date, xk:'extra', xlbl:(x.final?'مستخلص نهائي — تقدير السن':(x.low||x.sinAdj?'':'عمل إضافي — ')+(x.equip||'')+(x.notes?' — '+x.notes:'')), ord:0, desc: x.final ? 'مستخلص نهائي — تقدير السن (تسوية أخيرة)' : `${x.low||x.sinAdj?'':'عمل إضافي — '}${x.equip}${x.from?' '+dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} × ${nfmt(x.rate)}${x.notes?' — '+x.notes:''}`, sin:0, xqty:(x.final?0:Number(x.qty)||0), xprice:(x.final?0:Number(x.rate)||0), credit:Number(x.amount)||0, debit:0})
             : {date:x.date, ord:0, desc:`مستخلص${(l=>l==='بدون معدة'?'':' '+l)(ctrEqLbl(name,x.equip))} ${x.from?dmy(x.from)+' → '+dmy(x.to):''} — ${nfmt(x.qty)} متر${x.notes?' — '+x.notes:''}`, sin:Number(x.qty)||0, xprice:Number(x.rate)||0, eff:x.to||x.date, xk:'ext', xlbl:(l=>l==='بدون معدة'?'':l)(ctrEqLbl(name,x.equip)), xnotes:x.notes||'', credit:Number(x.amount)||0, debit:0}));
     }
     const ctrCats = (db.expenses||[]).filter(c=>c.nameType==='contractors').map(c=>c.name);
@@ -12590,13 +12594,15 @@ function cxPreview(resetQty){
         const R=contractorStmtRows(name).rows; let prev=0; const sol=[], paid=[];
         R.forEach(r=>{ const e=r.eff||r.date||''; if(r.ord<0 || (f && e<f)) prev+=(r.credit||0)-(r.debit||0); else if((!t || e<=t) && (r.debit||0)>0){ if(r.item) sol.push(r); else paid.push(r); } });
         const DX=(db.ctrExtracts||[]).filter(x=>x.daily && x.name===name && (!f||(x.date||'')>=f) && (!t||(x.date||'')<=t)).sort((a,b)=>(a.date||'').localeCompare(b.date||'')), dxv=DX.reduce((a,x)=>a+(Number(x.amount)||0),0); /* الإضافي المتسجل من الكارت (محمد 2026-11-16) */
-        const xt=cxExtras().reduce((a,x)=>a+(Number(x.q)||0)*(Number(x.rt)||0),0), dv=sol.reduce((a,r)=>a+r.debit,0), pv=paid.reduce((a,r)=>a+r.debit,0), work=ta+xt+dxv, fin=prev+work-dv-pv;
+        const SN=cxSins().filter(x=>x.q>0 && x.rt>0), snv=SN.reduce((a,x)=>a+(x.k==='ded'?-1:1)*x.q*x.rt,0);
+        const xt=cxExtras().reduce((a,x)=>a+(Number(x.q)||0)*(Number(x.rt)||0),0)+snv, dv=sol.reduce((a,r)=>a+r.debit,0), pv=paid.reduce((a,r)=>a+r.debit,0), work=ta+xt+dxv, fin=prev+work-dv-pv;
         const bt=v=>mfmt(Math.round(Math.abs(v)))+(Math.round(v)<0?' عليه':Math.round(v)>0?' ليه':'');
         const sub=(l,v,cls)=>`<tr class="${cls} font-extrabold"><td class="p-2" colspan="3">${l}</td><td class="p-2" style="${NW}">${v}</td></tr>`;
         let h='';
         h+=DX.map(x=>`<tr class="border-t border-amber-200" style="background:#fff7ed"><td class="p-2 font-bold">عمل إضافي — ${esc(x.equip||'')}</td><td class="p-2" style="${NW}">${nfmt(x.qty)}</td><td class="p-2">${nfmt(x.rate)}</td><td class="p-2 font-extrabold" style="${NW}">${mfmt(x.amount)}</td></tr>`).join('');
         if(DX.length>1) h+=sub('إجمالي العمل الإضافي', mfmt(dxv), 'bg-amber-50');
-        if(xt) h+=sub('أعمال إضافية', mfmt(xt), 'bg-amber-50');
+        h+=SN.map(x=>`<tr class="border-t border-slate-100" style="background:${x.k==='ded'?'#fff1f2':'#ecfdf5'}"><td class="p-2 font-bold ${x.k==='ded'?'text-rose-700':'text-emerald-700'}">${x.k==='ded'?'خصم':'إضافي'} كميات سن${x.d?' — '+esc(x.d):''}</td><td class="p-2" style="${NW}">${nfmt(x.q)} متر</td><td class="p-2">${nfmt(x.rt)}</td><td class="p-2 font-extrabold ${x.k==='ded'?'text-rose-700':'text-emerald-700'}" style="${NW}">${mfmt(x.q*x.rt)}${x.k==='ded'?'-':''}</td></tr>`).join('');
+        if(xt-snv) h+=sub('أعمال إضافية', mfmt(xt-snv), 'bg-amber-50');
         h+=sol.map(r=>`<tr class="border-t border-slate-100"><td class="p-2 font-bold text-rose-700">خصم ${esc(r.item||'')}</td><td class="p-2" style="${NW}">${esc(r.qtyTxt||'')}</td><td class="p-2">${nfmt(r.price||0)}</td><td class="p-2 font-extrabold text-rose-700" style="${NW}">${mfmt(r.debit)}-</td></tr>`).join('');
         if(sol.length) h+=sub('إجمالي خصم السولار والأصناف', mfmt(dv)+'-', 'bg-rose-50 text-rose-700');
         h+=paid.map(r=>`<tr class="border-t border-slate-100"><td class="p-2 font-bold text-rose-700" colspan="3">${esc(r.desc||'')}</td><td class="p-2 font-extrabold text-rose-700" style="${NW}">${mfmt(r.debit)}-</td></tr>`).join('');
@@ -12644,6 +12650,19 @@ function cxExtraCalc(i){ const q=Number(document.getElementById('cx-xq-'+i).valu
 function cxExtraShow(){ const tb=document.getElementById('cx-extra-rows'), t=document.getElementById('cx-extra-tbl'); if(t) t.style.display = tb && tb.children.length ? '' : 'none'; }
 function cxExtraClear(){ const tb=document.getElementById('cx-extra-rows'); if(tb) tb.innerHTML=''; cxExtraShow(); }
 function cxExtras(){ return [...document.querySelectorAll('#cx-extra-rows tr')].map(tr=>{ const i=tr.id.split('-').pop(); const v=id=>document.getElementById(id+'-'+i); return {d:(v('cx-xd').value||'').trim(), q:Number(v('cx-xq').value)||0, rt:Number(v('cx-xr').value)||0, el:v('cx-xd')}; }); }
+/* كميات سن إضافي/خصم في المستخلص (محمد 2026-11-25 «عاوز خصم كميات سن في المستخلصات — يبقى فيه إضافي وفيه خصم»): الكمية والسعر بإيده، الإجمالي أوتوماتيك.
+   بيتحفظ مع المستخلص سطر extra:true sinAdj:'add'|'ded' (الخصم مبلغه بالسالب) فيدخل «شغل الأسبوع» ويظهر في المستخلص المطبوع. مش بيلمس أي حركة قديمة. */
+let cxSinN=0;
+function cxAddSin(k){
+    const tb=document.getElementById('cx-sin-rows'); if(!tb) return; const i=cxSinN++, ded=k==='ded';
+    const inp='bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-sm font-bold';
+    tb.insertAdjacentHTML('beforeend', `<tr id="cx-s-${i}" data-k="${ded?'ded':'add'}" class="border-t border-slate-100" style="background:${ded?'#fff1f2':'#ecfdf5'}"><td class="p-2 font-bold ${ded?'text-rose-700':'text-emerald-700'} whitespace-nowrap">${ded?'خصم كميات سن':'إضافي كميات سن'}</td><td class="p-2"><input id="cx-sd-${i}" type="text" placeholder="البيان (اختياري)" class="w-full ${inp}"></td><td class="p-2"><input id="cx-sq-${i}" type="number" inputmode="decimal" step="any" min="0" placeholder="متر" oninput="cxSinCalc(${i})" class="w-24 ${inp}"></td><td class="p-2"><input id="cx-sr-${i}" type="number" inputmode="decimal" step="any" min="0" placeholder="السعر" oninput="cxSinCalc(${i})" class="w-24 ${inp}"></td><td class="p-2 font-extrabold ${ded?'text-rose-700':'text-emerald-700'} whitespace-nowrap" id="cx-sa-${i}">—</td><td class="p-2"><button type="button" onclick="document.getElementById('cx-s-${i}').remove();cxSinShow();cxPreview()" class="text-rose-600 text-xs font-bold">✕</button></td></tr>`);
+    cxSinShow(); document.getElementById('cx-sq-'+i).focus();
+}
+function cxSinCalc(i){ const g=id=>document.getElementById(id), q=Number(g('cx-sq-'+i).value)||0, r=Number(g('cx-sr-'+i).value)||0, ded=g('cx-s-'+i).dataset.k==='ded'; g('cx-sa-'+i).textContent = q&&r ? mfmt(q*r)+(ded?'-':'') : '—'; try{ cxPreview(); }catch(e){} }
+function cxSinShow(){ const tb=document.getElementById('cx-sin-rows'), t=document.getElementById('cx-sin-tbl'); if(t) t.style.display = tb && tb.children.length ? '' : 'none'; }
+function cxSinClear(){ const tb=document.getElementById('cx-sin-rows'); if(tb) tb.innerHTML=''; cxSinShow(); }
+function cxSins(){ return [...document.querySelectorAll('#cx-sin-rows tr')].map(tr=>{ const i=tr.id.split('-').pop(); const v=id=>document.getElementById(id+'-'+i); return {k:tr.dataset.k, d:(v('cx-sd').value||'').trim(), q:Number(v('cx-sq').value)||0, rt:Number(v('cx-sr').value)||0, el:v('cx-sq')}; }); }
 /* حماية (2026-11-13): أي سبب يمنع حفظ المستخلص لازم يبان في رسالة ويتسجل في auditLog */
 /* عمل إضافي بتاريخه (محمد وافق 2026-11-16): بيتسجل سطر مستخلص extra:true daily:true من=إلى=اليوم → بيدخل الحساب على طول وبيظهر في مستخلص الأسبوع */
 function xdTotal(){ const q=Number(document.getElementById('xd-qty').value)||0, r=Number(document.getElementById('xd-rate').value)||0; const b=document.getElementById('xd-btn'); if(b) b.textContent = q&&r ? `حفظ الإضافي (${nfmt(Math.round(q*r*100)/100)} ج.م)` : 'حفظ الإضافي'; }
@@ -12681,7 +12700,9 @@ function __saveCtrExtractCore(){
     const LOW=(()=>{ const q=Number(g('cx-lq')?.value)||0, rt=Number(g('cx-lr')?.value)||0, R=ctrLowRule(name); return (R && q>0 && rt>0) ? {q, rt, d:`أصناف أقل من ${nfmt(R.pct)}% سن (إجمالي التكعيب)`} : null; })();
     const half=EXall.find(x=>(x.q>0||x.rt>0) && !(x.d && x.q>0 && x.rt>0));
     if(half){ alert('اكمل بيانات العمل الإضافي: الوصف والكمية والسعر'); half.el.focus(); return; }
-    if(!name || (!L.length && !EX.length && !LOW)){ alert('اختار المقاول واكتب الأمتار أو عمل إضافي'); return; }
+    const SNall=cxSins(), SN=SNall.filter(x=>x.q>0 && x.rt>0), shalf=SNall.find(x=>(x.q>0||x.rt>0) && !(x.q>0 && x.rt>0));
+    if(shalf){ alert('اكمل كميات السن: الكمية والسعر'); shalf.el.focus(); return; }
+    if(!name || (!L.length && !EX.length && !LOW && !SN.length)){ alert('اختار المقاول واكتب الأمتار أو عمل إضافي'); return; }
     const bad=L.find(x=>!(x.rt>0)); if(bad){ alert('اكتب سعر المتر لـ '+ctrEqName(name,bad.e)); g('cx-r-'+bad.i).focus(); return; }
     const from=g('cx-from').value, to=g('cx-to').value, notes=g('cx-notes').value.trim();
     if(!db.ctrExtracts) db.ctrExtracts=[];
@@ -12700,7 +12721,10 @@ function __saveCtrExtractCore(){
     EX.forEach(x=>{ const rec={id:String(newId()), name, extra:true, equip:x.d, date:xDate, from, to, qty:x.q, rate:x.rt, amount:Math.round(x.q*x.rt*100)/100, notes};
         if(!firstId) firstId=rec.id;
         db.ctrExtracts.push(rec); logAudit('create','عمل إضافي مقاول',`${name} ${x.d} ${x.q}×${x.rt}`,null,rec); }); // من غير بدل إدارة لأنه مش أمتار سن
-    g('cx-notes').value=''; cxExtraClear(); scheduleSave(); renderAll(); cxDefaults();
+    SN.forEach(x=>{ const ded=x.k==='ded', lbl=(ded?'خصم كميات سن':'إضافي كميات سن')+(x.d?' — '+x.d:''), a=Math.round(x.q*x.rt*100)/100;
+        const rec={id:String(newId()), name, extra:true, sinAdj:ded?'ded':'add', equip:lbl, date:xDate, from, to, qty:x.q, rate:x.rt, amount:ded?-a:a, notes};
+        if(!firstId) firstId=rec.id; db.ctrExtracts.push(rec); logAudit('create', lbl, `${name} ${x.q}×${x.rt} = ${ded?'-':''}${a}`, null, rec); });
+    g('cx-notes').value=''; cxExtraClear(); cxSinClear(); scheduleSave(); renderAll(); cxDefaults();
     if(firstId) try{ openCtrExtractView(firstId); }catch(e){} // بعد الحفظ يطلع المستخلص كامل للفترة (محمد 2026-11-07)
 }
 /* لما تدوس على مستخلص محفوظ تظهر تفاصيله (محمد 2026-11-07) */
