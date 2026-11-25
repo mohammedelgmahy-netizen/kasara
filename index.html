@@ -430,6 +430,7 @@ main .overflow-x-auto td:has(> button[onclick*="startEdit"], > button[onclick*="
 body > header .hdr-actions > button#exit-btn{background:#dc2626 !important;border:1px solid #b91c1c !important;color:#fff !important;font-weight:800;font-size:15px;padding:6px 14px;border-radius:8px;white-space:nowrap}
 body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important}
 @media (max-width:900px){ body > header .hdr-actions > button#exit-btn{padding:8px 10px !important;font-size:14px} }
+@media screen{ main #acct-sheet.acct-fitz, #cstv-modal #cstv-body.acct-fitz{zoom:var(--az,1)} } /* كشف الحساب كله في شاشة اللابتوب (محمد 2026-11-25) */
 </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col">
@@ -581,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1214</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1215</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -2051,6 +2052,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                         <button type="button" onclick="csMarkStmt();shareCard('acct-card','كشف حساب '+((v=>v===ALL_BONS?'كل البونات':v)(document.getElementById('acct-name').value||'')))" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i><span>واتساب</span></button>
                         <button type="button" id="cst-save-btn" onclick="saveClientStmt()" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><span>💾 حفظ الكشف وترحيل المتبقي</span></button>
                         <button onclick="csMarkStmt();printSection('acct-card')" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة الكشف</span></button>
+                        <button type="button" id="acct-fit-btn" onclick="acctFitToggle()" style="display:none" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold">🔍 حجم كبير</button>
                         <button onclick="exportAccountStatementExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
                     </div>
                 </div>
@@ -7102,7 +7104,7 @@ document.addEventListener('DOMContentLoaded', ()=>{ const f=document.getElementB
 /* ===== v260.9: كل شاشة تسجيل تدخل في الشاشة من غير تمرير (زي فورم البون) — الكشوف الطويلة بس هي اللي بتتمرر لتحت ===== */
 function fitPage(){ try{ const m=document.querySelector('main'), t=document.querySelector('main .tab-content.active')||document.getElementById('tab-'+activeTab); if(!m||!t) return;
     const dc=document.getElementById('exp-sap-day-card'), box=document.getElementById('exp-sap-day');
-    if(innerWidth<901 || activeTab==='dailylog' || activeTab==='pl' || activeTab==='bs' /* قائمة الدخل والمركز المالي بحجمهم الكامل من غير تصغير — بتتمرر لتحت (محمد 2026-11-20، نظره ضعيف) */ || (window.matchMedia && matchMedia('(pointer:coarse)').matches)){ t.style.zoom=''; m.style.overflowY=''; if(dc) dc.style.display=''; if(box) box.style.height=''; return; }
+    if(innerWidth<901 || activeTab==='dailylog' || (activeTab==='ledger' && document.getElementById('sub-ledger-form')?.classList.contains('active')) /* كشف الحساب بيظبط نفسه (acctFitSheet) */ || activeTab==='pl' || activeTab==='bs' /* قائمة الدخل والمركز المالي بحجمهم الكامل من غير تصغير — بتتمرر لتحت (محمد 2026-11-20، نظره ضعيف) */ || (window.matchMedia && matchMedia('(pointer:coarse)').matches)){ t.style.zoom=''; m.style.overflowY=''; if(dc) dc.style.display=''; if(box) box.style.height=''; return; }
     /* الحجم بيتثبت لكل شاشة: يصغر لو احتاج، وعمره ما يكبر تاني وانت شغال فيها؛ ولو الشاشة دخلت كلها التمرير بيتقفل خالص (محمد 2026-11-13) */
     const F=window.__fitZ||(window.__fitZ={}), sub=t.querySelector(':scope > .subpage.active'), key=activeTab+'|'+(sub?sub.id:'')+'|'+innerWidth+'x'+innerHeight, prev=F[key]||1, st=m.scrollTop;
     const fits=()=>m.scrollHeight<=m.clientHeight, useDay=!!(dc && box && activeTab==='expenses' && sub && sub.id==='sub-expenses-form');
@@ -7119,6 +7121,32 @@ function fitPage(){ try{ const m=document.querySelector('main'), t=document.quer
   const _b=switchSub; switchSub=function(){ const r=_b.apply(this,arguments); setTimeout(fitPage,30); return r; };
   const _r=renderAll; renderAll=function(){ const r=_r.apply(this,arguments); setTimeout(fitPage,30); return r; };
   window.addEventListener('resize',()=>setTimeout(fitPage,50)); }
+/* محمد 2026-11-25: «كشف الحساب لما باجي افتحه على اللابتوب ما بيظهرش كامل» — على اللابتوب الكشف بيتصغّر على قد ارتفاع الشاشة
+   ويتعرض كله مرة واحدة (والشاشة بتنزل لأوله). زرار «🔍 حجم كبير» يرجعه بحجمه الكامل. عرض بس: الطباعة وصورة الواتساب زي ما هم. */
+function acctFitOn(){ try{ return localStorage.getItem('kasara-acct-full')!=='1'; }catch(e){ return true; } }
+function acctFitDesk(){ return innerWidth>=901 && !(window.matchMedia && matchMedia('(pointer:coarse)').matches); }
+function acctFitBtn(){ const b=document.getElementById('acct-fit-btn'); if(!b) return; const sh=document.getElementById('acct-sheet');
+    b.style.display = (acctFitDesk() && sh && sh.dataset.fit==='1' && sh.style.display!=='none') ? '' : 'none';
+    b.textContent = acctFitOn() ? '🔍 حجم كبير' : '🖥️ الكشف كله في الشاشة'; }
+function acctFitToggle(){ try{ localStorage.setItem('kasara-acct-full', acctFitOn()?'1':'0'); }catch(e){} window.__acctFitKey=''; acctFitSheet(); }
+function acctFitSheet(){ try{
+    const sh=document.getElementById('acct-sheet'), m=document.querySelector('main'); if(!sh||!m) return;
+    sh.classList.remove('acct-fitz'); sh.style.removeProperty('--az'); acctFitBtn();
+    if(!acctFitDesk() || activeTab!=='ledger' || sh.dataset.fit!=='1' || sh.style.display==='none' || !sh.firstElementChild) return;
+    const key=[document.getElementById('acct-name')?.value, document.getElementById('acct-from')?.value, document.getElementById('acct-to')?.value, innerWidth, innerHeight, acctFitOn()].join('|'), first=window.__acctFitKey!==key; window.__acctFitKey=key;
+    if(acctFitOn()){ const h=sh.getBoundingClientRect().height, avail=m.clientHeight-16;
+        if(h>avail){ const z=Math.max(0.5, avail/h); sh.style.setProperty('--az', z.toFixed(3)); sh.classList.add('acct-fitz'); } }
+    if(first){ const d=sh.getBoundingClientRect().top - m.getBoundingClientRect().top - 8; if(d>0) m.scrollTop += d; }
+}catch(e){} }
+function cstvFit(){ try{ const m=document.getElementById('cstv-modal'), b=document.getElementById('cstv-body'); if(!m||!b) return;
+    b.classList.remove('acct-fitz'); b.style.removeProperty('--az'); if(!acctFitDesk() || !acctFitOn()) return;
+    const over=m.scrollHeight-m.clientHeight; if(over<=0) return; const h=b.getBoundingClientRect().height;
+    const z=Math.max(0.5,(h-over-4)/h); b.style.setProperty('--az', z.toFixed(3)); b.classList.add('acct-fitz'); }catch(e){} }
+{ const _a=renderAccountStatement; renderAccountStatement=function(){ const r=_a.apply(this,arguments); try{ const sh=document.getElementById('acct-sheet'), n=document.getElementById('acct-name')?.value, t=document.getElementById('acct-type')?.value; if(sh) sh.dataset.fit=(t==='client' && n && n!==ALL_BONS)?'1':''; }catch(e){} setTimeout(acctFitSheet,40); return r; };
+  const _o=openClientStmtView; openClientStmtView=function(){ const r=_o.apply(this,arguments); setTimeout(cstvFit,40); return r; };
+  const _w=switchTab; switchTab=function(){ const r=_w.apply(this,arguments); window.__acctFitKey=''; setTimeout(acctFitSheet,60); return r; };
+  const _x=switchSub; switchSub=function(t){ const r=_x.apply(this,arguments); if(t==='ledger'){ window.__acctFitKey=''; setTimeout(acctFitSheet,60); } return r; };
+  window.addEventListener('resize',()=>setTimeout(()=>{ acctFitSheet(); cstvFit(); },80)); }
 function tbExportExcel(){
     const D=document.getElementById('tb-date')?.value||todayISO(), T=tbData(D), r=v=>Math.round(v)||'';
     const aoa=[['ميزان المراجعة — كسارة الديار'],['في تاريخ', dmy(D)],[],['المجموعة','الحساب','مدين','دائن']];
