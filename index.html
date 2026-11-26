@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1281</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1282</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -15021,6 +15021,15 @@ body.dfx #dp-sheet{overflow-y:auto} /* v1280: صفحة اليوم بشكلها �
 body.dfx #treasury-accounts-summary{display:none !important} /* v1280 محمد: «المعلق ودرج المكتب بيتكتبوا في صفحة اليوم، ملهمش لازمة هنا» — مخفيين في كشف حساب الخزينة على اللابتوب بس */
 body.dfx main #tr-card table td{white-space:normal !important}
 body.dfx main #tr-card table{table-layout:auto}
+/* v1282 محمد: «صفحة اليوم… صغّر السطور» — على اللابتوب بس (الطباعة والواتساب زي ما هم) */
+body.dfx main #dp-sheet .dp-sheet{max-width:none;font-size:13px}
+body.dfx main #dp-sheet .dp-tbl :is(th,td){padding:1px 6px !important;line-height:1.3 !important}
+body.dfx main #dp-sheet .dp-tbl tbody td{height:auto !important}
+body.dfx main #dp-sheet .dp-tbl tfoot td{height:auto !important;padding:2px 6px !important}
+body.dfx main #dp-sheet .dp-tbl td > div{display:inline-block;margin-inline-start:6px;font-size:11px !important}
+body.dfx main #dp-sheet .dp-top{padding-top:2px !important;padding-bottom:2px !important;margin-bottom:4px !important}
+body.dfx main #dp-sheet .dp-top img{width:34px !important;height:34px !important}
+body.dfx main #dp-sheet .dp-bal td{padding:1px 8px !important}
 body.dfx #sub-ledger-form.dfx-sc{overflow-y:auto;overscroll-behavior:contain}
 body.dfx #sub-ledger-form.dfx-sc > *{flex-shrink:0}
 body.dfx #sub-ledger-form.dfx-sc #acct-card{padding-top:0 !important}
