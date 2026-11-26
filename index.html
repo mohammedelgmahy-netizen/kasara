@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1231</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1232</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3993,6 +3993,8 @@ window.onload = async function(){
     try{ await fixMagdyOpen1125Once(); }catch(e){ console.warn('mechopen1125', e); }
     try{ fixMagdyCash1126Once(); }catch(e){ console.warn('mechcash1126', e); }
     { const t=setInterval(()=>{ if(db && db.imports && db.imports.mechcash1126){ clearInterval(t); return; } try{ fixMagdyCash1126Once(); }catch(e){} }, 15000); }
+    try{ await fixMagdyTotal1126Once(); }catch(e){ console.warn('mechtotal1126', e); }
+    { const t=setInterval(async()=>{ if(db && db.imports && db.imports.mechtotal1126){ clearInterval(t); return; } try{ await fixMagdyTotal1126Once(); }catch(e){} }, 15000); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.mechopen1125){ clearInterval(t); return; } try{ await fixMagdyOpen1125Once(); }catch(e){} }, 15000); }
     try{ await drawerToBank1123Once(); }catch(e){ console.warn('drj1123', e); }
     try{ await fixMagdyName1122Once(); }catch(e){ console.warn('magdy1122', e); }
@@ -5408,6 +5410,21 @@ async function fixMagdyOpen1125Once(){
 function fixMagdyCash1126Once(){ if(!db || (db.imports&&db.imports.mechcash1126)) return; if(!(db.imports&&db.imports.mechopen1125)) return; const n=mechPerson(); if(!n) return;
     if(n.openPaidCash==null){ n.openPaidCash=792750; try{ logAudit('update','دليل الأكواد (بأمر محمد)','مجدي عبد الغني: المعلق زي ما هو — المدفوع من الخزنة 792,750، وفرق الكراريس 19,550 من غير خزنة', null, null); }catch(e){} }
     if(!db.imports) db.imports={}; db.imports.mechcash1126=true; try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){} scheduleSave(); try{ renderAll(); }catch(e){} }
+/* محمد 2026-11-26: «1,200,000 ده كل شغله، 222,690 الفاضل ليه، الباقي هو اخده» — شغله كله لحد 22/11 = 1,200,000. اللي أخده قبل البرنامج بيتظبط عشان المجموع يطلع كده، والزيادة عن المدفوع من المعلق (792,750) من غير أي خزنة */
+async function fixMagdyTotal1126Once(){
+    if(!db || (db.imports&&db.imports.mechtotal1126)) return;
+    if(!(db.imports&&db.imports.mechopen1125 && db.imports.mechcash1126)) return;
+    const n=mechPerson(), C=mechCat(); if(!n || !C) return;
+    if(!SUPABASE_URL || !__cloudOK) return;
+    const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-26-before-magdy-total', value:JSON.stringify(db), updated_at:new Date().toISOString()})});
+    if(!res.ok){ console.warn('mechtotal1126: النسخة الاحتياطية فشلت', res.status); return; }
+    const old=Object.assign({},n), fd=(C.firstDue&&Number(C.firstDue.due))||150000;
+    n.openPaid = 1200000 - (Number(C.openBal)||0) - (Number(C.priorWork)||0) - fd; n.openTotal = n.openPaid + (Number(C.openBal)||0); n.openBal = Number(C.openBal)||0; if(n.openPaidCash==null) n.openPaidCash=792750;
+    try{ logAudit('update','دليل الأكواد (بأمر محمد)', `مجدي عبد الغني: كل شغله لحد 22/11 = 1,200,000، الفاضل له 222,690 — المأخوذ قبل البرنامج ${n.openPaid} (من المعلق ${n.openPaidCash})`, old, Object.assign({},n)); }catch(e){}
+    if(!db.imports) db.imports={}; db.imports.mechtotal1126=true;
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    scheduleSave(); try{ renderAll(); }catch(e){}
+}
 function openPaidCash(c){ return c && c.openPaidCash!=null ? Number(c.openPaidCash)||0 : Number(c&&c.openPaid)||0; }
 function catPayees(c){ if(!c) return null; if(Array.isArray(c.payees)) return c.payees; return c.code===4011 ? ['موالي الصريحي'] : null; }
 function expPayeeNew(){ const sel=document.getElementById('exp-name'); if(!sel || sel.value!=='__new') return;
