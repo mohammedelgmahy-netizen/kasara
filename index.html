@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1251</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1252</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -6270,6 +6270,8 @@ function computePL(projectFilter, dateFrom, dateTo){
         let gk = (typeof EXP_MERGE!=='undefined' && EXP_MERGE[x.category]) ? crusherCatName() : x.category; /* الإعاشة بتتجمع جوه تشغيل الكسارة */
         /* أي بند اسمه بيبدأ بـ«تشغيل الكسارة» (حتى لو مكتوب بمسافة زيادة أو من غير القوس) سطر واحد — محمد 2026-11-25 «تشغيل الكسارة سطرين ليه؟» */
         if(/^\s*تشغيل\s+الكسار[ةه]/.test(String(gk||''))) gk=crusherCatName();
+        /* «موالي محجر» 40,000 (11/11) سطر لوحده «شراء محجر» تحت المصروفات بدل الغفرة — محمد 2026-11-26. عرض بس، الحركة زي ما هي */
+        if(String(x.id)==='1795000000300098') gk='شراء محجر';
         const gDef = gk===x.category ? catDef : (db.expenses.find(c=>c.name===gk) || catDef);
         const plType = gDef ? gDef.plType : 'operating';
         const plBucket = gDef ? gDef.plBucket : 'other_operating';
