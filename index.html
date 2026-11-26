@@ -404,6 +404,17 @@ div:has(> input[id^="dl-q-"]){display:none}
 div.dlq-on:has(> input[id^="dl-q-"]){display:block}</style>
 <style id="pl-bold">/* قائمة الدخل بس: كلام غامق (محمد 2026-11-15، نظره ضعيف) */
 #tab-pl, #tab-pl *{ font-weight:800 !important; }
+/* محمد 2026-11-26 «غمق الكلام في قائمة الدخل والميزانية العمومية… وسيب نفس الحجم»: لون أغمق + تخانة بالـstroke (ما بيغيرش عرض الحروف ولا حجم الصفحة) — شاشة وطباعة وصورة واتساب */
+#tab-pl, #tab-bs{ --dk-stroke:0.35px; }
+#tab-pl *, #tab-bs *{ -webkit-text-stroke:var(--dk-stroke) currentColor; }
+#tab-bs [class*="text-slate-"], #tab-bs [class*="text-gray-"]{ color:#000 !important; }
+#tab-pl [class*="text-blue-"], #tab-bs [class*="text-blue-"]{ color:#1e3a8a !important; }
+#tab-pl [class*="text-amber-"], #tab-bs [class*="text-amber-"]{ color:#78350f !important; }
+#tab-pl [class*="text-emerald-"], #tab-bs [class*="text-emerald-"], #tab-pl [class*="text-green-"]{ color:#064e3b !important; }
+#tab-pl [class*="text-rose-"], #tab-bs [class*="text-rose-"], #tab-pl [class*="text-red-"]{ color:#881337 !important; }
+#tab-pl [class*="text-purple-"], #tab-bs [class*="text-purple-"]{ color:#3b0764 !important; }
+#tab-pl [class*="text-indigo-"], #tab-bs [class*="text-indigo-"]{ color:#1e1b4b !important; }
+#tab-bs .text-white, #tab-bs .bg-slate-800 *, #tab-bs tr.bg-slate-800 td, #tab-pl .text-white{ color:#fff !important; }
 #tab-pl [class*="text-slate-"], #tab-pl [class*="text-gray-"]{ color:#000 !important; }
 #tab-pl table:has(#pl-content){ table-layout:fixed; width:100% !important; }
 #tab-pl #pl-content td{ white-space:normal; overflow-wrap:anywhere; }
@@ -582,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1260</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1261</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
