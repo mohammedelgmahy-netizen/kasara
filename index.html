@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1248</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1249</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -2018,7 +2018,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
             <div class="subnav-bar">
                 <button type="button" id="subnav-ledger-form" class="subnav-btn active" onclick="switchSub('ledger','form');acctMode('client')">📄 كشف حساب العملاء</button>
                 <button type="button" id="subnav-ledger-log" class="subnav-btn" onclick="switchSub('ledger','log')">👥 أرصدة العملاء</button>
-                <button type="button" id="subnav-ledger-ppl" class="subnav-btn" onclick="switchSub('ledger','ppl');renderAccounts()">👷 حسابات الأفراد</button>
+                <button type="button" id="subnav-ledger-ppl" class="subnav-btn" onclick="switchSub('ledger','ppl');acctMode('person');renderAccounts()">👷 حسابات الأفراد</button>
                 <button type="button" id="subnav-ledger-bal" class="subnav-btn" onclick="switchSub('ledger','bal')">📋 كشف الأرصدة (لينا وعلينا)</button>
                 <button type="button" id="subnav-ledger-ctb" class="subnav-btn" onclick="switchSub('ledger','ctb')">🚜 أصحاب المعدات (ليهم وعليهم)</button>
                 <button type="button" id="subnav-ledger-cx" class="subnav-btn" style="display:none" onclick="switchSub('ledger','cx')">🧾 مستخلص عميل</button>
@@ -2050,7 +2050,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                             <option value="client">حسابات العملاء</option>
                             <option value="person">حسابات الأفراد</option>
                         </select>
-                        <button type="button" id="acct-back-ppl" onclick="switchSub('ledger','ppl');renderAccounts()" style="display:none" class="bg-violet-600 hover:bg-violet-700 text-white rounded-lg px-3 py-2 text-sm font-extrabold">↩ حسابات الأفراد</button>
+                        <button type="button" id="acct-back-ppl" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="display:none" class="bg-violet-600 hover:bg-violet-700 text-white rounded-lg px-3 py-2 text-sm font-extrabold">⬆ قايمة الأفراد</button>
                         <input id="acct-search" type="text" placeholder="بحث بالاسم..." oninput="renderAccounts()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs w-36">
                         <label class="text-xs font-bold text-slate-600">من <input id="acct-from" type="date" onchange="renderAccountStatement()" class="bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-xs"></label>
                         <label class="text-xs font-bold text-slate-600">إلى <input id="acct-to" type="date" onchange="renderAccountStatement()" class="bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-xs"></label>
@@ -6609,7 +6609,11 @@ function acctMode(t){ const s=document.getElementById('acct-type'); if(!s) retur
 function acctModeUI(){ const t=(document.getElementById('acct-type')||{}).value||'client', g=id=>document.getElementById(id);
     if(g('acct-head-lbl')) g('acct-head-lbl').textContent = t==='person' ? 'كشف حساب الأفراد' : 'كشف حساب العملاء';
     if(g('acct-back-ppl')) g('acct-back-ppl').style.display = t==='person' ? '' : 'none';
-    const f=g('subnav-ledger-form'), pp=g('subnav-ledger-ppl'); if(f && pp && g('sub-ledger-form')?.classList.contains('active')){ f.classList.toggle('active', t!=='person'); pp.classList.toggle('active', t==='person'); } }
+    if(g('cst-card')) g('cst-card').style.display = t==='person' ? 'none' : ''; /* كشوفات العملاء المحفوظة ما تظهرش تحت كشف فرد */
+    /* محمد 2026-11-26 «مش عاوزهم مع بعض»: كشف الفرد بيتنقل لصفحة «حسابات الأفراد»، وكشف العميل وكشوفات العملاء المحفوظة في صفحة «كشف حساب العملاء» — كل واحد في صفحة */
+    const card=g('acct-card'), ppl=g('sub-ledger-ppl'), form=g('sub-ledger-form');
+    if(card && ppl && form){ if(t==='person'){ if(card.parentNode!==ppl) ppl.appendChild(card); card.style.marginTop='16px'; if(form.classList.contains('active')) switchSub('ledger','ppl'); }
+        else { if(card.parentNode!==form) form.insertBefore(card, form.firstChild); card.style.marginTop=''; if(ppl.classList.contains('active')) switchSub('ledger','form'); } } }
 function openAcct(type, name){ try{ switchSub('ledger','form'); }catch(e){}
     const t = document.getElementById('acct-type'), q = document.getElementById('acct-search');
     if(!t) return;
