@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1252</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1253</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3990,6 +3990,8 @@ window.onload = async function(){
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.drbook1124){ clearInterval(t); return; } try{ await fixDrawerBook1124Once(); }catch(e){} }, 15000); }
     try{ await bookDaily1125Once(); }catch(e){ console.warn('book1125', e); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.book1125){ clearInterval(t); return; } try{ await bookDaily1125Once(); }catch(e){} }, 15000); }
+    try{ await addQuarry1126Once(); }catch(e){ console.warn('quarry1126', e); }
+    { const t=setInterval(async()=>{ if(db && db.imports && db.imports.quarry1126){ clearInterval(t); return; } try{ await addQuarry1126Once(); }catch(e){} }, 15000); }
     try{ await addGhafra1125bOnce(); }catch(e){ console.warn('ghafra1125b', e); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.ghafra1125b){ clearInterval(t); return; } try{ await addGhafra1125bOnce(); }catch(e){} }, 15000); }
     try{ await addGhafra1125Once(); }catch(e){ console.warn('ghafra1125', e); }
@@ -4134,6 +4136,24 @@ async function fixBaqala1122Once(){
    → مصروف غفرة 138,000 يوم 11/11 على المعلق + تمويل شركاء 138,000 (عماد ناجي 69,000 + صقر الزعيرى 69,000) داخل نفس المعلق، فالخزن مش بتتغير والميزانية متزنة */
 /* محمد 2026-11-25 (اختار «أرصدة أول المدة»): الغفرة 288,000 زي الكراريس → مصروف 138,000 يوم 11/11 بعلامة noCash (مش بيلمس الخزن) وقصاده سطر «أرصدة أول المدة» في المركز المالي.
    وبيشيل سجلات 1207 (مصروف المعلق + تمويل الشركاء 69,000×2) لو كانت اتسجلت — محمد «مش عاوز تمويل» */
+/* محمد 2026-11-26 («سجلها»): شراء المحجر 340,000 = 300,000 يوم 1/5 (بوعزة 200,000 + موالي 100,000، كراريس «شراء 260 فدان أرض») + 40,000 «موالي محجر» المتسجلة.
+   الـ300,000 بتتسجل مصروف «شراء محجر» بعلامة noCash (اتدفعت قبل التشغيل — مش بتلمس الخزن)، وقصادها «تسويات وأرصدة أول المدة» في المركز المالي */
+async function addQuarry1126Once(){
+    if(!db || (db.imports&&db.imports.quarry1126)) return;
+    if(!Array.isArray(db.expensesData) || !(db.dailyLog||[]).length) return;
+    if(!SUPABASE_URL || !__cloudOK) return;
+    const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-26-before-quarry-300k', value:JSON.stringify(db), updated_at:new Date().toISOString()}), timeout:120000});
+    if(!res.ok){ console.warn('quarry1126: النسخة الاحتياطية فشلت', res.status); return; }
+    const at=new Date().toISOString();
+    [['1795800000001126-a','بوعزه الصريحى',200000],['1795800000001126-b','موالي الصريحي',100000]].forEach(([id,nm,amt])=>{
+        if(db.expensesData.some(x=>x && String(x.id)===id)) return;
+        const E={id, _at:at, _by:'المدير', date:'2026-05-01', category:'شراء محجر', name:nm, total:amt, paid:amt, remaining:0, account:'', noCash:true, project:'كسارة ديار', activity:'', desc:'شراء 260 فدان (محجر) — '+nm, notes:'من الكراريس: اتدفعت قبل التشغيل — قصادها أرصدة أول المدة، مش من الخزن'};
+        db.expensesData.push(E); logAudit('create','مصروف (شراء محجر بأمر محمد)', `${E.desc}: ${amt}`, null, Object.assign({},E));
+    });
+    if(!db.imports) db.imports={}; db.imports.quarry1126=true;
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    scheduleSave(); try{ renderAll(); }catch(e){}
+}
 async function addGhafra1125bOnce(){
     if(!db || (db.imports&&db.imports.ghafra1125b)) return;
     if(!Array.isArray(db.expensesData) || !(db.dailyLog||[]).length) return;
