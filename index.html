@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1235</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1236</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -2049,6 +2049,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                             <option value="client">حسابات العملاء</option>
                             <option value="person">حسابات الأفراد</option>
                         </select>
+                        <button type="button" onclick="openMechStmt()" class="bg-violet-600 hover:bg-violet-700 text-white rounded-lg px-3 py-2 text-sm font-extrabold">🔧 كشف مجدي الميكانيكي</button>
                         <input id="acct-search" type="text" placeholder="بحث بالاسم..." oninput="renderAccounts()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs w-36">
                         <label class="text-xs font-bold text-slate-600">من <input id="acct-from" type="date" onchange="renderAccountStatement()" class="bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-xs"></label>
                         <label class="text-xs font-bold text-slate-600">إلى <input id="acct-to" type="date" onchange="renderAccountStatement()" class="bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-xs"></label>
@@ -5427,6 +5428,12 @@ async function fixMagdyTotal1126Once(){
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
     scheduleSave(); try{ renderAll(); }catch(e){}
 }
+/* زرار واحد يفتح كشف مجدي على طول (محمد 2026-11-26 «فين حسابات الأفراد؟») */
+function openMechStmt(){ try{ switchTab('ledger'); }catch(e){} try{ switchSub('ledger','form'); }catch(e){}
+    const t=document.getElementById('acct-type'); if(t){ t.value='person'; try{ onAcctTypeChange(); }catch(e){} }
+    const nm=(mechPerson()||{}).name||MECH_PERSON, sel=document.getElementById('acct-name'); if(sel){ if(![...sel.options].some(o=>o.value===nm)) sel.insertAdjacentHTML('beforeend',`<option value="${esc(nm)}">${esc(nm)}</option>`); sel.value=nm; }
+    ['acct-from','acct-to'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; }); try{ renderAccountStatement(); }catch(e){}
+    try{ document.getElementById('acct-card').scrollIntoView({behavior:'smooth'}); }catch(e){} }
 function openPaidCash(c){ return c && c.openPaidCash!=null ? Number(c.openPaidCash)||0 : Number(c&&c.openPaid)||0; }
 function catPayees(c){ if(!c) return null; if(Array.isArray(c.payees)) return c.payees; return c.code===4011 ? ['موالي الصريحي'] : null; }
 function expPayeeNew(){ const sel=document.getElementById('exp-name'); if(!sel || sel.value!=='__new') return;
