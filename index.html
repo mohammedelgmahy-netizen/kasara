@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1266</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1267</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -4173,11 +4173,10 @@ async function addWages1126Once(){
 async function addNatFee1126Once(){
     if(!db || (db.imports&&db.imports.natfee1126)) return;
     if(!Array.isArray(db.expensesData) || !(db.dailyLog||[]).length) return;
-    if(!SUPABASE_URL || !__cloudOK) return;
+    /* 26/11 18:0x: على موبايل محمد المصروف ما اتسجلش (النسخة الاحتياطية 3.5MB بتفشل على نت الموبايل) — بيتسجل على طول، والنسخة بتتاخد لو ينفع (النسخ كل ساعة موجودة) */
     if(!(db.incomes||[]).some(x=>x && plIncNew(x) && Math.round(Number(x.amount))===3283085)) return;
     const ID='1795800000001126-n'; if(db.expensesData.some(x=>x && String(x.id)===ID)){ if(!db.imports) db.imports={}; db.imports.natfee1126=true; return; }
-    const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-26-before-natfee', value:JSON.stringify(db), updated_at:new Date().toISOString()})});
-    if(!res.ok){ console.warn('natfee1126: النسخة الاحتياطية فشلت', res.status); return; }
+    try{ if(SUPABASE_URL && __cloudOK) sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-26-before-natfee', value:JSON.stringify(db), updated_at:new Date().toISOString()})}).catch(()=>{}); }catch(e){}
     const E={id:ID, _at:new Date().toISOString(), _by:'المدير', date:'2026-11-11', category:'رسوم وتراخيص المحجر جوية ووطنية', name:'', desc:'جوية ووطنية قصاد سلف الحاج ناجي', notes:'جوية ووطنية قصاد سلف الحاج ناجي (3,283,085)', total:3283085, paid:3283085, remaining:0, account:SARI_ACC, project:'كسارة ديار', activity:''};
     db.expensesData.push(E); logAudit('create','مصروف (جوية ووطنية بأمر محمد)', `${E.desc}: 3283085`, null, Object.assign({},E));
     if(!db.imports) db.imports={}; db.imports.natfee1126=true;
