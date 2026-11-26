@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1232</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1233</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5482,7 +5482,7 @@ function isWageCat(c){ if(c && c.code===4012) return false; /* «مصروف أج
 const EXP_MERGE={'مصروف إعاشة':'تشغيل الكسارة (سولار وصيانة)'};
 /* اسم بند تشغيل الكسارة زي ما محمد كاتبه في دليل الأكواد (كود 4001) — قائمة الدخل بتكتبه بالاسم ده (محمد 2026-11-25) */
 function crusherCatName(){ const c=(db.expenses||[]).find(e=>Number(e.code)===4001) || (db.expenses||[]).find(e=>/^\s*تشغيل\s+الكسار[ةه]/.test(e.name||'')); return (c&&c.name) || 'تشغيل الكسارة (سولار وصيانة)'; }
-function expTypes(){ try{ fixDupOps(); }catch(e){} return (db.expenses||[]).filter(c=>c.name!=='إيراد' && c.name!==COM_CAT && !isWageCat(c) && !EXP_MERGE[c.name]).sort((x,y)=>x.code-y.code); }
+function expTypes(){ try{ fixDupOps(); }catch(e){} let __ec=''; try{ __ec=(typeof __editSnap!=='undefined' && __editSnap) ? (document.getElementById('exp-category')||{}).value||'' : ''; }catch(e){} return (db.expenses||[]).filter(c=>c.name!=='إيراد' && c.name!==COM_CAT && !isWageCat(c) && !EXP_MERGE[c.name] && (c.code!==4012 || c.name===__ec) /* 1233: «أجور ومرتبات» اتشال من اختيارات المصروفات — الرواتب بتتسجل من تابها وبتدخل سطر الأجور في قائمة الدخل (محمد 2026-11-26) */).sort((x,y)=>x.code-y.code); }
 function renderExpQuick(){
     const box=document.getElementById('exp-quick'); if(!box) return;
     const selC=document.getElementById('exp-category'); let cur=selC?.value||'';
