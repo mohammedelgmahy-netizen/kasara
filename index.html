@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1271</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1272</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -2070,6 +2070,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                         <button type="button" id="cst-save-btn" onclick="saveClientStmt()" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><span>💾 حفظ الكشف وترحيل المتبقي</span></button>
                         <button onclick="csMarkStmt();printSection('acct-card')" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span>طباعة الكشف</span></button>
                         <button type="button" id="acct-fit-btn" onclick="acctFitToggle()" style="display:none" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold">🔍 حجم كبير</button>
+                        <button type="button" onclick="acctGoSaved()" class="bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold">📁 الكشوفات المحفوظة</button>
                         <button onclick="exportAccountStatementExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i><span>إكسيل</span></button>
                     </div>
                 </div>
@@ -7695,9 +7696,10 @@ function acctFitSheet(){ try{
     sh.classList.remove('acct-fitz'); sh.style.removeProperty('--az'); acctFitBtn();
     if(!acctFitDesk() || activeTab!=='ledger' || sh.dataset.fit!=='1' || sh.style.display==='none' || !sh.firstElementChild) return;
     const key=[document.getElementById('acct-name')?.value, document.getElementById('acct-from')?.value, document.getElementById('acct-to')?.value, innerWidth, innerHeight, acctFitOn()].join('|'), first=window.__acctFitKey!==key; window.__acctFitKey=key;
+    try{ if(typeof deskFix==='function') deskFix(); }catch(e){}
     const sc0=document.getElementById('sub-ledger-form'), fx=!!(sc0 && sc0.classList.contains('dfx-sc')), sc=fx?sc0:m, hd=fx?(document.querySelector('#acct-card > div:first-child')?.getBoundingClientRect().height||0)+10:0; /* رأس الكشف ثابت فوق (محمد 2026-11-26) */
     if(acctFitOn()){ const h=sh.getBoundingClientRect().height, avail=sc.clientHeight-16-hd;
-        if(h>avail){ const z=Math.max(fx?0.72:0.5, avail/h); sh.style.setProperty('--az', z.toFixed(3)); sh.classList.add('acct-fitz'); } }
+        if(h>avail){ const z=Math.max(0.5, avail/h); sh.style.setProperty('--az', z.toFixed(3)); sh.classList.add('acct-fitz'); } }
     if(first){ const d=sh.getBoundingClientRect().top - sc.getBoundingClientRect().top - hd - 8; if(d>0) sc.scrollTop += d; }
 }catch(e){} }
 function cstvFit(){ try{ const m=document.getElementById('cstv-modal'), b=document.getElementById('cstv-body'); if(!m||!b) return;
@@ -14968,17 +14970,39 @@ body.dfx #sub-dailylog-log table th{padding:.2rem .35rem !important;font-size:.7
 body.dfx #tbody-dailylog td{padding:.15rem .35rem !important;white-space:nowrap;line-height:1.3 !important}
 body.dfx #tbody-dailylog td div{display:inline-block;margin-inline-start:4px}
 body.dfx #tbody-dailylog td > *{vertical-align:middle}
+/* v1272 محمد: «ثبّت كل شاشات التسجيل» — الفورمات متضغطة شوية على اللابتوب بنفس روح فورم البون، والجدول تحتها هو اللي بيتحرك */
+body.dfx main .tab-content.active > .tab-brand{padding:4px 12px !important}
+body.dfx main .tab-content.active > .tab-brand img{width:32px !important;height:32px !important}
+body.dfx main .tab-content.active > .subnav-bar .subnav-btn{font-size:.85rem !important;padding:.3rem .6rem !important;line-height:1.3 !important}
+body.dfx main .rounded-xl:has(> form:not(#exp-form)):not(#dl-form-card){padding:.55rem .9rem !important}
+body.dfx main .rounded-xl:has(> form:not(#exp-form)):not(#dl-form-card) > h3{margin-bottom:.35rem !important}
+body.dfx main form:not(#exp-form):not([onsubmit^="addDailyLog"]){gap:.4rem .7rem !important}
+body.dfx main form:not(#exp-form):not([onsubmit^="addDailyLog"]) .grid{gap:.4rem .7rem !important}
+body.dfx main form:not(#exp-form):not([onsubmit^="addDailyLog"]) label.block{margin-bottom:1px !important}
+body.dfx main form:not(#exp-form):not([onsubmit^="addDailyLog"]) :is(input:not([type=checkbox]):not([type=radio]),select,textarea){padding-top:.3rem !important;padding-bottom:.3rem !important}
+body.dfx main form:not(#exp-form):not([onsubmit^="addDailyLog"]) button[type=submit]{padding-top:.4rem !important;padding-bottom:.4rem !important}
+body.dfx main form:not(#exp-form):not([onsubmit^="addDailyLog"]) [id$="-info"] > div{padding-top:.2rem !important;padding-bottom:.2rem !important}
+/* كشف الحساب: رأسه في سطر واحد، والكشف كله يبان تحته */
+body.dfx #sub-ledger-form.dfx-sc #acct-card > div:first-child > h3{display:none !important}
+body.dfx #sub-ledger-form.dfx-sc #acct-card > div:first-child{padding-bottom:.4rem !important}
+body.dfx #sub-ledger-form.dfx-sc #acct-card > div:first-child :is(input,select,button){padding-top:.25rem !important;padding-bottom:.25rem !important}
 body.dfx #sub-ledger-form.dfx-sc{overflow-y:auto;overscroll-behavior:contain}
+body.dfx #sub-ledger-form.dfx-sc > *{flex-shrink:0}
 body.dfx #sub-ledger-form.dfx-sc #acct-card{padding-top:0 !important}
 body.dfx #sub-ledger-form.dfx-sc #acct-card > div:first-child{position:sticky;top:0;z-index:6;background:#fff;padding-top:.7rem;margin-bottom:.6rem !important}
 [data-dfx]{overflow-y:auto !important}
+body.dfx main .dfx-stk{position:sticky;top:-.5rem;z-index:7;box-shadow:0 6px 10px -6px rgba(15,23,42,.25) !important}
+body.dfx main .dfx-stk:not([class*='bg-']){background:#fff}
 }
-@media print{ [data-dfx]{max-height:none !important;overflow:visible !important} #sub-ledger-form{height:auto !important;overflow:visible !important} #acct-card > div:first-child{position:static !important} }
+@media print{ .dfx-stk{position:static !important} [data-dfx]{max-height:none !important;overflow:visible !important} #sub-ledger-form{height:auto !important;overflow:visible !important} #acct-card > div:first-child{position:static !important} }
 </style>
 <script>
 /* محمد 2026-11-26: «اصغرها شوية للاب واثبتها، واللي يتحرك سجل البونات بس» + «في كشف الحساب كده برضو» + «ظبط الدنيا كلها»:
    على اللابتوب كل صفحة فيها جدول: اللي فوق (الشريط والفلاتر والأزرار) ثابت، والجدول الكبير بس هو اللي بيتمرر جوه نفسه.
    كشف الحساب: رأس الكشف (الاسم والتاريخ والأزرار) ثابت، والكشف والكشوفات المحفوظة بيتحركوا تحته. عرض بس، الموبايل زي ما هو. */
+function acctGoSaved(){ try{ const c=document.getElementById('cst-card'), sc=document.getElementById('sub-ledger-form'); if(!c) return; /* محمد 2026-11-26: «فين كشوفات الحساب المحفوظة؟» */
+    if(sc && sc.classList.contains('dfx-sc')){ const hd=document.querySelector('#acct-card > div:first-child')?.getBoundingClientRect().height||0; sc.scrollTop += c.getBoundingClientRect().top - sc.getBoundingClientRect().top - hd - 6; }
+    else c.scrollIntoView({behavior:'smooth',block:'start'}); c.style.outline='3px solid #0891b2'; setTimeout(()=>{ c.style.outline=''; },1600); }catch(e){} }
 function dfxDesk(){ return innerWidth>=901 && !(window.matchMedia && matchMedia('(pointer:coarse)').matches); }
 function dfxClear(keep){ document.querySelectorAll('[data-dfx]').forEach(x=>{ if(x===keep) return; x.style.maxHeight=''; delete x.dataset.dfx; });
     const s=document.getElementById('sub-ledger-form'); if(s && s!==keep && s.classList.contains('dfx-sc')){ s.classList.remove('dfx-sc'); s.style.height=''; } }
@@ -14988,17 +15012,33 @@ function deskFix(){ try{
     const sub=t.querySelector(':scope > .subpage.active'), page=sub||t, mr=m.getBoundingClientRect(), pb=parseFloat(getComputedStyle(m).paddingBottom)||0, bottom=mr.bottom-pb-2;
     if(sub && sub.id==='sub-ledger-form'){ dfxClear(sub); t.style.zoom=''; m.scrollTop=0; m.style.overflowY='hidden';
         sub.classList.add('dfx-sc'); const h=Math.floor(bottom-sub.getBoundingClientRect().top); sub.style.height=Math.max(260,h)+'px'; return true; }
-    if(sub && /-form$/.test(sub.id)){ dfxClear(); return false; } /* شاشات التسجيل: fitPage بيظبطها */
+    if(sub && ['sub-dailylog-form','sub-expenses-form'].includes(sub.id)){ dfxClear(); return false; } /* فورم البون والمصروفات: fitPage بيظبطهم — باقي شاشات التسجيل الجدول اللي تحتها هو اللي بيتحرك بدل ما الشاشة كلها تصغر (محمد 2026-11-26) */
     const tabs=[...page.querySelectorAll('table')].filter(x=>x.offsetParent && !x.closest('.fixed,[id$="-modal"]'));
     let best=null; tabs.forEach(x=>{ if(!best || x.offsetHeight>best.offsetHeight) best=x; });
     let w=null; for(let e=best&&best.parentElement; e && e!==page; e=e.parentElement){ const cs=getComputedStyle(e); if(/auto|scroll|hidden/.test(cs.overflowX+cs.overflowY) && !e.classList.contains('rounded-xl')){ w=e; break; } }
     if(!w){ dfxClear(); return false; }
     dfxClear(w); t.style.zoom=''; const st=m.scrollTop; m.scrollTop=0;
     const slack=bottom-page.getBoundingClientRect().bottom, nh=Math.floor(w.getBoundingClientRect().height+slack);
-    if(nh<170){ w.style.maxHeight=''; delete w.dataset.dfx; m.scrollTop=st; return false; }
-    w.dataset.dfx='1'; w.style.maxHeight=nh+'px'; m.style.overflowY='hidden'; m.scrollTop=0; return true;
+    if(nh>=140){ w.dataset.dfx='1'; w.style.maxHeight=nh+'px'; m.style.overflowY='hidden'; m.scrollTop=0; return true; }
+    /* أكتر من جدول (جنب بعض أو تحت بعض): كل جدول بياخد حتة من المساحة لحد ما الصفحة تدخل */
+    const W=[...new Set(tabs.map(x=>{ for(let e=x.parentElement; e && e!==page; e=e.parentElement){ const cs=getComputedStyle(e); if(/auto|scroll|hidden/.test(cs.overflowX+cs.overflowY) && !e.classList.contains('rounded-xl')) return e; } return null; }).filter(Boolean))];
+    const over=()=>page.getBoundingClientRect().bottom-bottom;
+    if(W.some(x=>x.dataset.dfx) && over()<=2){ m.style.overflowY='hidden'; m.scrollTop=0; return true; } /* متظبطة من قبل كده — ما نحركش حاجة */
+    dfxClear(); for(let i=0;i<8 && over()>2;i++){ const c=W.filter(x=>x.getBoundingClientRect().height>140.5).sort((a,b)=>b.getBoundingClientRect().height-a.getBoundingClientRect().height)[0]; if(!c) break;
+        const h=c.getBoundingClientRect().height; c.dataset.dfx='1'; c.style.maxHeight=Math.max(140, Math.floor(h-over()))+'px'; }
+    if(over()>2){ dfxClear(); m.scrollTop=st; return false; }
+    m.style.overflowY='hidden'; m.scrollTop=0; return true;
 }catch(e){ return false; } }
-{ const _f=fitPage; fitPage=function(){ if(deskFix()) return; return _f.apply(this,arguments); };
+/* لو الصفحة فيها أكتر من جدول ومش هتدخل: أول كارت (فورم التسجيل) بيفضل ثابت فوق واللي تحته بيتحرك (محمد 2026-11-26: «ثبّت كل شاشات التسجيل») */
+function dfxSticky(){ try{ document.querySelectorAll('.dfx-stk').forEach(x=>x.classList.remove('dfx-stk'));
+    const m=document.querySelector('main'), t=document.querySelector('main .tab-content.active'); if(!m||!t||!dfxDesk() || ['home','pl','bs','dashboard'].includes(t.id.replace('tab-',''))) return;
+    if(m.scrollHeight<=m.clientHeight+2 || document.querySelector('[data-dfx],.dfx-sc')) return;
+    const page=t.querySelector(':scope > .subpage.active')||t;
+    const first=[...page.children].find(x=>x.offsetParent && x.getBoundingClientRect().height>20 && !x.classList.contains('tab-brand') && !x.classList.contains('subnav-bar'));
+    if(!first || !first.querySelector('form,input,select') || first.getBoundingClientRect().height>m.clientHeight*0.6) return;
+    first.classList.add('dfx-stk'); m.style.overflowY='auto';
+}catch(e){} }
+{ const _f=fitPage; fitPage=function(){ if(deskFix()){ dfxSticky(); return; } const r=_f.apply(this,arguments); dfxSticky(); return r; };
   let q=0; const later=()=>{ clearTimeout(q); q=setTimeout(()=>{ fitPage(); if(activeTab==='ledger') acctFitSheet(); },90); };
   ['change','input','click'].forEach(ev=>document.addEventListener(ev,e=>{ if(e.target && e.target.closest && e.target.closest('main')) later(); },true));
   const _d=renderDailyLog; renderDailyLog=function(){ const r=_d.apply(this,arguments); later(); return r; }; }
