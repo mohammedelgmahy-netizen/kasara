@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1276</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1277</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -15012,6 +15012,11 @@ body.dfx main .tab-content:not(#tab-pl):not(#tab-bs) table:not(#acct-sheet *) td
 body.dfx main .tab-content:not(#tab-pl):not(#tab-bs) table:not(#acct-sheet *) td :is(.text-xs,.text-\[10px\],.text-\[11px\],small){font-size:9.5px !important}
 body.dfx main .tab-content:not(#tab-pl):not(#tab-bs) table:not(#acct-sheet *) td button{padding-top:0 !important;padding-bottom:0 !important;line-height:1.2 !important}
 body.dfx main .tab-content:not(#tab-pl):not(#tab-bs) table:not(#acct-sheet *) td :is(.text-base,.text-lg,.text-xl){font-size:.9rem !important;line-height:1.3 !important}
+/* v1277 محمد: «خلي التابات صغيرة شوية وخليهم فوق ثابتين، ما يتحركوش» — كل شرايط التابات على اللابتوب أصغر وsticky فوق (عرض بس) */
+body.dfx main .tab-content.active > .subnav-bar,body.dfx main #tab-treasury > .trv-bar{position:sticky;top:-.5rem;z-index:9;padding:3px !important;gap:4px !important;background:#fff}
+body.dfx main .tab-content.active > .subnav-bar .subnav-btn,body.dfx #tab-dailylog:has(> #sub-dailylog-log.active) > .subnav-bar .subnav-btn,body.dfx #tab-dailylog:has(> #sub-dailylog-form.active) > .subnav-bar .subnav-btn{padding:.15rem .6rem !important;font-size:.8rem !important;line-height:1.35 !important;min-width:110px}
+body.dfx main #tab-treasury > .trv-bar{border:1px solid var(--line,#e2e8f0);border-radius:3px}
+body.dfx main #tab-treasury > .trv-bar button{padding:.15rem .9rem !important;font-size:.8rem !important;line-height:1.35 !important;flex:1}
 body.dfx #sub-ledger-form.dfx-sc{overflow-y:auto;overscroll-behavior:contain}
 body.dfx #sub-ledger-form.dfx-sc > *{flex-shrink:0}
 body.dfx #sub-ledger-form.dfx-sc #acct-card{padding-top:0 !important}
@@ -15056,12 +15061,13 @@ function deskFix(){ try{
     m.style.overflowY='hidden'; m.scrollTop=0; return true;
 }catch(e){ return false; } }
 /* لو الصفحة فيها أكتر من جدول ومش هتدخل: أول كارت (فورم التسجيل) بيفضل ثابت فوق واللي تحته بيتحرك (محمد 2026-11-26: «ثبّت كل شاشات التسجيل») */
-function dfxSticky(){ try{ document.querySelectorAll('.dfx-stk').forEach(x=>x.classList.remove('dfx-stk'));
+function dfxSticky(){ try{ document.querySelectorAll('.dfx-stk').forEach(x=>{ x.classList.remove('dfx-stk'); x.style.top=''; });
     const m=document.querySelector('main'), t=document.querySelector('main .tab-content.active'); if(!m||!t||!dfxDesk() || ['home','pl','bs','dashboard'].includes(t.id.replace('tab-',''))) return;
     if(m.scrollHeight<=m.clientHeight+2 || document.querySelector('[data-dfx],.dfx-sc')) return;
     const page=t.querySelector(':scope > .subpage.active')||t;
     const first=[...page.children].find(x=>x.offsetParent && x.getBoundingClientRect().height>20 && !x.classList.contains('tab-brand') && !x.classList.contains('subnav-bar'));
     if(!first || !first.querySelector('form,input,select') || first.getBoundingClientRect().height>m.clientHeight*0.6) return;
+    const nb=t.querySelector(':scope > .subnav-bar, :scope > .trv-bar'); first.style.top = nb ? (nb.getBoundingClientRect().height-8)+'px' : ''; /* تحت شريط التابات الثابت */
     first.classList.add('dfx-stk'); m.style.overflowY='auto';
 }catch(e){} }
 { const _f=fitPage; fitPage=function(){ if(deskFix()){ dfxSticky(); return; } const r=_f.apply(this,arguments); dfxSticky(); return r; };
@@ -15094,6 +15100,7 @@ function trvDesk(){ try{
     if(!row.__home){ row.__home=document.createComment('trv-home'); row.parentNode.insertBefore(row.__home,row); }
     let b=document.getElementById('trv-btn-sari');
     if(!b){ b=document.createElement('button'); b.id='trv-btn-sari'; b.type='button'; b.textContent='💼 الخزن والسلف'; b.onclick=()=>setTreasuryView('sari'); row.insertBefore(b,row.firstChild); }
+    row.classList.toggle('trv-bar', dfxDesk());
     if(dfxDesk()){ if(row.nextElementSibling!==sari) sari.parentNode.insertBefore(row,sari); b.style.display='none'; /* محمد: «الخزن والسلف ملهمش لازمة» — مخفي على اللابتوب بس (يرجع بشيل display:none) */ if(window.__trView==='sari') setTreasuryView('journal'); }
     else { if(row.previousSibling!==row.__home) row.__home.parentNode.insertBefore(row,row.__home.nextSibling); b.style.display='none'; sari.style.display=''; if(window.__trView==='sari') setTreasuryView('journal'); }
     trvMark(); }catch(e){} }
