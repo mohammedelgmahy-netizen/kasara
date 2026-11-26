@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1275</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1276</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -15085,6 +15085,25 @@ function dfxSplit(){ try{ const desk=dfxDesk();
 { const _s=switchSub; switchSub=function(tab,which){ const o=DFX_SPLIT.find(x=>x.tab===tab && x.key===which); if(o && !dfxDesk()) which=o.from; return _s.call(this,tab,which); };
   window.addEventListener('load',()=>{ dfxSplit(); setTimeout(()=>{ try{ fitPage(); }catch(e){} },60); });
   window.addEventListener('resize',()=>setTimeout(dfxSplit,30)); }
+</script>
+<script>
+/* محمد 2026-11-27 (صورة الخزينة): على اللابتوب زراير الخزينة الثلاثة بقت فوق، وكارت «الخزن والسلف» مخفي (عرض بس)،
+   فكل صفحة بتبان كلها في الشاشة والجدول بس هو اللي بيتحرك. الموبايل زي ما هو. عرض بس. */
+function trvDesk(){ try{
+    const row=document.getElementById('trv-btn-journal')?.parentElement, sari=document.getElementById('sari-card'); if(!row||!sari) return;
+    if(!row.__home){ row.__home=document.createComment('trv-home'); row.parentNode.insertBefore(row.__home,row); }
+    let b=document.getElementById('trv-btn-sari');
+    if(!b){ b=document.createElement('button'); b.id='trv-btn-sari'; b.type='button'; b.textContent='💼 الخزن والسلف'; b.onclick=()=>setTreasuryView('sari'); row.insertBefore(b,row.firstChild); }
+    if(dfxDesk()){ if(row.nextElementSibling!==sari) sari.parentNode.insertBefore(row,sari); b.style.display='none'; /* محمد: «الخزن والسلف ملهمش لازمة» — مخفي على اللابتوب بس (يرجع بشيل display:none) */ if(window.__trView==='sari') setTreasuryView('journal'); }
+    else { if(row.previousSibling!==row.__home) row.__home.parentNode.insertBefore(row,row.__home.nextSibling); b.style.display='none'; sari.style.display=''; if(window.__trView==='sari') setTreasuryView('journal'); }
+    trvMark(); }catch(e){} }
+function trvMark(){ const on='px-4 py-2 rounded-lg text-sm font-bold bg-rose-600 text-white', off='px-4 py-2 rounded-lg text-sm font-bold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50';
+    const v=window.__trView||'journal', sari=document.getElementById('sari-card'), b=document.getElementById('trv-btn-sari'); if(!sari||!b) return;
+    if(!dfxDesk()){ sari.style.display=''; return; }
+    b.className = v==='sari' ? on : off; sari.style.display = v==='sari' ? '' : 'none';
+    if(v==='sari'){ ['cd-card','tr-card','dp-card'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; }); ['journal','statement','daypage'].forEach(k=>{ const x=document.getElementById('trv-btn-'+k); if(x) x.className=off; }); } }
+{ const _t=setTreasuryView; setTreasuryView=function(v){ if(v==='sari' && dfxDesk()){ _t.call(this,'journal'); window.__trView='sari'; trvMark(); setTimeout(()=>{ try{ fitPage(); }catch(e){} },30); return; } const r=_t.apply(this,arguments); trvMark(); setTimeout(()=>{ try{ fitPage(); }catch(e){} },30); return r; };
+  window.addEventListener('load',()=>setTimeout(trvDesk,50)); window.addEventListener('resize',()=>setTimeout(trvDesk,40)); }
 </script>
 </body>
 </html>
