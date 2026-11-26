@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1269</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1270</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -7695,9 +7695,10 @@ function acctFitSheet(){ try{
     sh.classList.remove('acct-fitz'); sh.style.removeProperty('--az'); acctFitBtn();
     if(!acctFitDesk() || activeTab!=='ledger' || sh.dataset.fit!=='1' || sh.style.display==='none' || !sh.firstElementChild) return;
     const key=[document.getElementById('acct-name')?.value, document.getElementById('acct-from')?.value, document.getElementById('acct-to')?.value, innerWidth, innerHeight, acctFitOn()].join('|'), first=window.__acctFitKey!==key; window.__acctFitKey=key;
-    if(acctFitOn()){ const h=sh.getBoundingClientRect().height, avail=m.clientHeight-16;
-        if(h>avail){ const z=Math.max(0.5, avail/h); sh.style.setProperty('--az', z.toFixed(3)); sh.classList.add('acct-fitz'); } }
-    if(first){ const d=sh.getBoundingClientRect().top - m.getBoundingClientRect().top - 8; if(d>0) m.scrollTop += d; }
+    const sc0=document.getElementById('sub-ledger-form'), fx=!!(sc0 && sc0.classList.contains('dfx-sc')), sc=fx?sc0:m, hd=fx?(document.querySelector('#acct-card > div:first-child')?.getBoundingClientRect().height||0)+10:0; /* رأس الكشف ثابت فوق (محمد 2026-11-26) */
+    if(acctFitOn()){ const h=sh.getBoundingClientRect().height, avail=sc.clientHeight-16-hd;
+        if(h>avail){ const z=Math.max(fx?0.72:0.5, avail/h); sh.style.setProperty('--az', z.toFixed(3)); sh.classList.add('acct-fitz'); } }
+    if(first){ const d=sh.getBoundingClientRect().top - sc.getBoundingClientRect().top - hd - 8; if(d>0) sc.scrollTop += d; }
 }catch(e){} }
 function cstvFit(){ try{ const m=document.getElementById('cstv-modal'), b=document.getElementById('cstv-body'); if(!m||!b) return;
     b.classList.remove('acct-fitz'); b.style.removeProperty('--az'); if(!acctFitDesk() || !acctFitOn()) return;
@@ -14936,5 +14937,54 @@ document.addEventListener('visibilitychange',()=>{ if(!document.hidden) setTimeo
 window.addEventListener('load',()=>setTimeout(odCheck,6000));
 </script>
 <script>try{ if(sessionStorage.getItem('kasara-bye')){ sessionStorage.removeItem('kasara-bye'); const b=document.getElementById('gate-bye'); if(b) b.style.display='block'; } }catch(e){}</script>
+<style>/* محمد 2026-11-26: على اللابتوب الفلاتر والأزرار ثابتة فوق والجدول بس هو اللي بيتحرك (عرض بس — الطباعة والواتساب زي ما هم) */
+@media screen{
+body.dfx main .tab-content.active > .subnav-bar .subnav-btn{padding:.4rem 1rem !important}
+body.dfx main .tab-content.active{gap:.6rem !important}
+body.dfx main .tab-content.active > .subpage.active{gap:.6rem !important}
+body.dfx #tab-dailylog:has(> #sub-dailylog-log.active) > .tab-brand{display:none !important}
+body.dfx #dl-log-card > div.p-4{padding:.5rem .9rem !important;gap:.4rem !important}
+body.dfx #dl-print-head{padding:.3rem 1rem !important}
+body.dfx #dl-log-card > .pl-no-print-hide{padding:.4rem .75rem 0 !important}
+body.dfx #dl-sin-summary{padding:.4rem .75rem !important;gap:.4rem !important}
+body.dfx #dl-sin-summary > div{padding:.25rem .6rem !important;display:flex;align-items:center;justify-content:space-between;gap:.5rem;text-align:right}
+body.dfx #dl-sin-summary > div > div:last-child{white-space:nowrap}
+body.dfx #dl-sin-summary .text-2xl{font-size:1.35rem !important;line-height:1.6rem}
+body.dfx #dl-tip-box{padding:.35rem .75rem !important;margin-bottom:.4rem !important}
+body.dfx #sub-ledger-form.dfx-sc{overflow-y:auto;overscroll-behavior:contain}
+body.dfx #sub-ledger-form.dfx-sc #acct-card{padding-top:0 !important}
+body.dfx #sub-ledger-form.dfx-sc #acct-card > div:first-child{position:sticky;top:0;z-index:6;background:#fff;padding-top:.7rem;margin-bottom:.6rem !important}
+[data-dfx]{overflow-y:auto !important}
+}
+@media print{ [data-dfx]{max-height:none !important;overflow:visible !important} #sub-ledger-form{height:auto !important;overflow:visible !important} #acct-card > div:first-child{position:static !important} }
+</style>
+<script>
+/* محمد 2026-11-26: «اصغرها شوية للاب واثبتها، واللي يتحرك سجل البونات بس» + «في كشف الحساب كده برضو» + «ظبط الدنيا كلها»:
+   على اللابتوب كل صفحة فيها جدول: اللي فوق (الشريط والفلاتر والأزرار) ثابت، والجدول الكبير بس هو اللي بيتمرر جوه نفسه.
+   كشف الحساب: رأس الكشف (الاسم والتاريخ والأزرار) ثابت، والكشف والكشوفات المحفوظة بيتحركوا تحته. عرض بس، الموبايل زي ما هو. */
+function dfxDesk(){ return innerWidth>=901 && !(window.matchMedia && matchMedia('(pointer:coarse)').matches); }
+function dfxClear(keep){ document.querySelectorAll('[data-dfx]').forEach(x=>{ if(x===keep) return; x.style.maxHeight=''; delete x.dataset.dfx; });
+    const s=document.getElementById('sub-ledger-form'); if(s && s!==keep && s.classList.contains('dfx-sc')){ s.classList.remove('dfx-sc'); s.style.height=''; } }
+function deskFix(){ try{
+    const m=document.querySelector('main'), t=document.querySelector('main .tab-content.active'); document.body.classList.toggle('dfx', dfxDesk());
+    if(!m||!t||!dfxDesk() || ['home','pl','bs','dashboard'].includes(t.id.replace('tab-',''))){ dfxClear(); return false; }
+    const sub=t.querySelector(':scope > .subpage.active'), page=sub||t, mr=m.getBoundingClientRect(), pb=parseFloat(getComputedStyle(m).paddingBottom)||0, bottom=mr.bottom-pb-2;
+    if(sub && sub.id==='sub-ledger-form'){ dfxClear(sub); t.style.zoom=''; m.scrollTop=0; m.style.overflowY='hidden';
+        sub.classList.add('dfx-sc'); const h=Math.floor(bottom-sub.getBoundingClientRect().top); sub.style.height=Math.max(260,h)+'px'; return true; }
+    if(sub && /-form$/.test(sub.id)){ dfxClear(); return false; } /* شاشات التسجيل: fitPage بيظبطها */
+    const tabs=[...page.querySelectorAll('table')].filter(x=>x.offsetParent && !x.closest('.fixed,[id$="-modal"]'));
+    let best=null; tabs.forEach(x=>{ if(!best || x.offsetHeight>best.offsetHeight) best=x; });
+    let w=null; for(let e=best&&best.parentElement; e && e!==page; e=e.parentElement){ const cs=getComputedStyle(e); if(/auto|scroll|hidden/.test(cs.overflowX+cs.overflowY) && !e.classList.contains('rounded-xl')){ w=e; break; } }
+    if(!w){ dfxClear(); return false; }
+    dfxClear(w); t.style.zoom=''; const st=m.scrollTop; m.scrollTop=0;
+    const slack=bottom-page.getBoundingClientRect().bottom, nh=Math.floor(w.getBoundingClientRect().height+slack);
+    if(nh<170){ w.style.maxHeight=''; delete w.dataset.dfx; m.scrollTop=st; return false; }
+    w.dataset.dfx='1'; w.style.maxHeight=nh+'px'; m.style.overflowY='hidden'; m.scrollTop=0; return true;
+}catch(e){ return false; } }
+{ const _f=fitPage; fitPage=function(){ if(deskFix()) return; return _f.apply(this,arguments); };
+  let q=0; const later=()=>{ clearTimeout(q); q=setTimeout(()=>{ fitPage(); if(activeTab==='ledger') acctFitSheet(); },90); };
+  ['change','input','click'].forEach(ev=>document.addEventListener(ev,e=>{ if(e.target && e.target.closest && e.target.closest('main')) later(); },true));
+  const _d=renderDailyLog; renderDailyLog=function(){ const r=_d.apply(this,arguments); later(); return r; }; }
+</script>
 </body>
 </html>
