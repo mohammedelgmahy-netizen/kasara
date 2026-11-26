@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1233</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1234</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5353,7 +5353,9 @@ function mechSummaryHtml(name){ const R=mechMonthRows(name), C=mechCat()||{}; le
     R.forEach(r=>{ r.prev=carry; r.bal=carry+r.due-r.paid; r.closed=r.to<today; carry=r.bal; });
     const B='border:1px solid #cbd5e1;padding:6px 10px;text-align:center;', H=B+'background:#ede9fe;font-weight:800;';
     const v=x=>`<span style="font-weight:800;color:${x<0?'#be123c':'#047857'}">${nfmt(Math.abs(x))}${x<0?' (عليه)':''}</span>`;
-    return `<div style="flex-basis:100%;direction:rtl"><div style="font-weight:800;font-size:15px;margin-bottom:4px">🔧 ${esc(MECH_CAT)}: المستحق ${nfmt(mechMonthly())} في الشهر على ${nfmt(mechDays())} يوم (اليومي ${nfmt(Math.round(mechMonthly()/mechDays()))})</div>
+    let top=''; try{ if(mechAccrualOn()){ const n=mechPerson(), work=mechAccrued('',''), took=(Number(n&&n.openPaid)||0)+(db.expensesData||[]).filter(x=>x && x.category===C.name && x.name===name).reduce((a,x)=>a+(Number(x.paid)||0),0);
+        top=`<div style="font-weight:800;font-size:16px;margin-bottom:6px;background:#ecfdf5;border:1px solid #6ee7b7;border-radius:8px;padding:6px 10px">كل شغله (في قائمة الدخل): ${nfmt(work)} — أخد: <span style="color:#be123c">${nfmt(took)}</span> — فاضل له: <span style="color:#047857">${nfmt(work-took)}</span></div>`; } }catch(e){}
+    return `<div style="flex-basis:100%;direction:rtl">${top}<div style="font-weight:800;font-size:15px;margin-bottom:4px">🔧 ${esc(MECH_CAT)}: المستحق ${nfmt(mechMonthly())} في الشهر على ${nfmt(mechDays())} يوم (اليومي ${nfmt(Math.round(mechMonthly()/mechDays()))})</div>
       <table style="border-collapse:collapse;font-size:14px;min-width:340px"><tr><th style="${H}">الشهر</th><th style="${H}">مرحّل من اللي قبله</th><th style="${H}">مستحق الشهر</th><th style="${H}">المدفوع</th><th style="${H}">الباقي له (بيترحّل)</th></tr>
       ${R.map(r=>`<tr><td style="${B}">من ${dmy(r.from)} لـ ${dmy(r.to)}${r.closed?' <span style="color:#64748b;font-size:12px">(اتقفل)</span>':''}</td><td style="${B}">${v(r.prev)}</td><td style="${B}">${nfmt(r.due)}</td><td style="${B}color:#be123c;font-weight:700">${r.paid?nfmt(r.paid):'—'}</td><td style="${B}">${v(r.bal)}</td></tr>`).join('')}</table>
       <div style="font-size:12px;color:#64748b;margin-top:3px">أول ترحيل = رصيد سابق مستحق له ${nfmt(Number(C.openBal)||0)}${Number(C.priorWork)?` + شغل سابق ${nfmt(C.priorWork)} (قد اللي أخده من 11/11 لحد ${dmy(mechPeriodEnd())})`:''}. المدفوع = الدفعات المتسجلة على بند «${esc(MECH_CAT)}» بس. قائمة الدخل بتحسب مستحق كل شهر بعد ما يتقفل.</div></div>`; }
@@ -6516,6 +6518,8 @@ function getClientAccountRows(name){
 /* الفرد: مدين = المصروف له (مصروفات/عهد أسبوعية)، دائن = المردود/المسوّى — وحركات صرف المخزون للعلم فقط */
 function getPersonAccountRows(name){
     const rows = [];
+    /* مجدي (ميكانيكي الكسارة): اللي أخده قبل البرنامج بيظهر أول سطر عشان «المصروف له» = كل اللي أخده (محمد 2026-11-26) */
+    try{ if(mechAccrualOn()){ const n=mechPerson(); if(n && n.name===name && Number(n.openPaid)) rows.push({ date:n.openDate||'2026-11-11', desc:'اللي أخده قبل البرنامج (الكراريس) لحد 11/11', debit:Number(n.openPaid)||0, credit:0 }); } }catch(e){}
     const custodies = db.custodies || [];
     (db.expensesData||[]).filter(x=>x.category!=='إيراد' && x.name===name).forEach(x=>{
         const amt = Number(x.paid)||0; if(!amt) return;
