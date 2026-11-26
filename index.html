@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1256</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1257</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3990,6 +3990,8 @@ window.onload = async function(){
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.drbook1124){ clearInterval(t); return; } try{ await fixDrawerBook1124Once(); }catch(e){} }, 15000); }
     try{ await bookDaily1125Once(); }catch(e){ console.warn('book1125', e); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.book1125){ clearInterval(t); return; } try{ await bookDaily1125Once(); }catch(e){} }, 15000); }
+    try{ await addWages1126Once(); }catch(e){ console.warn('wages1126', e); }
+    { const t=setInterval(async()=>{ if(db && db.imports && db.imports.wages1126){ clearInterval(t); return; } try{ await addWages1126Once(); }catch(e){} }, 15000); }
     try{ await addQuarry1126Once(); }catch(e){ console.warn('quarry1126', e); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.quarry1126){ clearInterval(t); return; } try{ await addQuarry1126Once(); }catch(e){} }, 15000); }
     try{ await addGhafra1125bOnce(); }catch(e){ console.warn('ghafra1125b', e); }
@@ -4138,6 +4140,22 @@ async function fixBaqala1122Once(){
    وبيشيل سجلات 1207 (مصروف المعلق + تمويل الشركاء 69,000×2) لو كانت اتسجلت — محمد «مش عاوز تمويل» */
 /* محمد 2026-11-26 («سجلها»): شراء المحجر 340,000 = 300,000 يوم 1/5 (بوعزة 200,000 + موالي 100,000، كراريس «شراء 260 فدان أرض») + 40,000 «موالي محجر» المتسجلة.
    الـ300,000 بتتسجل مصروف «شراء محجر» بعلامة noCash (اتدفعت قبل التشغيل — مش بتلمس الخزن)، وقصادها «تسويات وأرصدة أول المدة» في المركز المالي */
+/* محمد 2026-11-26 (كارت «أيوه، 392,540»): مرتبات العمالة زي الكراريس (شيت عماله = 392,540 من غير مجدي) — البرنامج 343,675 → فرق 48,865 مصروف «مصروف أجور ومرتبات» noCash (اتدفع قبل التشغيل، مش من الخزن) */
+async function addWages1126Once(){
+    if(!db || (db.imports&&db.imports.wages1126)) return;
+    if(!Array.isArray(db.expensesData) || !(db.dailyLog||[]).length) return;
+    if(!SUPABASE_URL || !__cloudOK) return;
+    const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-26-before-wages-392540', value:JSON.stringify(db), updated_at:new Date().toISOString()}), timeout:120000});
+    if(!res.ok){ console.warn('wages1126: النسخة الاحتياطية فشلت', res.status); return; }
+    const id='1795800000001126-w';
+    if(!db.expensesData.some(x=>x && String(x.id)===id)){
+        const E={id, _at:new Date().toISOString(), _by:'المدير', date:'2026-11-11', category:'مصروف أجور ومرتبات', name:'', total:48865, paid:48865, remaining:0, account:'', noCash:true, project:'كسارة ديار', activity:'', desc:'باقي أجور العمالة من الكراريس (شيت عماله 392,540)', notes:'اتدفعت قبل التشغيل — مش من الخزن'};
+        db.expensesData.push(E); logAudit('create','مصروف (أجور بأمر محمد)', `${E.desc}: ${E.total}`, null, Object.assign({},E));
+    }
+    if(!db.imports) db.imports={}; db.imports.wages1126=true;
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    scheduleSave(); try{ renderAll(); }catch(e){}
+}
 async function addQuarry1126Once(){
     if(!db || (db.imports&&db.imports.quarry1126)) return;
     if(!Array.isArray(db.expensesData) || !(db.dailyLog||[]).length) return;
