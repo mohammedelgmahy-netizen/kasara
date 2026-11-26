@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1250</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1251</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5380,6 +5380,15 @@ function mechSummaryHtml(name){ const C=mechCat()||{}, n=mechPerson(), today=tod
       <tr><td style="${B}">أخد</td><td style="${B}">${v(took,'#be123c')}</td></tr>
       <tr style="background:#ecfdf5"><td style="${B}font-weight:800">فاضل له</td><td style="${B}">${v(rem,'#047857')}</td></tr></table>`;
     if(open){ const p=pay(open.from, open.to); h+=`<div style="font-size:14px;font-weight:700;color:#334155">الشهر الحالي من ${dmy(open.from)} لـ ${dmy(open.to)}: مستحقه ${nfmt(open.due)} (بيتضاف لإجمالي شغله لما الشهر يتقفل) — أخد فيه لحد دلوقتي: <span style="color:#be123c">${nfmt(p)}</span></div>`; }
+    /* محمد 2026-11-26 «ونرحّل برضوا»: كشف شهري — رصيد أول الشهر (المرحّل) + مستحق الشهر − اللي أخده = الفاضل المرحّل — عرض بس */
+    const MR=R.filter(r=>r.from>mechPeriodEnd() && r.from<=today);
+    if(MR.length){ let car=MECH_REMAIN;
+      h+=`<table style="border-collapse:collapse;min-width:360px;margin:8px 0 4px"><tr><th style="${H}" colspan="5">📅 الكشف الشهري والترحيل (المرحّل لحد ${dmy(mechPeriodEnd())} = ${nfmt(MECH_REMAIN)})</th></tr>
+        <tr><th style="${H}">الشهر</th><th style="${H}">مرحّل من قبله</th><th style="${H}">مستحق الشهر</th><th style="${H}">أخد</th><th style="${H}">فاضل يترحّل</th></tr>`;
+      MR.forEach(r=>{ const isOpen=r.to>=today, end=car+r.due-r.paid;
+        h+=`<tr${isOpen?' style="background:#fffbeb"':''}><td style="${B}">${dmy(r.from)} – ${dmy(r.to)}${isOpen?'<br><small>(لسه ما اتقفلش)</small>':''}</td><td style="${B}">${v(car,'#111')}</td><td style="${B}">${v(r.due,'#111')}</td><td style="${B}">${v(r.paid,'#be123c')}</td><td style="${B}">${v(end,'#047857')}</td></tr>`;
+        car=end; });
+      h+=`</table>`; }
     return h+`<div style="font-size:12px;color:#64748b;margin-top:3px">الشهر 24 يوم بمستحق ${nfmt(mechMonthly())}، ولما يتقفل الباقي بيترحّل.</div></div>`; }
 /* بيتعمل مرة واحدة: البند نفسه في دليل الأكواد (من غير ما يلمس أي حركة قديمة) */
 function addMechCat1125Once(){
