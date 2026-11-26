@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1257</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1258</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -6418,6 +6418,8 @@ function computePL(projectFilter, dateFrom, dateTo){
       Object.entries(g).forEach(([k,v])=>{ if(v) otherLines.push({ num:num(), label:'(+) '+k, value:-v }); }); }
     /* محمد 2026-11-26: صافي الربح = حقوق الملكية في المركز المالي (الأصول − الالتزامات) — سطر «تسويات وأرصدة أول المدة» (فرق كشوف العملاء عن الحركات + مصروفات اتدفعت قبل التشغيل من غير خزنة) بقى في قائمة الدخل. على كل الفترات بس */
     if((!projectFilter || projectFilter==='ALL') && !dateFrom){ try{ const v=plOpenSettle(dateTo||''); if(Math.round(v)){ /* محمد 2026-11-26 «اقفله مع الرقم اللي فوق»: التسويات بتتجمع في سطر إيرادات الفترة قبل 11/11 — الربح زي ما هو */ const t=otherLines.find(l=>l.label==='(+) '+INC_OLD_LABEL); if(t) t.value-=v; else otherLines.push({ num:num(), label:'(+) '+INC_OLD_LABEL, value:-v }); } }catch(e){} }
+    /* محمد 2026-11-26 «يحذف الإيرادات الأخرى اللي احنا كنا مسجلينها» واختار «يتشال من الحساب» مرتين: أي سطر إيرادات أخرى بيتشال من قائمة الدخل والربح بينزل بقيمته (المركز المالي بيختل بنفس المبلغ — اتنبه). الحركات نفسها في db.incomes ما اتمسحتش */
+    for(let i=otherLines.length-1;i>=0;i--) if(plHideOtherInc(otherLines[i])) otherLines.splice(i,1);
     const otherTotal = otherLines.reduce((s,l)=>s+l.value,0);
 
     // ز. الربح قبل الضريبة
