@@ -6408,6 +6408,7 @@ function computePL(projectFilter, dateFrom, dateTo){
     return { revenueLines, revenueTotal, directLines, directTotal, grossProfit, operatingLines, operatingTotal, netOperatingProfit, otherLines, otherTotal, profitBeforeTax, contractorPayments };
 }
 
+const plHideOtherInc = l => (Number(l.value)||0)<0 && /إيرادات أخرى/.test(l.label||'');
 const INC_OLD_CUT='2026-11-11', INC_OLD_LABEL='إيرادات أخرى — بيع سولار وقطع غيار فترة قبل 11/11';
 const PL_HIDE_OTHER = l => false; /* محمد رجع في القرار 2026-11-13: السطر يفضل ظاهر */
 /* ================= TAXES TABLE ================= */
@@ -6516,7 +6517,8 @@ function renderPLInner(){
         html += sectionHeader('إيرادات ومصروفات أخرى');
         /* محمد 2026-11-13: سطر «إيرادات أخرى» ما يظهرش في قائمة الدخل (عرض بس — الربح والمركز المالي زي ما هم) */
         /* عرض: الإيراد يظهر موجب بعلامة (+) والمصروف بعلامة (−)، والصافي = إيرادات − مصروفات (محمد 2026-11-13) */
-        html += r.otherLines.map(l=>itemRow(l.num, l.value<0 ? l.label : '(−) '+l.label, Math.abs(l.value))).join('');
+        /* محمد 2026-11-26 «احذف ايرادات اخري من قايمة الدخل»: أي سطر إيرادات أخرى (موجب) ما يظهرش — الصافي وصافي الربح زي ما هم */
+        html += r.otherLines.filter(l=>!plHideOtherInc(l)).map(l=>itemRow(l.num, l.value<0 ? l.label : '(−) '+l.label, Math.abs(l.value))).join('');
         html += totalRow('صافي الإيرادات والمصروفات الأخرى', -r.otherTotal, 'bg-purple-50 text-purple-800');
     }
 
@@ -7748,7 +7750,7 @@ function exportPLExcel(){
         ['صافي الربح التشغيلي', r.netOperatingProfit],
         ...(r.otherLines.length ? [
             ['إيرادات ومصروفات أخرى', ''],
-            ...r.otherLines.map(l=>[`(${l.num}) ${l.value<0 ? l.label : '(−) '+l.label}`, Math.abs(l.value)]),
+            ...r.otherLines.filter(l=>!plHideOtherInc(l)).map(l=>[`(${l.num}) ${l.value<0 ? l.label : '(−) '+l.label}`, Math.abs(l.value)]),
             ['صافي الإيرادات والمصروفات الأخرى', -r.otherTotal],
         ] : []),
         ['صافي الربح', r.profitBeforeTax]
