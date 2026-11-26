@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1267</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1268</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -9021,9 +9021,17 @@ function renderIncomes(){
     const as=g('inc-account'); const pv=as.value; fillSelect('inc-account', db.accounts||[]); as.value = pv || SARI_ACC; if(!as.value && as.options.length) as.selectedIndex=0;
     if(!g('inc-date').value) g('inc-date').value=todayISO();
     /* محمد 2026-11-13: إيرادات الفترة قبل 11/11 بند واحد في قائمة الدخل ومش بتظهر في السجل ده (عرض بس) */
-    const L=regSortDesc((db.incomes||[]).filter(x=>(x.date||'')>INC_OLD_CUT || plIncNew(x)), db.incomes||[]); /* محمد 26/11: الإيراد الجديد بتاريخ قديم (سلف الحاج ناجي) كان بيتحفظ بس مش بيظهر هنا */ const dbar=dayBarMaker(6);
-    g('tbody-inc').innerHTML = L.length ? L.map(x=>`${dbar(x.date)}<tr class="border-b border-slate-50"><td class="p-2 text-xs">${dmy(x.date)}</td><td class="p-2 font-bold">${esc(x.type)}</td><td class="p-2">${esc(x.notes||'')}</td><td class="p-2 text-teal-700">${esc(x.account||'')}</td><td class="p-2 font-extrabold text-emerald-700">${mfmt(x.amount)}</td><td class="p-2"><button onclick="deleteIncome('${x.id}')" class="text-red-500">🗑</button></td></tr>`).join('')
-        + `<tr class="bg-slate-50 font-extrabold"><td class="p-2" colspan="4">الإجمالي</td><td class="p-2 text-emerald-700">${mfmt(L.reduce((a,x)=>a+(Number(x.amount)||0),0))}</td><td></td></tr>` : '<tr><td colspan="6" class="p-3 text-center text-slate-400">—</td></tr>';
+    const L0=regSortDesc((db.incomes||[]).filter(x=>(x.date||'')>INC_OLD_CUT || plIncNew(x)), db.incomes||[]); /* محمد 26/11: الإيراد الجديد بتاريخ قديم (سلف الحاج ناجي) كان بيتحفظ بس مش بيظهر هنا */ const dbar=dayBarMaker(6);
+    /* محمد 2026-11-26 «التسوية خليهم بند واحد» + «اعمل زرار تعديل»: تسويات الدفتر بتتعرض سطر واحد (بيتفتح بالضغط) — عرض بس، كل حركة زي ما هي بتاريخها */
+    const isBook=x=>/^تسوية على الدفتر/.test(x.notes||''), BK=L0.filter(isBook), L=L0.filter(x=>!isBook(x));
+    const btns=x=>`<button onclick="editIncome('${x.id}')" class="text-blue-600 ml-2" title="تعديل">✏</button><button onclick="deleteIncome('${x.id}')" class="text-red-500" title="حذف">🗑</button>`;
+    const row=(x,cls)=>`<tr class="border-b border-slate-50 ${cls||''}"><td class="p-2 text-xs">${dmy(x.date)}</td><td class="p-2 font-bold">${esc(x.type)}</td><td class="p-2">${esc(x.notes||'')}</td><td class="p-2 text-teal-700">${esc(x.account||'')}</td><td class="p-2 font-extrabold text-emerald-700">${mfmt(x.amount)}</td><td class="p-2 whitespace-nowrap">${btns(x)}</td></tr>`;
+    let bkHtml=''; if(BK.length){ const ds=BK.map(x=>x.date).sort(), dm=d=>d.slice(8)+'/'+String(+d.slice(5,7)); const tot=BK.reduce((a,x)=>a+(Number(x.amount)||0),0);
+      bkHtml=`<tr class="bg-amber-50 border-b border-amber-200 cursor-pointer" onclick="window.__incBkOpen=!window.__incBkOpen; renderIncomes()"><td class="p-2 text-xs">${dm(ds[0])} → ${dm(ds[ds.length-1])}</td><td class="p-2 font-bold">إيرادات أخرى</td><td class="p-2 font-bold">تسوية على الدفتر (${BK.length} حركة) ${window.__incBkOpen?'▲':'▼ اضغط للتفاصيل'}</td><td class="p-2 text-teal-700">المعلق والدرج</td><td class="p-2 font-extrabold text-emerald-700">${mfmt(tot)}</td><td class="p-2"></td></tr>`
+        + (window.__incBkOpen ? BK.map(x=>row(x,'bg-amber-50/40 text-sm')).join('') : ''); }
+    const all=L.concat(BK);
+    g('tbody-inc').innerHTML = all.length ? L.map(x=>`${dbar(x.date)}${row(x)}`).join('') + bkHtml
+        + `<tr class="bg-slate-50 font-extrabold"><td class="p-2" colspan="4">الإجمالي</td><td class="p-2 text-emerald-700">${mfmt(all.reduce((a,x)=>a+(Number(x.amount)||0),0))}</td><td></td></tr>` : '<tr><td colspan="6" class="p-3 text-center text-slate-400">—</td></tr>';
 }
 function addIncomeType(){
     if(isRO()) return;
@@ -9037,6 +9045,14 @@ function saveIncome(){
     const rec={id:String(newId()), date:g('inc-date').value||todayISO(), type:window.__incType||incomeTypes()[0], amount:amt, account:g('inc-account').value, notes:g('inc-notes').value.trim()};
     if(!db.incomes) db.incomes=[]; db.incomes.push(rec); logAudit('create','إيراد',`${rec.type} ${amt}`,null,rec);
     g('inc-amount').value=''; g('inc-notes').value=''; scheduleSave(); renderAll(); renderIncomes();
+}
+function editIncome(id){
+    if(isRO()) return;
+    const o=(db.incomes||[]).find(x=>String(x.id)===String(id)); if(!o) return;
+    const a=prompt('المبلغ:', String(o.amount)); if(a===null) return; const amt=Number(String(a).replace(/[,\s]/g,'')); if(!isFinite(amt)){ alert('اكتب رقم'); return; }
+    const n=prompt('البيان:', o.notes||''); if(n===null) return;
+    const old=Object.assign({},o); o.amount=amt; o.notes=n.trim();
+    logAudit('update','إيراد',`${o.type} ${old.amount} → ${amt}`,old,Object.assign({},o)); scheduleSave(); renderAll(); renderIncomes();
 }
 function deleteIncome(id){
     if(isRO()) return;
