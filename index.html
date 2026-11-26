@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1261</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1262</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -6125,7 +6125,7 @@ function treasuryEvents(){
         events.push({at:l._at, ref:['loan',l.id], date:l.date, desc:(isIn?`سلفة من ${who}`:`رد سلفة لـ ${who}`)+(l.notes?` — ${l.notes}`:''), project:'-', account:l.account||defaultAccount, inflow:isIn?a:0, outflow:isIn?0:a});
     });
     // الإيرادات (تاب الإيرادات)
-    (db.incomes||[]).forEach(x=>{ events.push({at:x._at, date:x.date, desc:`${x.type}${x.notes?' — '+x.notes:''}`, project:'-', account:x.account||defaultAccount, inflow:Math.max(Number(x.amount)||0,0), outflow:Math.max(-(Number(x.amount)||0),0), doc:docRef('إ',x.id)}); }); /* إيراد بالسالب = تسوية بتنزل من الخزنة ومن الإيرادات الأخرى (محمد 2026-11-13) */
+    (db.incomes||[]).filter(x=>!plIncNoCash(x)).forEach(x=>{ events.push({at:x._at, date:x.date, desc:`${x.type}${x.notes?' — '+x.notes:''}`, project:'-', account:x.account||defaultAccount, inflow:Math.max(Number(x.amount)||0,0), outflow:Math.max(-(Number(x.amount)||0),0), doc:docRef('إ',x.id)}); }); /* إيراد بالسالب = تسوية بتنزل من الخزنة ومن الإيرادات الأخرى (محمد 2026-11-13) */
     // تحويلات بين الخزن
     (db.cashTransfers||[]).forEach(t=>{
         const a = Number(t.amount)||0, n = t.notes?` — ${t.notes}`:'';
@@ -6460,6 +6460,8 @@ function computePL(projectFilter, dateFrom, dateTo){
 
 const plHideOtherInc = l => !l.keepInc && /إيرادات أخرى/.test(l.label||'');
 /* إيراد اتسجل من شاشة الإيرادات بعد 1258 (26/11 16:20 UTC) — id = Date.now()*1000 أرقام بس (حركات الميجريشن فيها «-») */
+/* محمد 2026-11-26 «المعلق يوم 25 زي ما كان موجود امبارح»: سلف الحاج ناجي 3,283,085 دخلت وخرجت يوم 11 للجوية والوطنية — بتظهر في قائمة الدخل بس وما بتدخلش الخزنة */
+const plIncNoCash = x => plIncNew(x) && Math.round(Number(x.amount))===3283085;
 const plIncNew = x => /^\d{16,}$/.test(String(x&&x.id||'')) && Number(x.id) > 1795710000000000;
 const INC_OLD_CUT='2026-11-11', INC_OLD_LABEL='إيرادات أخرى — بيع سولار وقطع غيار فترة قبل 11/11';
 const PL_HIDE_OTHER = l => false; /* محمد رجع في القرار 2026-11-13: السطر يفضل ظاهر */
@@ -7591,7 +7593,7 @@ function jrData(){
     (db.payments||[]).forEach(p=>add(p.date,p.retRefund?'فلوس مرتجع':'دفعة مورد',(p.retRefund?'من ':'سداد ')+(p.supplier||'')+(p.notes?' — '+p.notes:''), 'الموردين / '+(p.supplier||'-'), p.account||defAcc, p.amount));
     (db.ownerLoans||[]).forEach(l=>{ const who=(l.lender||'').trim()||'عماد ناجي', isIn=l.type==='in', acc=l.account||defAcc;
         add(l.date,'سلفة',(isIn?'سلفة من ':'رد سلفة لـ ')+who+(l.notes?' — '+l.notes:''), isIn?acc:'سلف / '+who, isIn?'سلف / '+who:acc, l.amount); });
-    (db.incomes||[]).forEach(x=>add(x.date,'إيراد',(x.type||'إيراد')+(x.notes?' — '+x.notes:''), x.account||defAcc, 'إيرادات أخرى / '+(x.type||''), x.amount));
+    (db.incomes||[]).filter(x=>!plIncNoCash(x)).forEach(x=>add(x.date,'إيراد',(x.type||'إيراد')+(x.notes?' — '+x.notes:''), x.account||defAcc, 'إيرادات أخرى / '+(x.type||''), x.amount));
     (db.cashTransfers||[]).forEach(t=>add(t.date,'تحويل','تحويل بين الخزن'+(t.notes?' — '+t.notes:''), t.to, t.from, t.amount));
     (db.custodies||[]).forEach(c=>{ if(c.type==='direct') return; const acc=c.account||defAcc; add(c.date,'عهدة','عهدة مؤقتة: '+c.name,'عهد / '+c.name,acc,c.amount);
         if(c.status==='settled' && (c.returnedAmount||0)>0) add(c.date,'عهدة','مرتجع عهدة: '+c.name,acc,'عهد / '+c.name,c.returnedAmount); });
