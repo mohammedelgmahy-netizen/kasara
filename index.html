@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1230</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1231</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3991,6 +3991,8 @@ window.onload = async function(){
     try{ await moveMagdyAdv1125Once(); }catch(e){ console.warn('mechmove1125', e); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.mechmove1125){ clearInterval(t); return; } try{ await moveMagdyAdv1125Once(); }catch(e){} }, 15000); }
     try{ await fixMagdyOpen1125Once(); }catch(e){ console.warn('mechopen1125', e); }
+    try{ fixMagdyCash1126Once(); }catch(e){ console.warn('mechcash1126', e); }
+    { const t=setInterval(()=>{ if(db && db.imports && db.imports.mechcash1126){ clearInterval(t); return; } try{ fixMagdyCash1126Once(); }catch(e){} }, 15000); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.mechopen1125){ clearInterval(t); return; } try{ await fixMagdyOpen1125Once(); }catch(e){} }, 15000); }
     try{ await drawerToBank1123Once(); }catch(e){ console.warn('drj1123', e); }
     try{ await fixMagdyName1122Once(); }catch(e){ console.warn('magdy1122', e); }
@@ -5394,7 +5396,7 @@ async function fixMagdyOpen1125Once(){
     if(!SUPABASE_URL || !__cloudOK) return;
     const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-25-before-magdy-open', value:JSON.stringify(db), updated_at:new Date().toISOString()})});
     if(!res.ok){ console.warn('mechopen1125: النسخة الاحتياطية فشلت', res.status); return; }
-    const old=Object.assign({},n); n.openPaid=812300; n.openBal=72690; n.openTotal=812300+72690; if(!n.openDate) n.openDate='2026-11-11';
+    const old=Object.assign({},n); n.openPaid=812300; n.openPaidCash=792750; n.openBal=72690; n.openTotal=812300+72690; if(!n.openDate) n.openDate='2026-11-11';
     /* محمد: «فاضله 222,690 لحد 22/11 غير اللي هو خده» — اللي أخده في البرنامج لحد 22/11 بيتحسب شغل سابق مستحق له، مش خصم من الـ 222,690 */
     { const C=mechCat(); if(C){ C.priorWork=(db.expensesData||[]).filter(x=>x && x.category===C.name && x.name===MECH_PERSON && (x.date||'')<=mechPeriodEnd()).reduce((a,x)=>a+(Number(x.paid)||0),0); } }
     try{ logAudit('update','دليل الأكواد (بأمر محمد)', 'مجدي عبد الغني: المدفوع القديم 792,750 ← 812,300 من الكراريس، الباقي له 72,690', old, Object.assign({},n)); }catch(e){}
@@ -5402,6 +5404,11 @@ async function fixMagdyOpen1125Once(){
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
     scheduleSave(); try{ renderAll(); }catch(e){}
 }
+/* محمد 2026-11-26 «المعلق يبقى زي ما هو من يوم 11 للنهارده»: فرق الكراريس 19,550 (812,300 − 792,750) ما بيخرجش من أي خزنة — بيتقفل في «تسويات وأرصدة أول المدة» */
+function fixMagdyCash1126Once(){ if(!db || (db.imports&&db.imports.mechcash1126)) return; if(!(db.imports&&db.imports.mechopen1125)) return; const n=mechPerson(); if(!n) return;
+    if(n.openPaidCash==null){ n.openPaidCash=792750; try{ logAudit('update','دليل الأكواد (بأمر محمد)','مجدي عبد الغني: المعلق زي ما هو — المدفوع من الخزنة 792,750، وفرق الكراريس 19,550 من غير خزنة', null, null); }catch(e){} }
+    if(!db.imports) db.imports={}; db.imports.mechcash1126=true; try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){} scheduleSave(); try{ renderAll(); }catch(e){} }
+function openPaidCash(c){ return c && c.openPaidCash!=null ? Number(c.openPaidCash)||0 : Number(c&&c.openPaid)||0; }
 function catPayees(c){ if(!c) return null; if(Array.isArray(c.payees)) return c.payees; return c.code===4011 ? ['موالي الصريحي'] : null; }
 function expPayeeNew(){ const sel=document.getElementById('exp-name'); if(!sel || sel.value!=='__new') return;
     const c=(db.expenses||[]).find(x=>x.name===document.getElementById('exp-category').value); const list=catPayees(c);
@@ -6023,7 +6030,7 @@ function treasuryEvents(){
     { const acc = n => (db.accounts||[]).some(a=>a.name===n) ? n : defaultAccount;
       /* مدفوع موردي قطع الغيار والسولار القديم من خزنة معلق عماد ناجي (محمد 2026-11-10)، وأصحاب المعدات من درج المكتب */
       [['contractors','المقاول',SARI_ACC],['suppliers','المورد',SARI_ACC],['names','الموظف',SARI_ACC]].forEach(([k,lbl,defAcc])=>(db[k]||[]).forEach(c=>{
-        const pd=Number(c.openPaid)||0; if(!(pd>0) || !c.openDate) return;
+        const pd=openPaidCash(c); if(!(pd>0) || !c.openDate) return;
         events.push({date:c.openDate, desc:`المدفوع من الحساب القديم — ${lbl} ${c.name}`, project:'-', account:acc(c.openAcc||defAcc), inflow:0, outflow:pd});
       })); }
     // البونات مش بتظهر سطر سطر: كل يوم سطر واحد للمبيعات النقدي وسطر للإكرامية
@@ -7190,7 +7197,7 @@ function balanceSheetData(D){
     E.push({name:'الأرباح المحتجزة', v:retained});
     // محمد: «مفيش راس مال» — السطر ده مقفول على صفر، والفروق لو فيه بتبان من عدم اتزان الميزانية
     /* سطر واحد بدل «تسوية أرباح وخسائر فترة سابقة» + «أرصدة أول المدة (مصروفات قبل التشغيل)» — محمد 2026-11-25 (عرض بس، نفس المجموع) */
-    { const nc=(db.expensesData||[]).filter(x=>x.noCash && le(x.date) && x.category!=='إيراد').reduce((a,x)=>a+(Number(x.paid)||0),0); const v=(Math.round(recDiff)?recDiff:0)+nc; if(Math.round(v)) E.push({name:'تسويات وأرصدة أول المدة', v}); }
+    { const nc=(db.expensesData||[]).filter(x=>x.noCash && le(x.date) && x.category!=='إيراد').reduce((a,x)=>a+(Number(x.paid)||0),0) + (db.names||[]).filter(x=>x.openDate && le(x.openDate) && x.openPaidCash!=null).reduce((a,x)=>a+(Number(x.openPaid)||0)-(Number(x.openPaidCash)||0),0); const v=(Math.round(recDiff)?recDiff:0)+nc; if(Math.round(v)) E.push({name:'تسويات وأرصدة أول المدة', v}); }
     E.push({name:'رأس المال وأرصدة أول المدة', v:0, note:true});
     const tE=E.filter(x=>!x.part).reduce((a,x)=>a+x.v,0);
     return {A,L,E,tA,tL:tL2,tE,recOld:rec,recList};
