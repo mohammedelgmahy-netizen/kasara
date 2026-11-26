@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1280</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1281</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -15018,6 +15018,9 @@ body.dfx main .tab-content.active > .subnav-bar .subnav-btn,body.dfx #tab-dailyl
 body.dfx main #tab-treasury > .trv-bar{border:1px solid var(--line,#e2e8f0);border-radius:3px}
 body.dfx main #tab-treasury > .trv-bar button{padding:.15rem .9rem !important;font-size:.8rem !important;line-height:1.35 !important;flex:1}
 body.dfx #dp-sheet{overflow-y:auto} /* v1280: صفحة اليوم بشكلها الأصلي (من غير ضغط السطور اللي كان بيقص البيان) والورقة بس اللي بتتحرك */
+body.dfx #treasury-accounts-summary{display:none !important} /* v1280 محمد: «المعلق ودرج المكتب بيتكتبوا في صفحة اليوم، ملهمش لازمة هنا» — مخفيين في كشف حساب الخزينة على اللابتوب بس */
+body.dfx main #tr-card table td{white-space:normal !important}
+body.dfx main #tr-card table{table-layout:auto}
 body.dfx #sub-ledger-form.dfx-sc{overflow-y:auto;overscroll-behavior:contain}
 body.dfx #sub-ledger-form.dfx-sc > *{flex-shrink:0}
 body.dfx #sub-ledger-form.dfx-sc #acct-card{padding-top:0 !important}
