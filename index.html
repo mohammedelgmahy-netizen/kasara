@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1259</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1260</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5640,7 +5640,7 @@ function ctrBalBar(name){ let cr=0, dr=0; contractorStmtRows(name).rows.forEach(
     return balBarHtml(['📋 إجمالي له',cr],['✅ المدفوع له',dr], b>0.5?['🔴 الباقي له',b,'text-rose-700']:b<-0.5?['🟢 لينا عنده',b,'text-emerald-700']:['⚪ خالص',0,'text-slate-600']); }
 function empBalBar(name){ const n=(db.names||[]).find(x=>x.name===name); if(!n) return ''; const m=todayISO().slice(0,7), sal=salaryOf(n,m);
     const used=(db.expensesData||[]).filter(x=>x.name===name && isAdvRec(x) && (x.date||'').startsWith(m)).reduce((a,x)=>a+(Number(x.paid)||0),0);
-    const old=n.openDate ? (Number(n.openTotal)||0)-(Number(n.openPaid)||0) : 0;
+    const old=n.openDate ? nameOpenTotal(n)-(Number(n.openPaid)||0) : 0;
     return balBarHtml(['📋 مرتب الشهر',sal],['✅ اتصرف له الشهر ده',used],['🔴 الباقي له'+(Math.round(old)?' (شامل رصيد سابق '+fmt(old)+')':''),sal-used+old, (sal-used+old)<0?'text-emerald-700':'text-rose-700']); }
 function expPartyBal(){ const box=document.getElementById('exp-bal-info'); if(!box) return; let h='';
     try{ const cat=document.getElementById('exp-category').value, nm=document.getElementById('exp-name').value, c=(db.expenses||[]).find(e=>e.name===cat)||{};
@@ -5819,12 +5819,26 @@ function payCommission(e){ e.preventDefault(); ensureComCat();
 function isCommPerson(n){ return !!n && Number(n.perMeter)>0; }
 function payrollStaff(m){ const mm=m||todayISO().slice(0,7), mf=mechCat()?mechFrom():''; return payrollPeople().filter(n=>!isCommPerson(n) && !(mf && mm>=mf && isMechPayee(n.name))); } /* ميكانيكي الكسارة بيخرج من الرواتب من أول mechFrom (محمد 2026-11-25) */
 const COMM_HIDE_NAMES=()=>new Set(payrollPeople().filter(isCommPerson).map(n=>n.name));
+/* محمد 2026-11-26: «مالكش دعوة بالكراس» — عمولة عماد القديمة = صافي سن كل البونات من أول بون لحد openDate × 4 ج (بدل الرقم الثابت المتكتب في التكويد). المدفوع القديم (openPaid) زي ما هو */
+let __emadOldC=null;
+function emadOldSin(n){ const to=n.openDate||''; const L=db.dailyLog||[]; const k=L.length+'|'+to; if(__emadOldC && __emadOldC.k===k && __emadOldC.L===L) return __emadOldC.v;
+    let v=0; L.forEach(r=>{ const d=r.date||''; if(d && (!to || d<=to)) v+=bonNetSin(r); }); __emadOldC={k,L,v}; return v; }
+/* بدل إدارة عماد ناجي = صافي سن البونات × 4 في أي فترة (قائمة الدخل)؛ المستحق له = كله لحد التاريخ − اللي خده قبل openDate − اللي اتصرف له بعده (سلف/صرف عمولة) */
+function emadPerson(){ return (db.names||[]).find(x=>x.name===COM_PERSON && Number(x.perMeter)>0) || null; }
+function emadCommIn(from, to){ const n=emadPerson(); if(!n) return 0; let v=0; (db.dailyLog||[]).forEach(r=>{ const d=r.date||''; if(!d || (from && d<from) || (to && d>to)) return; v+=bonNetSin(r); }); return Math.round(Number(n.perMeter)*v*100)/100; }
+function emadPaidAfter(to){ const n=emadPerson(); if(!n) return 0; const od=n.openDate||''; return (db.expensesData||[]).filter(x=>x && x.name===n.name && (x.category===ADV_CAT || x.category===COM_CAT) && !x.prevMonth && (!od || (x.date||'')>od) && (!to || (x.date||'')<=to)).reduce((a,x)=>a+(Number(x.paid)||0),0); }
+function nameOpenTotal(x){ if(x && x.name===COM_PERSON && Number(x.perMeter)>0 && x.openDate) return Math.round(Number(x.perMeter)*emadOldSin(x)*100)/100; return Number(x&&x.openTotal)||0; }
 function emcData(){
     const n=(db.names||[]).find(x=>x.name===COM_PERSON) || payrollPeople().find(isCommPerson); if(!n) return null;
     const rows=[]; let owed=0, took=0;
-    const oT=Number(n.openTotal)||0, oP=Number(n.openPaid)||0;
-    if(oT||oP){ owed+=oT; took+=oP; rows.push({label:`الحساب القديم (الكراسة) لحد ${dmy(n.openDate||'')}`, m:null, sin:null, owed:oT, took:oP, bal:owed-took, old:true}); }
+    const oT=nameOpenTotal(n), oP=Number(n.openPaid)||0;
     const cur=todayISO().slice(0,7); let st=payStartMonth(n); if(!st || st>cur) st=cur;
+    /* محمد 2026-11-26: من أول بون، شهر بشهر (صافي السن × 4) — اللي خده قبل openDate سطر لوحده */
+    if(oT||oP){ const rate0=Number(n.perMeter)||MGMT_FEE_RATE, to=n.openDate||''; const f0=((db.dailyLog||[]).map(r=>r.date||'').filter(Boolean).sort()[0]||to).slice(0,7);
+        for(let m=f0; m && m<to.slice(0,7); m=nextMonth(m)){ const sin=(db.dailyLog||[]).filter(r=>(r.date||'').startsWith(m)).reduce((a,r)=>a+bonNetSin(r),0), o=Math.round(rate0*sin*100)/100; owed+=o; rows.push({label:'شهر '+m.slice(5)+'/'+m.slice(0,4), m:null, sin, owed:o, took:0, bal:owed-took}); }
+        const lm=to.slice(0,7), sinL=(db.dailyLog||[]).filter(r=>(r.date||'').startsWith(lm) && (r.date||'')<=to).reduce((a,r)=>a+bonNetSin(r),0), oL=Math.round(rate0*sinL*100)/100; owed+=oL;
+        rows.push({label:'شهر '+lm.slice(5)+'/'+lm.slice(0,4)+` (لحد ${dmy(to)})`, m:null, sin:sinL, owed:oL, took:0, bal:owed-took});
+        took+=oP; rows.push({label:`اللي خده لحد ${dmy(to)}`, m:null, sin:null, owed:0, took:oP, bal:owed-took, old:true}); }
     /* محمد 2026-11-24: الكراسة القديمة شاملة لحد openDate (11/11) → العمولة الجديدة تبدأ من اليوم اللي بعده عشان أسبوع 5–11/11 ما يتحسبش مرتين (الكشف بس) */
     let from=MGMT_FEE_FROM; if((oT||oP) && n.openDate && n.openDate>=from){ const d=new Date(n.openDate+'T12:00:00'); d.setDate(d.getDate()+1); from=d.toISOString().slice(0,10); }
     const rate=Number(n.perMeter)||MGMT_FEE_RATE;
@@ -6395,10 +6409,12 @@ function computePL(projectFilter, dateFrom, dateTo){
     if(waterSup && !Object.entries(catGroups).some(([k,v])=>v.plType==='operating' && _isWater(k))) operatingLines.push({ num:num(), label:'سيارة المياه', value:waterSup });
     /* مرتب عماد ناجي القديم (رصيد افتتاحي من التكويد) — القديم كله يعتبر جديد (محمد 2026-11-10) */
     /* كل موظف سطر لوحده، وعماد ناجي اسمه «عمولة عماد ناجي» (محمد 2026-11-11) */
-    try{ (db.names||[]).filter(x=>x.openDate && matchDate({date:x.openDate}) && (Number(x.openTotal)||0)).forEach(x=>{
+    /* محمد 2026-11-26: «سماه في قائمة الدخل بدل إدارة عماد ناجي» — صافي سن بونات الفترة × 4 من أول بون (مش رقم الكراسة) */
+    try{ if(emadPerson()){ const v=emadCommIn(dateFrom||'', dateTo||''); if(v) operatingLines.push({ num:num(), label:'بدل إدارة عماد ناجي', value:v }); } }catch(e){}
+    try{ (db.names||[]).filter(x=>x!==emadPerson() && x.openDate && matchDate({date:x.openDate}) && nameOpenTotal(x)).forEach(x=>{
         /* محمد 2026-11-25 «سطره في قائمة الدخل يجيب كل شغله السابق»: حساب مجدي القديم بيتجمع في سطر «ميكانيكي الكسارة» مع دفعاته */
         if(/مجد[يى]/.test(x.name) && typeof mechCat==='function' && mechCat()){ if(mechAccrualOn()) return; const mc=mechCat().name, L=operatingLines.find(l=>l.label===mc); if(L) L.value+=Number(x.openTotal)||0; else operatingLines.push({ num:num(), label:mc, value:Number(x.openTotal)||0 }); return; }
-        operatingLines.push({ num:num(), label: x.name===COM_PERSON ? 'عمولة عماد ناجي' : /مجد[يى]/.test(x.name) ? 'مجدي عبد الغني الميكانيكي' : 'مرتب '+x.name, value:Number(x.openTotal)||0 }); }); }catch(e){}
+        operatingLines.push({ num:num(), label: x.name===COM_PERSON ? 'عمولة عماد ناجي' : /مجد[يى]/.test(x.name) ? 'مجدي عبد الغني الميكانيكي' : 'مرتب '+x.name, value:nameOpenTotal(x) }); }); }catch(e){}
     try{ if(mechAccrualOn()){ const v=mechAccrued(dateFrom, dateTo); if(v) operatingLines.push({ num:num(), label:mechCat().name, value:v }); } }catch(e){}
     try{ const dep=assetsDepBetween(dateFrom, dateTo); if((db.assets||[]).some(a=>a.status!=='sold')) operatingLines.push({ num:num(), label:'إهلاك الأصول الثابتة', value:dep }); }catch(e){}
     const operatingTotal = operatingLines.reduce((s,l)=>s+l.value,0);
@@ -7340,7 +7356,7 @@ function balanceSheetData(D){
     (db.contractors||[]).forEach(c=>{ try{ let b=0; contractorStmtRows(c.name).rows.forEach(r=>{ if(le(r.date)) b+=(r.credit||0)-(r.debit||0); }); if(b>0) ctrOwe+=b; else ctrAdv-=b; }catch(e){} });
     if(Math.round(ctrAdv)) A.push({g:'مستحقات أخرى', name:'عهد ومقدمات عند أصحاب المعدات', v:ctrAdv});
     /* سلف الموظفين: فلوس طلعت من الخزنة ولسه هتتخصم من المرتب — أصل لينا عند الموظفين، عشان الميزان يتزن ومن غير ما تدخل الربح (محمد 2026-11-13) */
-    { const empAdv=(db.expensesData||[]).filter(x=>x.category===ADV_CAT && le(x.date)).reduce((a,x)=>a+(Number(x.paid)||0),0); if(Math.round(empAdv)) A.push({g:'مستحقات أخرى', name:'سلف موظفين', v:empAdv}); }
+    { const _en=(emadPerson()||{}).name; const empAdv=(db.expensesData||[]).filter(x=>x.category===ADV_CAT && le(x.date) && !(_en && x.name===_en)).reduce((a,x)=>a+(Number(x.paid)||0),0); if(Math.round(empAdv)) A.push({g:'مستحقات أخرى', name:'سلف موظفين', v:empAdv}); }
     // الأصول الثابتة
     /* الأصول الثابتة من دليل الأكواد: كل أصل بقيمته بعد الإهلاك، وتكلفته بتتقابل بـ«رأس مال (الأصول الثابتة)» (محمد 2026-11-16) */
     let faCost=0; (db.assets||[]).filter(a=>a.status!=='sold' && le(a.date)).forEach(a=>{ if(a.noCash) faCost+=Number(a.cost)||0; const v=assetBookValue(a, D); A.push({g:'الأصول الثابتة', name:a.name+' (بعد الإهلاك)', v}); });
@@ -7351,7 +7367,7 @@ function balanceSheetData(D){
     if(Math.round(ctrOwe)) L.push({name:'مستحقات أصحاب المعدات', v:ctrOwe});
     if(Math.round(adv)) L.push({name:'دفعات مقدمة من العملاء', v:adv});
     // مصروفات مستحقة لسه ماتدفعتش (قيمة المصروف − المدفوع منه) — زي عمولة جلب العملاء
-    try{ let acc=0, accM=0; (db.expensesData||[]).filter(x=>le(x.date) && !x.tipDeposit).forEach(x=>{ const c=(db.expenses||[]).find(e=>e.name===x.category); if(!c || c.nameType==='contractors' || c.plType==='revenue' || x.category==='إيراد') return; const rem=(Number(x.total)||0)-(Number(x.paid)||0); if(x.category===COM_CAT) accM+=rem; else acc+=rem; }); if(Math.round(accM)) L.push({name:'بدل إدارة وتشغيل مستحق — عماد ناجي', v:accM}); try{ const _mOn=mechAccrualOn(), _mp=_mOn?mechPerson():null; const vSal=(db.names||[]).filter(x=>x.openDate && le(x.openDate) && x!==_mp).reduce((a,x)=>a+((Number(x.openTotal)||0)-(Number(x.openPaid)||0)),0); if(Math.round(vSal)) L.push({name:'مرتبات مستحقة للموظفين (رصيد سابق)', v:vSal}); if(_mOn){ const ml=mechLiability(D); if(Math.round(ml)>0) L.push({name:'مستحق لمجدي عبد الغني (ميكانيكي الكسارة)', v:ml}); else if(Math.round(ml)<0) A.push({g:'مستحقات أخرى', name:'مدفوع مقدم لمجدي عبد الغني (ميكانيكي الكسارة)', v:-ml}); } }catch(e){} if(Math.round(acc)>0) L.push({name:'مصروفات مستحقة (لم تُدفع)', v:acc}); else if(Math.round(acc)<0) A.push({g:'مستحقات أخرى', name:'مصروفات مدفوعة مقدماً', v:-acc}); }catch(e){}
+    try{ let acc=0, accM=0; (db.expensesData||[]).filter(x=>le(x.date) && !x.tipDeposit).forEach(x=>{ const c=(db.expenses||[]).find(e=>e.name===x.category); if(!c || c.nameType==='contractors' || c.plType==='revenue' || x.category==='إيراد') return; const rem=(Number(x.total)||0)-(Number(x.paid)||0); if(x.category===COM_CAT) accM+=rem; else acc+=rem; }); if(Math.round(accM)) L.push({name:'بدل إدارة وتشغيل مستحق — عماد ناجي', v:accM}); try{ const _mOn=mechAccrualOn(), _mp=_mOn?mechPerson():null; const vSal=(db.names||[]).filter(x=>x.openDate && le(x.openDate) && x!==_mp && x!==emadPerson()).reduce((a,x)=>a+(nameOpenTotal(x)-(Number(x.openPaid)||0)),0); try{ const _e=emadPerson(); if(_e){ const ev=emadCommIn('', D||'')-((_e.openDate && le(_e.openDate))?(Number(_e.openPaid)||0):0)-emadPaidAfter(D||''); if(Math.round(ev)) L.push({name:'بدل إدارة عماد ناجي المستحق', v:ev}); } }catch(e){} if(Math.round(vSal)) L.push({name:'مرتبات مستحقة للموظفين (رصيد سابق)', v:vSal}); if(_mOn){ const ml=mechLiability(D); if(Math.round(ml)>0) L.push({name:'مستحق لمجدي عبد الغني (ميكانيكي الكسارة)', v:ml}); else if(Math.round(ml)<0) A.push({g:'مستحقات أخرى', name:'مدفوع مقدم لمجدي عبد الغني (ميكانيكي الكسارة)', v:-ml}); } }catch(e){} if(Math.round(acc)>0) L.push({name:'مصروفات مستحقة (لم تُدفع)', v:acc}); else if(Math.round(acc)<0) A.push({g:'مستحقات أخرى', name:'مصروفات مدفوعة مقدماً', v:-acc}); }catch(e){}
     const __capE=[]; // سلف شريك اتعتبرت رأس مال (مش دين على الكسارة)
     try{ const s0=db.sariSettings||{}; const bals={'عماد ناجي':Number(s0.loanOpening)||0}; (db.ownerLoans||[]).filter(l=>le(l.date)).forEach(l=>{ const w=loanLender(l); bals[w]=(bals[w]||0)+(l.type==='in'?1:-1)*(Number(l.amount)||0); }); const capL=db.capitalLenders||[]; Object.entries(bals).forEach(([w,v])=>{ if(!Math.round(v)) return; if(capL.includes(w)) __capE.push({name:'رأس مال '+w+' (باقي حصته في شراء الكسارة)', v}); else L.push({name:'سلف '+w, v}); }); }catch(e){}
     // حقوق الملكية
@@ -9146,7 +9162,7 @@ function payStartMonth(n){
 }
 function nextMonth(m){ let [y,mo]=m.split('-').map(Number); mo++; if(mo>12){mo=1;y++;} return y+'-'+String(mo).padStart(2,'0'); }
 function payCarry(n, m){
-    let c=0; try{ if(n.openDate && ((Number(n.openTotal)||0)||(Number(n.openPaid)||0)) && n.openDate.slice(0,7)<=m) c+=(Number(n.openTotal)||0)-(Number(n.openPaid)||0); }catch(e){} /* رصيده القديم من التكويد (محمد 2026-11-10) */
+    let c=0; try{ if(n.openDate && (nameOpenTotal(n)||(Number(n.openPaid)||0)) && n.openDate.slice(0,7)<=m) c+=nameOpenTotal(n)-(Number(n.openPaid)||0); }catch(e){} /* رصيده القديم من التكويد (محمد 2026-11-10) */
     const st=payStartMonth(n); if(!st || st>=m) return c;
     for(let x=st; x<m; x=nextMonth(x)) c+=payMonth(n,x).net;
     return c;
