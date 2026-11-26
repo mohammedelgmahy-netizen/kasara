@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1258</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1259</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -6411,7 +6411,7 @@ function computePL(projectFilter, dateFrom, dateTo){
         .map(([k,v])=>({ num:num(), label:k, value:v.total }));
     if(otherRev) otherLines.push({ num:num(), label: otherRev<0 ? 'خصومات عملاء' : 'إيرادات أخرى مسجلة (بتزود الربح)', value: -otherRev });
     /* الإيرادات الأخرى المسجلة من شاشة الإيرادات (db.incomes) — كل نوع سطر، بتزود الربح (محمد 2026-11-11) */
-    { const g={}; (db.incomes||[]).filter(x=>matchDate(x) && !_negIncToOps(x)).forEach(x=>{ const k=((x.date||'')<=INC_OLD_CUT || /^تسوية على الدفتر/.test(x.notes||''))?INC_OLD_LABEL:(x.type||'إيرادات أخرى'); /* محمد 2026-11-26 «حطهم ف البند ال فوقه»: تسويات الدفتر الموجبة (3,987) بتتجمع في سطر إيرادات الفترة قبل 11/11 — عرض بس */ g[k]=(g[k]||0)+(Number(x.amount)||0); });
+    { const g={}; (db.incomes||[]).filter(x=>matchDate(x) && !_negIncToOps(x) && !plIncNew(x)).forEach(x=>{ const k=((x.date||'')<=INC_OLD_CUT || /^تسوية على الدفتر/.test(x.notes||''))?INC_OLD_LABEL:(x.type||'إيرادات أخرى'); /* محمد 2026-11-26 «حطهم ف البند ال فوقه»: تسويات الدفتر الموجبة (3,987) بتتجمع في سطر إيرادات الفترة قبل 11/11 — عرض بس */ g[k]=(g[k]||0)+(Number(x.amount)||0); });
       /* أرصدة أول المدة (خزن أول المدة − سلفة عماد أول المدة) ملهاش طرف تاني: بتتقفل في «إيرادات أخرى» عشان الميزان يتزن (محمد 2026-11-12) */
       try{ const sd=(db.sariSettings||{}).startDate||''; if(!dateFrom || dateFrom<=sd){ const oc=(db.accounts||[]).reduce((a,x)=>a+(Number(x.openingBalance)||0),0); const ol=(db.capitalLenders||[]).includes('عماد ناجي')?0:(Number((db.sariSettings||{}).loanOpening)||0); if(oc-ol) g[INC_OLD_LABEL]=(g[INC_OLD_LABEL]||0)+(oc-ol); } }catch(e){}
       if(settleNoDisc) g[INC_OLD_LABEL]=(g[INC_OLD_LABEL]||0)+settleNoDisc;
@@ -6420,6 +6420,9 @@ function computePL(projectFilter, dateFrom, dateTo){
     if((!projectFilter || projectFilter==='ALL') && !dateFrom){ try{ const v=plOpenSettle(dateTo||''); if(Math.round(v)){ /* محمد 2026-11-26 «اقفله مع الرقم اللي فوق»: التسويات بتتجمع في سطر إيرادات الفترة قبل 11/11 — الربح زي ما هو */ const t=otherLines.find(l=>l.label==='(+) '+INC_OLD_LABEL); if(t) t.value-=v; else otherLines.push({ num:num(), label:'(+) '+INC_OLD_LABEL, value:-v }); } }catch(e){} }
     /* محمد 2026-11-26 «يحذف الإيرادات الأخرى اللي احنا كنا مسجلينها» واختار «يتشال من الحساب» مرتين: أي سطر إيرادات أخرى بيتشال من قائمة الدخل والربح بينزل بقيمته (المركز المالي بيختل بنفس المبلغ — اتنبه). الحركات نفسها في db.incomes ما اتمسحتش */
     for(let i=otherLines.length-1;i>=0;i--) if(plHideOtherInc(otherLines[i])) otherLines.splice(i,1);
+    /* محمد 2026-11-26 «سلف الحاج ناجي في بداية التشغيل ما ظهرتش ليه؟»: أي إيراد يسجله من شاشة الإيرادات بعد الشيل (1258) بيظهر سطر باسم ملاحظته (أو نوعه) */
+    { const g2={}; (db.incomes||[]).filter(x=>matchDate(x) && plIncNew(x)).forEach(x=>{ const k=(x.notes||'').trim()||x.type||'إيراد'; g2[k]=(g2[k]||0)+(Number(x.amount)||0); });
+      Object.entries(g2).forEach(([k,v])=>{ if(v) otherLines.push({ num:num(), label:(v>0?'(+) ':'')+k, value:-v, keepInc:true }); }); }
     const otherTotal = otherLines.reduce((s,l)=>s+l.value,0);
 
     // ز. الربح قبل الضريبة
@@ -6428,7 +6431,9 @@ function computePL(projectFilter, dateFrom, dateTo){
     return { revenueLines, revenueTotal, directLines, directTotal, grossProfit, operatingLines, operatingTotal, netOperatingProfit, otherLines, otherTotal, profitBeforeTax, contractorPayments };
 }
 
-const plHideOtherInc = l => /إيرادات أخرى/.test(l.label||'');
+const plHideOtherInc = l => !l.keepInc && /إيرادات أخرى/.test(l.label||'');
+/* إيراد اتسجل من شاشة الإيرادات بعد 1258 (26/11 16:20 UTC) — id = Date.now()*1000 أرقام بس (حركات الميجريشن فيها «-») */
+const plIncNew = x => /^\d{16,}$/.test(String(x&&x.id||'')) && Number(x.id) > 1795710000000000;
 const INC_OLD_CUT='2026-11-11', INC_OLD_LABEL='إيرادات أخرى — بيع سولار وقطع غيار فترة قبل 11/11';
 const PL_HIDE_OTHER = l => false; /* محمد رجع في القرار 2026-11-13: السطر يفضل ظاهر */
 /* ================= TAXES TABLE ================= */
@@ -8967,7 +8972,7 @@ function renderIncomes(){
     const as=g('inc-account'); const pv=as.value; fillSelect('inc-account', db.accounts||[]); as.value = pv || SARI_ACC; if(!as.value && as.options.length) as.selectedIndex=0;
     if(!g('inc-date').value) g('inc-date').value=todayISO();
     /* محمد 2026-11-13: إيرادات الفترة قبل 11/11 بند واحد في قائمة الدخل ومش بتظهر في السجل ده (عرض بس) */
-    const L=regSortDesc((db.incomes||[]).filter(x=>(x.date||'')>INC_OLD_CUT), db.incomes||[]); const dbar=dayBarMaker(6);
+    const L=regSortDesc((db.incomes||[]).filter(x=>(x.date||'')>INC_OLD_CUT || plIncNew(x)), db.incomes||[]); /* محمد 26/11: الإيراد الجديد بتاريخ قديم (سلف الحاج ناجي) كان بيتحفظ بس مش بيظهر هنا */ const dbar=dayBarMaker(6);
     g('tbody-inc').innerHTML = L.length ? L.map(x=>`${dbar(x.date)}<tr class="border-b border-slate-50"><td class="p-2 text-xs">${dmy(x.date)}</td><td class="p-2 font-bold">${esc(x.type)}</td><td class="p-2">${esc(x.notes||'')}</td><td class="p-2 text-teal-700">${esc(x.account||'')}</td><td class="p-2 font-extrabold text-emerald-700">${mfmt(x.amount)}</td><td class="p-2"><button onclick="deleteIncome('${x.id}')" class="text-red-500">🗑</button></td></tr>`).join('')
         + `<tr class="bg-slate-50 font-extrabold"><td class="p-2" colspan="4">الإجمالي</td><td class="p-2 text-emerald-700">${mfmt(L.reduce((a,x)=>a+(Number(x.amount)||0),0))}</td><td></td></tr>` : '<tr><td colspan="6" class="p-3 text-center text-slate-400">—</td></tr>';
 }
@@ -8986,7 +8991,7 @@ function saveIncome(){
 }
 function deleteIncome(id){
     if(isRO()) return;
-    { const o=(db.incomes||[]).find(x=>x.id===id); if(o && (o.date||'')<=INC_OLD_CUT){ alert('البند ده مقفول (إيرادات الفترة قبل 11/11) — مينفعش يتحذف'); return; } }
+    { const o=(db.incomes||[]).find(x=>x.id===id); if(o && (o.date||'')<=INC_OLD_CUT && !plIncNew(o)){ alert('البند ده مقفول (إيرادات الفترة قبل 11/11) — مينفعش يتحذف'); return; } }
     const old=(db.incomes||[]).find(x=>x.id===id); if(!old || !confirm(`تحذف ${old.type} (${mfmt(old.amount)})؟`)) return;
     db.incomes=db.incomes.filter(x=>x.id!==id); logAudit('delete','إيراد',old.type,old,null); scheduleSave(); renderAll(); renderIncomes();
 }
