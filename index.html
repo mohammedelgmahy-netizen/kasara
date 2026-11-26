@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1236</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1237</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5350,16 +5350,21 @@ function mechAccrued(from, to){ const C=mechCat(), n=mechPerson(); if(!C) return
 function mechLiability(D){ const C=mechCat(), n=mechPerson(); if(!C) return 0; const od=C.openDate||''; if(od && D && od>D) return 0;
     const due=mechAccrued('', D) - (Number(n&&n.openPaid)||0); const paid=(db.expensesData||[]).filter(x=>x && x.category===C.name && (!D||(x.date||'')<=D)).reduce((a,x)=>a+(Number(x.paid)||0),0); return due-paid; }
 /* كل شهر بيتقفل والباقي (له أو عليه) بيترحّل للشهر اللي بعده (محمد 2026-11-25 «كل شهر بقفل معاه ونرحّل») — عرض بس */
-function mechSummaryHtml(name){ const R=mechMonthRows(name), C=mechCat()||{}; let carry=(Number(C.openBal)||0)+(Number(C.priorWork)||0); const today=todayISO();
-    R.forEach(r=>{ r.prev=carry; r.bal=carry+r.due-r.paid; r.closed=r.to<today; carry=r.bal; });
-    const B='border:1px solid #cbd5e1;padding:6px 10px;text-align:center;', H=B+'background:#ede9fe;font-weight:800;';
-    const v=x=>`<span style="font-weight:800;color:${x<0?'#be123c':'#047857'}">${nfmt(Math.abs(x))}${x<0?' (عليه)':''}</span>`;
-    let top=''; try{ if(mechAccrualOn()){ const n=mechPerson(), work=mechAccrued('',''), took=(Number(n&&n.openPaid)||0)+(db.expensesData||[]).filter(x=>x && x.category===C.name && x.name===name).reduce((a,x)=>a+(Number(x.paid)||0),0);
-        top=`<div style="font-weight:800;font-size:16px;margin-bottom:6px;background:#ecfdf5;border:1px solid #6ee7b7;border-radius:8px;padding:6px 10px">كل شغله (في قائمة الدخل): ${nfmt(work)} — أخد: <span style="color:#be123c">${nfmt(took)}</span> — فاضل له: <span style="color:#047857">${nfmt(work-took)}</span></div>`; } }catch(e){}
-    return `<div style="flex-basis:100%;direction:rtl">${top}<div style="font-weight:800;font-size:15px;margin-bottom:4px">🔧 ${esc(MECH_CAT)}: المستحق ${nfmt(mechMonthly())} في الشهر على ${nfmt(mechDays())} يوم (اليومي ${nfmt(Math.round(mechMonthly()/mechDays()))})</div>
-      <table style="border-collapse:collapse;font-size:14px;min-width:340px"><tr><th style="${H}">الشهر</th><th style="${H}">مرحّل من اللي قبله</th><th style="${H}">مستحق الشهر</th><th style="${H}">المدفوع</th><th style="${H}">الباقي له (بيترحّل)</th></tr>
-      ${R.map(r=>`<tr><td style="${B}">من ${dmy(r.from)} لـ ${dmy(r.to)}${r.closed?' <span style="color:#64748b;font-size:12px">(اتقفل)</span>':''}</td><td style="${B}">${v(r.prev)}</td><td style="${B}">${nfmt(r.due)}</td><td style="${B}color:#be123c;font-weight:700">${r.paid?nfmt(r.paid):'—'}</td><td style="${B}">${v(r.bal)}</td></tr>`).join('')}</table>
-      <div style="font-size:12px;color:#64748b;margin-top:3px">أول ترحيل = رصيد سابق مستحق له ${nfmt(Number(C.openBal)||0)}${Number(C.priorWork)?` + شغل سابق ${nfmt(C.priorWork)} (قد اللي أخده من 11/11 لحد ${dmy(mechPeriodEnd())})`:''}. المدفوع = الدفعات المتسجلة على بند «${esc(MECH_CAT)}» بس. قائمة الدخل بتحسب مستحق كل شهر بعد ما يتقفل.</div></div>`; }
+function mechSummaryHtml(name){ const C=mechCat()||{}, n=mechPerson(), today=todayISO();
+    /* محمد 2026-11-26 «مش قولتلك إجمالي شغله 1,200,000»: الكشف بيبدأ بالإجمالي لحد آخر شهر اتقفل، والشهر الحالي لوحده تحت — عرض بس */
+    const R=mechMonthRows(name), closed=R.filter(r=>r.to<today), open=R.find(r=>r.to>=today && r.from<=today);
+    const lastEnd=closed.length?closed[closed.length-1].to:mechPeriodEnd();
+    const work=mechAccrued('', lastEnd), pay=(f,t)=>(db.expensesData||[]).filter(x=>x && x.category===C.name && x.name===name && (!f||(x.date||'')>=f) && (!t||(x.date||'')<=t)).reduce((a,x)=>a+(Number(x.paid)||0),0);
+    const took=(Number(n&&n.openPaid)||0)+pay('', lastEnd), rem=work-took;
+    const B='border:1px solid #cbd5e1;padding:8px 12px;text-align:center;font-size:16px;', H=B+'background:#ede9fe;font-weight:800;';
+    const v=(x,c)=>`<b style="color:${c}">${nfmt(Math.abs(x))}${x<0?' (عليه)':''}</b>`;
+    let h=`<div style="flex-basis:100%;direction:rtl"><table style="border-collapse:collapse;min-width:360px;margin-bottom:6px">
+      <tr><th style="${H}" colspan="2">🔧 مجدي عبد الغني — ميكانيكي الكسارة (لحد ${dmy(lastEnd)})</th></tr>
+      <tr><td style="${B}">إجمالي شغله</td><td style="${B}">${v(work,'#111')}</td></tr>
+      <tr><td style="${B}">أخد</td><td style="${B}">${v(took,'#be123c')}</td></tr>
+      <tr style="background:#ecfdf5"><td style="${B}font-weight:800">فاضل له</td><td style="${B}">${v(rem,'#047857')}</td></tr></table>`;
+    if(open){ const p=pay(open.from, open.to); h+=`<div style="font-size:14px;font-weight:700;color:#334155">الشهر الحالي من ${dmy(open.from)} لـ ${dmy(open.to)}: مستحقه ${nfmt(open.due)} (بيتضاف لإجمالي شغله لما الشهر يتقفل) — أخد فيه لحد دلوقتي: <span style="color:#be123c">${nfmt(p)}</span></div>`; }
+    return h+`<div style="font-size:12px;color:#64748b;margin-top:3px">الشهر 24 يوم بمستحق ${nfmt(mechMonthly())}، ولما يتقفل الباقي بيترحّل.</div></div>`; }
 /* بيتعمل مرة واحدة: البند نفسه في دليل الأكواد (من غير ما يلمس أي حركة قديمة) */
 function addMechCat1125Once(){
     if(!db || (db.imports&&db.imports.mech1125)) return;
@@ -6628,7 +6633,7 @@ function renderAccountStatement(){ try{ const ub=document.getElementById('cs-unp
     titleEl.textContent = `كشف حساب ${type==='person'?'الفرد':'العميل'}: ${name} — كسارة الديار`;
     const balCls = t.balance>0 ? 'text-rose-700' : 'text-emerald-700';
     sumEl.innerHTML = type==='person'
-        ? `<span>المصروف له: <b>${fmt(t.debit)}</b></span><span>المردود / المسوّى: <b class="text-emerald-700">${fmt(t.credit)}</b></span><span>الصافي: <b class="${balCls}">${fmt(t.balance)}</b></span>${isMechPayee(name)?mechSummaryHtml(name):''}`
+        ? (isMechPayee(name) ? mechSummaryHtml(name) : `<span>المصروف له: <b>${fmt(t.debit)}</b></span><span>المردود / المسوّى: <b class="text-emerald-700">${fmt(t.credit)}</b></span><span>الصافي: <b class="${balCls}">${fmt(t.balance)}</b></span>`)
         : `<span>إجمالي المبيعات: <b>${fmt(t.debit)}</b></span><span>المحصّل: <b class="text-emerald-700">${fmt(t.credit)}</b></span><span>${t.balance>0?'المتبقي عليه':'الرصيد'}: <b class="${balCls}">${fmt(Math.abs(t.balance))}</b></span>`;
     tbody.innerHTML = rows.length ? rows.map(r=>`<tr class="border-b border-slate-50 hover:bg-slate-50 ${r.info?'text-slate-500':''}">
             <td class="p-3 text-slate-500">${dmy(r.date)}</td><td class="p-3">${esc(r.desc)}</td>
