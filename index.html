@@ -6344,6 +6344,8 @@ function computePL(projectFilter, dateFrom, dateTo){
       try{ const sd=(db.sariSettings||{}).startDate||''; if(!dateFrom || dateFrom<=sd){ const oc=(db.accounts||[]).reduce((a,x)=>a+(Number(x.openingBalance)||0),0); const ol=(db.capitalLenders||[]).includes('عماد ناجي')?0:(Number((db.sariSettings||{}).loanOpening)||0); if(oc-ol) g[INC_OLD_LABEL]=(g[INC_OLD_LABEL]||0)+(oc-ol); } }catch(e){}
       if(settleNoDisc) g[INC_OLD_LABEL]=(g[INC_OLD_LABEL]||0)+settleNoDisc;
       Object.entries(g).forEach(([k,v])=>{ if(v) otherLines.push({ num:num(), label:'(+) '+k, value:-v }); }); }
+    /* محمد 2026-11-26: صافي الربح = حقوق الملكية في المركز المالي (الأصول − الالتزامات) — سطر «تسويات وأرصدة أول المدة» (فرق كشوف العملاء عن الحركات + مصروفات اتدفعت قبل التشغيل من غير خزنة) بقى في قائمة الدخل. على كل الفترات بس */
+    if((!projectFilter || projectFilter==='ALL') && !dateFrom){ try{ const v=plOpenSettle(dateTo||''); if(Math.round(v)) otherLines.push({ num:num(), label: v>0?'(+) تسويات وأرصدة أول المدة':'تسويات وأرصدة أول المدة', value:-v }); }catch(e){} }
     const otherTotal = otherLines.reduce((s,l)=>s+l.value,0);
 
     // ز. الربح قبل الضريبة
@@ -7174,6 +7176,14 @@ function openClientStmtView(id){
 
 /* ================= الميزانية العمومية (قائمة المركز المالي) =================
    مبنية من الحركات المسجلة: الأصول − الخصوم = حقوق الملكية (تمويل المستثمرين + رأس المال والأرباح المحتجزة). */
+function plOpenSettle(D){
+    const le = d => !D || !d || d<=D;
+    let rec=0; (db.clients||[]).forEach(c=>{ let b=0; try{ getClientAccountRowsAll(c.name).forEach(r=>{ if(!r.openAdj && le(r.date)) b+=(r.debit||0)-(r.credit||0); }); }catch(e){} if(b>0) rec+=b; });
+    let recSheet=0; try{ visClients().forEach(c=>{ const b=Math.round(clientBalAt(c.name, D||todayISO())*100)/100; if(b>0) recSheet+=b; }); }catch(e){ recSheet=rec; }
+    const recDiff=recSheet-rec;
+    const nc=(db.expensesData||[]).filter(x=>x.noCash && le(x.date) && x.category!=='إيراد').reduce((a,x)=>a+(Number(x.paid)||0),0) + (db.names||[]).filter(x=>x.openDate && le(x.openDate) && x.openPaidCash!=null).reduce((a,x)=>a+(Number(x.openPaid)||0)-(Number(x.openPaidCash)||0),0);
+    return (Math.round(recDiff)?recDiff:0)+nc;
+}
 function balanceSheetData(D){
     const le = d => !D || !d || d<=D;
     const A=[], L=[], E=[];
@@ -7230,7 +7240,7 @@ function balanceSheetData(D){
     E.push({name:'الأرباح المحتجزة', v:retained});
     // محمد: «مفيش راس مال» — السطر ده مقفول على صفر، والفروق لو فيه بتبان من عدم اتزان الميزانية
     /* سطر واحد بدل «تسوية أرباح وخسائر فترة سابقة» + «أرصدة أول المدة (مصروفات قبل التشغيل)» — محمد 2026-11-25 (عرض بس، نفس المجموع) */
-    { const nc=(db.expensesData||[]).filter(x=>x.noCash && le(x.date) && x.category!=='إيراد').reduce((a,x)=>a+(Number(x.paid)||0),0) + (db.names||[]).filter(x=>x.openDate && le(x.openDate) && x.openPaidCash!=null).reduce((a,x)=>a+(Number(x.openPaid)||0)-(Number(x.openPaidCash)||0),0); const v=(Math.round(recDiff)?recDiff:0)+nc; if(Math.round(v)) E.push({name:'تسويات وأرصدة أول المدة', v}); }
+    /* محمد 2026-11-26: «صافي الربح يساوي حقوق الملكية» — سطر «تسويات وأرصدة أول المدة» اتنقل لقائمة الدخل (plOpenSettle) فبقى جوه صافي الربح، ومابقاش سطر لوحده هنا */
     E.push({name:'رأس المال وأرصدة أول المدة', v:0, note:true});
     const tE=E.filter(x=>!x.part).reduce((a,x)=>a+x.v,0);
     return {A,L,E,tA,tL:tL2,tE,recOld:rec,recList};
