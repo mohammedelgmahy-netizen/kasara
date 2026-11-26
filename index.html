@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1247</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1248</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -7261,7 +7261,7 @@ function balanceSheetData(D){
     const recDiff=recSheet-rec;
     if(Math.round(recSheet)) A.push({g:'العملاء', name:'مستحقات على العملاء', v:recSheet});
     // المخزون (بمتوسط سعر الشراء)
-    const _cnt=stockCountAt(D||''); if(_cnt){ _cnt.items.forEach(it=>A.push({g:'المخزون', name:'مخزون '+it.item+' ('+(it.moved?'الرصيد بعد حركة الشراء والصرف من جرد '+_cnt.date:'جرد '+_cnt.date)+': '+Number(it.qty||0).toLocaleString('ar-EG')+' '+(it.unit||'')+')', v:Number(it.value)||0})); } else {
+    const _cnt=stockCountAt(D||''); if(_cnt){ /* محمد 2026-11-26: صنف رصيده صفر ما يظهرش في المركز المالي — عرض بس */ _cnt.items.filter(it=>Math.round(Number(it.qty)||0) || Math.round(Number(it.value)||0)).forEach(it=>A.push({g:'المخزون', name:'مخزون '+it.item+' ('+(it.moved?'الرصيد بعد حركة الشراء والصرف من جرد '+_cnt.date:'جرد '+_cnt.date)+': '+Number(it.qty||0).toLocaleString('ar-EG')+' '+(it.unit||'')+')', v:Number(it.value)||0})); } else {
     let inv=0; (db.supplies||[]).forEach(x=>{ try{ const q=itemStockBalance(x.name).balance; if(q<=0) return; const P=(db.procurements||[]).filter(p=>p.item===x.name); const qq=P.reduce((a,p)=>a+(Number(p.qty)||0),0); const avg=qq?P.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0)/qq:0; inv+=q*avg; }catch(e){} });
     if(Math.round(inv)) A.push({g:'المخزون', name:'مخزون الأصناف (سولار وغيره)', v:inv}); }
     // مستحقات على أصحاب المعدات
