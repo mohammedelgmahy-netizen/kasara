@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1253</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1254</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -4738,6 +4738,9 @@ function masterBal(cat, it){
         if(cat==='supplies'){ const b=itemStockBalance(it.name).balance; return b?chip(nfmt(b)+' '+(it.unit||''),'bg-slate-100 text-slate-700'):''; }
         if((cat==='names'||cat==='persons') && Number(it.perMeter)>0){ let b=null; try{ const D=emcData(); if(D && D.n.name===it.name) b=D.bal; }catch(e){} /* محمد 2026-11-24: كشف العمولة تحت البند */
             return `<button type="button" onclick="event.stopPropagation(); switchTab('commission')" class="text-xs font-extrabold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 shrink-0" title="كشف العمولة من البداية">📄 كشف العمولة${b==null?'':' — '+(b<0?'عليه ':'ليه ')+mfmt(Math.abs(b))}</button>`; }
+        /* محمد 2026-11-26: رصيد مجدي في دليل الأكواد بيتغير حسب شغله والمدفوع له (نفس كشفه) — عرض بس */
+        if(((cat==='names'||cat==='persons') && isMechPayee(it.name)) || (cat==='expenses' && mechCat() && it.name===mechCat().name)){ const b=mechBalNow();
+            return `<button type="button" onclick="event.stopPropagation(); try{openMechStmt()}catch(e){}" class="text-xs font-extrabold px-2 py-0.5 rounded-full ${b>=0?'bg-emerald-50 text-emerald-700 border border-emerald-300':'bg-rose-50 text-rose-700 border border-rose-300'} shrink-0" title="كشف مجدي">🔧 ${b>=0?'فاضل له ':'عليه '}${mfmt(Math.abs(b))}</button>`; }
         if((cat==='names'||cat==='persons') && Number(it.salary)>0){ return chip('راتب '+mfmt(it.salary),'bg-indigo-50 text-indigo-700'); }
     }catch(e){}
     return '';
@@ -5385,6 +5388,10 @@ function mechAccrued(from, to){ const C=mechCat(), n=mechPerson(); if(!C) return
     mechMonthRows(MECH_PERSON).forEach(r=>{ if(r.to<=T && (!from||r.to>=from) && r.to<todayISO()) v+=r.due; }); return v; }
 function mechLiability(D){ const C=mechCat(), n=mechPerson(); if(!C) return 0; const od=C.openDate||''; if(od && D && od>D) return 0;
     const due=mechAccrued('', D) - mechOpenPaid(); const paid=mechPaidUpTo(D); return due-paid; }
+/* رصيد مجدي دلوقتي = الفاضل لحد 22/11 + مستحق كل شهر اتقفل بعدها − كل اللي أخده بعد 22/11 (نفس آخر سطر في الكشف الشهري) — عرض بس */
+function mechBalNow(){ const t=todayISO(), pe=mechPeriodEnd(); let b=MECH_REMAIN;
+    mechMonthRows(MECH_PERSON).forEach(r=>{ if(r.from>pe && r.to<t) b+=r.due; });
+    return b - mechPaidBetween(MECH_PERSON, addDays(pe,1), '9999-12-31'); }
 /* كل شهر بيتقفل والباقي (له أو عليه) بيترحّل للشهر اللي بعده (محمد 2026-11-25 «كل شهر بقفل معاه ونرحّل») — عرض بس */
 function mechSummaryHtml(name){ const C=mechCat()||{}, n=mechPerson(), today=todayISO();
     /* محمد 2026-11-26 «مش قولتلك إجمالي شغله 1,200,000»: الكشف بيبدأ بالإجمالي لحد آخر شهر اتقفل، والشهر الحالي لوحده تحت — عرض بس */
