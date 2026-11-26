@@ -582,7 +582,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1245</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1246</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -5355,9 +5355,9 @@ function mechMonthRows(name){ const c=mechCat(); if(!c) return [];
 /* اللي أخده قبل البرنامج بيتحسب كل مرة: 1,200,000 − 222,690 − اللي أخده في البرنامج لحد 22/11 (محمد 2026-11-26)، عشان أي تعديل في حركة قبل 22/11 ما يغيرش «فاضل له» ولا «إجمالي شغله» */
 function mechPaidUpTo(d){ const C=mechCat(); if(!C) return 0; return (db.expensesData||[]).filter(x=>x && x.category===C.name && x.name===MECH_PERSON && (!d||(x.date||'')<=d)).reduce((a,x)=>a+(Number(x.paid)||0),0); }
 /* محمد 2026-11-26: الأرقام ثابتة في الكود (مش مستنية تعديل البيانات على الجهاز): شغله لحد 22/11 = 1,200,000، فاضل له 222,690، المدفوع من المعلق قبل البرنامج 792,750 */
-const MECH_WORK=1200000, MECH_REMAIN=222690, MECH_CASH_OLD=792750;
+const MECH_WORK=1350000, MECH_REMAIN=372690, MECH_CASH_OLD=792750; /* محمد 2026-11-26: «أغير شغله لـ 1,350,000» (9 شهور × 150,000) — أخد 977,310 زي ما هو */
 function mechOpenPaid(){ return MECH_WORK - MECH_REMAIN - mechPaidUpTo(mechPeriodEnd()); }
-function mechOpenBal(){ const C=mechCat(); return (C && C.openBal!=null) ? (Number(C.openBal)||0) : 72690; }
+function mechOpenBal(){ const C=mechCat(), fd=(C&&C.firstDue&&Number(C.firstDue.due))||mechMonthly(); return MECH_REMAIN - fd; } /* الباقي له قبل شهر 11 = الفاضل − مستحق شهر 11 */
 function mechAccrualOn(){ const C=mechCat(); return !!(C && db.imports && db.imports.mechmove1125); }
 function mechPerson(){ return (db.names||[]).find(x=>/^مجدي [عغ]بد الغني$/.test(String(x.name||'').trim())) || null; }
 function mechAccrued(from, to){ const C=mechCat(), n=mechPerson(); if(!C) return 0; const T=[to||'9999-12-31', todayISO()].sort()[0]; let v=0;
