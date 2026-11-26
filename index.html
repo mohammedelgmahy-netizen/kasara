@@ -4004,6 +4004,8 @@ window.onload = async function(){
     try{ await addWages1126Once(); }catch(e){ console.warn('wages1126', e); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.wages1126){ clearInterval(t); return; } try{ await addWages1126Once(); }catch(e){} }, 15000); }
     try{ await addQuarry1126Once(); }catch(e){ console.warn('quarry1126', e); }
+    try{ await delOldInc1126Once(); }catch(e){ console.warn('oldinc1126', e); }
+    { const t=setInterval(async()=>{ if(db && db.imports && db.imports.oldinc1126){ clearInterval(t); return; } try{ await delOldInc1126Once(); }catch(e){} }, 15000); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.quarry1126){ clearInterval(t); return; } try{ await addQuarry1126Once(); }catch(e){} }, 15000); }
     try{ await addGhafra1125bOnce(); }catch(e){ console.warn('ghafra1125b', e); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.ghafra1125b){ clearInterval(t); return; } try{ await addGhafra1125bOnce(); }catch(e){} }, 15000); }
@@ -4164,6 +4166,23 @@ async function addWages1126Once(){
         db.expensesData.push(E); logAudit('create','مصروف (أجور بأمر محمد)', `${E.desc}: ${E.total}`, null, Object.assign({},E));
     }
     if(!db.imports) db.imports={}; db.imports.wages1126=true;
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    scheduleSave(); try{ renderAll(); }catch(e){}
+}
+/* محمد 2026-11-26: إيراد «سلف الحاج ناجي» الجديد 3,283,085 (اتسجل من الشاشة بعد 1258) بيحل محل الإيراد القديم 3,442,029 يوم 11/11 «ايرادات تحصيل وسولال اول الفترة».
+   بيمسح القديم بس (بنسخة احتياطية قبلها) ولو الجديد موجود مرة واحدة بالظبط. مصروف الجوية والوطنية 3,529,550 والعملاء والموردين وأصحاب المعدات ما بيتلمسوش */
+async function delOldInc1126Once(){
+    if(!db || (db.imports&&db.imports.oldinc1126)) return;
+    if(!Array.isArray(db.incomes) || !(db.dailyLog||[]).length) return;
+    if(!SUPABASE_URL || !__cloudOK) return;
+    const old=db.incomes.filter(x=>x && (x.date||'')==='2026-11-11' && Math.round(Number(x.amount))===3442029);
+    const nw=db.incomes.filter(x=>x && plIncNew(x) && Math.round(Number(x.amount))===3283085);
+    if(old.length!==1 || nw.length!==1){ console.warn('oldinc1126: مش هيتغير حاجة — القديم', old.length, 'الجديد', nw.length); return; }
+    const res=await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=key`, {method:'POST', headers:sbHeaders({'Prefer':'resolution=ignore-duplicates,return=minimal'}), body: JSON.stringify({key:'kasara-manual::'+STORAGE_KEY+'::2026-11-26-before-del-old-income', value:JSON.stringify(db), updated_at:new Date().toISOString()})});
+    if(!res.ok){ console.warn('oldinc1126: النسخة الاحتياطية فشلت', res.status); return; }
+    const o=old[0]; db.incomes=db.incomes.filter(x=>x!==o); try{ tombstone('incomes', o.id); }catch(e){}
+    logAudit('delete','إيراد (بأمر محمد: بدله سلف الحاج ناجي 3,283,085)', `${o.notes||''}: ${o.amount}`, Object.assign({},o), null);
+    if(!db.imports) db.imports={}; db.imports.oldinc1126=true;
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
     scheduleSave(); try{ renderAll(); }catch(e){}
 }
