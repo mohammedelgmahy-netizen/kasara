@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1274</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1275</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -11333,7 +11333,7 @@ function quickSearch(){
     const R=[]; const has=v=>normName(String(v||'')).includes(q);
     visClients().filter(c=>has(c.name)).slice(0,6).forEach(c=>R.push(['عميل',c.name,`qsGo('client',${JSON.stringify(c.name)})`]));
     (db.contractors||[]).filter(c=>has(c.name)).slice(0,4).forEach(c=>R.push(['مقاول',c.name,`qsGo('ctr',${JSON.stringify(c.name)})`]));
-    (db.suppliers||[]).filter(c=>has(c.name)).slice(0,4).forEach(c=>R.push(['مورد',c.name,`switchTab('purchases');setTimeout(()=>{try{document.getElementById('ss-supplier').value=${JSON.stringify(c.name)};renderSupplierStmt();document.getElementById('supplier-stmt-card').scrollIntoView({behavior:'smooth'})}catch(e){}},50)`]));
+    (db.suppliers||[]).filter(c=>has(c.name)).slice(0,4).forEach(c=>R.push(['مورد',c.name,`switchTab('purchases');try{switchSub('purchases',(typeof dfxDesk==='function'&&dfxDesk())?'stmt':'log')}catch(e){}setTimeout(()=>{try{document.getElementById('ss-supplier').value=${JSON.stringify(c.name)};renderSupplierStmt();document.getElementById('supplier-stmt-card').scrollIntoView({behavior:'smooth'})}catch(e){}},50)`]));
     (db.names||[]).filter(c=>has(c.name)).slice(0,4).forEach(c=>R.push(['فرد',c.name,`switchTab('ledger')`]));
     (db.dailyLog||[]).filter(r=>String(r.bon||'')===q.replace(/[^\d]/g,'')&&q.replace(/[^\d]/g,'') || has(r.tractor) || has(r.trailer)).slice(-8).reverse().forEach(r=>R.push(['بون',`${r.bon||'-'} — ${r.client} — ${dmy(r.date)}${r.tractor?' — '+r.tractor:''}`,`qsGo('bon',${JSON.stringify(r.date)})`]));
     box.innerHTML = `<div style="background:#fff;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.25);overflow:hidden;max-height:340px;overflow-y:auto">${R.length?R.map(([t,l,on])=>`<button type="button" onclick="${esc(on)}" style="display:flex;gap:8px;align-items:center;width:100%;text-align:right;padding:10px 12px;border-bottom:1px solid #f1f5f9;color:#0f172a"><span style="font-size:11px;font-weight:800;background:#e0f2fe;color:#0369a1;border-radius:999px;padding:1px 8px">${t}</span><span style="font-weight:700">${esc(l)}</span></button>`).join(''):'<div style="padding:10px 12px;color:#94a3b8">—</div>'}</div>`;
@@ -15068,6 +15068,23 @@ function dfxSticky(){ try{ document.querySelectorAll('.dfx-stk').forEach(x=>x.cl
   let q=0; const later=()=>{ clearTimeout(q); q=setTimeout(()=>{ fitPage(); if(activeTab==='ledger') acctFitSheet(); },90); };
   ['change','input','click'].forEach(ev=>document.addEventListener(ev,e=>{ if(e.target && e.target.closest && e.target.closest('main')) later(); },true));
   const _d=renderDailyLog; renderDailyLog=function(){ const r=_d.apply(this,arguments); later(); return r; }; }
+</script>
+<script>
+/* محمد 2026-11-27: «كشف الحساب ده حطه جنب الزراير اللي فوق» + «سجل حركات التحصيل خليه جنب تحصيلات العملاء فوق»:
+   على اللابتوب «كشف حساب مورد» و«سجل التحصيلات» بقوا زرارين في شريط الزراير اللي فوق، كل واحد بيفتح صفحته لوحده.
+   الموبايل زي ما هو (الكارت بيرجع مكانه). عرض بس. */
+const DFX_SPLIT=[{tab:'purchases',key:'stmt',from:'log',label:'📒 كشف حساب مورد',card:'supplier-stmt-card'},{tab:'dailylog',key:'colllog',from:'coll',label:'📒 سجل التحصيلات',card:'coll-log-card'}];
+function dfxSplit(){ try{ const desk=dfxDesk();
+    DFX_SPLIT.forEach(o=>{ const T=document.getElementById('tab-'+o.tab), c=document.getElementById(o.card), ref=document.getElementById('subnav-'+o.tab+'-'+o.from); if(!T||!c||!ref) return;
+        let sp=document.getElementById('sub-'+o.tab+'-'+o.key); if(!sp){ sp=document.createElement('div'); sp.id='sub-'+o.tab+'-'+o.key; sp.className='subpage'; T.appendChild(sp); }
+        let b=document.getElementById('subnav-'+o.tab+'-'+o.key); if(!b){ b=document.createElement('button'); b.type='button'; b.id='subnav-'+o.tab+'-'+o.key; b.className='subnav-btn'; b.textContent=o.label; b.onclick=()=>switchSub(o.tab,o.key); ref.after(b); }
+        if(!c.__home){ c.__home=document.createComment('dfx-home'); c.parentNode.insertBefore(c.__home,c); }
+        if(desk){ if(c.parentNode!==sp) sp.appendChild(c); b.style.display=''; }
+        else { if(c.parentNode===sp) c.__home.parentNode.insertBefore(c,c.__home); b.style.display='none'; if(sp.classList.contains('active')) switchSub(o.tab,o.from); }
+    }); }catch(e){} }
+{ const _s=switchSub; switchSub=function(tab,which){ const o=DFX_SPLIT.find(x=>x.tab===tab && x.key===which); if(o && !dfxDesk()) which=o.from; return _s.call(this,tab,which); };
+  window.addEventListener('load',()=>{ dfxSplit(); setTimeout(()=>{ try{ fitPage(); }catch(e){} },60); });
+  window.addEventListener('resize',()=>setTimeout(dfxSplit,30)); }
 </script>
 </body>
 </html>
