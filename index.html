@@ -6898,6 +6898,46 @@ function recoExcel(){ const D=document.getElementById('reco-date')?.value||today
     R.G.forEach(g=>{ aoa.push([],[g.title+(g.ok?' — متساوي':' — فيه فروق')],['الشاشة',g.unitP,g.unitN,'فرق '+g.unitP,'فرق '+g.unitN]); g.places.forEach(p=>aoa.push([p.lbl,p.p,p.n,p.ref?'مرجع':p.dp,p.ref?'':p.dn]));
         if(g.L.length){ aoa.push(['الاسم',...g.cols.map(c=>c[1]),'السبب']); g.L.forEach(x=>aoa.push([x.n,...g.cols.map(c=>x[c[0]]),x.why.join(' | ')])); } if(g.note) aoa.push([g.note]); });
     xlsxSave(aoa,'مطابقة الأرصدة',`مطابقة-الأرصدة-${D}.xlsx`); }
+/* محمد 2026-11-26 «تحاول تشوف لي حل لميزان المراجعة»: «فحص الفرق» — عرض بس. بيحسب فرق الميزان يوم بيوم ويحدد اليوم اللي الفرق اتغير فيه،
+   وإيه المجموعات اللي اتحركت في اليوم ده، وكل الحركات المتسجلة بتاريخ اليوم ده مترتبة بالأقرب لمبلغ التغيير. ما بيغيرش أي حاجة */
+function tbdDiffAt(D){ const T=tbData(D); const real=T.rows.filter(r=>!/\*$/.test(r.name)); const g={}; real.forEach(r=>{ g[r.g]=(g[r.g]||0)+r.dr-r.cr; }); return {d:real.reduce((a,r)=>a+r.dr-r.cr,0), g}; }
+function tbdAmt(x){ const n=k=>Number(x[k])||0; if(x.qty!=null && x.price!=null) return n('qty')*n('price'); for(const k of ['amount','paid','total','value','debit','credit','net','price']) if(n(k)) return n(k); return 0; }
+function tbdRecs(pred){ const out=[]; Object.keys(db).forEach(k=>{ const A=db[k]; if(!Array.isArray(A) || k==='auditLog') return; A.forEach(x=>{ if(!x || typeof x!=='object') return; const v=tbdAmt(x); if(!Math.round(v) || !pred(x)) return;
+    const lbl=['category','name','client','supplier','contractor','item','from','to','account','type','desc','notes'].map(f=>x[f]).filter(v=>v!=null && v!=='' && typeof v!=='object').map(String).join(' — ');
+    out.push({k, date:x.date||'', v, lbl:lbl.slice(0,140), flags:[x.noCash?'من غير خزنة':'', x.openAdj?'تعديل رصيد':''].filter(Boolean).join('، ')}); }); }); return out; }
+function tbdData(){
+    const today=todayISO(), sd=((db.sariSettings||{}).startDate)||'2026-04-14', base=addDays(sd,-1), cache={};
+    const at=d=>cache[d]||(cache[d]=tbdDiffAt(d));
+    const pts=[base]; let m=sd.slice(0,7); while(m<today.slice(0,7)){ const nx=new Date(m+'-01T00:00:00Z'); nx.setUTCMonth(nx.getUTCMonth()+1); m=nx.toISOString().slice(0,7); pts.push(addDays(m+'-01',-1)); } pts.push(today);
+    const steps=[]; const find=(a,b,depth)=>{ const da=at(a).d, db_=at(b).d; if(Math.abs(da-db_)<5 || depth>12) return; const days=Math.round((Date.parse(b)-Date.parse(a))/864e5); if(days<=1){ steps.push({from:a, day:b, change:db_-da}); return; } const mid=addDays(a, Math.floor(days/2)); find(a,mid,depth+1); find(mid,b,depth+1); };
+    for(let i=1;i<pts.length;i++) find(pts[i-1],pts[i],0);
+    steps.forEach(s=>{ const A=at(s.from).g, B=at(s.day).g; s.groups=[...new Set([...Object.keys(A),...Object.keys(B)])].map(g=>({g, v:(B[g]||0)-(A[g]||0)})).filter(x=>Math.abs(x.v)>=1).sort((a,b)=>Math.abs(b.v)-Math.abs(a.v));
+        s.recs=tbdRecs(x=>x.date===s.day).sort((a,b)=>Math.abs(Math.abs(a.v)-Math.abs(s.change))-Math.abs(Math.abs(b.v)-Math.abs(s.change))).slice(0,25); });
+    const total=at(today).d, baseD=at(base).d;
+    const near=tbdRecs(()=>true).filter(r=>Math.abs(Math.abs(r.v)-Math.abs(total))<Math.max(1000,Math.abs(total)*0.01)).slice(0,20);
+    return {today, base, baseD, total, steps, near, undated: Math.abs(baseD)>=5 ? tbdRecs(x=>!x.date).slice(0,40) : []};
+}
+function tbdHtml(){ let R; try{ R=tbdData(); }catch(e){ return '<div style="color:#b91c1c">تعذر الفحص: '+esc(e.message)+'</div>'; }
+    const f=v=>(v<0?'-':'')+nfmt(Math.round(Math.abs(v))), B='border:1px solid #cbd5e1;padding:6px 8px;font-size:14px;text-align:center', H=B+';background:#1e293b;color:#fff;font-weight:800';
+    const side=v=>v>0?'المدين أكبر':'الدائن أكبر';
+    const recT=L=>L.length?`<table style="border-collapse:collapse;width:100%;margin-top:4px"><tr><td style="${H}">المبلغ</td><td style="${H}">التاريخ</td><td style="${H}">المكان في البرنامج</td><td style="${H}">البيان</td></tr>${L.map(r=>`<tr><td style="${B};font-weight:800" dir="ltr">${f(r.v)}</td><td style="${B}">${r.date?dmy(r.date):'من غير تاريخ'}</td><td style="${B}">${esc(r.k)}</td><td style="${B};text-align:right">${esc(r.lbl)}${r.flags?' <b style="color:#b45309">('+esc(r.flags)+')</b>':''}</td></tr>`).join('')}</table>`:'<div style="color:#64748b">مفيش حركات بالتاريخ ده</div>';
+    let h=`<div style="font-size:18px;font-weight:800;margin-bottom:6px">فحص فرق ميزان المراجعة — النهارده ${dmy(R.today)}</div>
+      <div style="font-size:16px;font-weight:800;padding:8px;border-radius:8px;background:${Math.abs(R.total)<5?'#dcfce7':'#ffe4e6'}">${Math.abs(R.total)<5?'✅ الميزان متزن':'⚠️ الفرق دلوقتي '+f(Math.abs(R.total))+' ('+side(R.total)+')'}</div>
+      <div style="margin:6px 0;font-size:14px">قبل أول يوم شغل (${dmy(R.base)}): الفرق ${f(R.baseD)} — ${Math.abs(R.baseD)<5?'مفيش فرق في الأرصدة الافتتاحية':'<b>الفرق ده موجود من الأرصدة الافتتاحية / الحركات اللي من غير تاريخ</b>'}</div>`;
+    if(R.steps.length){ h+=`<div style="font-size:16px;font-weight:800;margin-top:10px">الأيام اللي الفرق اتغير فيها:</div>`;
+      h+=R.steps.map(s=>`<div style="border:2px solid #fda4af;border-radius:10px;padding:8px;margin-top:8px"><div style="font-size:16px;font-weight:800">يوم ${dmy(s.day)}: الفرق اتغير ${f(s.change)} (${side(s.change)})</div>
+        <div style="font-size:14px;margin:4px 0">المجموعات اللي اتحركت في اليوم ده (مدين − دائن): ${s.groups.map(g=>esc(g.g)+' <b dir="ltr">'+f(g.v)+'</b>').join('، ')||'—'}</div>
+        <div style="font-size:14px;font-weight:700">الحركات المتسجلة يوم ${dmy(s.day)} (الأقرب لمبلغ التغيير الأول):</div>${recT(s.recs)}</div>`).join(''); }
+    else if(Math.abs(R.total)>=5) h+=`<div style="margin-top:8px;font-size:14px">الفرق ما اتغيرش من يوم ليوم — يعني جاي من حاجة بتتحسب بتاريخ النهارده أو من غير تاريخ.</div>`;
+    if(R.undated.length) h+=`<div style="font-size:16px;font-weight:800;margin-top:10px">حركات من غير تاريخ:</div>${recT(R.undated)}`;
+    if(R.near.length) h+=`<div style="font-size:16px;font-weight:800;margin-top:10px">حركات مبلغها قريب من الفرق كله (${f(Math.abs(R.total))}):</div>${recT(R.near)}`;
+    return h; }
+function tbdOpen(){ document.getElementById('tbd-modal')?.remove(); const m=document.createElement('div'); m.id='tbd-modal';
+    m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:12px';
+    m.onclick=e=>{ if(e.target===m) m.remove(); }; const S='color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:14px';
+    m.innerHTML=`<div dir="rtl" style="background:#fff;border-radius:14px;max-width:1150px;width:100%;padding:14px"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"><button onclick="shareCard('tbd-body','فحص فرق الميزان')" style="background:#16a34a;${S}">واتساب</button><button onclick="printHtml(document.getElementById('tbd-body').innerHTML)" style="background:#1e293b;${S}">🖨️ طباعة</button><button onclick="document.getElementById('tbd-modal').remove()" style="background:#e2e8f0;padding:6px 12px;border-radius:8px;font-weight:700;font-size:14px">✕</button></div>
+    <div id="tbd-body" style="overflow-x:auto"><div style="padding:20px;font-weight:800">⏳ بيحسب الميزان يوم بيوم...</div></div></div>`; document.body.appendChild(m);
+    setTimeout(()=>{ const b=document.getElementById('tbd-body'); if(b) b.innerHTML=tbdHtml(); }, 50); }
 function recoOpen(){ document.getElementById('reco-modal')?.remove(); const m=document.createElement('div'); m.id='reco-modal';
     m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:12px';
     m.onclick=e=>{ if(e.target===m) m.remove(); };
@@ -7350,6 +7390,11 @@ function exportBalanceSheetExcel(){
     xlsxSave(aoa, 'الميزانية', `الميزانية-العمومية-${D}.xlsx`);
 }
 /* ================= ميزان المراجعة (قراءة بس — من نفس أرقام المركز المالي وقائمة الدخل) ================= */
+/* محمد 2026-11-26 «انا عاوز الميزان يكون متزن»: لو فيه فرق، سطر ظاهر «فرق تحت المراجعة» في الجهة الأقل — في ميزان المراجعة بس (شاشة/طباعة/إكسيل).
+   ما بيدخلش قائمة الدخل ولا المركز المالي ولا أي رصيد، وبيختفي لوحده لما الفرق يبقى صفر. tbdOpen() بيحدد يوم وحركة الفرق (من غير زرار) */
+function tbDataBal(D){ const T=tbData(D); const real=T.rows.filter(r=>!/\*$/.test(r.name)); const d=real.reduce((a,r)=>a+r.dr-r.cr,0);
+    if(Math.abs(d)>=5){ T.rows.push({g:'فرق تحت المراجعة', name:'فرق تحت المراجعة', dr:d<0?-d:0, cr:d>0?d:0}); T.tDr=T.rows.reduce((a,r)=>a+r.dr,0); T.tCr=T.rows.reduce((a,r)=>a+r.cr,0); T.checkDiff=d; }
+    return T; }
 function tbData(D){
     const le = d => !D || !d || d<=D;
     const S = balanceSheetData(D);
@@ -7404,7 +7449,7 @@ function tbRender(){
     const el=document.getElementById('tb-content'); if(!el) return;
     const dI=document.getElementById('tb-date'); if(dI && !dI.value) dI.value=todayISO();
     const D=dI?dI.value:'';
-    let T; try{ T = tbData(D); }catch(err){ console.error(err); el.innerHTML = '<div class="text-rose-700">تعذر حساب الميزان: '+esc(err.message)+'</div>'; return; }
+    let T; try{ T = tbDataBal(D); }catch(err){ console.error(err); el.innerHTML = '<div class="text-rose-700">تعذر حساب الميزان: '+esc(err.message)+'</div>'; return; }
     // من غير سطر «رأس المال وأرصدة أول المدة» اللي البرنامج بيحسبه فرق — عشان الميزان يبيّن الفرق الحقيقي
     const real = T.rows.filter(r=>!/\*$/.test(r.name));
     const n = v => v ? nfmt(Math.round(v)) : '';
@@ -7539,7 +7584,7 @@ function cstvFit(){ try{ const m=document.getElementById('cstv-modal'), b=docume
   const _x=switchSub; switchSub=function(t){ const r=_x.apply(this,arguments); if(t==='ledger'){ window.__acctFitKey=''; setTimeout(acctFitSheet,60); } return r; };
   window.addEventListener('resize',()=>setTimeout(()=>{ acctFitSheet(); cstvFit(); },80)); }
 function tbExportExcel(){
-    const D=document.getElementById('tb-date')?.value||todayISO(), T=tbData(D), r=v=>Math.round(v)||'';
+    const D=document.getElementById('tb-date')?.value||todayISO(), T=tbDataBal(D), r=v=>Math.round(v)||'';
     const aoa=[['ميزان المراجعة — كسارة الديار'],['في تاريخ', dmy(D)],[],['المجموعة','الحساب','مدين','دائن']];
     T.rows.forEach(x=>aoa.push([x.g, x.name, r(x.dr), r(x.cr)]));
     aoa.push([],['','الإجمالي', Math.round(T.tDr), Math.round(T.tCr)]);
