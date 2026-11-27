@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1282</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1283</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -809,8 +809,9 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
                         <div id="dl-price-box" style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">سعر المتر</label><input id="dl-price" type="number" step="any" min="0" oninput="this.dataset.touched=1;dlPriceHint()" class="font-bold w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"><div id="dl-price-hint" style="display:none"></div></div>
+                        <div id="dl-disc-box" style="display:none"><label class="block text-xs font-bold text-slate-600 mb-1">خصم نقدي (ج.م)</label><input id="dl-disc" type="number" step="any" min="0" class="font-bold w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div class="hidden"><label class="block text-xs font-bold text-slate-600 mb-1">المشروع</label><select id="dl-project" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></select></div>
-                        <div class="col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">ملاحظات</label><input id="dl-notes" type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
+                        <div id="dl-notes-box" class="col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">ملاحظات</label><input id="dl-notes" type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">طريقة الدفع</label><select id="dl-pay" onchange="dlPayToggle()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold"><option value="credit">آجل</option><option value="cash">نقدي (درج المكتب)</option></select></div>
                         <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white font-bold p-2.5 rounded-lg text-sm">حفظ البون</button>
                         <button type="button" onclick="cancelBonFromForm()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold p-2.5 rounded-lg text-sm">🚫 البون ده ملغي</button>
@@ -10952,10 +10953,11 @@ function postSaleForLog(entry){
     if(!db.nextId.exp) db.nextId.exp = db.expensesData.reduce((m,x)=>Math.max(m,x.id||0),0)+1;
     const groupId = newId();
     const invoiceNumber = 'INV-' + String(db.nextId.invoiceNo++).padStart(5,'0');
-    const grand = Math.round(lines.reduce((s,l)=>s+l.qty*l.price,0));
+    const disc = entry.paidCash ? (Number(entry.disc)||0) : 0; /* v1283: خصم النقدي بيتطرح من آخر سطر في الفاتورة ومن الإيراد اللي داخل الدرج */
+    const grand = Math.round(lines.reduce((s,l)=>s+l.qty*l.price,0) - disc);
     lines.forEach((l,i)=>db.sales.push({
         id: groupId+i, groupId, invoiceNumber, item:l.item, client:entry.client, qty:l.qty, unit:'', price:l.price,
-        total:Math.round(l.qty*l.price), isService:true, project:entry.project, place:entry.place||entry.project, payMethod:entry.paidCash?'cash':'credit', date:entry.date, notes:entry.notes||'',
+        total:Math.round(l.qty*l.price - (i===lines.length-1 ? disc : 0)), ...(disc && i===lines.length-1 ? {disc} : {}), isService:true, project:entry.project, place:entry.place||entry.project, payMethod:entry.paidCash?'cash':'credit', date:entry.date, notes:entry.notes||'',
         bon:entry.bon||'', dailyLogId:entry.id
     }));
     const revAct = (db.activities||[]).find(a=>a.categories && a.categories.includes('إيراد'));
@@ -10964,7 +10966,7 @@ function postSaleForLog(entry){
         name: entry.client, project: entry.project, place: entry.place||entry.project, payMethod: entry.paidCash?'cash':'credit', total: grand,
         paid: entry.paidCash ? grand : 0, remaining: entry.paidCash ? 0 : grand, executedValue: grand,
         account: entry.paidCash ? DRAWER_ACC : undefined,
-        date: entry.date, notes: `فاتورة ${invoiceNumber} — بون ${entry.bon||'-'}`
+        date: entry.date, notes: `فاتورة ${invoiceNumber} — بون ${entry.paidCash?'نقدي ':''}${entry.bon||'-'}${disc?` — خصم ${disc}`:''}`
     });
     return groupId;
 }
@@ -11101,8 +11103,12 @@ function addDailyLog(e){
     const EB = (__editSnap && window.__editBon) ? window.__editBon : null;
     if(!EB && window.__manualBon){
         const mn=bonNum({bon:g('dl-bon').value}); if(!isFinite(mn)){ alert('اكتب رقم البون'); g('dl-bon').focus(); return; }
+        if(dlIsCash()){ if(cashBonUsed(mn)){ alert('البون النقدي رقم '+mn+' متسجل قبل كده'); g('dl-bon').focus(); return; } } else
         if(db.dailyLog.some(r=>bonNum(r)===mn)){ bonShiftAsk(mn); return; } /* محمد 2026-11-24: «بون فات» برقم متسجل = يتسجل برقمه ويزحلق اللي بعده (زي التسجيل العادي) */
-        if(cancelledList().some(x=>x.n===mn)){ alert('البون رقم '+mn+' متسجل ملغي — شيله من الملغي الأول'); return; }
+        if(!dlIsCash() && cancelledList().some(x=>x.n===mn)){ alert('البون رقم '+mn+' متسجل ملغي — شيله من الملغي الأول'); return; }
+    } else if(!EB && dlIsCash()){ if(!g('dl-bon').value.trim()) g('dl-bon').value=nextCashBonNo();
+        const mn=bonNum({bon:g('dl-bon').value}); if(!isFinite(mn)){ alert('اكتب رقم البون'); g('dl-bon').focus(); return; }
+        if(cashBonUsed(mn)){ alert('البون النقدي رقم '+mn+' متسجل قبل كده — آخر بون نقدي '+(nextCashBonNo()-1)); g('dl-bon').focus(); return; }
     } else if(!EB){ const fm=window.__fillMissing; if(fm && !db.dailyLog.some(r=>bonNum(r)===fm)) g('dl-bon').value=fm; else if(!g('dl-bon').value.trim() && nextBonNo()!=='') g('dl-bon').value=nextBonNo();
         /* محمد 2026-11-21: أي رقم مش متسجل ينفع (البون اللي اتنسى يتسجل بعدين برقمه) — الممنوع بس رقم متسجل أو ملغي */
         const mn=bonNum({bon:g('dl-bon').value}); if(!isFinite(mn)){ alert('اكتب رقم البون'); g('dl-bon').focus(); return; }
@@ -11114,19 +11120,21 @@ function addDailyLog(e){
         if(old){ if(old.saleGroupId) removeSaleGroup(old.saleGroupId); try{ removeTipShare(old.id); }catch(x){} db.dailyLog = db.dailyLog.filter(r=>r.id!==EB.id); }
     }
     const sameAsOrig = EB && bonNum({bon})===bonNum({bon:EB.bon});
-    if(!sameAsOrig && bon && db.dailyLog.some(r=>bonNum(r)===bonNum({bon}) && isFinite(bonNum({bon}))) && !confirm('رقم البون ده مسجّل قبل كده. تكمّل وتسجّله تاني؟')) return;
+    if(!sameAsOrig && bon && db.dailyLog.some(r=>bonNum(r)===bonNum({bon}) && isFinite(bonNum({bon})) && (!dlIsCash() || r.paidCash)) && !confirm('رقم البون ده مسجّل قبل كده. تكمّل وتسجّله تاني؟')) return;
     const entry = {
         id:EB ? EB.id : newId(), date: g('dl-date').value || todayISO(), bon, client,
         tractor: g('dl-tractor').value.trim(), trailer: g('dl-trailer').value.trim(),
         project: g('dl-project').value || (db.projects[0]||{}).name || '',
         q, tip: Number(g('dl-tip').value)||0, price: g('dl-pay').value==='cash' ? (Number(g('dl-price').value)||0) : (EB ? (Number(EB.price)||0) : 0), /* محمد 2026-11-16: السعر للنقدي بس؛ الآجل بيتسعّر من كشف الحساب (البون الآجل القديم بيحتفظ بسعره) */
-        paidCash: g('dl-pay').value==='cash', notes: g('dl-notes').value.trim(),
+        paidCash: g('dl-pay').value==='cash', disc: g('dl-pay').value==='cash' ? (Number(g('dl-disc').value)||0) : 0, notes: g('dl-notes').value.trim(),
         worker: (g('dl-worker')?.value||''),
         cube: (g('dl-cube')?.value||'').trim(), /* محمد 2026-11-18: تكعيب البون ده بس — تعديله ما يغيرش باقي البونات ولا العربية */
         tabaqaPct: q.tabaqa ? (g('dl-tabaqa-pct').value==='custom' ? Math.min(100, Number(g('dl-tabaqa-pct-custom').value)||0) : (Number(g('dl-tabaqa-pct').value)||0)) : 0
     };
     entry.place = entry.project;
-    if(!__editSnap && !prepaidOk(client, bonQtyTotal(entry) * (entry.price || Number(lastClientPrice(client))||0))) return;
+    if(!entry.disc) delete entry.disc;
+    else if(!(entry.price>0) || entry.disc >= bonQtyTotal(entry)*entry.price){ alert('الخصم لازم يكون أقل من قيمة البون (الكمية × سعر المتر)'); g('dl-disc').focus(); return; }
+    if(!__editSnap && !prepaidOk(client, bonQtyTotal(entry) * (entry.price || Number(lastClientPrice(client))||0) - (entry.disc||0))) return;
     if(entry.price>0) entry.saleGroupId = postSaleForLog(entry);
     db.dailyLog.push(entry);
     postTipShare(entry);
@@ -11446,7 +11454,18 @@ function dlAutoPrice(){ return; /* محمد 2026-11-14 12:42: «حتة تثبت 
 }catch(e){} try{ dlPriceHint(); }catch(e){} }
 /* محمد 2026-11-14: «جنب تسجيل البونات سعر العميل ويسمّع في بوناته، على الشغل الجديد بس» — زرار تحت خانة السعر بيثبّت السعر المكتوب للعميل والصنف المختار (clients[].prices)، فالبونات الجاية تتملى بيه؛ البونات المسجلة ما بتتلمسش */
 /* محمد 2026-11-16: خانة سعر المتر في فورم البون بتظهر للنقدي بس */
-function dlPayToggle(){ try{ const b=document.getElementById('dl-price-box'), p=document.getElementById('dl-pay'); if(b&&p) b.style.display=p.value==='cash'?'':'none'; }catch(e){} }
+/* v1283 محمد 2026-11-27: «لما اختار نقدي يحول ع سيريال البونات النقدي ويعمل خصم ف النقدي» — النقدي ليه ترقيم لوحده (1، 2، … زي دفتر النقدي) وخانة خصم بتتطرح من قيمة البون */
+function dlIsCash(){ const p=document.getElementById('dl-pay'); return !!(p && p.value==='cash'); }
+function cashBonNums(){ return (db.dailyLog||[]).filter(r=>r.paidCash).map(bonNum).filter(n=>isFinite(n) && n<1000); }
+function nextCashBonNo(){ const ns=cashBonNums(); return ns.length ? Math.max(...ns)+1 : 1; }
+function cashBonUsed(n){ return (db.dailyLog||[]).some(r=>r.paidCash && bonNum(r)===n); }
+function dlSeriesNext(){ return dlIsCash() ? nextCashBonNo() : nextBonNo(); }
+function dlPayToggle(){ try{ const g=id=>document.getElementById(id), c=dlIsCash();
+    const b=g('dl-price-box'); if(b) b.style.display=c?'':'none';
+    const d=g('dl-disc-box'); if(d) d.style.display=c?'':'none';
+    const nb=g('dl-notes-box'); if(nb) nb.classList.toggle('col-span-2', !c);
+    const el=g('dl-bon'); if(el && !__editSnap && !window.__manualBon && !window.__fillMissing && (el.value==='' || el.value===el.dataset.auto)){ const nx=dlSeriesNext(); if(nx!==''){ el.value=nx; el.dataset.auto=String(nx); } }
+  }catch(e){} }
 document.addEventListener('DOMContentLoaded', ()=>{ try{ dlPayToggle(); }catch(e){} });
 function dlPriceHint(){ try{ const h=document.getElementById('dl-price-hint'); if(!h) return; const P=clientCodedPrices((document.getElementById('dl-client')||{}).value)||{}; const ks=[...(window.__dlSel||[])].filter(k=>Number(P[k])>0);
     h.textContent = ks.length ? 'سعر العميل المتثبت: '+ks.map(k=>((DL_SIZES.find(z=>z.key===k)||{}).label||k)+' '+nfmt(P[k])).join(' ، ') : ''; }catch(e){} }
@@ -11688,7 +11707,7 @@ function fillNextBon(){ const el = document.getElementById('dl-bon'); if(!el || 
     if(window.__manualBon) return;
     if(window.__fillMissing){ if((db.dailyLog||[]).some(r=>bonNum(r)===window.__fillMissing)){ window.__fillMissing=null; el.style.background=''; el.style.borderColor=''; } else { el.value=window.__fillMissing; return; } }
     /* محمد 2026-11-21: «لو نسيت البون 85 وكملت… يتسجل برقمه» — الخانة مفتوحة: الرقم المقترح آخر+1، وهو يقدر يكتب أي رقم مش متسجل. ما نكتبش فوق رقم هو كتبه بإيده */
-    const nx = nextBonNo(); el.readOnly = false;
+    const nx = dlSeriesNext(); el.readOnly = false;
     if(nx!=='' && (el.value==='' || el.value===el.dataset.auto)){ el.value = nx; el.dataset.auto = String(nx); } }
 function calcBons(){
     const g=id=>document.getElementById(id), box=g('bc-res'); if(!box) return;
@@ -12389,7 +12408,7 @@ function bonValue(r){
     if(r.saleGroupId){ const v = (db.sales||[]).filter(s=>(s.groupId||s.id)===r.saleGroupId).reduce((a,s)=>a+(Number(s.total)||0),0); if(v) return v; }
     if(r.total!=null) return Number(r.total)||0;
     /* محمد 2026-11-16 «نفذ»: من غير تقريب لكل بون — التقريب كان بيزوّد نص جنيه على كل بون كميته فيها .5 بسعر فردي */
-    return Math.round(DL_SIZES.reduce((a,s)=>a+(Number((r.q||{})[s.key])||0),0) * (Number(r.price)||0) * 100) / 100;
+    return Math.round((DL_SIZES.reduce((a,s)=>a+(Number((r.q||{})[s.key])||0),0) * (Number(r.price)||0) - (r.paidCash ? (Number(r.disc)||0) : 0)) * 100) / 100;
 }
 function bonQtyTotal(r){ return DL_SIZES.reduce((a,s)=>a+(Number((r.q||{})[s.key])||0),0); }
 function bonItemsText(r){ return DL_SIZES.filter(s=>Number((r.q||{})[s.key])>0).map(s=>`${s.label} ${nfmt(r.q[s.key])}`).join(' + '); }
@@ -13660,7 +13679,7 @@ function startEdit(kind, id){
         try{ renderShares(Array.isArray(r.shares) ? r.shares : sharedContractors().map(c=>c.name)); }catch(e){}
         setVal('dl-date', r.date); setVal('dl-bon', r.bon); { const be=document.getElementById('dl-bon'); if(be) be.readOnly=true; } setVal('dl-client', r.client); setVal('dl-tractor', r.tractor); setVal('dl-trailer', r.trailer); setVal('dl-worker', r.worker==='شغل الكسارة' ? 'الكسارة' : (r.worker||''));
         DL_SIZES.forEach(s=>setVal('dl-q-'+s.key, (r.q||{})[s.key]||''));
-        setVal('dl-tip', r.tip||''); setVal('dl-price', r.price||''); try{ document.getElementById('dl-price').dataset.touched=1; }catch(e){} setVal('dl-notes', r.notes||''); setVal('dl-pay', r.paidCash?'cash':'credit'); try{ dlPayToggle(); }catch(e){}
+        setVal('dl-tip', r.tip||''); setVal('dl-price', r.price||''); try{ document.getElementById('dl-price').dataset.touched=1; }catch(e){} setVal('dl-notes', r.notes||''); setVal('dl-pay', r.paidCash?'cash':'credit'); { const de=document.getElementById('dl-disc'); if(de) de.value=r.disc||''; } try{ dlPayToggle(); }catch(e){}
         const v = (db.vehicles||[]).find(x=>normPlate(x.plate)===normPlate(r.tractor)); setVal('dl-cube', (r.cube!=null && r.cube!=='') ? r.cube : (v&&v.cube||''));
         const pctSel = document.getElementById('dl-tabaqa-pct');
         if(pctSel){ const pv = String(r.tabaqaPct||''); if([...pctSel.options].some(o=>o.value===pv)) pctSel.value = pv; else { pctSel.value='custom'; setVal('dl-tabaqa-pct-custom', r.tabaqaPct); } pctSel.dispatchEvent(new Event('change')); }
