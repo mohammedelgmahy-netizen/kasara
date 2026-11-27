@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1285</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1286</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3872,7 +3872,7 @@ function dayBarMaker(cols){ let last=null; return date=>{ const d=String(date||'
 function accShort(n){ n=n||((db.accounts&&db.accounts[0]&&db.accounts[0].name)||''); return /درج/.test(n) ? 'الدرج' : (catLabel(n)==='المعلق' ? 'المعلق' : n); }
 /* v1284 محمد 2026-11-27 «شراء محجر مش موجود ف المصروفات»: البند مش في دليل البنود — بيظهر في شاشة المصروفات (زرار نوع + فلتر + السجل) عرض بس، من غير ما نضيف أو نغير أي حركة.
    «موالي محجر» 40,000 (1795000000300098) متسجلة غفرة وبتتعرض «شراء محجر» زي قائمة الدخل */
-const QUARRY_CAT='شراء محجر', QUARRY_IDS=[]; /* v1285: «موالي» رجع زي ما كان في شاشة المصروفات — محمد «انا قولتلك رجع موالي؟» */
+const QUARRY_CAT='شراء محجر', QUARRY_IDS=['1795000000300098']; /* v1286: محمد «احنا مش شيلنا موالي اصلاً… وخليناها شراء محجر ب 340000» — موالي محجر 40,000 جوه شراء محجر مش الغفرة */
 function expViewCat(x){ return (x && QUARRY_IDS.includes(String(x.id))) ? QUARRY_CAT : (x&&x.category); }
 function expCatsView(){ const L=(db.expenses||[]).filter(c=>c.name!=='إيراد'); if(!L.some(c=>c.name===QUARRY_CAT)) L.push({code:4099, name:QUARRY_CAT, plType:'operating', plBucket:'other_operating', nameType:'none', _virtual:true}); return L; }
 function catLabel(n){ return n==='مقاولين' ? 'أصحاب المعدات' : n==='معلق عماد ناجي' ? 'المعلق' : n; } // اسم العرض بس، البيانات زي ما هي
