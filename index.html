@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1286</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1287</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -4022,6 +4022,8 @@ window.onload = async function(){
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.ahplug1124){ clearInterval(t); return; } try{ await fixAhmedPlug1124Once(); }catch(e){} }, 15000); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.asaad1124){ clearInterval(t); return; } try{ await restoreAsaad1124Once(); }catch(e){} }, 15000); } /* لو الدخول/السحابة ما كانوش جاهزين وقت الفتح: يعيد المحاولة كل 15 ثانية لحد ما يتنفذ */
     try{ addMechCat1125Once(); }catch(e){ console.warn('mech1125', e); }
+    try{ addQuarryCat1127Once(); }catch(e){ console.warn('quarrycat1127', e); }
+    { const t=setInterval(()=>{ if(db && db.imports && db.imports.quarrycat1127){ clearInterval(t); return; } try{ addQuarryCat1127Once(); }catch(e){} }, 15000); }
     { const t=setInterval(()=>{ if(db && db.imports && db.imports.mech1125){ clearInterval(t); return; } try{ addMechCat1125Once(); }catch(e){} }, 15000); }
     try{ await moveMagdyAdv1125Once(); }catch(e){ console.warn('mechmove1125', e); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.mechmove1125){ clearInterval(t); return; } try{ await moveMagdyAdv1125Once(); }catch(e){} }, 15000); }
@@ -5469,6 +5471,18 @@ function mechSummaryHtml(name){ const C=mechCat()||{}, n=mechPerson(), today=tod
         car=end; });
       h+=`</table>`; }
     return h+`<div style="font-size:12px;color:#64748b;margin-top:3px">الشهر 24 يوم بمستحق ${nfmt(mechMonthly())}، ولما يتقفل الباقي بيترحّل.</div></div>`; }
+/* v1287 محمد 2026-11-27 «عاوز تبويب ف المصروف بإسم شراء محجر يسمع ف قائمة الدخل»: تبويب حقيقي في دليل الأكواد (مرة واحدة، من غير ما يلمس أي حركة).
+   أي مصروف يتسجل عليه بيطلع في سطر «شراء محجر» في قائمة الدخل جنب الـ340,000 */
+function addQuarryCat1127Once(){
+    if(!db || (db.imports&&db.imports.quarrycat1127)) return;
+    if(!Array.isArray(db.expenses) || !(db.dailyLog||[]).length) return;
+    if(typeof __cloudOK!=='undefined' && !__cloudOK) return;
+    if(!db.expenses.some(c=>c && c.name===QUARRY_CAT)){ const C={code:nextCode('expenses'), name:QUARRY_CAT, plType:'operating', plBucket:'other_operating', nameType:'none'};
+        db.expenses.push(C); try{ logAudit('create','دليل الأكواد (بأمر محمد)', 'تبويب جديد: شراء محجر', null, Object.assign({},C)); }catch(e){} }
+    if(!db.imports) db.imports={}; db.imports.quarrycat1127=true;
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    scheduleSave(); try{ renderAll(); }catch(e){}
+}
 /* بيتعمل مرة واحدة: البند نفسه في دليل الأكواد (من غير ما يلمس أي حركة قديمة) */
 function addMechCat1125Once(){
     if(!db || (db.imports&&db.imports.mech1125)) return;
