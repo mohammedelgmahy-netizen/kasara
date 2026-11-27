@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1283</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1284</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -3870,6 +3870,11 @@ function regAtKey(x){ const v=x&&x._at; return typeof v==='number'?new Date(v).t
 function regSortDesc(L, src){ const pos=new Map((src||L).map((x,i)=>[x,i])); return L.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')) || regAtKey(b).localeCompare(regAtKey(a)) || ((pos.get(b)??-1)-(pos.get(a)??-1))); }
 function dayBarMaker(cols){ let last=null; return date=>{ const d=String(date||''); if(d===last) return ''; last=d; return `<tr class="day-bar bg-cyan-100"><td colspan="${cols}" class="px-2 py-1 font-extrabold text-slate-800 text-xs">📅 ${d?(dayNameAr(d)+' '+dmy(d)):'من غير تاريخ'}</td></tr>`; }; }
 function accShort(n){ n=n||((db.accounts&&db.accounts[0]&&db.accounts[0].name)||''); return /درج/.test(n) ? 'الدرج' : (catLabel(n)==='المعلق' ? 'المعلق' : n); }
+/* v1284 محمد 2026-11-27 «شراء محجر مش موجود ف المصروفات»: البند مش في دليل البنود — بيظهر في شاشة المصروفات (زرار نوع + فلتر + السجل) عرض بس، من غير ما نضيف أو نغير أي حركة.
+   «موالي محجر» 40,000 (1795000000300098) متسجلة غفرة وبتتعرض «شراء محجر» زي قائمة الدخل */
+const QUARRY_CAT='شراء محجر', QUARRY_IDS=['1795000000300098'];
+function expViewCat(x){ return (x && QUARRY_IDS.includes(String(x.id))) ? QUARRY_CAT : (x&&x.category); }
+function expCatsView(){ const L=(db.expenses||[]).filter(c=>c.name!=='إيراد'); if(!L.some(c=>c.name===QUARRY_CAT)) L.push({code:4099, name:QUARRY_CAT, plType:'operating', plBucket:'other_operating', nameType:'none', _virtual:true}); return L; }
 function catLabel(n){ return n==='مقاولين' ? 'أصحاب المعدات' : n==='معلق عماد ناجي' ? 'المعلق' : n; } // اسم العرض بس، البيانات زي ما هي
 /* محمد 2026-11-13: عملاء «اتشالوا من البرنامج» — إخفاء من القوايم بس، حركاتهم وأرصدتهم محسوبة زي ما هي */
 const HIDE_CLIENTS = new Set(['حاتم ماهر','عماد ناجى']); /* م\\اسامه شلبى رجع ظاهر 2026-11-14: محمد «عليه 55,200» */
@@ -5184,9 +5189,9 @@ function initDropdowns(){
     fillSelect('filter-proc-supplier', db.suppliers, 'كل موردي قطع الغيار والسولار');
     fillSelect('filter-proc-item', db.supplies, 'كل الأصناف');
 
-    fillSelect('exp-category', db.expenses.filter(c=>c.name!=='إيراد'));
+    fillSelect('exp-category', expCatsView());
     fillSelect('exp-project', db.projects);
-    fillSelect('filter-exp-category', db.expenses.filter(c=>c.name!=='إيراد'), 'كل التبويبات');
+    fillSelect('filter-exp-category', expCatsView(), 'كل التبويبات');
     fillSelect('filter-exp-name', [...db.names, ...acctNames('person').filter(n=>!db.names.some(x=>x.name===n)).map(n=>({code:'',name:n})), ...db.clients], 'كل الأسماء');
 
     fillSelect('filter-coll-client', db.clients, 'كل العملاء');
@@ -5595,7 +5600,7 @@ function isWageCat(c){ if(c && c.code===4012) return false; /* «مصروف أج
 const EXP_MERGE={'مصروف إعاشة':'تشغيل الكسارة (سولار وصيانة)'};
 /* اسم بند تشغيل الكسارة زي ما محمد كاتبه في دليل الأكواد (كود 4001) — قائمة الدخل بتكتبه بالاسم ده (محمد 2026-11-25) */
 function crusherCatName(){ const c=(db.expenses||[]).find(e=>Number(e.code)===4001) || (db.expenses||[]).find(e=>/^\s*تشغيل\s+الكسار[ةه]/.test(e.name||'')); return (c&&c.name) || 'تشغيل الكسارة (سولار وصيانة)'; }
-function expTypes(){ try{ fixDupOps(); }catch(e){} let __ec=''; try{ __ec=(typeof __editSnap!=='undefined' && __editSnap) ? (document.getElementById('exp-category')||{}).value||'' : ''; }catch(e){} return (db.expenses||[]).filter(c=>c.name!=='إيراد' && c.name!==COM_CAT && !isWageCat(c) && !EXP_MERGE[c.name] && (c.code!==4012 || c.name===__ec) /* 1233: «أجور ومرتبات» اتشال من اختيارات المصروفات — الرواتب بتتسجل من تابها وبتدخل سطر الأجور في قائمة الدخل (محمد 2026-11-26) */).sort((x,y)=>x.code-y.code); }
+function expTypes(){ try{ fixDupOps(); }catch(e){} let __ec=''; try{ __ec=(typeof __editSnap!=='undefined' && __editSnap) ? (document.getElementById('exp-category')||{}).value||'' : ''; }catch(e){} return expCatsView().filter(c=>c.name!=='إيراد' && c.name!==COM_CAT && !isWageCat(c) && !EXP_MERGE[c.name] && (c.code!==4012 || c.name===__ec) /* 1233: «أجور ومرتبات» اتشال من اختيارات المصروفات — الرواتب بتتسجل من تابها وبتدخل سطر الأجور في قائمة الدخل (محمد 2026-11-26) */).sort((x,y)=>x.code-y.code); }
 function renderExpQuick(){
     const box=document.getElementById('exp-quick'); if(!box) return;
     const selC=document.getElementById('exp-category'); let cur=selC?.value||'';
@@ -5604,7 +5609,7 @@ function renderExpQuick(){
         return `<button type="button" onclick="pickExpType(${c.code})" class="px-3 py-2 rounded-xl text-sm font-bold border ${on?'bg-emerald-600 text-white border-emerald-600':'bg-white text-slate-700 border-slate-200 hover:bg-emerald-50'}">${esc(catLabel(c.name))}</button>`; }).join('');
 }
 function pickExpType(code){
-    const c=(db.expenses||[]).find(x=>x.code===code); if(!c) return;
+    const c=expCatsView().find(x=>x.code===code); if(!c) return;
     try{ const nt=document.getElementById('exp-notes'); /* البيان يفضل فاضي — محمد 2026-11-13 */ if(nt && nt.dataset.auto && nt.value===nt.dataset.auto){ nt.value=''; delete nt.dataset.auto; } }catch(e){}
     const sel=document.getElementById('exp-category'); sel.value=c.name; filterExpenseSubFields(); renderExpQuick();
     document.getElementById('exp-paid')?.focus();
@@ -6041,7 +6046,7 @@ function renderExpensesTable(){
 
     const rows = db.expensesData.filter(x=>{
         if(x.category==='إيراد') return false; // تحصيلات العملاء ليها سجلها الخاص تحت المبيعات
-        if(fc!=='ALL' && fc && x.category!==fc) return false;
+        if(fc!=='ALL' && fc && expViewCat(x)!==fc) return false;
         if(fn!=='ALL' && fn && x.name!==fn) return false;
         if(fFrom && x.date < fFrom) return false;
         if(fTo && x.date > fTo) return false;
@@ -6053,7 +6058,7 @@ function renderExpensesTable(){
     document.getElementById('tbody-expenses').innerHTML =
         rows.map(x=>`${dbar(x.date)}
         <tr class="border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onclick="if(!event.target.closest('button')) this.nextElementSibling.classList.toggle('hidden')">
-            <td class="p-3">${esc(catLabel(x.category))}</td>
+            <td class="p-3">${esc(catLabel(expViewCat(x)))}</td>
             <td class="p-3">${esc(x.name)}</td>
             <td class="p-3 font-bold">${x.executedValue ? fmt(x.executedValue) : fmt(x.paid)}</td>
             <td class="p-3">${fmt(x.paid)}${Number(x.paid)>0?`<div class="text-xs font-bold text-slate-500">${esc(accShort(x.account))}</div>`:''}</td>
