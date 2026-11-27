@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1287</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1288</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -4024,6 +4024,8 @@ window.onload = async function(){
     try{ addMechCat1125Once(); }catch(e){ console.warn('mech1125', e); }
     try{ addQuarryCat1127Once(); }catch(e){ console.warn('quarrycat1127', e); }
     { const t=setInterval(()=>{ if(db && db.imports && db.imports.quarrycat1127){ clearInterval(t); return; } try{ addQuarryCat1127Once(); }catch(e){} }, 15000); }
+    try{ addMagdyPay1128Once(); }catch(e){ console.warn('magdypay1128', e); }
+    { const t=setInterval(()=>{ if(db && db.imports && db.imports.magdypay1128){ clearInterval(t); return; } try{ addMagdyPay1128Once(); }catch(e){} }, 15000); }
     { const t=setInterval(()=>{ if(db && db.imports && db.imports.mech1125){ clearInterval(t); return; } try{ addMechCat1125Once(); }catch(e){} }, 15000); }
     try{ await moveMagdyAdv1125Once(); }catch(e){ console.warn('mechmove1125', e); }
     { const t=setInterval(async()=>{ if(db && db.imports && db.imports.mechmove1125){ clearInterval(t); return; } try{ await moveMagdyAdv1125Once(); }catch(e){} }, 15000); }
@@ -5473,6 +5475,22 @@ function mechSummaryHtml(name){ const C=mechCat()||{}, n=mechPerson(), today=tod
     return h+`<div style="font-size:12px;color:#64748b;margin-top:3px">الشهر 24 يوم بمستحق ${nfmt(mechMonthly())}، ولما يتقفل الباقي بيترحّل.</div></div>`; }
 /* v1287 محمد 2026-11-27 «عاوز تبويب ف المصروف بإسم شراء محجر يسمع ف قائمة الدخل»: تبويب حقيقي في دليل الأكواد (مرة واحدة، من غير ما يلمس أي حركة).
    أي مصروف يتسجل عليه بيطلع في سطر «شراء محجر» في قائمة الدخل جنب الـ340,000 */
+/* v1288 محمد 2026-11-28 «اعملي صرف ٥٠٠٠ لمجدي عبد الغني»: دفعة 5,000 على بند ميكانيكي الكسارة باسم مجدي عبد الغني يوم 28/11 من المعلق (الافتراضي).
+   بتتسجل مرة واحدة بـ id ثابت (لو اتسجلت من جهاز تاني ما تتكررش) — رصيده في دليل الأكواد (mechBalNow) بينزل لوحده. ولا رقم من أرقام مجدي الثابتة اتغير */
+function addMagdyPay1128Once(){
+    if(!db || (db.imports&&db.imports.magdypay1128)) return;
+    if(!Array.isArray(db.expensesData) || !(db.dailyLog||[]).length) return;
+    if(typeof __cloudOK!=='undefined' && !__cloudOK) return;
+    const C=mechCat(); if(!C) return;
+    const ID=1795900000001128;
+    if(!db.expensesData.some(x=>x && String(x.id)===String(ID))){
+        const E={id:ID, _at:new Date().toISOString(), _by:'المدير', date:'2026-11-28', category:C.name, activity:'', name:MECH_PERSON, project:'كسارة ديار', total:5000, paid:5000, remaining:0, account:SARI_ACC, notes:'صرف لمجدي عبد الغني', desc:'صرف لمجدي عبد الغني'};
+        db.expensesData.push(E); try{ logAudit('create','مصروف/إيراد (بأمر محمد)', `${E.category} - ${E.name}: 5000`, null, Object.assign({},E)); }catch(e){}
+    }
+    if(!db.imports) db.imports={}; db.imports.magdypay1128=true;
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){}
+    scheduleSave(); try{ renderAll(); }catch(e){}
+}
 function addQuarryCat1127Once(){
     if(!db || (db.imports&&db.imports.quarrycat1127)) return;
     if(!Array.isArray(db.expenses) || !(db.dailyLog||[]).length) return;
