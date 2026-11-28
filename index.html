@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1292</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1293</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -4788,7 +4788,7 @@ function masterBal(cat, it){
     const chip=(t,c)=>`<span class="text-xs font-extrabold px-2 py-0.5 rounded-full ${c} shrink-0">${t}</span>`;
     try{
         if(cat==='clients'){ const r=clientBalAt(it.name, todayISO()); /* نفس كشف الأرصدة والمركز المالي (محمد 2026-11-20) */ return Math.abs(r)<1?'':(r>0?chip('عليه '+mfmt(r),'bg-rose-50 text-rose-700'):chip('له '+mfmt(-r),'bg-emerald-50 text-emerald-700')); }
-        if(cat==='suppliers'){ const r=supBalAt(it.name, todayISO()); /* نفس كشف المورد والمركز المالي (محمد 2026-11-20) */ return Math.abs(r)<1?'':(r>0?chip('ليه '+mfmt(r),'bg-amber-50 text-amber-700'):chip('مدفوع مقدم '+mfmt(-r),'bg-sky-50 text-sky-700')); }
+        if(cat==='suppliers'){ const r=supBalAt(it.name, todayISO()); /* نفس كشف المورد والمركز المالي (محمد 2026-11-20) */ return Math.abs(r)<1?'':(r>0?chip('ليه '+mfmt(r),'bg-amber-50 text-amber-700'):chip('عليه '+mfmt(-r),'bg-rose-50 text-rose-700')); }
         if(cat==='contractors'){ const R=contractorStmtRows(it.name).rows; const b=R.length?R[R.length-1].bal:0; return Math.abs(b)<1?'':(b>0?chip('ليه '+mfmt(b),'bg-emerald-50 text-emerald-700'):chip('عليه '+mfmt(-b),'bg-rose-50 text-rose-700')); }
         if(cat==='accounts'){ return chip(mfmt(accBalance(it.name)),'bg-teal-50 text-teal-700'); }
         if(cat==='supplies'){ const b=itemStockBalance(it.name).balance; return b?chip(nfmt(b)+' '+(it.unit||''),'bg-slate-100 text-slate-700'):''; }
@@ -7017,7 +7017,7 @@ function recoData(D){ D=D||todayISO(); const r2=v=>Math.round((Number(v)||0)*100
         if(coded && diff(chip,bs)){ const {od:sOD}=supOpen(n); why.push(sOD ? `رصيد الدليل بيتحسب من غير الحساب القديم (افتتاحي ${dmy(sOD)}) وبيحسب الحركات اللي قبله — فرق ${f(chip-bs)}` : `فرق ${f(chip-bs)} بين الدليل والكشف`); }
         if(coded && diff(stmt,bs)) why.push(Math.abs(stmt-bs)<5 ? 'كسور تقريب (الكشف بيقرّب كل سطر)' : `فرق ${f(stmt-bs)} بين الكشف والمركز المالي`);
         return {n, coded, stmt, bs, chip, why, bad:why.length>0}; });
-    const sG={ title:'موردي قطع الغيار والسولار', unitP:'علينا ليهم', unitN:'مدفوع مقدم', places:[
+    const sG={ title:'موردي قطع الغيار والسولار', unitP:'علينا ليهم', unitN:'لينا عندهم', places:[
         {lbl:'كشف حساب الموردين (الإجمالي)', ...PN(SU,'stmt')},
         {lbl:'المركز المالي', p:lV('موردي قطع الغيار والسولار'), n:aV('دفعات مقدمة لموردي قطع الغيار والسولار')},
         {lbl:'ميزان المراجعة', ...(()=>{ const t=tbS('موردي قطع الغيار والسولار',['موردي قطع الغيار والسولار','دفعات مقدمة لموردي قطع الغيار والسولار']); return t?{p:t.n, n:t.p}:{p:null,n:null}; })()},
