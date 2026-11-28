@@ -15187,24 +15187,25 @@ function trvMark(){ const on='px-4 py-2 rounded-lg text-sm font-bold bg-rose-600
 <style id="lg-hub-css">/* v1294 أزرار كشف الحساب الكبيرة — عرض بس */
 #tab-ledger > .subnav-bar{display:none !important}
 .lg-hub{display:none}
-#tab-ledger.lg-home > .lg-hub{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+#tab-ledger.lg-home > .lg-hub{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 #tab-ledger.lg-home > .subpage,#tab-ledger.lg-home > .lg-back{display:none !important}
 #tab-ledger.lg-saved #acct-card{display:none !important}
-.lg-tile{background:#fff;border:2px solid var(--line-2,#d3dbe6) !important;border-top:6px solid var(--c) !important;border-radius:6px !important;padding:22px 10px 18px;min-height:170px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;cursor:pointer;font-family:inherit;color:var(--fg,#0b1520)}
+.lg-tile{background:#fff;border:1px solid var(--line-2,#d3dbe6) !important;border-right:5px solid var(--c) !important;border-radius:4px !important;padding:10px 12px;display:flex;flex-direction:row;align-items:center;gap:10px;text-align:right;cursor:pointer;font-family:inherit;color:var(--fg,#0b1520)}
 .lg-tile:hover{background:var(--od-t,#e6eff7);border-color:var(--od,#1f4b73) !important}
-.lg-tile .ic{font-size:44px;width:80px;height:80px;border-radius:50%;background:color-mix(in srgb,var(--c) 14%,#fff);display:flex;align-items:center;justify-content:center;line-height:1}
-.lg-tile .nm{font-weight:800;font-size:22px;line-height:1.3}
-.lg-tile .cn{font-size:16px;color:var(--muted,#4a5767);font-weight:700}
+.lg-tile .ic{font-size:24px;width:42px;height:42px;flex:0 0 42px;border-radius:50%;background:color-mix(in srgb,var(--c) 14%,#fff);display:flex;align-items:center;justify-content:center;line-height:1}
+.lg-tile .tx{display:flex;flex-direction:column;min-width:0}
+.lg-tile .nm{font-weight:800;font-size:17px;line-height:1.3}
+.lg-tile .cn{font-size:13px;color:var(--muted,#4a5767);font-weight:700}
 .lg-back{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.lg-back button{background:#fff;color:var(--od,#1f4b73);border:2px solid var(--od,#1f4b73) !important;padding:8px 18px;font-weight:800;font-size:18px;border-radius:4px !important}
+.lg-back button{background:#fff;color:var(--od,#1f4b73);border:2px solid var(--od,#1f4b73) !important;padding:6px 14px;font-weight:800;font-size:16px;border-radius:4px !important}
 .lg-back button:hover{background:var(--od-t,#e6eff7)}
-#lg-back-ttl{font-weight:800;font-size:20px;color:var(--fg,#0b1520)}
-@media (max-width:900px){#tab-ledger.lg-home > .lg-hub{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.lg-tile{min-height:140px;padding:16px 6px}.lg-tile .nm{font-size:19px}.lg-tile .ic{width:66px;height:66px;font-size:36px}.lg-back button{width:100%}}
+#lg-back-ttl{font-weight:800;font-size:18px;color:var(--fg,#0b1520)}
+@media (max-width:900px){#tab-ledger.lg-home > .lg-hub{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.lg-tile{padding:8px;gap:8px}.lg-tile .nm{font-size:15px}.lg-tile .cn{font-size:12px}.lg-tile .ic{width:36px;height:36px;flex-basis:36px;font-size:20px}}
 </style>
 <script>
 /* v1294 محمد 2026-11-28: تاب كشف الحساب بيفتح على أزرار كبيرة، وكل زرار بيفتح كشفه لوحده + زرار «الكشوفات المحفوظة». بيستعمل نفس أزرار الشريط القديم (اتخفى) — عرض بس، ولا رقم بيتغير */
 const LG_ITEMS=[['form','📄','كشف حساب العملاء','#4f46e5','كشف عميل بالفترة'],['log','👥','أرصدة العملاء','#0891b2','رصيد كل عميل'],['ppl','👷','حسابات الأفراد','#7c3aed','كشف كل فرد'],['bal','📋','كشف الأرصدة','#059669','لينا وعلينا'],['ctb','🚜','أصحاب المعدات','#d97706','ليهم وعليهم'],['saved','📁','الكشوفات المحفوظة','#475569','كشوفات العملاء المحفوظة']];
-function lgHubHtml(){ return LG_ITEMS.map(([k,ic,nm,c,cn])=>`<button type="button" class="lg-tile" style="--c:${c}" onclick="lgOpen('${k}')"><span class="ic">${ic}</span><span class="nm">${nm}</span><span class="cn">${cn}</span></button>`).join(''); }
+function lgHubHtml(){ return LG_ITEMS.map(([k,ic,nm,c,cn])=>`<button type="button" class="lg-tile" style="--c:${c}" onclick="lgOpen('${k}')"><span class="ic">${ic}</span><span class="tx"><span class="nm">${nm}</span><span class="cn">${cn}</span></span></button>`).join(''); }
 function lgHome(){ try{ const t=document.getElementById('tab-ledger'), h=document.getElementById('lg-hub'); if(!t||!h) return; h.innerHTML=lgHubHtml(); t.classList.remove('lg-saved'); t.classList.add('lg-home'); const m=document.querySelector('main'); if(m){ m.style.overflowY=''; m.scrollTop=0; } try{ deskFix(); }catch(e){} }catch(e){ console.warn(e); } }
 function lgOpen(k){ try{ const t=document.getElementById('tab-ledger'); if(!t) return; const it=LG_ITEMS.find(x=>x[0]===k)||LG_ITEMS[0];
     document.getElementById(k==='saved'?'subnav-ledger-form':'subnav-ledger-'+k)?.click();
