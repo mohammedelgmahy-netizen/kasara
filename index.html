@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1290</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1291</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -4668,7 +4668,7 @@ function renderMasterData(){
     [...Object.keys(MASTER_META), 'persons'].forEach(cat=>{
         const dbCat = cat==='persons' ? 'names' : cat;
         const src = cat==='persons' ? (db.names||[]) : cat==='names' ? [] : (db[cat]||[]); // الأفراد = الموظفين (محمد 2026-11-08): قائمة واحدة
-        const items = [...src].filter(it=>!(cat==='persons' && isCommPerson(it))).filter(it=>!(cat==='expenses' && it.name==='إيراد')).filter(it=>!(cat==='clients' && clientHidden(it.name))).filter(it=>textMatch([it.name, it.code], term)).sort((a,b)=>a.code-b.code);
+        const items = [...src].filter(it=>!(cat==='persons' && isCommPerson(it))).filter(it=>!(cat==='expenses' && it.name==='إيراد')).filter(it=>!(cat==='clients' && clientHidden(it.name))).filter(it=>!(cat==='suppliers' && Number(it.code)===3012)) /* v1291 محمد 2026-11-28: «سيارة المياه» (3012) مخفي من دليل الأكواد بس — بياناته وحركاته وأرقامه زي ما هي */.filter(it=>textMatch([it.name, it.code], term)).sort((a,b)=>a.code-b.code);
         const rowOf = it=>{
             let badge = '';
             let contractLine = '';
