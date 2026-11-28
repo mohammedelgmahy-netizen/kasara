@@ -578,7 +578,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
             <button onclick="switchTab('investors')" id="btn-investors" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
                 <i class="fa-solid fa-coins nav-ic" style="--c:#f97316"></i><span>توزيع أرباح الشركاء</span>
             </button>
-            <button onclick="switchTab('ledger')" id="btn-ledger" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
+            <button onclick="switchTab('ledger');lgHome()" id="btn-ledger" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
                 <i class="fa-solid fa-file-invoice nav-ic" style="--c:#6366f1"></i><span>كشف الحساب</span>
             </button>
                         <button onclick="switchTab('audit')" id="btn-audit" style="display:none" class="tab-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white">
@@ -593,7 +593,7 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
         </div>
         <div class="p-4 border-t border-slate-800 flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-user-tie"></i></div>
-            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1293</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
+            <div><p class="text-xs font-bold text-slate-200">أ. محمد</p><p class="text-[10px] text-slate-500">Financial Accountant · <span id="app-version-lbl" style="display:none">1294</span><span class="text-emerald-400 font-bold">الإصدار 1</span><!-- محمد 2026-11-13: الترقيم بدأ من 1. الرقم المخفي = 1000 + رقم الإصدار (فحص التحديث التلقائي بيقارن بيه، ولازم يفضل أكبر من 266 عشان الأجهزة القديمة تتحدث) --></p></div>
         </div>
     </aside>
 
@@ -2035,6 +2035,9 @@ body > header .hdr-actions > button#exit-btn:hover{background:#b91c1c !important
                 <button type="button" id="subnav-ledger-ctb" class="subnav-btn" onclick="switchSub('ledger','ctb')">🚜 أصحاب المعدات (ليهم وعليهم)</button>
                 <button type="button" id="subnav-ledger-cx" class="subnav-btn" style="display:none" onclick="switchSub('ledger','cx')">🧾 مستخلص عميل</button>
             </div>
+            <!-- v1294 محمد 2026-11-28 «كل واحد زرار كبير يفتح ببياناته لوحده» + «زرار بالكشوفات المحفوظة»: التاب بيفتح على أزرار كبيرة (عرض بس) -->
+            <div id="lg-hub" class="lg-hub"></div>
+            <div id="lg-back" class="lg-back"><button type="button" onclick="lgHome()">→ رجوع للكشوفات</button><span id="lg-back-ttl"></span></div>
             <div id="sub-ledger-ctb" class="subpage"><div class="bg-white rounded-xl border border-slate-200 shadow-sm p-3"><div id="ctb-tools" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px"></div><div id="ctb-body" style="overflow-x:auto"></div></div></div>
             <div id="sub-ledger-bal" class="subpage"><div class="bg-white rounded-xl border border-slate-200 shadow-sm p-3"><div id="bals-tools" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px"></div><div id="bals-body" style="overflow-x:auto"></div></div></div>
             <div id="sub-ledger-cx" class="subpage">
@@ -15108,7 +15111,7 @@ function dfxClear(keep){ document.querySelectorAll('[data-dfx]').forEach(x=>{ if
     const s=document.getElementById('sub-ledger-form'); if(s && s!==keep && s.classList.contains('dfx-sc')){ s.classList.remove('dfx-sc'); s.style.height=''; } }
 function deskFix(){ try{
     const m=document.querySelector('main'), t=document.querySelector('main .tab-content.active'); document.body.classList.toggle('dfx', dfxDesk());
-    if(!m||!t||!dfxDesk() || ['home','pl','bs','dashboard'].includes(t.id.replace('tab-',''))){ dfxClear(); return false; }
+    if(!m||!t||!dfxDesk() || ['home','pl','bs','dashboard'].includes(t.id.replace('tab-','')) || t.classList.contains('lg-home')){ dfxClear(); return false; }
     const sub=t.querySelector(':scope > .subpage.active'), page=sub||t, mr=m.getBoundingClientRect(), pb=parseFloat(getComputedStyle(m).paddingBottom)||0, bottom=mr.bottom-pb-2;
     if(sub && sub.id==='sub-ledger-form'){ dfxClear(sub); t.style.zoom=''; m.scrollTop=0; m.style.overflowY='hidden';
         sub.classList.add('dfx-sc'); const h=Math.floor(bottom-sub.getBoundingClientRect().top); sub.style.height=Math.max(260,h)+'px'; return true; }
@@ -15180,6 +15183,40 @@ function trvMark(){ const on='px-4 py-2 rounded-lg text-sm font-bold bg-rose-600
     if(v==='sari'){ ['cd-card','tr-card','dp-card'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; }); ['journal','statement','daypage'].forEach(k=>{ const x=document.getElementById('trv-btn-'+k); if(x) x.className=off; }); } }
 { const _t=setTreasuryView; setTreasuryView=function(v){ if(v==='sari' && dfxDesk()){ _t.call(this,'journal'); window.__trView='sari'; trvMark(); setTimeout(()=>{ try{ fitPage(); }catch(e){} },30); return; } const r=_t.apply(this,arguments); trvMark(); setTimeout(()=>{ try{ fitPage(); }catch(e){} },30); return r; };
   window.addEventListener('load',()=>setTimeout(trvDesk,50)); window.addEventListener('resize',()=>setTimeout(trvDesk,40)); }
+</script>
+<style id="lg-hub-css">/* v1294 أزرار كشف الحساب الكبيرة — عرض بس */
+#tab-ledger > .subnav-bar{display:none !important}
+.lg-hub{display:none}
+#tab-ledger.lg-home > .lg-hub{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+#tab-ledger.lg-home > .subpage,#tab-ledger.lg-home > .lg-back{display:none !important}
+#tab-ledger.lg-saved #acct-card{display:none !important}
+.lg-tile{background:#fff;border:2px solid var(--line-2,#d3dbe6) !important;border-top:6px solid var(--c) !important;border-radius:6px !important;padding:22px 10px 18px;min-height:170px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;cursor:pointer;font-family:inherit;color:var(--fg,#0b1520)}
+.lg-tile:hover{background:var(--od-t,#e6eff7);border-color:var(--od,#1f4b73) !important}
+.lg-tile .ic{font-size:44px;width:80px;height:80px;border-radius:50%;background:color-mix(in srgb,var(--c) 14%,#fff);display:flex;align-items:center;justify-content:center;line-height:1}
+.lg-tile .nm{font-weight:800;font-size:22px;line-height:1.3}
+.lg-tile .cn{font-size:16px;color:var(--muted,#4a5767);font-weight:700}
+.lg-back{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.lg-back button{background:#fff;color:var(--od,#1f4b73);border:2px solid var(--od,#1f4b73) !important;padding:8px 18px;font-weight:800;font-size:18px;border-radius:4px !important}
+.lg-back button:hover{background:var(--od-t,#e6eff7)}
+#lg-back-ttl{font-weight:800;font-size:20px;color:var(--fg,#0b1520)}
+@media (max-width:900px){#tab-ledger.lg-home > .lg-hub{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.lg-tile{min-height:140px;padding:16px 6px}.lg-tile .nm{font-size:19px}.lg-tile .ic{width:66px;height:66px;font-size:36px}.lg-back button{width:100%}}
+</style>
+<script>
+/* v1294 محمد 2026-11-28: تاب كشف الحساب بيفتح على أزرار كبيرة، وكل زرار بيفتح كشفه لوحده + زرار «الكشوفات المحفوظة». بيستعمل نفس أزرار الشريط القديم (اتخفى) — عرض بس، ولا رقم بيتغير */
+const LG_ITEMS=[['form','📄','كشف حساب العملاء','#4f46e5','كشف عميل بالفترة'],['log','👥','أرصدة العملاء','#0891b2','رصيد كل عميل'],['ppl','👷','حسابات الأفراد','#7c3aed','كشف كل فرد'],['bal','📋','كشف الأرصدة','#059669','لينا وعلينا'],['ctb','🚜','أصحاب المعدات','#d97706','ليهم وعليهم'],['saved','📁','الكشوفات المحفوظة','#475569','كشوفات العملاء المحفوظة']];
+function lgHubHtml(){ return LG_ITEMS.map(([k,ic,nm,c,cn])=>`<button type="button" class="lg-tile" style="--c:${c}" onclick="lgOpen('${k}')"><span class="ic">${ic}</span><span class="nm">${nm}</span><span class="cn">${cn}</span></button>`).join(''); }
+function lgHome(){ try{ const t=document.getElementById('tab-ledger'), h=document.getElementById('lg-hub'); if(!t||!h) return; h.innerHTML=lgHubHtml(); t.classList.remove('lg-saved'); t.classList.add('lg-home'); const m=document.querySelector('main'); if(m){ m.style.overflowY=''; m.scrollTop=0; } try{ deskFix(); }catch(e){} }catch(e){ console.warn(e); } }
+function lgOpen(k){ try{ const t=document.getElementById('tab-ledger'); if(!t) return; const it=LG_ITEMS.find(x=>x[0]===k)||LG_ITEMS[0];
+    document.getElementById(k==='saved'?'subnav-ledger-form':'subnav-ledger-'+k)?.click();
+    t.classList.remove('lg-home'); t.classList.toggle('lg-saved', k==='saved');
+    if(k==='saved'){ try{ renderClientStmts(); }catch(e){} }
+    const ttl=document.getElementById('lg-back-ttl'); if(ttl) ttl.textContent=it[1]+' '+it[2];
+    const m=document.querySelector('main'); if(m) m.scrollTop=0; setTimeout(()=>{ try{ deskFix(); }catch(e){} },30); }catch(e){ console.warn(e); } }
+(function(){ /* أي فتح للكشف من مكان تاني (بحث، تنبيه، كشف مجدي…) بيفتح الكشف على طول من غير الأزرار */
+    const oSS=window.switchSub, oST=window.switchTab;
+    if(typeof oSS==='function') window.switchSub=switchSub=function(tab,which){ const r=oSS.apply(this,arguments); if(tab==='ledger'){ const t=document.getElementById('tab-ledger'); if(t){ t.classList.remove('lg-home','lg-saved'); const it=LG_ITEMS.find(x=>x[0]===which), ttl=document.getElementById('lg-back-ttl'); if(ttl&&it) ttl.textContent=it[1]+' '+it[2]; } } return r; };
+    if(typeof oST==='function') window.switchTab=switchTab=function(tabId){ const r=oST.apply(this,arguments); if(tabId==='ledger'){ const t=document.getElementById('tab-ledger'), ttl=document.getElementById('lg-back-ttl'); if(t) t.classList.remove('lg-home','lg-saved'); const a=t&&t.querySelector(':scope > .subpage.active'), it=a&&LG_ITEMS.find(x=>'sub-ledger-'+x[0]===a.id); if(ttl&&it) ttl.textContent=it[1]+' '+it[2]; } return r; };
+})();
 </script>
 </body>
 </html>
